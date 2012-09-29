@@ -1,6 +1,8 @@
 Open Bank Project README
 
-This file needs updating.
+This file only contains some notes regarding setup.
+(A vagrant setup is in progress)
+
 
 The project is using sbt or Maven 2 as a build tool.
 See build.scala or pom.xml respectively for the dependencies.
