@@ -205,29 +205,6 @@ class Boot extends Loggable{
     S.addAround(DB.buildLoanWrapper)
     
     TableSorter.init
-    
-    HostedBank.find("name", "POSTBANK") match {
-      case Full(bank) => println("Post bank found")
-      case _ =>{ 
-        println("Post bank not found")
-          HostedBank.createRecord.name("POSTBANK").permalink("postbank").save
-      }
-    }
-    HostedBank.find("name", "GLS") match {
-      case Full(bank) => println("GLS found")
-      case _ =>{ 
-        println("GLS not found")
-          HostedBank.createRecord.name("GLS").permalink("gls").save
-      }
-    }    
-    HostedBank.find("name", "Banco do Brasil S/A") match {
-      case Full(bank) => println("Banco do Brasil S/A found")
-      case _ =>{ 
-        println("Banco do Brasil S/A not found")
-          HostedBank.createRecord.name("Banco do Brasil S/A").permalink("banco-do-brasil").save
-      }
-    }
-
 
     /**
      * A temporary measure to make sure there is an owner for the account, so that someone can set permissions
