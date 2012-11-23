@@ -36,7 +36,7 @@ import http._
 import sitemap._
 import Loc._
 import mapper._
-import code.model.dataAccess.{MongoConfig,OBPUser,Privilege,Account, MongoDBLocalStorage, HostedAccount}
+import code.model.dataAccess.{MongoConfig,OBPUser,Privilege,Account,HostedBank, MongoDBLocalStorage, HostedAccount}
 import code.model.{Nonce, Consumer, Token}
 import code.model.traits.{Bank, View, ModeratedTransaction}
 import code.model.implementedTraits.{BankImpl, Anonymous, View}
@@ -206,6 +206,29 @@ class Boot extends Loggable{
     
     TableSorter.init
     
+    HostedBank.find("name", "POSTBANK") match {
+      case Full(bank) => println("Post bank found")
+      case _ =>{ 
+        println("Post bank not found")
+          HostedBank.createRecord.name("POSTBANK").permalink("postbank").save
+      }
+    }
+    HostedBank.find("name", "GLS") match {
+      case Full(bank) => println("GLS found")
+      case _ =>{ 
+        println("GLS not found")
+          HostedBank.createRecord.name("GLS").permalink("gls").save
+      }
+    }    
+    HostedBank.find("name", "Banco do Brasil S/A") match {
+      case Full(bank) => println("Banco do Brasil S/A found")
+      case _ =>{ 
+        println("Banco do Brasil S/A not found")
+          HostedBank.createRecord.name("Banco do Brasil S/A").permalink("banco-do-brasil").save
+      }
+    }
+
+
     /**
      * A temporary measure to make sure there is an owner for the account, so that someone can set permissions
      */

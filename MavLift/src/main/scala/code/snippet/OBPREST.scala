@@ -81,10 +81,24 @@ import java.util.Date
 
   object OBPRest extends RestHelper with Loggable {
 
-	val dateFormat = ModeratedTransaction.dateFormat
-	
+	  val dateFormat = ModeratedTransaction.dateFormat
+    private def getUser(httpCode : Int, tokenID : Box[String]) : Box[OBPUser] = 
+    if(httpCode==200)
+    {
+      import code.model.Token
+      Token.find(By(Token.key, tokenID.get)) match {
+        case Full(token) => OBPUser.find(By(OBPUser.id, token.userId))
+        case _ => Empty   
+      }         
+    }
+    else 
+      Empty	
+    
     serve("obp" / "v1.0" prefix {
       case bankAlias :: "accounts" :: accountAlias :: "transactions" :: viewName :: Nil JsonGet json => {
+        import code.snippet.OAuthHandshake._
+        val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
+        val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
 
         def asInt(s: Box[String], default: Int): Int = {
           s match {
@@ -123,26 +137,23 @@ import java.util.Date
           } else Nil
         }
         
-        def getUser() : Box[OBPUser] = {
-          None //TODO: Implement oAuth
-        }
-        
+
         val transactions = for {
           b <- bankAccount
           v <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
-        } yield getTransactions(b, v, getUser())
+        } yield getTransactions(b, v, getUser(httpCode,oAuthParameters.get("oauth_token")))
         
         transactions match {
           case Full(t) => t
-          case _ => NotFoundResponse("no account found")
+          case _ => InMemoryResponse(data, headers, Nil, 401)
         }
       }
       
       case bankPermalink :: "accounts" :: Nil JsonGet json => {
-
-        def getUser() : Box[User] = {
-          None
-        }
+        import code.snippet.OAuthHandshake._
+        val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
+        val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
+        val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
         
         def bankAccountSet2JsonResponse(bankAccounts: Set[BankAccount]): LiftResponse = {
           
@@ -163,7 +174,7 @@ import java.util.Date
           }
            
           val accJson = bankAccounts.map(bAcc => {
-            val views = bAcc.permittedViews(getUser())
+            val views = bAcc.permittedViews(user)
             ("number" -> bAcc.number) ~
               ("account_alias" -> bAcc.label) ~
               ("owner_description" -> "") ~
@@ -172,12 +183,41 @@ import java.util.Date
           })
           JsonResponse(("accounts" -> accJson))
         }
+        Bank(bankPermalink) match {
+          case Full(bank) => 
+          {
+            val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
+            if(availableAccounts.size!=0)
+              bankAccountSet2JsonResponse(availableAccounts) 
+            else
+              InMemoryResponse(data, headers, Nil, httpCode)
+          }
+          case _ =>  {
+            val error = "bank " + bankPermalink + " not found"
+            InMemoryResponse(error.getBytes(), headers, Nil, 404)
+          }
+        }
+      }
+      
+      case "banks" :: Nil JsonGet json => {
+        val banks = Bank.all
         
-    	for {
-    	  bank <- Bank(bankPermalink) ?~ { "bank " + bankPermalink + " not found"}
-    	  publicAccounts <- Full(bank.accounts.filter(_.allowAnnoymousAccess))
-    	} yield bankAccountSet2JsonResponse(publicAccounts)
-    	
+        def linkJson(bank: Bank) = {
+          ("rel" -> "bank") ~
+          ("href" -> {"/" + bank.permalink + "/bank"}) ~
+          ("method" -> "GET") ~
+          ("title" -> {"Get information about the bank identified by " + bank.permalink})
+        }
+        
+        def banksJson: List[JObject] = {
+          banks.map(bank => {
+            ("alias" -> bank.permalink) ~
+            ("name" -> bank.name) ~
+            ("logo" -> "") ~
+            ("links" -> linkJson(bank))
+          })
+        }
+        JsonResponse("banks" -> banksJson)
       }
     })
 

@@ -251,6 +251,7 @@ class Privilege extends LongKeyedMapper[Privilege] with CreatedUpdated{
           OrderBy(Privilege.account, Ascending)){
             case privilege: Privilege => HostedAccount.find(privilege.account.is) match {
               case Full(hosted) => Full(hosted.id.is -> (hosted.bank + " - "+ hosted.name + " - " + hosted.number) )
+              case _ => Empty
             } 
           }
         case _ => List()
@@ -319,7 +320,7 @@ class HostedAccount extends LongKeyedMapper[HostedAccount] {
       case _ => "" 
     }
     def bank : String = theAccount match {
-      case Full(account) => account.bankName.get
+      case Full(account) => account.bankName
       case _ => ""
     }
     def number : String = theAccount match {

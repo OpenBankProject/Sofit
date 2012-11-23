@@ -36,6 +36,9 @@ import net.liftweb.json.JsonDSL._
 import net.liftweb.common.Loggable
 import code.model.dataAccess.OBPEnvelope.OBPQueryParam
 import net.liftweb.mapper.By
+import net.liftweb.mongodb.MongoDB
+import com.mongodb.BasicDBList
+import java.util.ArrayList
 
 object LocalStorage extends MongoDBLocalStorage
 
@@ -131,19 +134,14 @@ class MongoDBLocalStorage extends LocalStorage {
       }
   }
 
-  def getBank(permalink: String): Box[Bank] = {
-    /**
-     * As banks are not actually represented anywhere in the system as a single object (yet?), but are rather more
-     * abstract entities referenced by permalink in transactions and accounts, we can't just as the data store
-     * for a bank by permalink.
-     * 
-     * Until a bank model is defined (and I suggest this doesn't happen until we have a nice interface for CRUD ops on banks
-     *  as mucking around with the database manually isn't worth the time IMO -E.S.), this hacky way of doing things will apply:
-     * 
-     */
-    val accountForBank = Account.find("bankPermalink", permalink)
-    accountForBank.map(acc => new BankImpl("", acc.bankName.get))
-  }
+  def getBank(permalink: String): Box[Bank] = 
+    HostedBank.find("permalink", permalink).
+      map( bank => new BankImpl(bank.id.toString, bank.name.get, permalink))
+  
+  
+  def allBanks : List[Bank] = 
+  HostedBank.findAll.
+    map(bank => new BankImpl(bank.id.toString, bank.name.get, bank.permalink.get))
   
   def getBankAccounts(bank: Bank): Set[BankAccount] = {
     val rawAccounts = Account.findAll("bankName", bank.name).toSet

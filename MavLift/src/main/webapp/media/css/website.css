@@ -384,7 +384,7 @@ table.management th {
 }
 
 table.management th.account {
-	width: 195px;
+	width: 155px;
 }
 
 table.management td.account {
@@ -422,7 +422,7 @@ table.management td.website {
 }
 
 table.management th.information {
-	width: 230px;
+	width: 200px;
 }
 
 table.management td.information {
@@ -551,4 +551,19 @@ div#addCommentbloc
 	margin-top: 5px;
 	font-size: 13px;
 	display: block;	 
+}
+#account_details 
+{
+	margin-bottom: 25px;
+}
+a#feedBack
+{
+	display: block;
+	position: fixed;
+	left:0;
+	top: 50%;
+	width: 26px;
+	height: 87px;
+	background: url(../images/feedback-button.gif);
+	cursor: pointer;
 }
