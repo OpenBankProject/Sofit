@@ -158,6 +158,8 @@ class Boot extends Loggable{
           	submenus(Privilege.menus : _*),
           Menu.i("OAuth") / "oauth" / "authorize", //OAuth authorization page            
           
+          Menu.i("Account Registration") / "registration", 
+
           Menu.i("Banks") / "banks", //no test => list of open banks
           //list of open banks (banks with a least a bank account with an open account)
           Menu.param[Bank]("Bank", "bank", LocalStorage.getBank _ ,  bank => bank.id ) / "banks" / * ,

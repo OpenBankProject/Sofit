@@ -105,6 +105,11 @@
       <version>6.1.25</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpg-jdk15</artifactId>
+      <version>1.46</version>
+    </dependency>   
     <!-- for LiftConsole -->
     <dependency>
       <groupId>org.scala-lang</groupId>

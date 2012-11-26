@@ -567,3 +567,7 @@ a#feedBack
 	background: url(../images/feedback-button.gif);
 	cursor: pointer;
 }
+span#registrationDetails
+{
+	font-size: 10px;
+}
