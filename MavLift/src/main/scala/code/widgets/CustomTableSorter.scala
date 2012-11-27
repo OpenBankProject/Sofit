@@ -1,7 +1,8 @@
 /**
  * The difference between this and lift's TableSorter.scala is that this one will use a text extractor function that
  * will search a td for an element with class "text" and use that to sort on. This allows for markup in a td rather than
- * just plain strings. Requires jquery.
+ * just plain strings. Requires jquery. If no "text" class is found in the table, it will just use the table cell element's innerHTML to
+ * sort on.
  * 
  */
 
@@ -120,7 +121,7 @@ object CustomTableSorter {
     val jSSortList = JsArray( sortList.map{ case (index, sorting) => JsArray(index,sorting.id)}:_*)  
     val widgetsArr = JsArray ( widgets.map( Str(_) ):_* )
     "{" + "sortList:" + jSSortList.toJsCmd + ",headers:" + jsHeaders.toJsCmd + ",widgets:" + widgetsArr.toJsCmd  + ",textExtraction:" +
-    	"""function(node){alert($(node).html());alert($(node).find(".text").first().html());return $(node).find(".text").first().html();}""" + "}"
+    	"""function(node){var sortOn = $(node).find(".text").first().html(); return sortOn? sortOn : node.innerHTML}""" + "}"
   }
   
   //Convenience versions of the options method that provide default values for all the arguments.
