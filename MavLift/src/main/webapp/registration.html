@@ -27,9 +27,8 @@ Open Bank Project (http://www.openbankproject.com)
 -->
 
 <div id="main" class="lift:surround?with=default;at=content">
-	<div class="lift:AccountRegistration.render">
-		
-		<form action="/registration" methond="post" id="submitAccount" class="lift:AccountRegistration" >
+	<div class="lift:AccountRegistration.renderForm">
+		<form action="/registration" method="post" id="submitAccount" >
 			<TABLE>
 				<tbody>
 					<tr>
@@ -40,9 +39,12 @@ Open Bank Project (http://www.openbankproject.com)
 							<label for="bankList">Bank</label>
 						</td>
 						<td>
-							<select id="bankList">
-								<option id="01"> post bank</option>
-							</select>
+							<span id="bankListCol">
+								<select>
+									<option id="01"> post bank</option>
+								</select>
+							</span>
+							<span class="lift:Msg?id=bankError&errorClass=error">error</span>
 						</td>
 					</tr>	
 					<tr>
@@ -50,7 +52,10 @@ Open Bank Project (http://www.openbankproject.com)
 							<label for="accountNumber">Account Number</label>
 						</td>
 						<td>
-							<input type="text" name="accountNumber" id="accountNumber"/>
+							<span id="accountNumberCol">
+								<input type="text" name="accountNumber" id="accountNumber" />
+							</span>
+							<span class="lift:Msg?id=accountNumberError&errorClass=error">error</span>							
 						</td>
 					</tr>
 					<tr>
@@ -58,7 +63,10 @@ Open Bank Project (http://www.openbankproject.com)
 							<label for="accountPIN">PIN code</label>
 						</td>
 						<td>
-							<input type="password" name="accountPIN" id="accountPIN"/>
+							<span id="accountPINCol">
+								<input type="password" name="accountPIN" id="accountPIN" />
+							</span>
+							<span class="lift:Msg?id=accountPINError&errorClass=error">error</span>										
 						</td>
 					</tr>
 					<tr>
@@ -72,7 +80,7 @@ Open Bank Project (http://www.openbankproject.com)
 						<td>
 						</td>
 						<td>
-							<input type="submit" value="submit"	/>	
+							<input type="submit" value="Submit"	/>	
 						</td>
 					</tr>															
 				</tbody>

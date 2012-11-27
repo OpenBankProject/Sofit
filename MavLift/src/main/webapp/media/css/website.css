@@ -571,3 +571,7 @@ span#registrationDetails
 {
 	font-size: 10px;
 }
+span.error
+{
+	color:red;
+}
