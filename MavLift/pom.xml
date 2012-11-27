@@ -107,7 +107,7 @@
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
-      <artifactId>bcpg-jdk15</artifactId>
+      <artifactId>bcpg-jdk16</artifactId>
       <version>1.46</version>
     </dependency>   
     <!-- for LiftConsole -->
@@ -152,6 +152,13 @@
 <type>pom</type>
 </dependency>
 
+<!-- <dependency>
+  <groupId>pgpencryption</groupId>
+  <artifactId>1</artifactId>
+  <version>1.46</version>
+  <scope>system</scope>
+  <systemPath>${project.basedir}/lib/pgp.jar</systemPath>
+</dependency> -->
 
 
 
@@ -159,7 +166,7 @@
   </dependencies>
 
   <build>
-    <sourceDirectory>src/main/scala</sourceDirectory>
+    <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>src/test/scala</testSourceDirectory>
     <plugins>
       <plugin>

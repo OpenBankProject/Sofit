@@ -7,6 +7,7 @@ import net.liftweb.util.CssSel
 import net.liftweb.util.Helpers._
 import net.liftweb.http.SHtml 
 import net.liftweb.http.S
+import code.pgp.PgpEncryption
 
 class AccountRegistration {
 	def renderForm = {
