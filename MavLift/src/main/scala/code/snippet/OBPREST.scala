@@ -81,10 +81,24 @@ import java.util.Date
 
   object OBPRest extends RestHelper with Loggable {
 
-	val dateFormat = ModeratedTransaction.dateFormat
-	
+	  val dateFormat = ModeratedTransaction.dateFormat
+    private def getUser(httpCode : Int, tokenID : Box[String]) : Box[OBPUser] = 
+    if(httpCode==200)
+    {
+      import code.model.Token
+      Token.find(By(Token.key, tokenID.get)) match {
+        case Full(token) => OBPUser.find(By(OBPUser.id, token.userId))
+        case _ => Empty   
+      }         
+    }
+    else 
+      Empty	
+    
     serve("obp" / "v1.0" prefix {
       case bankAlias :: "accounts" :: accountAlias :: "transactions" :: viewName :: Nil JsonGet json => {
+        import code.snippet.OAuthHandshake._
+        val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
+        val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
 
         def asInt(s: Box[String], default: Int): Int = {
           s match {
@@ -123,26 +137,22 @@ import java.util.Date
           } else Nil
         }
         
-        def getUser() : Box[OBPUser] = {
-          None //TODO: Implement oAuth
-        }
-        
         val transactions = for {
           b <- bankAccount
           v <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
-        } yield getTransactions(b, v, getUser())
+        } yield getTransactions(b, v, getUser(httpCode,oAuthParameters.get("oauth_token")))
         
         transactions match {
           case Full(t) => t
-          case _ => NotFoundResponse("no account found")
+          case _ => InMemoryResponse(data, headers, Nil, 401)
         }
       }
       
       case bankPermalink :: "accounts" :: Nil JsonGet json => {
-
-        def getUser() : Box[User] = {
-          None
-        }
+        import code.snippet.OAuthHandshake._
+        val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
+        val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
+        val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
         
         def bankAccountSet2JsonResponse(bankAccounts: Set[BankAccount]): LiftResponse = {
           
@@ -163,7 +173,7 @@ import java.util.Date
           }
            
           val accJson = bankAccounts.map(bAcc => {
-            val views = bAcc.permittedViews(getUser())
+            val views = bAcc.permittedViews(user)
             ("number" -> bAcc.number) ~
               ("account_alias" -> bAcc.label) ~
               ("owner_description" -> "") ~
@@ -172,12 +182,20 @@ import java.util.Date
           })
           JsonResponse(("accounts" -> accJson))
         }
-        
-    	for {
-    	  bank <- Bank(bankPermalink) ?~ { "bank " + bankPermalink + " not found"}
-    	  publicAccounts <- Full(bank.accounts.filter(_.allowAnnoymousAccess))
-    	} yield bankAccountSet2JsonResponse(publicAccounts)
-    	
+        Bank(bankPermalink) match {
+          case Full(bank) => 
+          {
+            val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
+            if(availableAccounts.size!=0)
+              bankAccountSet2JsonResponse(availableAccounts) 
+            else
+              InMemoryResponse(data, headers, Nil, httpCode)
+          }
+          case _ =>  {
+            val error = "bank " + bankPermalink + " not found"
+            InMemoryResponse(error.getBytes(), headers, Nil, 404)
+          }
+        }
       }
       
       case "banks" :: Nil JsonGet json => {
@@ -198,11 +216,9 @@ import java.util.Date
             ("links" -> linkJson(bank))
           })
         }
-        
         JsonResponse("banks" -> banksJson)
       }
     }
-
     )
 
     serve {
@@ -374,107 +390,6 @@ import java.util.Date
           case _ => InternalServerErrorResponse()
         }
       }
-      /*
-      returns the anonymous view automatically.
-      For the moment the is only one account so there is no check to do 
-      before returning the Json
-    */
-      case Req("api" :: "accounts" :: "tesobe" :: "anonymous" :: Nil, _, GetRequest) =>
-        {
-          val allEnvelopes = OBPEnvelope.findAll(QueryBuilder.start().get)
-          val envelopeJson = allEnvelopes.map(envelope =>
-            envelope.asMediatedJValue("accessLevel"))
-          Full(JsonResponse(envelopeJson))
-        }
-      /*
-      return a JSon of all the transactions.
-      requires an OAuth token as authentication mechanism. 
-    */
-      case Req("api" :: "accounts" :: "tesobe" :: accessLevel :: Nil, _, GetRequest) =>
-        {
-          //check if the accessLeve required already exists 
-          def doesTheViewExists(accessLevel: String): Boolean =
-            {
-              /* 
-            for the moment the number of views is limited this why 
-            they are hard coded. The work on 'dataAbstraction' branch 
-            will avoid this kind of verification. 
-          */
-              val currentExistingViews = List("anonymous", "our-network", "team",
-                "board", "my-view")
-              currentExistingViews.contains(accessLevel)
-            }
-          //check of the token authorize the application to have access 
-          //to accessLevel
-          def doesTheTokenHasAccess(accessLevel: String, tokenID: String): Boolean =
-            {
-              import code.model.dataAccess.{ Account, Privilege }
-              //check if the privileges of the user authorize if to access
-              // to the access level
-              def doesTheUserHasAccess(accessLevel: String, user: OBPUser): Boolean =
-                {
-
-                  Account.find(("holder", "Music Pictures Limited")) match {
-                    case Full(account) => if (accessLevel == "anonymous")
-                      account.anonAccess.is
-                    else
-                      HostedAccount.find(By(HostedAccount.accountID, account.id.toString)) match {
-                        case Full(hostedAccount) =>
-                          Privilege.find(By(Privilege.account, hostedAccount), By(Privilege.user, user.id)) match {
-                            case Full(privilege) => privilegeCheck(accessLevel, privilege)
-                            case _ => false
-                          }
-                        case _ => false
-                      }
-                    case _ => false
-                  }
-                }
-
-              //due to the actual privilege mechanism : the access level (API) 
-              //and the privilege of the account are stored differently 
-              //So the function do the match 
-              def privilegeCheck(accessLevel: String, privilege: Privilege): Boolean =
-                if (accessLevel == "my-view")
-                  privilege.ownerPermission.is
-                else if (accessLevel == "our-network")
-                  privilege.ourNetworkPermission.is
-                else if (accessLevel == "team")
-                  privilege.teamPermission.is
-                else if (accessLevel == "board")
-                  privilege.boardPermission.is
-                else
-                  false
-
-              import code.model.Token
-              Token.find(By(Token.key, tokenID)) match {
-                case Full(token) => OBPUser.find(By(OBPUser.id, token.userId)) match {
-                  case Full(user) =>
-                    doesTheUserHasAccess(accessLevel, user)
-                  case _ => false
-                }
-                case _ => false
-              }
-            }
-
-          import code.snippet.OAuthHandshake._
-          val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
-          //Extract the OAuth parameters from the header and test if the request is valid
-          var (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")
-          //Test if the view exists and the OAuth request is valid
-          if (doesTheViewExists(accessLevel) && httpCode == 200) {
-            //check that the token gives access to the required view
-            if (doesTheTokenHasAccess(accessLevel, oAuthParameters.get("oauth_token").get)) {
-              val allEnvelopes = OBPEnvelope.findAll(QueryBuilder.start().get)
-              val envelopeJson = allEnvelopes.map(envelope =>
-                envelope.asMediatedJValue(accessLevel))
-              Full(JsonResponse(envelopeJson))
-            } else
-              Full(InMemoryResponse(data, headers, Nil, 401))
-          } else if (!doesTheViewExists(accessLevel) && httpCode == 200)
-            Full(InMemoryResponse(data, headers, Nil, 404))
-          else
-            Full(InMemoryResponse(data, headers, Nil, httpCode))
-        }
     }
   }
 } 
