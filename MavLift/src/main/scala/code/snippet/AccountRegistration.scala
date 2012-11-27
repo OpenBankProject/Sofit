@@ -24,6 +24,7 @@ class AccountRegistration {
 					if( !accountNumber.isEmpty & !accountPIN.isEmpty & bankId!="0")
 					{
 						println("--> all the parameters are corrects")
+//						PgpEncryption.encryptToFile()
 						//encryte the file
 					}
 					else
