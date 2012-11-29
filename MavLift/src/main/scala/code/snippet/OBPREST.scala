@@ -106,7 +106,6 @@ import java.util.Date
             case _ => default
           }
         }
-        val bankAccount = BankAccount(bankAlias, accountAlias)
         val limit = asInt(json.header("obp_limit"), 50)
         val offset = asInt(json.header("obp_offset"), 0)
         /**
@@ -138,12 +137,12 @@ import java.util.Date
         }
         
         val transactions = for {
-          b <- bankAccount
-          v <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
-        } yield getTransactions(b, v, getUser(httpCode,oAuthParameters.get("oauth_token")))
+          bankAccount <- BankAccount(bankAlias, accountAlias)
+          view <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
+        } yield getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
         
         transactions match {
-          case Full(t) => t
+          case Full(ts) => ModeratedTransaction.moderatedTransactions2Json(ts)
           case _ => InMemoryResponse(data, headers, Nil, 401)
         }
       }

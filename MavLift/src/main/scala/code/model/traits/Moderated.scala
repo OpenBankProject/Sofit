@@ -84,19 +84,19 @@ object ModeratedTransaction {
   
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
   
-  implicit def dateOption2JString(date: Option[Date]) : JString = {
+  def dateOption2JString(date: Option[Date]) : JString = {
     JString(date.map(d => dateFormat.format(d)) getOrElse "")
   }
   
-  implicit def moderatedTransaction2Json(mTransaction: ModeratedTransaction) : JObject = {
+  def moderatedTransaction2Json(mTransaction: ModeratedTransaction) : JObject = {
     ("uuid" -> mTransaction.id) ~
     ("this_account" -> mTransaction.bankAccount) ~
     ("other_account" -> mTransaction.otherBankAccount) ~
     ("details" -> 
     	("type_en" -> mTransaction.transactionType) ~ //TODO: Need translations for transaction types and a way to
     	("type_de" -> mTransaction.transactionType) ~ // figure out what language the original type is in
-    	("posted" -> mTransaction.startDate) ~
-    	("completed" -> mTransaction.finishDate) ~
+    	("posted" -> dateOption2JString(mTransaction.startDate)) ~
+    	("completed" -> dateOption2JString(mTransaction.finishDate)) ~
     	("new_balance" -> 
     		("currency" -> mTransaction.currency.getOrElse("")) ~ //TODO: Need separate currency for balances and values?
     		("amount" -> mTransaction.balance)) ~
@@ -105,8 +105,8 @@ object ModeratedTransaction {
     		("amount" -> mTransaction.amount)))
   }
   
-  implicit def moderatedTransactions2Json(mTransactions: List[ModeratedTransaction]) : LiftResponse = {
-    JsonResponse(("transactions" -> mTransactions))
+  def moderatedTransactions2Json(mTransactions: List[ModeratedTransaction]) : LiftResponse = {
+    JsonResponse(("transactions" -> mTransactions.map(moderatedTransaction2Json)))
   }
 }
 
