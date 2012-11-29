@@ -32,7 +32,9 @@ Open Bank Project (http://www.openbankproject.com)
 			<TABLE>
 				<tbody>
 					<tr>
-						<td colspan="2" >Please fill in all the fields of the formular so we can add your bank account. * </td>
+						<td colspan="2" >
+							Please complete the information below so we can connect to your bank account. 
+							<a href="#registrationDetails"> *</a> </td>
 					</tr>
 					<tr>
 						<td>
@@ -46,33 +48,96 @@ Open Bank Project (http://www.openbankproject.com)
 							</span>
 							<span class="lift:Msg?id=bankError&errorClass=error">error</span>
 						</td>
-					</tr>	
+					</tr>
 					<tr>
 						<td>
 							<label for="accountNumber">Account Number</label>
 						</td>
 						<td>
 							<span id="accountNumberCol">
-								<input type="text" name="accountNumber" id="accountNumber" />
+								<input type="text" />
 							</span>
 							<span class="lift:Msg?id=accountNumberError&errorClass=error">error</span>							
 						</td>
-					</tr>
+					</tr>					
 					<tr>
 						<td>
 							<label for="accountPIN">PIN code</label>
 						</td>
 						<td>
 							<span id="accountPINCol">
-								<input type="password" name="accountPIN" id="accountPIN" />
+								<input type="password" />
 							</span>
 							<span class="lift:Msg?id=accountPINError&errorClass=error">error</span>										
+						</td>
+					</tr>					
+					<tr>
+						<td>
+							<label for="accountName">Account Name / Alias</label>
+							<img src="/media/images/moreInfo.png" title="The alias will be used to determine the account URL" 
+								alt="more info" class="moreInfoIcon"/> 
+						</td>
+						<td>
+							<span id="accountNameCol">
+								<input type="text" />
+							</span>
+							<span class="lift:Msg?id=accountNameError&errorClass=error">error</span>							
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for="accountHolder">Holder Name</label>
+							<img src="/media/images/moreInfo.png" title="The personne who owns the account" 
+								alt="more info" class="moreInfoIcon"/> 
+						</td>
+						<td>
+							<span id="accountHolderCol">
+								<input type="text" />
+							</span>
+							<span class="lift:Msg?id=accountHolderError&errorClass=error">error</span>							
+						</td>
+					</tr>											
+					<tr>
+						<td>
+							<label for="accountLabel">Label</label>
+							<img src="/media/images/moreInfo.png" title="The label will be shown on the top of each page" 
+								alt="more info" class="moreInfoIcon"/> 
+						</td>
+						<td>
+							<span id="accountLabelCol">
+								<input type="text" />
+							</span>
+							<span class="lift:Msg?id=accountLabelError&errorClass=error">error</span>							
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for="accountKind">Account Kind</label>
+							<img src="/media/images/moreInfo.png" title="current, checking, saving,etc." 
+								alt="more info" class="moreInfoIcon"/> 
+						</td>
+						<td>
+							<span id="accountKindCol">
+								<input type="text" />
+							</span>
+							<span class="lift:Msg?id=accountKindError&errorClass=error">error</span>							
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Public view
+							<img src="/media/images/moreInfo.png" title="Do you want to allow a public view on your account ?" 
+								alt="more info" class="moreInfoIcon"/> 
+						</td>
+						<td>
+							<span id="publicViewCol"></span>
+							<span class="lift:Msg?id=publicViewError&errorClass=error">error</span>										
 						</td>
 					</tr>
 					<tr>
 						<td colspan="2" >
 							<span id="registrationDetails">
-								(*) : Your PIN code and all your bank details will be securely encrypted. We are committed to preserve your privacy and never disclose your data.
+								(*) : Your PIN code will be securely encrypted. We will not disclose your login data to anyone.
 							</span>
 						</td>
 					</tr>						
