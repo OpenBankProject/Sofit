@@ -579,3 +579,13 @@ img.moreInfoIcon
 {
 	margin-left: 5px;
 }
+span#submissionSuccess, span#submissionFailed
+{
+	display: block;
+	padding: 15px 20px;
+	background: #66ee55;
+}
+span#submissionFailed 
+{
+	background: #ff3311;
+}

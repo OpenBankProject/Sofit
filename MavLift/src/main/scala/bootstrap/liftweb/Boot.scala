@@ -48,6 +48,7 @@ import net.liftweb.util.Schedule
 import net.liftweb.mongodb.BsonDSL._
 import code.model.dataAccess.LocalStorage
 import code.model.traits.BankAccount
+import net.liftweb.http.js.jquery.JqJsCmds
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -96,6 +97,9 @@ class Boot extends Loggable{
     //lunch the scheduler to clean the database from the expired tokens and nonces
     Schedule.schedule(()=> OAuthHandshake.dataBaseCleaner, 2 minutes)   
 
+    LiftRules.noticesEffects.default.set((notice: Box[NoticeType.Value], id: String) => { 
+              Full(JqJsCmds.FadeOut(id, 2 seconds, 2 seconds)) 
+      }) 
 
     def check(bool: Boolean) : Box[LiftResponse] = {
       if(bool){
