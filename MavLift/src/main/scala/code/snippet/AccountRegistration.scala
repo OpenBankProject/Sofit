@@ -47,9 +47,9 @@ class AccountRegistration {
 				def check() = 
 					//check that all the parameters are here
 					if( !accountNumber.is.isEmpty & !accountPIN.is.isEmpty 		& 
-							!bankName.is.isEmpty 			& !accountHolder.is.isEmpty &
+							!accountName.is.isEmpty		& !accountHolder.is.isEmpty &
 							!accountKind.is.isEmpty 	& ! accountLabel.is.isEmpty &
-							!accountName.is.isEmpty )
+							bankName.is != "Choose a Bank" )
 					{
 						var reponceText = ""
 						var reponceId 	= "" 
@@ -99,12 +99,21 @@ class AccountRegistration {
 									reponceId 	= "submissionFailed"	
 								}								
 							}
-						//clear the values
+						//set the fields to their default values
+						bankName.set("Choose a Bank")
+						accountNumber.set("")
+						accountPIN.set("")
+						publicAccess.set(false)
+						accountHolder.set("")
+						accountKind.set("")
+						accountLabel.set("")
+						accountName.set("")				
+						//return a message		
 						S.notice("submissionMessage", SHtml.span(Text(reponceText), Noop,("id",reponceId)))
 					}
 					else
 					{
-						if(bankName.is.isEmpty)
+						if(bankName.is == "Choose a Bank")
 							S.error("bankError","Bank not selected ! ")							
 						if(accountNumber.is.isEmpty)
 							S.error("accountNumberError","Account Number Empty ! ")
