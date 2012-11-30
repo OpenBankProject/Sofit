@@ -49,7 +49,7 @@ import net.liftweb.mongodb.BsonDSL._
 import code.model.dataAccess.LocalStorage
 import code.model.traits.BankAccount
 import net.liftweb.http.js.jquery.JqJsCmds
-
+import javax.mail.{ Authenticator, PasswordAuthentication }
 /**
  * A class that's instantiated early and run.  It allows the application
  * to modify lift's environment
@@ -100,7 +100,7 @@ class Boot extends Loggable{
     LiftRules.noticesEffects.default.set((notice: Box[NoticeType.Value], id: String) => { 
               Full(JqJsCmds.FadeOut(id, 2 seconds, 2 seconds)) 
       }) 
-
+    
     def check(bool: Boolean) : Box[LiftResponse] = {
       if(bool){
         Empty

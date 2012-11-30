@@ -1,7 +1,7 @@
 package code.snippet
 
 import code.model.dataAccess.{OBPUser,HostedBank}
-import net.liftweb.common.{Full,Box,Empty}
+import net.liftweb.common.{Full,Box,Empty,Failure}
 import scala.xml.NodeSeq
 import net.liftweb.util.CssSel
 import net.liftweb.util.Helpers._
@@ -11,9 +11,11 @@ import code.pgp.PgpEncryption
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.Noop
 import scala.xml.Text
+import net.liftweb.util.Mailer
+import Mailer._
+import net.liftweb.common.Loggable
 
-
-class AccountRegistration {
+class AccountRegistration extends Loggable {
   
 	private object bankName 			extends RequestVar("")
 	private object accountNumber 	extends RequestVar("")
@@ -53,36 +55,12 @@ class AccountRegistration {
 					{
 						var reponceText = ""
 						var reponceId 	= "" 
+						val fileName = bankName.is+"-"+accountNumber.is+"-"+user.emailAddress
 						for{
 								//load the public key and output directory path
 								publicKey 						<- Props.get("publicKeyPath")
 								outputFilesDirectory 	<- Props.get("outputFilesDirectory")
 						}yield tryo{
-								import java.io._
-
-								//prepare the data to be stored in a clear file 
-								val data = List(
-										"bank name : " 			+ bankName.is,
-										"account number : " + accountNumber.is,
-										"account name : "		+ accountName.is,
-										"account holder : "	+	accountHolder.is,
-										"account label : " 	+ accountLabel.is,
-										"account kind : " 	+	accountKind.is,
-										"public view : "		+ publicAccess.is.toString
-									)
-								//file name convention
-								val fileName = bankName.is+"-"+accountNumber.is+"-"+user.emailAddress
-								
-								//this method stores list of string into a file
-								def stringToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
-								  val p = new java.io.PrintWriter(f)
-								  try { op(p) } finally { p.close() }
-								}
-								//save the data 
-								stringToFile(new File(outputFilesDirectory+"/"+fileName+".info"))(p => {
-								  data.foreach(p.println)
-								})
-
 								//store the Pin code into an encrypted file
 								PgpEncryption.encryptToFile(	
 									accountPIN.is,
@@ -90,7 +68,34 @@ class AccountRegistration {
 									outputFilesDirectory+"/"+fileName+".pin")
 							} match {
 								case Full(encryptedPin) => {
-									//send email
+									//send an email to the administration so we can setup the account
+									//prepare the data to be sent into the email body
+									val emailBody = 
+											"The following account needs to activated : "		+"\n"+
+											"bank name : " 			+ bankName.is 							+"\n"+
+											"account number : " + accountNumber.is 					+"\n"+
+											"account name : "		+ accountName.is 						+"\n"+
+											"account holder : "	+	accountHolder.is 					+"\n"+
+											"account label : " 	+ accountLabel.is 					+"\n"+
+											"account kind : " 	+	accountKind.is 						+"\n"+
+											"public view : "		+ publicAccess.is.toString	+"\n"+
+											"The PIN code is in this file : "+ outputFilesDirectory+"/"+fileName+".pin"+"\n"									
+									val accountNotificationemails = Props.get("accountNotificationemails") match {
+										case Full(emails) => emails.split(",",0)
+										case _ => Array()
+									}
+									
+									tryo {
+										accountNotificationemails.foreach ( email => 
+											Mailer.sendMail(From("noreply@tesobe.com"),Subject("Bank account Activation"),
+											         To(email),PlainMailBodyType(emailBody)) 
+										)
+									} match {
+								    case Failure(message, exception, chain) =>
+								      logger.error("problem while sending email: " + message)
+								    case _ =>
+								      logger.info("successfully sent email")
+								  }
 									reponceText = "Submission succeded. You will receive an email notification once the bank account will be setup by the administrator."
 									reponceId 	= "submissionSuccess"
 								}
@@ -108,7 +113,7 @@ class AccountRegistration {
 						accountKind.set("")
 						accountLabel.set("")
 						accountName.set("")				
-						//return a message		
+						//return a message	
 						S.notice("submissionMessage", SHtml.span(Text(reponceText), Noop,("id",reponceId)))
 					}
 					else
