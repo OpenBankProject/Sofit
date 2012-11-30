@@ -567,3 +567,29 @@ a#feedBack
 	background: url(../images/feedback-button.gif);
 	cursor: pointer;
 }
+span#registrationDetails
+{
+	font-size: 10px;
+}
+span.error
+{
+	color:red;
+}
+img.moreInfoIcon
+{
+	margin-left: 5px;
+}
+span#submissionMessage
+{
+	display: block;
+}
+span#submissionSuccess, span#submissionFailed
+{
+	display: block;
+	padding: 15px 20px;
+	background: #66ee55;
+}
+span#submissionFailed 
+{
+	background: #ff3311;
+}
