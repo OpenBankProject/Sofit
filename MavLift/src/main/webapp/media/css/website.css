@@ -96,10 +96,9 @@ input.submit {
 }
 
 #about_text {
+	float : left;
 	text-align: left;
-	width: 600px;
-	margin-left: auto;
-	margin-right: auto;
+	width: 500px;
 	margin-top: 15px;
 }
 
@@ -501,7 +500,7 @@ span.edit_error_class {
 	border-radius: 8px 8px 8px 8px;
 	padding: 10px 10px 20px 10px;
 	margin-top: 20px;
-	margin-right: 80px;
+	margin-right: 20px;
 	float: left;
 }
 
