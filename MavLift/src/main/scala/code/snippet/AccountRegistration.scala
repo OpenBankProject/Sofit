@@ -30,8 +30,8 @@ class AccountRegistration extends Loggable {
 		OBPUser.currentUser match {
 			case Full(user) => {
 				//load the suported banks list from the database  
-				val banks 				= "Choose a Bank" :: HostedBank.findAll.map(_.name.get) 
-				val options 			= Map("yes" -> true,"no" -> false)
+				val banks 			= "Choose a Bank" :: HostedBank.findAll.map(_.name.get) 
+				val options 		= Map("yes" -> true,"no" -> false)
 				val optionsSwaped	= options.map{_.swap}
 
 				//get a boolean value from a 'yes' or 'no' string
@@ -48,13 +48,13 @@ class AccountRegistration extends Loggable {
 					
 				def check() = 
 					//check that all the parameters are here
-					if( !accountNumber.is.isEmpty & !accountPIN.is.isEmpty 		& 
-							!accountName.is.isEmpty		& !accountHolder.is.isEmpty &
-							!accountKind.is.isEmpty 	& ! accountLabel.is.isEmpty &
+					if( !accountNumber.is.isEmpty 	& !accountPIN.is.isEmpty 		& 
+							!accountName.is.isEmpty	& !accountHolder.is.isEmpty &
+							!accountKind.is.isEmpty & ! accountLabel.is.isEmpty &
 							bankName.is != "Choose a Bank" )
 					{
-						var reponceText = ""
-						var reponceId 	= "" 
+						var reponceText = "Submission Failed. Please try later."
+						var reponceId 	= "submissionFailed" 
 						val fileName = bankName.is+"-"+accountNumber.is+"-"+user.emailAddress
 						for{
 								//load the public key and output directory path
@@ -99,10 +99,7 @@ class AccountRegistration extends Loggable {
 									reponceText = "Submission succeded. You will receive an email notification once the bank account will be setup by the administrator."
 									reponceId 	= "submissionSuccess"
 								}
-								case _ => {
-									reponceText = "Submission Failed. Please try later."
-									reponceId 	= "submissionFailed"	
-								}								
+								case _ => //nothing to do the text and Id are allready set					
 							}
 						//set the fields to their default values
 						bankName.set("Choose a Bank")
