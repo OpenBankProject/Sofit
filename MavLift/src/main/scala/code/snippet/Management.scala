@@ -37,7 +37,7 @@ import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JsCmds.Noop
 import net.liftweb.common.Full
 import net.liftweb.common.Empty
-import net.liftweb.widgets.tablesorter.{TableSorter, DisableSorting, Sorting, Sorter}
+import code.widgets.tableSorter.{CustomTableSorter, DisableSorting, Sorting, Sorter}
 import net.liftweb.http.js.JsCmd
 
 class Management(currentAccount : Account) {
@@ -45,10 +45,10 @@ class Management(currentAccount : Account) {
   val headers = (0, Sorter("text")) :: (5, DisableSorting()) :: (6, DisableSorting()) :: Nil
   val sortList = (0, Sorting.ASC) :: Nil
   
-  val options = TableSorter.options(headers, sortList)
+  val options = CustomTableSorter.options(headers, sortList)
   
   def tableSorter(xhtml: NodeSeq) : NodeSeq = {
-    TableSorter("#other_acc_management", options)
+    CustomTableSorter("#other_acc_management", options)
   }
   
   def showAll(xhtml: NodeSeq) : NodeSeq = {

@@ -11,21 +11,26 @@ import code.model.implementedTraits.Board
 import code.model.implementedTraits.Authorities
 import code.model.implementedTraits.Team
 import code.model.implementedTraits.OurNetwork
+import net.liftweb.http.SHtml
+import scala.xml.Text
+import net.liftweb.http.js.JsCmds.Noop
 
 class AccountsOverview {
 
   def publicAccounts = {
     //TODO: In the future once we get more bank accounts we will probably want some sort of pagination or limit on the number of accounts displayed
     val publicAccounts = BankAccount.publicAccounts.sortBy(acc => acc.label)
-    ".accountList" #> publicAccounts.map(acc => {
-      ".accLink *" #> acc.label &
-      //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
-      ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Anonymous.permalink } 
-    })
+    if(publicAccounts.size == 0)
+      ".accountList" #> "No public accounts"
+    else  
+      ".accountList" #> publicAccounts.map(acc => {
+        ".accLink *" #> acc.label &
+        //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
+        ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Anonymous.permalink } 
+      })
   }
   
   def authorisedAccounts = {
-    
     def loggedInSnippet(user: User) = {
       val accountsWithMoreThanAnonAccess = user.accountsWithMoreThanAnonAccess.toList.sortBy(acc => acc.label)
       ".accountList" #> accountsWithMoreThanAnonAccess.map(acc => {
@@ -47,7 +52,7 @@ class AccountsOverview {
     }
     
     def loggedOutSnippet = {
-      "#authorised_accounts" #> ""
+      ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg")) 
     }
     
     OBPUser.currentUser match {

@@ -57,7 +57,7 @@ class Login {
       ".login [action]" #> OBPUser.loginPageURL &
       ".forgot [href]" #> {
         val href = for {
-          menu <- OBPUser.resetPasswordMenuLoc
+          menu <- OBPUser.lostPasswordMenuLoc
         } yield menu.loc.calcDefaultHref
         href getOrElse "#"
       } & {
