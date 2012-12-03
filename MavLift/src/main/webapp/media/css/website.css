@@ -80,7 +80,7 @@ input.submit {
 	background: transparent url(../images/header.png) repeat-x 50% 100%;
 }
 
-#accountName {
+#accountShortDiscription {
 	font-size: 20px;
 	display: inline-block;
 }
@@ -96,10 +96,12 @@ input.submit {
 }
 
 #about_text {
-	float : left;
-	text-align: left;
+	text-align: justify;
 	width: 500px;
 	margin-top: 15px;
+	float: left;
+	margin-left: 20px;
+	margin-right: 20px;
 }
 
 #nav ul {
@@ -494,23 +496,13 @@ span.edit_error_class {
 	float : right;
 }
 
-#public_accounts {
+#public_accounts, #authorised_accounts {
 	background: #FAFAFA;
-	width: 230px;
+	width: 200px;
 	border-radius: 8px 8px 8px 8px;
 	padding: 10px 10px 20px 10px;
 	margin-top: 20px;
-	margin-right: 20px;
 	float: left;
-}
-
-#authorised_accounts {
-	background: #FAFAFA;
-	width: 230px;
-	border-radius: 8px 8px 8px 8px;
-	padding: 10px 10px 20px 10px;
-	margin-top: 20px;
-	float: right;
 }
 
 #homeContent {
@@ -591,4 +583,8 @@ span#submissionSuccess, span#submissionFailed
 span#submissionFailed 
 {
 	background: #ff3311;
+}
+span#accountsMsg
+{
+	font-size: 13px;
 }

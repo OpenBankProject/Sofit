@@ -28,13 +28,15 @@ Open Bank Project (http://www.openbankproject.com)
 
 <div id="main" class="lift:surround?with=default;at=content">
 	<div id="homeContent">
-		<div id="public_accounts" class="lift:AccountsOverview.publicAccounts">
+		<div id="public_accounts">
 			<h2 class="account_header">Public Accounts</h2>
-			<ul class="accountList">
-				<li class="account"><a class="accLink" href="">Account Name</a>
-				</li>
-			</ul>
-		</div>		
+			<div class="lift:AccountsOverview.publicAccounts">
+				<ul class="accountList">
+					<li class="account"><a class="accLink" href="">Account Name</a>
+					</li>
+				</ul>
+			</div>	
+		</div>	
     	<div id="about_text">
 			<p>
 				Welcome to The Open Bank Project’s Social Finance web application.
@@ -44,13 +46,13 @@ Open Bank Project (http://www.openbankproject.com)
 				The Social Finance application (a.k.a. Transparency application) allows
 				bank account holders to choose with whom they would like to share their
 				transaction data. For instance, an individual might share their bank
-				account with their accountant; a company with their directors or
+				account with their accountant; a company with their directors and/or
 				shareholders; an NGO or government department with the public.
 			</p>
 			<br />
 			<p>
-				Account holders can preserve privacy and commercial confidentiality of
-				payees and payers by using aliases to protect the real names when required.
+				Account holders can preserve privacy and commercial confidentiality 
+				by using aliases to protect the real names.
 			</p>
 			<br />
 			<p>
@@ -62,36 +64,36 @@ Open Bank Project (http://www.openbankproject.com)
 			<br />
 			<p>	
 				Once connected, account holders can also benefit from other applications
-				that use the Open Bank Project API e.g. <a href="http://www.singingbank.com" title="Singing bank"> Singing bank</a>
+				that use the Open Bank Project API e.g. the <a href="http://www.singingbank.com" title="Singing bank App"> Singing Bank</a>
 			</p>
 			<br />
 			<p>
 				See the left panel for examples of organisations raising the bar of
-				financial transparency!
+				financial transparency !
 			</p>
 			<br />
 			<p>
-				We are an <a href="github.com/openbankproject" title ="Open bank project" >open source project</a> backed by
-				<a href="http://www.tesobe.com" title="tesobe">TESOBE</a>. More information is <a href="http://www.openbankproject.com/" title="Open Bank Project">here</a>.
+				We are an <a href="http://github.com/openbankproject" title ="Open bank project on Github" >open source project</a> backed by
+				<a href="http://www.tesobe.com" title="TESOBE website">TESOBE</a>. More information is <a href="http://www.openbankproject.com/" title="Open Bank Project">here</a>.
 				
 			</p>				
 			<br />
 			<p>
 				If you are interested in pioneering financial transparency and
-				publishing your data, please don't hesitate to register your account at <a href="registration" title="Account registration">this page</a>.
+				publishing your data, please don't hesitate to connect your bank account using <a href="connect" title="Connect Bank Account">this page</a>.
 			</p>			
 			<br />
 			<p>
 				Follow us on twitter @OpenBankProject
 			<p>
         </div>
-		<div id="authorised_accounts"
-			class="lift:AccountsOverview.authorisedAccounts">
+        <div id="authorised_accounts">
 			<h2 class="account_header">Authorised Accounts</h2>
-			<ul class="accountList">
-				<li class="account"><a class="accLink" href="">Account Name</a>
-				</li>
-			</ul>
+			<div class="lift:AccountsOverview.authorisedAccounts">
+				<ul class="accountList">
+					<li class="account"><a class="accLink" href="">Account Name</a></li>
+				</ul>
+			</div>
 		</div>
 	</div>
 </div>
