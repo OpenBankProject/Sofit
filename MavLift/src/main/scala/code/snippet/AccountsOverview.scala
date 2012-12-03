@@ -52,7 +52,7 @@ class AccountsOverview {
     }
     
     def loggedOutSnippet = {
-      ".accountList" #> SHtml.span(Text("You don't have the persisson the see these accounts"), Noop,("id","accountsMsg")) 
+      ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg")) 
     }
     
     OBPUser.currentUser match {

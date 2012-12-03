@@ -147,9 +147,9 @@ class AccountRegistration extends Loggable {
 				//if the user is not logged in, we hide the form and ask him to login
 				"#submitAccount" 	#> NodeSeq.Empty & 
 				"#loginMsg * " 		#> {
-										Text("Please ") ++ 
+										Text("You must ") ++ 
 										SHtml.link(OBPUser.loginPageURL,() => {},Text("login"),("title","signup/login")) ++ 
-										Text(" before you can connect your bank account ! ")  
+										Text(" before you can connect your bank account! ")  
 									}
 		}
 	}
