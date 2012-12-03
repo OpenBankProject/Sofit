@@ -41,3 +41,6 @@ Note: You may need to add the pluginGroup to the $HOME/.m2/settings.xml
 </settings>
 
 ---
+
+You need to install MongoDB and create an empty database called "OBP006".
+
