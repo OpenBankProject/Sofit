@@ -29,7 +29,7 @@ Open Bank Project (http://www.openbankproject.com)
 <div id="main" class="lift:surround?with=default;at=content">
 	<div class="lift:AccountRegistration.renderForm">
 		<div class="lift:Msg?id=submissionMessage&noticeClass=submission">message</div>
-		<form action="/registration" method="post" id="submitAccount" >
+		<form action="/connect" method="post" id="submitAccount" >
 			<TABLE>
 				<tbody>
 					<tr>
@@ -74,9 +74,8 @@ Open Bank Project (http://www.openbankproject.com)
 					</tr>					
 					<tr>
 						<td>
-							<label for="accountName">Account Name / Alias</label>
-							<img src="/media/images/moreInfo.png" title="The alias will be used to determine the account URL" 
-								alt="more info" class="moreInfoIcon"/> 
+							<label for="accountName">Short name</label>
+							<img src="/media/images/moreInfo.png" title="It will to determine the account URL and be used instead of the account number" alt="more info" class="moreInfoIcon"/> 
 						</td>
 						<td>
 							<span id="accountNameCol">
@@ -87,8 +86,21 @@ Open Bank Project (http://www.openbankproject.com)
 					</tr>
 					<tr>
 						<td>
+							<label for="accountLabel">Account discription</label>
+							<img src="/media/images/moreInfo.png" title="It will be shown on the top of each page" 
+								alt="more info" class="moreInfoIcon"/> 
+						</td>
+						<td>
+							<span id="accountLabelCol">
+								<input type="text" />
+							</span>
+							<span class="lift:Msg?id=accountLabelError&errorClass=error">error</span>							
+						</td>
+					</tr>					
+					<tr>
+						<td>
 							<label for="accountHolder">Holder Name</label>
-							<img src="/media/images/moreInfo.png" title="The personne who owns the account" 
+							<img src="/media/images/moreInfo.png" title="The person who owns the account" 
 								alt="more info" class="moreInfoIcon"/> 
 						</td>
 						<td>
@@ -100,20 +112,7 @@ Open Bank Project (http://www.openbankproject.com)
 					</tr>											
 					<tr>
 						<td>
-							<label for="accountLabel">Label</label>
-							<img src="/media/images/moreInfo.png" title="The label will be shown on the top of each page" 
-								alt="more info" class="moreInfoIcon"/> 
-						</td>
-						<td>
-							<span id="accountLabelCol">
-								<input type="text" />
-							</span>
-							<span class="lift:Msg?id=accountLabelError&errorClass=error">error</span>							
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<label for="accountKind">Account Kind</label>
+							<label for="accountKind">Account type</label>
 							<img src="/media/images/moreInfo.png" title="current, checking, saving,etc." 
 								alt="more info" class="moreInfoIcon"/> 
 						</td>

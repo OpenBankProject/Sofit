@@ -269,7 +269,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
                 NOOP_SELECTOR
             //set accout last update
             val accountLabel = bankAccount.label match {
-              case Some(label) => "#accountName *" #> label
+              case Some(label) => "#accountShortDiscription *" #> label
               case _ => NOOP_SELECTOR
             }
             accountLabel & accountLastUpdate

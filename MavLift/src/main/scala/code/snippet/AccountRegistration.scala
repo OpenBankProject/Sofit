@@ -17,7 +17,7 @@ import net.liftweb.common.Loggable
 
 class AccountRegistration extends Loggable {
   
-	private object bankName 			extends RequestVar("")
+	private object bankName 		extends RequestVar("")
 	private object accountNumber 	extends RequestVar("")
 	private object accountPIN    	extends RequestVar("")
 	private object publicAccess  	extends RequestVar(false)
@@ -30,8 +30,8 @@ class AccountRegistration extends Loggable {
 		OBPUser.currentUser match {
 			case Full(user) => {
 				//load the suported banks list from the database  
-				val banks 				= "Choose a Bank" :: HostedBank.findAll.map(_.name.get) 
-				val options 			= Map("yes" -> true,"no" -> false)
+				val banks 			= "Choose a Bank" :: HostedBank.findAll.map(_.name.get) 
+				val options 		= Map("yes" -> true,"no" -> false)
 				val optionsSwaped	= options.map{_.swap}
 
 				//get a boolean value from a 'yes' or 'no' string
@@ -48,17 +48,17 @@ class AccountRegistration extends Loggable {
 					
 				def check() = 
 					//check that all the parameters are here
-					if( !accountNumber.is.isEmpty & !accountPIN.is.isEmpty 		& 
-							!accountName.is.isEmpty		& !accountHolder.is.isEmpty &
-							!accountKind.is.isEmpty 	& ! accountLabel.is.isEmpty &
+					if( !accountNumber.is.isEmpty 	& !accountPIN.is.isEmpty 	& 
+							!accountName.is.isEmpty	& !accountHolder.is.isEmpty &
+							!accountKind.is.isEmpty & ! accountLabel.is.isEmpty &
 							bankName.is != "Choose a Bank" )
 					{
-						var reponceText = ""
-						var reponceId 	= "" 
+						var reponceText = "Submission Failed. Please try later."
+						var reponceId 	= "submissionFailed" 
 						val fileName = bankName.is+"-"+accountNumber.is+"-"+user.emailAddress
 						for{
 								//load the public key and output directory path
-								publicKey 						<- Props.get("publicKeyPath")
+								publicKey 				<- Props.get("publicKeyPath")
 								outputFilesDirectory 	<- Props.get("outputFilesDirectory")
 						}yield tryo{
 								//store the Pin code into an encrypted file
@@ -71,14 +71,14 @@ class AccountRegistration extends Loggable {
 									//send an email to the administration so we can setup the account
 									//prepare the data to be sent into the email body
 									val emailBody = 
-											"The following account needs to activated : "		+"\n"+
-											"bank name : " 			+ bankName.is 							+"\n"+
-											"account number : " + accountNumber.is 					+"\n"+
-											"account name : "		+ accountName.is 						+"\n"+
-											"account holder : "	+	accountHolder.is 					+"\n"+
-											"account label : " 	+ accountLabel.is 					+"\n"+
-											"account kind : " 	+	accountKind.is 						+"\n"+
-											"public view : "		+ publicAccess.is.toString	+"\n"+
+											"The following account needs to activated : "	+"\n"+
+											"bank name : " 		+ bankName.is 				+"\n"+
+											"account number : " + accountNumber.is 			+"\n"+
+											"account name : "	+ accountName.is 			+"\n"+
+											"account holder : "	+ accountHolder.is 			+"\n"+
+											"account label : " 	+ accountLabel.is 			+"\n"+
+											"account kind : " 	+ accountKind.is 			+"\n"+
+											"public view : "	+ publicAccess.is.toString	+"\n"+
 											"The PIN code is in this file : "+ outputFilesDirectory+"/"+fileName+".pin"+"\n"									
 									val accountNotificationemails = Props.get("accountNotificationemails") match {
 										case Full(emails) => emails.split(",",0)
@@ -99,10 +99,7 @@ class AccountRegistration extends Loggable {
 									reponceText = "Submission succeded. You will receive an email notification once the bank account will be setup by the administrator."
 									reponceId 	= "submissionSuccess"
 								}
-								case _ => {
-									reponceText = "Submission Failed. Please try later."
-									reponceId 	= "submissionFailed"	
-								}								
+								case _ => //nothing to do the text and Id are allready set					
 							}
 						//set the fields to their default values
 						bankName.set("Choose a Bank")
@@ -135,21 +132,25 @@ class AccountRegistration extends Loggable {
 					}
 				
 				//now we create the form fields
-				"#bankListCol" 			#> SHtml.selectElem(banks,Full(bankName.is),("id","bankList"))((v : String) => bankName.set(v)) &
+				"#bankListCol" 		#> SHtml.selectElem(banks,Full(bankName.is),("id","bankList"))((v : String) => bankName.set(v)) &
 				"#accountNumberCol" #> SHtml.textElem(accountNumber,("id","accountNumber")) &
-				"#accountPINCol" 		#> SHtml.passwordElem(accountPIN,("id","accountPIN")) &		
-				"#publicViewCol" 		#> SHtml.radioElem(options.keys.toList,Full(optionsSwaped(publicAccess.is)))((v : Box[String]) => publicAccess.set(getBooleanValue(v))).toForm &		
+				"#accountPINCol" 	#> SHtml.passwordElem(accountPIN,("id","accountPIN")) &		
+				"#publicViewCol" 	#> SHtml.radioElem(options.keys.toList,Full(optionsSwaped(publicAccess.is)))((v : Box[String]) => publicAccess.set(getBooleanValue(v))).toForm &		
 				"#accountHolderCol" #> SHtml.textElem(accountHolder,("id","accountHolder")) &		
-				"#accountKindCol"	 	#> SHtml.textElem(accountKind,("id","accountKind")) &						
+				"#accountKindCol"	#> SHtml.textElem(accountKind,("id","accountKind")) &						
 				"#accountLabelCol" 	#> SHtml.textElem(accountLabel,("id","accountLabel")) &
 				"#accountNameCol" 	#> SHtml.textElem(accountName,("id","accountName")) &																							
-				"type=submit" 			#> SHtml.onSubmitUnit(check) &
-				"#loginMsg" 				#> NodeSeq.Empty	
+				"type=submit" 		#> SHtml.onSubmitUnit(check) &
+				"#loginMsg" 		#> NodeSeq.Empty	
 			}
 			case _ => 
 				//if the user is not logged in, we hide the form and ask him to login
-				"#submitAccount" 	#> NodeSeq.Empty &
-				"#loginMsg * " 		#> "You need to login to submit you account"  
+				"#submitAccount" 	#> NodeSeq.Empty & 
+				"#loginMsg * " 		#> {
+										Text("Please ") ++ 
+										SHtml.link(OBPUser.loginPageURL,() => {},Text("login"),("title","signup/login")) ++ 
+										Text(" before you can connect your bank account ! ")  
+									}
 		}
 	}
 }
