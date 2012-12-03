@@ -48,7 +48,8 @@ import net.liftweb.util.Schedule
 import net.liftweb.mongodb.BsonDSL._
 import code.model.dataAccess.LocalStorage
 import code.model.traits.BankAccount
-
+import net.liftweb.http.js.jquery.JqJsCmds
+import javax.mail.{ Authenticator, PasswordAuthentication }
 /**
  * A class that's instantiated early and run.  It allows the application
  * to modify lift's environment
@@ -95,8 +96,7 @@ class Boot extends Loggable{
     Schemifier.schemify(true, Schemifier.infoF _, HostedAccount)
     //lunch the scheduler to clean the database from the expired tokens and nonces
     Schedule.schedule(()=> OAuthHandshake.dataBaseCleaner, 2 minutes)   
-
-
+    
     def check(bool: Boolean) : Box[LiftResponse] = {
       if(bool){
         Empty
@@ -155,7 +155,8 @@ class Boot extends Loggable{
           }) >> LocGroup("admin") 
           	submenus(Privilege.menus : _*),
           Menu.i("OAuth") / "oauth" / "authorize", //OAuth authorization page            
-          
+          Menu.i("Connect") / "connect", 
+
           Menu.i("Banks") / "banks", //no test => list of open banks
           //list of open banks (banks with a least a bank account with an open account)
           Menu.param[Bank]("Bank", "bank", LocalStorage.getBank _ ,  bank => bank.id ) / "banks" / * ,
