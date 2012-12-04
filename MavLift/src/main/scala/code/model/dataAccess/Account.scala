@@ -47,6 +47,8 @@ import code.model.dataAccess.OBPEnvelope._
 import code.model.traits.ModeratedTransaction
 import code.model.traits.BankAccount
 import code.model.implementedTraits.{ BankAccountImpl, AccountOwnerImpl }
+import net.liftweb.mongodb.BsonDSL._
+
 
 /**
  * There should be only one of these for every real life "this" account. TODO: Enforce this
@@ -212,6 +214,13 @@ class HostedBank extends MongoRecord[HostedBank] with ObjectIdPk[HostedBank]{
   object permalink extends StringField(this, 255)
   object SWIFT_BIC extends StringField(this, 255)
   object national_identifier extends StringField(this, 255)
+
+  def getAccount(bankAccountPermalink : String) : Box[Account] = 
+    Account.find(("permalink" -> bankAccountPermalink) ~ ("bankID" -> id.is))
+  
+  def isAccount(bankAccountPermalink : String) : Boolean = 
+    Account.count(("permalink" -> bankAccountPermalink) ~ ("bankID" -> id.is)) == 1
+
 }
 
 object HostedBank extends HostedBank with MongoMetaRecord[HostedBank]
