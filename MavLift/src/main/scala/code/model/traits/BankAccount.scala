@@ -11,6 +11,7 @@ import net.liftweb.json.JObject
 import net.liftweb.json.JsonDSL._
 import net.liftweb.http.LiftResponse
 import net.liftweb.http.JsonResponse
+import code.model.implementedTraits.View
 
 trait BankAccount {
 
@@ -56,6 +57,15 @@ trait BankAccount {
   def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
   
   def authorisedAccess(view: View, user: Option[OBPUser]) : Boolean
+
+  def toJson(user: Box[User]): JObject = {
+    val views = permittedViews(user)
+    ("number" -> number) ~
+    ("account_alias" -> label) ~
+    ("owner_description" -> "") ~
+    ("views_available" -> views.map(view => view.toJson)) ~
+    View.linksJson(views, permalink, bankPermalink)
+  }
 }
 
 object BankAccount {
@@ -73,4 +83,5 @@ object BankAccount {
   def publicAccounts : List[BankAccount] = {
     LocalStorage.getAllPublicAccounts() map Account.toBankAccount
   }
+  
 }

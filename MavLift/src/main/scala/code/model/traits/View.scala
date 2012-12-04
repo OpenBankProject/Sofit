@@ -1,6 +1,8 @@
 package code.model.traits
 import code.snippet.CustomEditable
 import net.liftweb.http.SHtml
+import net.liftweb.json.JsonDSL._
+import net.liftweb.json.JsonAST.JObject
 
 class AliasType
 class Alias extends AliasType
@@ -211,6 +213,12 @@ trait View {
      transactionType, transactionAmount, transactionCurrency, transactionLabel, transactionStartDate,
       transactionFinishDate, transactionBalance)
   }
+  
+  def toJson : JObject = {
+    ("name" -> name) ~
+    ("description" -> description)
+  }
+  
 }
 
 //An implementation that has the least amount of permissions possible

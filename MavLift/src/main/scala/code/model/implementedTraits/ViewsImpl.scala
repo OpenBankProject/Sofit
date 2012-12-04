@@ -31,19 +31,32 @@ package code.model.implementedTraits
 
 import code.model.traits._
 import net.liftweb.common.{Box,Empty, Full}
-object View 
-{
+import net.liftweb.json.JsonDSL._
+import net.liftweb.json.JsonAST.JObject
+
+object View {
   //transforme the url into a view 
   //TODO : load the view from the Data base
-  def fromUrl(viewNameURL: String): Box[View] = 
-  viewNameURL match {
-    case "authorities" => Full(Authorities)
-    case "board" => Full(Board)
-    case "our-network" => Full(OurNetwork)
-    case "team" => Full(Team)
-    case "owner" => Full(Owner)
-    case "anonymous" => Full(Anonymous)
-    case _ => Empty
+  def fromUrl(viewNameURL: String): Box[View] =
+    viewNameURL match {
+      case "authorities" => Full(Authorities)
+      case "board" => Full(Board)
+      case "our-network" => Full(OurNetwork)
+      case "team" => Full(Team)
+      case "owner" => Full(Owner)
+      case "anonymous" => Full(Anonymous)
+      case _ => Empty
+    }
+
+  def linksJson(views: Set[View], accountPermalink: String, bankPermalink: String): JObject = {
+    val viewsJson = views.map(view => {
+      ("rel" -> "account") ~
+        ("href" -> { "/" + bankPermalink + "/account/" + accountPermalink + "/" + view.permalink }) ~
+        ("method" -> "GET") ~
+        ("title" -> "Get information about one account")
+    })
+
+    ("links" -> viewsJson)
   }
 }
 object Team extends FullView {

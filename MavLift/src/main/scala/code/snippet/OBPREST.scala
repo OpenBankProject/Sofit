@@ -154,33 +154,10 @@ import java.util.Date
         val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
         
         def bankAccountSet2JsonResponse(bankAccounts: Set[BankAccount]): LiftResponse = {
-          
-          def view2Json(view: View) : JObject = {
-            ("name" -> view.name) ~
-            ("description" -> view.description)
-          }
-
-          def views2LinksJson(views: Set[View], accPermalink: String): JObject = {
-            val viewsJson = views.map(view => {
-              ("rel" -> "account") ~
-              ("href" -> {"/" + bankPermalink + "/account/" + accPermalink + "/" + view.permalink}) ~
-              ("method" -> "GET") ~
-              ("title" -> "Get information about one account")
-            })
-            
-            ("links" -> viewsJson)
-          }
-           
-          val accJson = bankAccounts.map(bAcc => {
-            val views = bAcc.permittedViews(user)
-            ("number" -> bAcc.number) ~
-              ("account_alias" -> bAcc.label) ~
-              ("owner_description" -> "") ~
-              ("views_available" -> views.map(view2Json)) ~
-              views2LinksJson(views, bAcc.permalink)
-          })
+          val accJson = bankAccounts.map(bAcc => bAcc.toJson(user))
           JsonResponse(("accounts" -> accJson))
         }
+        
         Bank(bankPermalink) match {
           case Full(bank) => 
           {
@@ -198,24 +175,7 @@ import java.util.Date
       }
       
       case "banks" :: Nil JsonGet json => {
-        val banks = Bank.all
-        
-        def linkJson(bank: Bank) = {
-          ("rel" -> "bank") ~
-          ("href" -> {"/" + bank.permalink + "/bank"}) ~
-          ("method" -> "GET") ~
-          ("title" -> {"Get information about the bank identified by " + bank.permalink})
-        }
-        
-        def banksJson: List[JObject] = {
-          banks.map(bank => {
-            ("alias" -> bank.permalink) ~
-            ("name" -> bank.name) ~
-            ("logo" -> "") ~
-            ("links" -> linkJson(bank))
-          })
-        }
-        JsonResponse("banks" -> banksJson)
+        JsonResponse("banks" -> Bank.toJson(Bank.all))
       }
     }
     )
