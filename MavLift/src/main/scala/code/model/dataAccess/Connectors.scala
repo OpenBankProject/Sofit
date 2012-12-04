@@ -125,13 +125,16 @@ class MongoDBLocalStorage extends LocalStorage {
   def getTransactions(permalink: String, bankPermalink: String, envelopesForAccount: Account => List[OBPEnvelope]): Box[List[Transaction]] =
   {
       logger.debug("getTransactions for " + bankPermalink + "/" + permalink)
-      Account.find(("permalink" -> permalink) ~ ("bankPermalink" -> bankPermalink)) match {
-        case Full(account) => {
-          val envs = envelopesForAccount(account)
-          Full(envs.map(createTransaction(_, account)))
-        }
+      HostedBank.find("permalink",bankPermalink) match {
+        case Full (bank) => bank.getAccount(permalink) match {
+            case Full(account) => {
+              val envs = envelopesForAccount(account)
+              Full(envs.map(createTransaction(_, account)))
+            }
+            case _ => Empty
+          }
         case _ => Empty
-      }
+      }      
   }
 
   def getBank(permalink: String): Box[Bank] = 
@@ -150,14 +153,21 @@ class MongoDBLocalStorage extends LocalStorage {
   
   //check if the bank and the accounts exist in the database
   def correctBankAndAccount(bank: String, account: String): Boolean =
-    Account.count(("permalink" -> account) ~ ("bankPermalink" -> bank)) == 1
-  
+    HostedBank.find("permalink",bank) match {
+        case Full(bank) => bank.isAccount(account)
+        case _ => false
+      }
   def getAccount(bankpermalink: String, account: String): Box[Account] =
-    Account.find(("permalink" -> account) ~ ("bankPermalink" -> bankpermalink))
+    HostedBank.find("permalink",bankpermalink) match {
+      case Full (bank) => bank.getAccount(account)
+      case _ => Empty
+    }
+    
   def getTransaction(id : String, bankPermalink : String, accountPermalink : String) : Box[Transaction] = 
   {
     for{
-      account  <- Account.find(("permalink" -> accountPermalink) ~ ("bankPermalink" -> bankPermalink))
+      bank <- HostedBank.find("permalink",bankPermalink)
+      account  <- bank.getAccount(accountPermalink)
       envelope <- OBPEnvelope.find(id) 
     } yield createTransaction(envelope,account)
   }
