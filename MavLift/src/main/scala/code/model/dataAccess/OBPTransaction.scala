@@ -189,31 +189,11 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   object obp_comments extends BsonRecordListField[OBPEnvelope, OBPComment](this, OBPComment)
   object narrative extends StringField(this, 255)
   
-  def mediated_obpComments(user: String) : Box[List[OBPComment]] = {
-    user match{
-      case "our-network" => Full(obp_comments.get)
-      case "team" => Full(obp_comments.get)
-      case "board" => Full(obp_comments.get)
-      case "authorities" => Full(obp_comments.get)
-      case "my-view" => Full(obp_comments.get)
-      case _ => Empty
-    }
-  }
-  
-  def mediated_narrative(user: String) : Box[String] = {
-    user match{
-      case "our-network" => Full(narrative.get)
-      case "team" => Full(narrative.get)
-      case "board" => Full(narrative.get)
-      case "authorities" => Full(narrative.get)
-      case "my-view" => Full(narrative.get)
-      case _ => Full(narrative.get)
-    } 
-  }
-  
-
-  def asMediatedJValue(user: String) : JObject  = {
-    JObject(List(JField("obp_transaction", obp_transaction.get.asMediatedJValue(user,id.toString, theAccount)),
+  /**
+   * A JSON representation of the transaction to be returned when successfully added via an API call
+   */
+  def whenAddedJson : JObject = {
+    JObject(List(JField("obp_transaction", obp_transaction.get.whenAddedJson(id.toString)),
         		 JField("obp_comments", JArray(obp_comments.get.map(comment => {
         		   JObject(List(JField("text", JString(comment.textField.is))))
         		 })))))
@@ -385,11 +365,11 @@ class OBPTransaction private() extends BsonRecord[OBPTransaction]{
   object other_account extends BsonRecordField(this, OBPAccount)
   object details extends BsonRecordField(this, OBPDetails)
   
-  def asMediatedJValue(user: String, envelopeId : String, theAccount: Option[Account]) : JObject  = {
+  def whenAddedJson(envelopeId : String) : JObject  = {
     JObject(List(JField("obp_transaction_uuid", JString(envelopeId)),
-    			 JField("this_account", this_account.get.asMediatedJValue(user, None)),
-        		 JField("other_account", other_account.get.asMediatedJValue(user, theAccount)),
-        		 JField("details", details.get.asMediatedJValue(user))))
+    			 JField("this_account", this_account.get.whenAddedJson),
+        		 JField("other_account", other_account.get.whenAddedJson),
+        		 JField("details", details.get.whenAddedJson)))
   }
 }
 
@@ -402,108 +382,20 @@ class OBPAccount private() extends BsonRecord[OBPAccount]{
   object number extends StringField(this, 255)
   object kind extends StringField(this, 255)
   object bank extends BsonRecordField(this, OBPBank)
-  
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_holder(user: String, mediator: Account) : (Box[String], Box[OBPAccount.AnAlias]) = {
-    val theHolder = holder.get
-    
-    def usePrivateAliasIfExists() : (Box[String], Box[OBPAccount.AnAlias])= {
-      val privateAlias = for{
-        otheracc <- mediator.otherAccounts.get.find(o => 
-          o.holder.get.equals(theHolder)
-        )
-      } yield otheracc.privateAlias.get
-      
-      privateAlias match{
-        case Some("") => (Full(theHolder), Empty)
-        case Some(a) => (Full(a), Full(OBPAccount.APrivateAlias))
-        case _ => (Full(theHolder), Empty)
-      }
-    }
-    
-    def usePublicAlias() : (Box[String], Box[OBPAccount.AnAlias])= {
-      val publicAlias = for{
-        otheracc <- mediator.otherAccounts.get.find(o => 
-        	o.holder.get.equals(theHolder)
-        )
-      } yield otheracc.publicAlias.get
-      
-      publicAlias match{
-        case Some("") => (Full(theHolder), Empty)
-        case Some(a) => (Full(a), Full(OBPAccount.APublicAlias))
-        case _ => {
-            //No alias found, so don't use one
-            (Full(theHolder), Empty) 
-          }
-      }
-    }
-    
-    user match{
-      case "team" => (Full(theHolder), Empty)
-      case "board" => (Full(theHolder), Empty)
-      case "authorities" => (Full(theHolder), Empty)
-      case "my-view" => (Full(theHolder), Empty)
-      case "our-network" => usePrivateAliasIfExists
-      case _ => usePublicAlias
-    }
-  }
-  
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_number(user: String) : Box[String] = {
-    user match{
-      case "team" => Full(number.get)
-      case "board" => Full(number.get)
-      case "authorities" => Full(number.get)
-      case "my-view" => Full(number.get)
-      case _ => Empty
-    }
-  }
-  
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_kind(user: String) : Box[String] = {
-    user match{
-      case "team" => Full(kind.get)
-      case "board" => Full(kind.get)
-      case "authorities" => Full(kind.get)
-      case "my-view" => Full(kind.get)
-      case _ => Empty
-    }
-  }
+
   /**
    * @param moderatingAccount a temporary way to provide the obp account whose aliases should
    *  be used when displaying this account
    */
-  def asMediatedJValue(user: String, moderatingAccount: Option[Account]) : JObject = {
-    
-    def rawData = {
-      JObject(List(JField("holder",
-        JObject(List(
-          JField("holder", JString(holder.get)),
-          JField("alias", JString("no"))))),
-        JField("number", JString(number.get)),
-        JField("kind", JString(kind.get)),
-        JField("bank", bank.get.asMediatedJValue(user))))
-    }
+  def whenAddedJson: JObject = {
 
-    def moderate(moderator: Account) = {
-      val h = mediated_holder(user, moderator)
-      JObject(List(JField("holder",
-        JObject(List(
-          JField("holder", JString(h._1.getOrElse(""))),
-          JField("alias", JString(h._2 match {
-            case Full(OBPAccount.APublicAlias) => "public"
-            case Full(OBPAccount.APrivateAlias) => "private"
-            case _ => "no"
-          }))))),
-        JField("number", JString(mediated_number(user) getOrElse "")),
-        JField("kind", JString(mediated_kind(user) getOrElse "")),
-        JField("bank", bank.get.asMediatedJValue(user))))
-    }
-        		  
-    moderatingAccount match {
-      case Some(m) => moderate(m)
-      case _ => rawData
-    }
+    JObject(List(JField("holder",
+      JObject(List(
+        JField("holder", JString(holder.get)),
+        JField("alias", JString("no"))))),
+      JField("number", JString(number.get)),
+      JField("kind", JString(kind.get)),
+      JField("bank", bank.get.whenAddedJson)))
   }
 }
 
@@ -520,43 +412,11 @@ class OBPBank private() extends BsonRecord[OBPBank]{
   object national_identifier extends net.liftweb.record.field.StringField(this, 255)
   object name extends net.liftweb.record.field.StringField(this, 255)
 
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_IBAN(user: String) : Box[String] = {
-    user match{
-      case "team" => Full(IBAN.get)
-      case "board" => Full(IBAN.get)
-      case "authorities" => Full(IBAN.get)
-      case "my-view" => Full(IBAN.get)
-      case _ => Empty
-    }
-  }
   
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_national_identifier(user: String) : Box[String] = {
-    user match{
-      case "team" => Full(national_identifier.get)
-      case "board" => Full(national_identifier.get)
-      case "authorities" => Full(national_identifier.get)
-      case "my-view" => Full(national_identifier.get)
-      case _ => Empty
-    }
-  }
-  
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_name(user: String) : Box[String] = {
-    user match{
-      case "team" => Full(name.get)
-      case "board" => Full(name.get)
-      case "authorities" => Full(name.get)
-      case "my-view" => Full(name.get)
-      case _ => Empty
-    }
-  }
-  
-  def asMediatedJValue(user: String) : JObject = {
-    JObject(List( JField("IBAN", JString(mediated_IBAN(user) getOrElse "")),
-        		  JField("national_identifier", JString(mediated_national_identifier(user) getOrElse "")),
-        		  JField("name", JString(mediated_name(user) getOrElse ""))))
+  def whenAddedJson : JObject = {
+    JObject(List( JField("IBAN", JString(IBAN.get)),
+        		  JField("national_identifier", JString(national_identifier.get)),
+        		  JField("name", JString(name.get))))
   }
 }
 
@@ -576,56 +436,18 @@ class OBPDetails private() extends BsonRecord[OBPDetails]{
   object completed extends DateField(this)
   
   
-  def formatDate(date : Box[Date]) : String = {
-    date match{
-      case Full(d) => OBPDetails.formats.dateFormat.format(d)
-      case _ => ""
-    }
+  def formatDate(date : Date) : String = {
+    OBPDetails.formats.dateFormat.format(date)
   }
   
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_type_en(user: String) : Box[String] = {
-    user match{
-      case _ => Full(type_en.get)
-    }
-  }
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_type_de(user: String) : Box[String] = {
-    user match{
-      case _ => Full(type_de.get)
-    }
-  }
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_posted(user: String) : Box[Date] = {
-    user match{
-      case _ => Full(posted.get)
-    }
-  }
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_completed(user: String) : Box[Date] = {
-    user match{
-      case _ => Full(completed.get)
-    }
-  }
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_other_data(user: String) : Box[String] = {
-    user match{
-      case "team" => Full(other_data.get)
-      case "board" => Full(other_data.get)
-      case "authorities" => Full(other_data.get)
-      case "my-view" => Full(other_data.get)
-      case _ => Empty
-    }
-  }
-  
-  def asMediatedJValue(user: String) : JObject = {
-    JObject(List( JField("type_en", JString(mediated_type_en(user) getOrElse "")),
-        		  JField("type_de", JString(mediated_type_de(user) getOrElse "")),
-        		  JField("posted", JString(formatDate(mediated_posted(user)))),
-        		  JField("completed", JString(formatDate(mediated_completed(user)))),
-        		  JField("other_data", JString(mediated_other_data(user) getOrElse "")),
-        		  JField("new_balance", new_balance.get.asMediatedJValue(user)),
-        		  JField("value", value.get.asMediatedJValue(user))))
+  def whenAddedJson : JObject = {
+    JObject(List( JField("type_en", JString(type_en.get)),
+        		  JField("type_de", JString(type_de.get)),
+        		  JField("posted", JString(formatDate(posted.get))),
+        		  JField("completed", JString(formatDate(completed.get))),
+        		  JField("other_data", JString(other_data.get)),
+        		  JField("new_balance", new_balance.get.whenAddedJson),
+        		  JField("value", value.get.whenAddedJson)))
   }
 }
 
@@ -638,37 +460,9 @@ class OBPBalance private() extends BsonRecord[OBPBalance]{
   object currency extends net.liftweb.record.field.StringField(this, 5)
   object amount extends net.liftweb.record.field.DecimalField(this, 0) // ok to use decimal?
 
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_currency(user: String) : Box[String] = {
-    user match{
-      case "our-network" => Full(currency.get)
-      case "team" => Full(currency.get)
-      case "board" => Full(currency.get)
-      case "authorities" => Full(currency.get)
-      case "my-view" => Full(currency.get)
-      case _ => Empty
-    }
-  }
-  //TODO: Access levels are currently the same across all transactions
-  /**
-   * TODO: This should probably return an actual decimal rather than a string -E.S.
-   */
-  def mediated_amount(user: String) : Box[String] = {
-    user match{
-      case "our-network" => Full(amount.get.toString)
-      case "team" => Full(amount.get.toString)
-      case "board" => Full(amount.get.toString)
-      case "authorities" => Full(amount.get.toString)
-      case "my-view" => Full(amount.get.toString)
-      case _ => {
-        if(amount.get.toString.startsWith("-")) Full("-") else Full("+")
-      }
-    }
-  }
-  
-  def asMediatedJValue(user: String) : JObject = {
-    JObject(List( JField("currency", JString(mediated_currency(user) getOrElse "")),
-        		  JField("amount", JString(mediated_amount(user) getOrElse ""))))
+  def whenAddedJson : JObject = {
+    JObject(List( JField("currency", JString(currency.get)),
+        		  JField("amount", JString(amount.get.toString))))
   }
 }
 
@@ -679,26 +473,10 @@ class OBPValue private() extends BsonRecord[OBPValue]{
 
   object currency extends net.liftweb.record.field.StringField(this, 5)
   object amount extends net.liftweb.record.field.DecimalField(this, 0) // ok to use decimal?
-
-  //TODO: Access levels are currently the same across all transactions
-  def mediated_currency(user: String) : Box[String] = {
-    user match{
-      case _ => Full(currency.get.toString)
-    }
-  }
-  //TODO: Access levels are currently the same across all transactions
-  /**
-   * TODO: This should probably return an actual decimal rather than a string -E.S.
-   */
-  def mediated_amount(user: String) : Box[String] = {
-    user match{
-      case _ => Full(amount.get.toString)
-    }
-  }
   
-  def asMediatedJValue(user: String) : JObject = {
-    JObject(List( JField("currency", JString(mediated_currency(user) getOrElse "")),
-        		  JField("amount", JString(mediated_amount(user) getOrElse ""))))
+  def whenAddedJson : JObject = {
+    JObject(List( JField("currency", JString(currency.get)),
+        		  JField("amount", JString(amount.get.toString))))
   }
 }
 

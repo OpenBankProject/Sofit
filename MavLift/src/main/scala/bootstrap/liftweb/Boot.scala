@@ -111,12 +111,10 @@ class Boot extends Loggable{
       val bank = URLParameters(0)
       val account = URLParameters(1)
       val viewName = URLParameters(2)
-      val bankAccount = BankAccount(bank, account)
-      val view = View.fromUrl(viewName)
       
       for {
-        b <- bankAccount
-        v <- view
+        b <- BankAccount(bank, account)
+        v <- View.fromUrl(viewName)
         if(b.authorisedAccess(v, OBPUser.currentUser))
       } yield (b.getModeratedTransactions(v.moderate), v)
     }

@@ -106,7 +106,6 @@ import java.util.Date
             case _ => default
           }
         }
-        val bankAccount = BankAccount(bankAlias, accountAlias)
         val limit = asInt(json.header("obp_limit"), 50)
         val offset = asInt(json.header("obp_offset"), 0)
         /**
@@ -139,12 +138,12 @@ import java.util.Date
         
 
         val transactions = for {
-          b <- bankAccount
-          v <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
-        } yield getTransactions(b, v, getUser(httpCode,oAuthParameters.get("oauth_token")))
+          bankAccount <- BankAccount(bankAlias, accountAlias)
+          view <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
+        } yield getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
         
         transactions match {
-          case Full(t) => t
+          case Full(ts) => JsonResponse("transactions" -> ts.map(t => t.toJson))
           case _ => InMemoryResponse(data, headers, Nil, 401)
         }
       }
@@ -156,33 +155,10 @@ import java.util.Date
         val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
         
         def bankAccountSet2JsonResponse(bankAccounts: Set[BankAccount]): LiftResponse = {
-          
-          def view2Json(view: View) : JObject = {
-            ("name" -> view.name) ~
-            ("description" -> view.description)
-          }
-
-          def views2LinksJson(views: Set[View], accPermalink: String): JObject = {
-            val viewsJson = views.map(view => {
-              ("rel" -> "account") ~
-              ("href" -> {"/" + bankPermalink + "/account/" + accPermalink + "/" + view.permalink}) ~
-              ("method" -> "GET") ~
-              ("title" -> "Get information about one account")
-            })
-            
-            ("links" -> viewsJson)
-          }
-           
-          val accJson = bankAccounts.map(bAcc => {
-            val views = bAcc.permittedViews(user)
-            ("number" -> bAcc.number) ~
-              ("account_alias" -> bAcc.label) ~
-              ("owner_description" -> "") ~
-              ("views_available" -> views.map(view2Json)) ~
-              views2LinksJson(views, bAcc.permalink)
-          })
+          val accJson = bankAccounts.map(bAcc => bAcc.toJson(user))
           JsonResponse(("accounts" -> accJson))
         }
+        
         Bank(bankPermalink) match {
           case Full(bank) => 
           {
@@ -200,24 +176,7 @@ import java.util.Date
       }
       
       case "banks" :: Nil JsonGet json => {
-        val banks = Bank.all
-        
-        def linkJson(bank: Bank) = {
-          ("rel" -> "bank") ~
-          ("href" -> {"/" + bank.permalink + "/bank"}) ~
-          ("method" -> "GET") ~
-          ("title" -> {"Get information about the bank identified by " + bank.permalink})
-        }
-        
-        def banksJson: List[JObject] = {
-          banks.map(bank => {
-            ("alias" -> bank.permalink) ~
-            ("name" -> bank.name) ~
-            ("logo" -> "") ~
-            ("links" -> linkJson(bank))
-          })
-        }
-        JsonResponse("banks" -> banksJson)
+        JsonResponse("banks" -> Bank.toJson(Bank.all))
       }
     })
 
