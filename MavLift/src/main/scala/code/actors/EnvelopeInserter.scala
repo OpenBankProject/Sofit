@@ -91,7 +91,7 @@ object EnvelopeInserter extends LiftActor with Loggable{
       
       copiesToInsert.map(e => {
         val record = e.saveTheRecord()
-        record.get.asMediatedJValue("authorities") //authorities view gives the most information. TODO: This obviously needs to be reworked
+        record.get.whenAddedJson //TODO: Standardise this format with API "get" format?
       })
     }
   }
