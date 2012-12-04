@@ -78,36 +78,31 @@ class ModeratedTransaction(filteredId: String, filteredBankAccount: Option[Moder
   def startDate = filteredStartDate
   def finishDate = filteredFinishDate
   def balance = filteredBalance
+
+  def dateOption2JString(date: Option[Date]) : JString = {
+    JString(date.map(d => ModeratedTransaction.dateFormat.format(d)) getOrElse "")
+  }
+  
+  def toJson: JObject = {
+    ("uuid" -> id) ~
+      ("this_account" -> bankAccount) ~
+      ("other_account" -> otherBankAccount) ~
+      ("details" ->
+        ("type_en" -> transactionType) ~ //TODO: Need translations for transaction types and a way to
+        ("type_de" -> transactionType) ~ // figure out what language the original type is in
+        ("posted" -> dateOption2JString(startDate)) ~
+        ("completed" -> dateOption2JString(finishDate)) ~
+        ("new_balance" ->
+          ("currency" -> currency.getOrElse("")) ~ //TODO: Need separate currency for balances and values?
+          ("amount" -> balance)) ~
+          ("value" ->
+            ("currency" -> currency.getOrElse("")) ~
+            ("amount" -> amount)))
+  }
 }
 
 object ModeratedTransaction {
-  
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-  
-  def dateOption2JString(date: Option[Date]) : JString = {
-    JString(date.map(d => dateFormat.format(d)) getOrElse "")
-  }
-  
-  def moderatedTransaction2Json(mTransaction: ModeratedTransaction) : JObject = {
-    ("uuid" -> mTransaction.id) ~
-    ("this_account" -> mTransaction.bankAccount) ~
-    ("other_account" -> mTransaction.otherBankAccount) ~
-    ("details" -> 
-    	("type_en" -> mTransaction.transactionType) ~ //TODO: Need translations for transaction types and a way to
-    	("type_de" -> mTransaction.transactionType) ~ // figure out what language the original type is in
-    	("posted" -> dateOption2JString(mTransaction.startDate)) ~
-    	("completed" -> dateOption2JString(mTransaction.finishDate)) ~
-    	("new_balance" -> 
-    		("currency" -> mTransaction.currency.getOrElse("")) ~ //TODO: Need separate currency for balances and values?
-    		("amount" -> mTransaction.balance)) ~
-    	("value" ->
-    		("currency" -> mTransaction.currency.getOrElse("")) ~
-    		("amount" -> mTransaction.amount)))
-  }
-  
-  def moderatedTransactions2Json(mTransactions: List[ModeratedTransaction]) : LiftResponse = {
-    JsonResponse(("transactions" -> mTransactions.map(moderatedTransaction2Json)))
-  }
 }
 
 class ModeratedTransactionMetadata(filteredOwnerComment : Option[String], filteredComments : Option[List[Comment]], 

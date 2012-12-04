@@ -142,7 +142,7 @@ import java.util.Date
         } yield getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
         
         transactions match {
-          case Full(ts) => ModeratedTransaction.moderatedTransactions2Json(ts)
+          case Full(ts) => JsonResponse("transactions" -> ts.map(t => t.toJson))
           case _ => InMemoryResponse(data, headers, Nil, 401)
         }
       }
