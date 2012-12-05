@@ -170,11 +170,15 @@ import code.snippet.OAuthHandshake._
     	val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
     	val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
     	
-    	val visibleComments = for {
-    	  
-    	}
+    	val comments = for {
+    	  bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
+    	  account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
+    	  view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
+    	  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
+    	  comments <- Box(moderatedTransaction.metadata).flatMap(_.comments) ?~ "transaction metadata not authorised" ~> 404
+    	} yield comments
     	    
-        JsonResponse("foo")
+        comments.map(cs => JsonResponse("comments" -> cs.map(_.toJson)))
       }
       
       case bankPermalink :: "accounts" :: Nil JsonGet json => {
