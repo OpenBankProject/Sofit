@@ -75,11 +75,6 @@ import code.model.traits.User
 import java.util.Date
 import code.snippet.OAuthHandshake._
 
-  // Note: on mongo console db.chooseitems.ensureIndex( { location : "2d" } )
-
-  // Call like http://localhost:8080/api/balance/theaccountnumber/call.json
-  // See http://www.assembla.com/spaces/liftweb/wiki/REST_Web_Services
-
   object OBPRest extends RestHelper with Loggable {
 
 	  val dateFormat = ModeratedTransaction.dateFormat
