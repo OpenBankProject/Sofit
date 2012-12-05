@@ -156,7 +156,10 @@ import code.snippet.OAuthHandshake._
     	  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
     	} yield moderatedTransaction
     	
-        moderatedTransaction.map(mt => JsonResponse(mt.toJson))
+    	val links : List[JObject] = Nil
+    	
+        moderatedTransaction.map(mt => JsonResponse(("transaction" -> mt.toJson) ~
+            										("links" -> links)))
       }
     	  
       case bankAlias :: "accounts" :: accountAlias :: "transactions" :: 
@@ -173,7 +176,10 @@ import code.snippet.OAuthHandshake._
     	  comments <- Box(moderatedTransaction.metadata).flatMap(_.comments) ?~ "transaction metadata not authorised" ~> 404
     	} yield comments
     	    
-        comments.map(cs => JsonResponse("comments" -> cs.map(_.toJson)))
+    	val links : List[JObject] = Nil
+    	
+        comments.map(cs => JsonResponse(("comments" -> cs.map(_.toJson)) ~ 
+        								("links" -> links)))
       }
       
       case bankPermalink :: "accounts" :: Nil JsonGet json => {
