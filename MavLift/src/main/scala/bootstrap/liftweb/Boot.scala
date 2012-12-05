@@ -73,6 +73,13 @@ class Boot extends Loggable{
 
       DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
     }
+    Mailer.authenticator = for { 
+      user <- Props.get("mail.username")
+      pass <- Props.get("mail.password") 
+    } yield new Authenticator {
+      override def getPasswordAuthentication = 
+        new PasswordAuthentication(user,pass) 
+    }    
 
     // Use Lift's Mapper ORM to populate the database
     // you don't need to use Mapper to use Lift... use
