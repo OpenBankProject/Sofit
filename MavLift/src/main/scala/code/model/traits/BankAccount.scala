@@ -47,6 +47,12 @@ trait BankAccount {
   
   def transaction(id: String) : Box[Transaction]
   
+  def moderatedTransaction(id: String, view: View, user: Box[User]) : Box[ModeratedTransaction] = {
+    if(permittedViews(user).contains(view)) {
+      transaction(id).map(view.moderate)
+    } else Empty
+  }
+  
   //Is an anonymous view available for this bank account
   def allowAnnoymousAccess : Boolean
   

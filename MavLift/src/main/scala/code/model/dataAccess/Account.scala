@@ -81,12 +81,13 @@ class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
     case Full(bank) => bank.permalink.get
     case _ => "" 
   }
-  def baseQuery = QueryBuilder.start("obp_transaction.this_account.number").is(number.get).
+  
+  def transactionsForAccount = QueryBuilder.start("obp_transaction.this_account.number").is(number.get).
     put("obp_transaction.this_account.kind").is(kind.get).
     put("obp_transaction.this_account.bank.name").is(bankName)
 
   //find all the envelopes related to this account 
-  def allEnvelopes: List[OBPEnvelope] = OBPEnvelope.findAll(baseQuery.get)
+  def allEnvelopes: List[OBPEnvelope] = OBPEnvelope.findAll(transactionsForAccount.get)
 
   def envelopes(queryParams: OBPQueryParam*): List[OBPEnvelope] = {
     val DefaultSortField = "obp_transaction.details.completed"
@@ -101,7 +102,7 @@ class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
     val toDate = queryParams.find(q => q.isInstanceOf[OBPToDate]).asInstanceOf[Option[OBPToDate]]
     
     val mongoParams = {
-      val start = baseQuery
+      val start = transactionsForAccount
       val start2 = if(fromDate.isDefined) start.put("obp_transaction.details.completed").greaterThanEquals(fromDate.get.value)
       			   else start
       val end = if(toDate.isDefined) start2.put("obp_transaction.details.completed").lessThanEquals(toDate.get.value)
