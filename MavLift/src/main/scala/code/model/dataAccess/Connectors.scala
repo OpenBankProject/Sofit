@@ -147,7 +147,10 @@ class MongoDBLocalStorage extends LocalStorage {
     map(bank => new BankImpl(bank.id.toString, bank.name.get, bank.permalink.get))
   
   def getBankAccounts(bank: Bank): Set[BankAccount] = {
-    val rawAccounts = Account.findAll("bankName", bank.name).toSet
+    //Requires two calls to mongodb here. Would be nice to figure out if it's possible to create a "b.id.is" object
+    //from bank.id without hitting the db again
+    val b = HostedBank.find(bank.id) getOrElse HostedBank.createRecord
+    val rawAccounts = Account.findAll(("bankID" -> b.id.is)).toSet
     rawAccounts.map(Account.toBankAccount)
   }
   
