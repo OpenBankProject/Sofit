@@ -39,6 +39,7 @@ import net.liftweb.mapper.By
 import net.liftweb.mongodb.MongoDB
 import com.mongodb.BasicDBList
 import java.util.ArrayList
+import org.bson.types.ObjectId
 
 object LocalStorage extends MongoDBLocalStorage
 
@@ -147,10 +148,8 @@ class MongoDBLocalStorage extends LocalStorage {
     map(bank => new BankImpl(bank.id.toString, bank.name.get, bank.permalink.get))
   
   def getBankAccounts(bank: Bank): Set[BankAccount] = {
-    //Requires two calls to mongodb here. Would be nice to figure out if it's possible to create a "b.id.is" object
-    //from bank.id without hitting the db again
-    val b = HostedBank.find(bank.id) getOrElse HostedBank.createRecord
-    val rawAccounts = Account.findAll(("bankID" -> b.id.is)).toSet
+    val bankId = new ObjectId(bank.id)
+    val rawAccounts = Account.findAll(("bankID" -> bankId)).toSet
     rawAccounts.map(Account.toBankAccount)
   }
   
