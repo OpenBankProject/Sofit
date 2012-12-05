@@ -163,6 +163,19 @@ import code.snippet.OAuthHandshake._
     	
         moderatedTransaction.map(mt => JsonResponse(mt.toJson))
       }
+    	  
+      case bankAlias :: "accounts" :: accountAlias :: "transactions" :: 
+    	  transactionID :: "comments" :: viewName :: Nil JsonGet json => {
+    	    
+    	val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
+    	val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+    	
+    	val visibleComments = for {
+    	  
+    	}
+    	    
+        JsonResponse("foo")
+      }
       
       case bankPermalink :: "accounts" :: Nil JsonGet json => {
         val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
