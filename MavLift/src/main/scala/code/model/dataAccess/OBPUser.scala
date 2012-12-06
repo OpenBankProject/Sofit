@@ -135,6 +135,7 @@ object OBPUser extends OBPUser with MetaMegaProtoUser[OBPUser]{
   
   override def loginXhtml = {
     import net.liftweb.http.TemplateFinder
+    import net.liftweb.http.js.JsCmds.Noop
     val loginXml = TemplateFinder.findAnyTemplate(List("templates-hidden","_login")).map({
         "form [action]" #> {S.uri} &
         "#loginText * " #> {S.??("log.in")} &
@@ -149,7 +150,7 @@ object OBPUser extends OBPUser with MetaMegaProtoUser[OBPUser]{
           "a *" #> {S.??("sign.up")}
         }
       })
-      <div>{loginXml.get}</div>
+      SHtml.span(loginXml getOrElse NodeSeq.Empty,Noop)
   } 
 
   //Set the login referer
