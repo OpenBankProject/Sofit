@@ -88,8 +88,10 @@ class AccountRegistration extends Loggable {
 									
 									tryo {
 										accountNotificationemails.foreach ( email => 
-											Mailer.sendMail(From("noreply@openbankproject.com"),Subject("[SoFi]Bank account Activation"),
-											         To(email),PlainMailBodyType(emailBody)) 
+											Mailer.sendMail(From("noreplay@openbankproject.com"),
+															Subject("[SoFi]Bank account Activation"),
+											         		To(email),
+											         		PlainMailBodyType(emailBody)) 
 										)
 									} match {
 								    case Failure(message, exception, chain) =>
