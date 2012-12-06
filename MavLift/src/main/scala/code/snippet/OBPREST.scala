@@ -73,11 +73,7 @@ import code.model.implementedTraits.Anonymous
 import code.model.traits.Bank
 import code.model.traits.User
 import java.util.Date
-
-  // Note: on mongo console db.chooseitems.ensureIndex( { location : "2d" } )
-
-  // Call like http://localhost:8080/api/balance/theaccountnumber/call.json
-  // See http://www.assembla.com/spaces/liftweb/wiki/REST_Web_Services
+import code.snippet.OAuthHandshake._
 
   object OBPRest extends RestHelper with Loggable {
 
@@ -148,8 +144,46 @@ import java.util.Date
         }
       }
       
+      case bankAlias :: "accounts" :: accountAlias :: "transactions" ::
+    	  transactionID :: "transaction" :: viewName :: Nil JsonGet  json => {
+    	
+    	val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
+    	val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+    	
+    	val moderatedTransaction = for {
+    	  bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
+    	  account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
+    	  view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
+    	  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
+    	} yield moderatedTransaction
+    	
+    	val links : List[JObject] = Nil
+    	
+        moderatedTransaction.map(mt => JsonResponse(("transaction" -> mt.toJson) ~
+            										("links" -> links)))
+      }
+    	  
+      case bankAlias :: "accounts" :: accountAlias :: "transactions" :: 
+    	  transactionID :: "comments" :: viewName :: Nil JsonGet json => {
+    	    
+    	val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
+    	val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+    	
+    	val comments = for {
+    	  bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
+    	  account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
+    	  view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
+    	  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
+    	  comments <- Box(moderatedTransaction.metadata).flatMap(_.comments) ?~ "transaction metadata not authorised" ~> 404
+    	} yield comments
+    	    
+    	val links : List[JObject] = Nil
+    	
+        comments.map(cs => JsonResponse(("comments" -> cs.map(_.toJson)) ~ 
+        								("links" -> links)))
+      }
+      
       case bankPermalink :: "accounts" :: Nil JsonGet json => {
-        import code.snippet.OAuthHandshake._
         val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
         val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
         val user = getUser(httpCode,oAuthParameters.get("oauth_token"))

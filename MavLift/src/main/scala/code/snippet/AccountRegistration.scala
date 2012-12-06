@@ -79,6 +79,7 @@ class AccountRegistration extends Loggable {
 											"account label : " 	+ accountLabel.is 			+"\n"+
 											"account kind : " 	+ accountKind.is 			+"\n"+
 											"public view : "	+ publicAccess.is.toString	+"\n"+
+											"user email : "		+ user.emailAddress			+"\n"+
 											"The PIN code is in this file : "+ outputFilesDirectory+"/"+fileName+".pin"+"\n"									
 									val accountNotificationemails = Props.get("accountNotificationemails") match {
 										case Full(emails) => emails.split(",",0)
@@ -87,8 +88,10 @@ class AccountRegistration extends Loggable {
 									
 									tryo {
 										accountNotificationemails.foreach ( email => 
-											Mailer.sendMail(From("noreply@tesobe.com"),Subject("Bank account Activation"),
-											         To(email),PlainMailBodyType(emailBody)) 
+											Mailer.sendMail(From("noreplay@openbankproject.com"),
+															Subject("[SoFi]Bank account Activation"),
+											         		To(email),
+											         		PlainMailBodyType(emailBody)) 
 										)
 									} match {
 								    case Failure(message, exception, chain) =>

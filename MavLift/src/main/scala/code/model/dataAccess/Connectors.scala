@@ -39,6 +39,7 @@ import net.liftweb.mapper.By
 import net.liftweb.mongodb.MongoDB
 import com.mongodb.BasicDBList
 import java.util.ArrayList
+import org.bson.types.ObjectId
 
 object LocalStorage extends MongoDBLocalStorage
 
@@ -147,7 +148,8 @@ class MongoDBLocalStorage extends LocalStorage {
     map(bank => new BankImpl(bank.id.toString, bank.name.get, bank.permalink.get))
   
   def getBankAccounts(bank: Bank): Set[BankAccount] = {
-    val rawAccounts = Account.findAll("bankName", bank.name).toSet
+    val bankId = new ObjectId(bank.id)
+    val rawAccounts = Account.findAll(("bankID" -> bankId)).toSet
     rawAccounts.map(Account.toBankAccount)
   }
   
@@ -168,7 +170,8 @@ class MongoDBLocalStorage extends LocalStorage {
     for{
       bank <- HostedBank.find("permalink",bankPermalink)
       account  <- bank.getAccount(accountPermalink)
-      envelope <- OBPEnvelope.find(id) 
+      ifTransactionsIsInAccount <- Full(account.transactionsForAccount.put("_id").is(new ObjectId(id)).get)
+      envelope <- OBPEnvelope.find(ifTransactionsIsInAccount)
     } yield createTransaction(envelope,account)
   }
 
