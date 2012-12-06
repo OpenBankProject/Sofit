@@ -142,6 +142,22 @@ class ModeratedBankAccount(filteredId : String,
   def iban = filteredIban
   def number = filteredNumber
   def bankName = filteredBankName
+  
+  def toJson = {
+    //TODO: Decide if unauthorised info (I guess that is represented by a 'none' option'? I can't really remember)
+    // should just disappear from the json or if an empty string should be used. 
+    //I think we decided to use empty strings. What was the point of all the options again? 
+    ("number" -> number.getOrElse("")) ~
+    ("owners" -> owners.flatten.map(owner => 
+      ("id" ->owner.id) ~ 
+      ("name" -> owner.name))) ~
+    ("type" -> accountType.getOrElse("")) ~
+    ("balance" -> 
+    	("currency" -> currency.getOrElse("")) ~
+    	("amount" -> balance)) ~
+    ("IBAN" -> iban.getOrElse(Some(""))) ~
+    ("date_opened" -> "")
+  }
 }
 
 object ModeratedBankAccount {

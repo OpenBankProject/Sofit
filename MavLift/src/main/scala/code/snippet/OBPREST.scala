@@ -74,6 +74,7 @@ import code.model.traits.Bank
 import code.model.traits.User
 import java.util.Date
 import code.snippet.OAuthHandshake._
+import code.model.traits.ModeratedBankAccount
 
   object OBPRest extends RestHelper with Loggable {
 
@@ -173,7 +174,7 @@ import code.snippet.OAuthHandshake._
     	  account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
     	  view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
     	  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
-    	  comments <- Box(moderatedTransaction.metadata).flatMap(_.comments) ?~ "transaction metadata not authorised" ~> 404
+    	  comments <- Box(moderatedTransaction.metadata).flatMap(_.comments) ?~ "transaction metadata not authorised" ~> 401
     	} yield comments
     	    
     	val links : List[JObject] = Nil
@@ -188,7 +189,7 @@ import code.snippet.OAuthHandshake._
         val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
         
         def bankAccountSet2JsonResponse(bankAccounts: Set[BankAccount]): LiftResponse = {
-          val accJson = bankAccounts.map(bAcc => bAcc.toJson(user))
+          val accJson = bankAccounts.map(bAcc => bAcc.overviewJson(user))
           JsonResponse(("accounts" -> accJson))
         }
         
@@ -206,6 +207,42 @@ import code.snippet.OAuthHandshake._
             InMemoryResponse(error.getBytes(), headers, Nil, 404)
           }
         }
+      }
+      
+      case bankAlias :: "accounts" :: accountAlias :: "account" :: viewName :: Nil JsonGet json => {
+        val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
+        val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
+        val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+        
+        case class ModeratedAccountAndViews(account: ModeratedBankAccount, views: Set[View])
+        
+        val moderatedAccountAndViews = for {
+          bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
+    	  account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
+    	  view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
+    	  moderatedAccount <- account.moderatedBankAccount(view, user)  ?~ {"view/account not authorised"} ~> 401
+    	  availableViews <- Full(account.permittedViews(user))
+        } yield ModeratedAccountAndViews(moderatedAccount, availableViews)
+
+        def linkJson(view: View): JObject = {
+          ("rel" -> view.name) ~
+            ("href" -> { "/" + bankAlias + "/accounts/" + accountAlias + "/transactions/" + view.permalink }) ~
+            ("method" -> "GET") ~
+            ("title" -> view.description)
+        }
+        
+        def bankAccountMetaData(mv : ModeratedAccountAndViews) = {
+          ("views_available" -> mv.views.map(_.toJson)) ~
+          ("links" -> mv.views.map(linkJson))
+        }
+        
+        moderatedAccountAndViews.map(mv => JsonResponse("account" -> mv.account.toJson ~ bankAccountMetaData(mv)))
+      }
+      
+      case bankAlias :: "offices" :: Nil JsonGet json => {
+        //TODO: An office model needs to be created
+        val offices : List[JObject] = Nil
+        JsonResponse("offices" -> offices)
       }
       
       case "banks" :: Nil JsonGet json => {
