@@ -202,6 +202,12 @@ import code.snippet.OAuthHandshake._
         }
       }
       
+      case bankAlias :: "offices" :: Nil JsonGet json => {
+        //TODO: An office model needs to be created
+        val offices : List[JObject] = Nil
+        JsonResponse("offices" -> offices)
+      }
+      
       case "banks" :: Nil JsonGet json => {
         JsonResponse("banks" -> Bank.toJson(Bank.all))
       }
