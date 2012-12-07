@@ -53,6 +53,12 @@ trait BankAccount {
     } else Empty
   }
   
+  def moderatedBankAccount(view: View, user: Box[User]) : Box[ModeratedBankAccount] = {
+    if(permittedViews(user).contains(view)){
+      view.moderate(this)
+    } else Empty
+  }
+  
   //Is an anonymous view available for this bank account
   def allowAnnoymousAccess : Boolean
   
@@ -64,7 +70,7 @@ trait BankAccount {
   
   def authorisedAccess(view: View, user: Option[OBPUser]) : Boolean
 
-  def toJson(user: Box[User]): JObject = {
+  def overviewJson(user: Box[User]): JObject = {
     val views = permittedViews(user)
     ("number" -> number) ~
     ("account_alias" -> label) ~

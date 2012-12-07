@@ -97,12 +97,28 @@ object Anonymous extends BaseView {
   override def name = "Anonymous"
   override def permalink = "anonymous" 
   override def description = "A view of the account accessible by anyone."
+    
+  //Bank account fields
+  override def canSeeBankAccountOwners = true
+  override def canSeeBankAccountType = true
+  override def canSeeBankAccountBalancePositiveOrNegative = true
+  override def canSeeBankAccountCurrency = true
+  override def canSeeBankAccountLabel = true
+  override def canSeeBankAccountNationalIdentifier = true
+  override def canSeeBankAccountSwift_bic = true
+  override def canSeeBankAccountIban = true
+  override def canSeeBankAccountNumber = true
+  override def canSeeBankAccountName = true
+    
   override def moderate(transaction: Transaction): ModeratedTransaction = {
     
     val transactionId = transaction.id //toString().startsWith("-")) "-" else "+"
+    val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
+      //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
+      // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
     val thisBankAccount = Some(new ModeratedBankAccount(transaction.thisAccount.id, 
       Some(transaction.thisAccount.owners), Some(transaction.thisAccount.accountType), 
-      if(transaction.thisAccount.toString().startsWith("-")) "-" else "+", Some(transaction.thisAccount.currency), 
+      accountBalance, Some(transaction.thisAccount.currency), 
       Some(transaction.thisAccount.label),None, None, None, Some(transaction.thisAccount.number),
       Some(transaction.thisAccount.bankName)))
     val otherBankAccount = {
@@ -157,8 +173,11 @@ object Anonymous extends BaseView {
     	" or current/potential clients"
     override def moderate(transaction: Transaction): ModeratedTransaction = {
     val transactionId = transaction.id
+    val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
+      //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
+      // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
     val thisBankAccount = Some(new ModeratedBankAccount(transaction.thisAccount.id, None, None, 
-      transaction.thisAccount.toString(), Some(transaction.thisAccount.currency), 
+      accountBalance, Some(transaction.thisAccount.currency), 
       Some(transaction.thisAccount.label),None, None, None, Some(transaction.thisAccount.number),
       Some(transaction.thisAccount.bankName)))
     val otherBankAccount = {

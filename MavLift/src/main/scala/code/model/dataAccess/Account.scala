@@ -114,65 +114,6 @@ class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
     
     OBPEnvelope.findAll(mongoParams, ordering, Limit(limit), Skip(offset))
   }
-
-  def getUnmediatedOtherAccountUrl(user: String, otherAccountHolder: String): Box[String] = {
-    for {
-      o <- otherAccounts.get.find(acc => {
-        acc.holder.get.equals(otherAccountHolder)
-      })
-    } yield o.url.get
-  }
-
-  def getMediatedOtherAccountURL(user: String, otherAccountHolder: String): Box[String] = {
-    val otherAccountURL = for {
-      o <- otherAccounts.get.find(acc => {
-        acc.holder.get.equals(otherAccountHolder)
-      })
-    } yield o.url.get
-
-    user match {
-      case "team" => otherAccountURL
-      case "board" => otherAccountURL
-      case "authorities" => otherAccountURL
-      case "my-view" => otherAccountURL
-      case "our-network" => otherAccountURL
-      case _ => Empty
-    }
-  }
-
-  def getMediatedOtherAccountImageURL(user: String, otherAccountHolder: String): Box[String] = {
-    val otherAccountImageURL = for {
-      o <- otherAccounts.get.find(acc => {
-        acc.holder.get.equals(otherAccountHolder)
-      })
-    } yield o.imageUrl.get
-
-    user match {
-      case "team" => otherAccountImageURL
-      case "board" => otherAccountImageURL
-      case "authorities" => otherAccountImageURL
-      case "my-view" => otherAccountImageURL
-      case "our-network" => otherAccountImageURL
-      case _ => Empty
-    }
-  }
-
-  def getMediatedOtherAccountMoreInfo(user: String, otherAccountHolder: String): Box[String] = {
-    val otherAccountMoreInfo = for {
-      o <- otherAccounts.get.find(acc => {
-        acc.holder.get.equals(otherAccountHolder)
-      })
-    } yield o.moreInfo.get
-
-    user match {
-      case "team" => otherAccountMoreInfo
-      case "board" => otherAccountMoreInfo
-      case "authorities" => otherAccountMoreInfo
-      case "my-view" => otherAccountMoreInfo
-      case "our-network" => otherAccountMoreInfo
-      case _ => Empty
-    }
-  }
 }
 
 object Account extends Account with MongoMetaRecord[Account] {
