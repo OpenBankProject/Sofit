@@ -118,23 +118,35 @@ class Boot extends Loggable{
       val account = URLParameters(1)
       val viewName = URLParameters(2)
       
-      for {
-        b <- BankAccount(bank, account)
-        v <- View.fromUrl(viewName)
+      val transactionsAndView : Box[(List[ModeratedTransaction], View)] = for {
+        b <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank} 
+        v <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found for account " + account + " and bank " + bank} 
         if(b.authorisedAccess(v, OBPUser.currentUser))
       } yield (b.getModeratedTransactions(v.moderate), v)
+
+      transactionsAndView match {
+        case Failure(msg, _, _) => logger.info("Could not get transactions and view: " + msg)
+        case _ => //don't log anything
+      }
+      transactionsAndView
     }
     
     def getAccount(URLParameters : List[String]) = 
     {
       val bankUrl = URLParameters(0)
       val accountUrl = URLParameters(1)
-      for {
-        account <- LocalStorage.getAccount(bankUrl,accountUrl)
-        user <- OBPUser.currentUser
-        bankAccount <- BankAccount(bankUrl, accountUrl)
+      val account = for {
+        account <- LocalStorage.getAccount(bankUrl,accountUrl) ?~ {"account " + accountUrl + " not found for bank " + bankUrl} 
+        user <- OBPUser.currentUser  ?~ {"user not found when attempting to access account " + account + " of bank " + bankUrl}
+        bankAccount <- BankAccount(bankUrl, accountUrl) ?~ {"account " + account + " not found for bank " + bankUrl}
         if(user.hasMangementAccess(bankAccount))
       } yield account
+      
+      account match {
+        case Failure(msg, _, _) => logger.info("Could not get account: " + msg)
+        case _ => //don't log anything
+      }
+      account
     }
     def getTransaction(URLParameters : List[String]) = 
     {
@@ -144,12 +156,18 @@ class Boot extends Loggable{
         val account = URLParameters(1)
         val transactionID = URLParameters(2)
         val viewName = URLParameters(3)
-        for{
-          bankAccount <- BankAccount(bank, account)
-          transaction <- bankAccount.transaction(transactionID)
-          view <- View.fromUrl(viewName)
+        val transaction = for{
+          bankAccount <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank} 
+          transaction <- bankAccount.transaction(transactionID) ?~ {"transaction " + transactionID + " not found in account " + account + " for bank " + bank} 
+          view <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found"}
           if(bankAccount.authorisedAccess(view, OBPUser.currentUser))  
         } yield (view.moderate(transaction),view)
+        
+      transaction match {
+        case Failure(msg, _, _) => logger.info("Could not get transaction: " + msg)
+        case _ => //don't log anything
+      }
+      transaction
       }
       else
         Empty
