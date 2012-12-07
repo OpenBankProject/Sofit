@@ -45,6 +45,7 @@ import scala.util.Random
 import com.mongodb.QueryBuilder
 import com.mongodb.BasicDBObject
 import code.model.traits.Comment
+import org.bson.types.ObjectId
 
 /**
  * "Current Account View"
@@ -147,14 +148,13 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    * @param text The text of the comment
    */
   def addComment(userId: Long, viewId : Long, text: String, datePosted : Date) = {
-    println("adding a comment from the user : "+ userId + " with this content "+ text)
-    println("view ID : "+viewId)
-    val comments = obp_comments.get
-    val c2 = comments ++ List(OBPComment.createRecord.userId(userId).
+    println("############## adding a comment ")
+    val comment = OBPComment.createRecord.userId(userId).
       textField(text).
       date(datePosted).
-      viewID(viewId))
-    obp_comments(c2).saveTheRecord()
+      viewID(viewId).save
+    val newlist = comment :: obp_comments.objs 
+    obp_comments(newlist.map(_.id.is)).save
   }
 
   lazy val theAccount = {
@@ -186,7 +186,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   object obp_transaction extends BsonRecordField(this, OBPTransaction)
   
   //not named comments as "comments" was used in an older mongo document version
-  object obp_comments extends BsonRecordListField[OBPEnvelope, OBPComment](this, OBPComment)
+  object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
   object narrative extends StringField(this, 255)
   
   /**
@@ -194,25 +194,26 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    */
   def whenAddedJson : JObject = {
     JObject(List(JField("obp_transaction", obp_transaction.get.whenAddedJson(id.toString)),
-        		 JField("obp_comments", JArray(obp_comments.get.map(comment => {
+        		 JField("obp_comments", JArray(obp_comments.objs.map(comment => {
         		   JObject(List(JField("text", JString(comment.textField.is))))
         		 })))))
   }
 }
 
-class OBPComment private() extends BsonRecord[OBPComment] with Comment {
+class OBPComment private() extends MongoRecord[OBPComment] with ObjectIdPk[OBPComment] with Comment {
   def meta = OBPComment
   def postedBy = OBPUser.find(userId)
   def viewId = viewID.get
   def text = textField.get
   def datePosted = date.get
+  def id_ = id.is.toString
   object userId extends LongField(this)
   object viewID extends LongField(this)
   object textField extends StringField(this, 255)
   object date extends DateField(this)
 }
 
-object OBPComment extends OBPComment with BsonMetaRecord[OBPComment]
+object OBPComment extends OBPComment with MongoMetaRecord[OBPComment]
 
 object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] {
   

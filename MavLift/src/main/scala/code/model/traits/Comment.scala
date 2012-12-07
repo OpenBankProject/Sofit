@@ -5,6 +5,7 @@ import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json.JsonDSL._
 
 trait Comment {
+  def id_ : String
   // The person that posted the comment
   def postedBy : Box[User] 
   
