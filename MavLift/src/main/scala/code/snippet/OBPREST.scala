@@ -92,6 +92,27 @@ import code.model.traits.ModeratedBankAccount
       Empty	
     
     serve("obp" / "v1.0" prefix {
+      
+      case Nil JsonGet json => {
+        
+        val apiDetails = {
+          ("api" ->
+           	("version" -> "1.0") ~
+           	("git_commit" -> "") ~ //TODO: How can this be calculated automatically?
+           	("hosted_by" -> 
+              ("organisation" -> "TESOBE") ~
+              ("email" -> "contact@tesobe.com") ~
+           	  ("phone" -> "+49 (0)30 8145 3994"))) ~
+          ("links" -> 
+          	("rel" -> "banks") ~
+          	("href" -> "/banks") ~
+          	("method" -> "GET") ~
+          	("title" -> "Returns a list of banks supported on this server"))
+        }
+        
+        JsonResponse(apiDetails)
+      }
+      
       case bankAlias :: "accounts" :: accountAlias :: "transactions" :: viewName :: Nil JsonGet json => {
         import code.snippet.OAuthHandshake._
         val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
