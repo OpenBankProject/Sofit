@@ -1,4 +1,8 @@
-Welcome to the Open Bank Project Social Finance / Transparency Web Application
+README
+
+Welcome to the Open Bank Project Social Finance / Transparency Web Application!
+
+ABOUT
 
 This appliation demostrates some of the principles of the Open Bank Project:
 
@@ -9,11 +13,13 @@ This appliation demostrates some of the principles of the Open Bank Project:
 
 Currently this repository also contains API code - but that is in the process of moving to https://github.com/OpenBankProject/OBP-API
 
-README
 
-This file only contains some notes regarding setup.
-(A vagrant setup is in progress)
+LICENSE
 
+This software is dual licensed under the AGPL V3 (see NOTICE) and a commercial license from TESOBE
+
+
+SETUP
 
 The project is using sbt or Maven 2 as a build tool.
 See build.scala or pom.xml respectively for the dependencies.
