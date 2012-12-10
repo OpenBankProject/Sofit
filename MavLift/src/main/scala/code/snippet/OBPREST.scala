@@ -95,10 +95,19 @@ import code.model.traits.ModeratedBankAccount
       
       case Nil JsonGet json => {
         
+        def gitCommit : String = {
+          val commit = tryo{
+            val properties = new java.util.Properties()
+            properties.load(getClass().getClassLoader().getResourceAsStream("git.properties"))
+            properties.getProperty("git.commit.id", "")
+          }
+          commit getOrElse ""
+        }
+        
         val apiDetails = {
           ("api" ->
            	("version" -> "1.0") ~
-           	("git_commit" -> "") ~ //TODO: How can this be calculated automatically?
+           	("git_commit" -> gitCommit) ~
            	("hosted_by" -> 
               ("organisation" -> "TESOBE") ~
               ("email" -> "contact@tesobe.com") ~
