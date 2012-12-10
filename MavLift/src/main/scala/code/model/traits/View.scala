@@ -3,6 +3,9 @@ import code.snippet.CustomEditable
 import net.liftweb.http.SHtml
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST.JObject
+import net.liftweb.common.Box
+import net.liftweb.common.Empty
+import net.liftweb.common.Full
 
 class AliasType
 class Alias extends AliasType
@@ -45,6 +48,7 @@ trait View {
   def canSeeBankAccountOwners : Boolean
   def canSeeBankAccountType : Boolean
   def canSeeBankAccountBalance : Boolean
+  def canSeeBankAccountBalancePositiveOrNegative : Boolean
   def canSeeBankAccountCurrency : Boolean
   def canSeeBankAccountLabel : Boolean
   def canSeeBankAccountNationalIdentifier : Boolean
@@ -82,7 +86,11 @@ trait View {
     {
       val owners = if(canSeeBankAccountOwners) Some(transaction.thisAccount.owners) else None
       val accountType = if(canSeeBankAccountType) Some(transaction.thisAccount.accountType) else None
-      val balance = if(canSeeBankAccountBalance) transaction.thisAccount.balance.toString else ""
+      val balance = if(canSeeBankAccountBalance) {
+        transaction.thisAccount.balance.toString
+      } else if (canSeeBankAccountBalancePositiveOrNegative) {
+        if(transaction.thisAccount.balance.toString.startsWith("-")) "-" else "+"
+      } else ""
       val currency = if(canSeeBankAccountCurrency) Some(transaction.thisAccount.currency) else None  
       val label = if(canSeeBankAccountLabel) Some(transaction.thisAccount.label) else None
       val number = if(canSeeBankAccountNumber) Some(transaction.thisAccount.number) else None
@@ -214,6 +222,39 @@ trait View {
       transactionFinishDate, transactionBalance)
   }
   
+  def moderate(bankAccount: BankAccount) : Box[ModeratedBankAccount] = {
+    if(bankAccount.allowAnnoymousAccess) {
+      val owners : Set[AccountOwner] = if(canSeeBankAccountOwners) bankAccount.owners else Set()
+      val balance = if(canSeeBankAccountBalance){
+        bankAccount.balance.toString
+      } else if(canSeeBankAccountBalancePositiveOrNegative) {
+        if(bankAccount.balance.toString.startsWith("-")) "-" else "+"
+      } else ""
+      val accountType = if(canSeeBankAccountType) Some(bankAccount.accountType) else None
+      val currency = if(canSeeBankAccountCurrency) Some(bankAccount.currency) else None
+      val label = if(canSeeBankAccountLabel) Some(bankAccount.label) else None
+      val nationalIdentifier = if(canSeeBankAccountNationalIdentifier) Some(bankAccount.label) else None
+      val swiftBic = if(canSeeBankAccountSwift_bic) Some(bankAccount.swift_bic) else None
+      val iban = if(canSeeBankAccountIban) Some(bankAccount.iban) else None
+      val number = if(canSeeBankAccountNumber) Some(bankAccount.number) else None
+      val bankName = if(canSeeBankAccountName) Some(bankAccount.bankName) else None
+      
+      Full(new ModeratedBankAccount(filteredId = bankAccount.id,
+          							filteredOwners = Some(owners),
+          							filteredAccountType = accountType,
+          							filteredBalance = balance,
+          							filteredCurrency = currency,
+          							filteredLabel = label,
+          							filteredNationalIdentifier = nationalIdentifier,
+          							filteredSwift_bic = swiftBic,
+          							filteredIban = iban,
+          							filteredNumber = number,
+          							filteredBankName = bankName
+          							))
+    }
+    else Empty
+  }
+  
   def toJson : JObject = {
     ("name" -> name) ~
     ("description" -> description)
@@ -254,6 +295,7 @@ class BaseView extends View {
   def canSeeBankAccountOwners = false
   def canSeeBankAccountType = false
   def canSeeBankAccountBalance = false
+  def canSeeBankAccountBalancePositiveOrNegative = false
   def canSeeBankAccountCurrency = false
   def canSeeBankAccountLabel = false
   def canSeeBankAccountNationalIdentifier = false
@@ -314,6 +356,7 @@ class FullView extends View {
   def canSeeBankAccountOwners = true
   def canSeeBankAccountType = true
   def canSeeBankAccountBalance = true
+  def canSeeBankAccountBalancePositiveOrNegative = true
   def canSeeBankAccountCurrency = true
   def canSeeBankAccountLabel = true
   def canSeeBankAccountNationalIdentifier = true

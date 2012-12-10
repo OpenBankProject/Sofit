@@ -11,3 +11,4 @@
 MavLift/.cache
 MavLift/src/main/resources/rebel.xml
 MavLift/src/main/resources/props
+MavLift/src/main/resources/git.properties

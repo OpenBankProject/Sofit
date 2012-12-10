@@ -12,6 +12,12 @@ trait Bank
 	def permalink : String
 	def accounts : Set[BankAccount]
 	
+	def detailedJson : JObject = {
+	  ("name" -> name) ~
+	  ("website" -> "") ~
+	  ("email" -> "")
+	}
+	
 	def toJson : JObject = {
 	  ("alias" -> permalink) ~
       ("name" -> name) ~
