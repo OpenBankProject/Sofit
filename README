@@ -11,6 +11,9 @@ This appliation demostrates some of the principles of the Open Bank Project:
 3) Comment on transactions
 4) Add other meta data e.g. tags / images to transactions / payees.
 
+
+STATUS
+
 Currently this repository also contains API code - but that is in the process of moving to https://github.com/OpenBankProject/OBP-API
 
 
