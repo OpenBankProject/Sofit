@@ -256,9 +256,9 @@ import code.model.traits.ModeratedBankAccount
 
         def linkJson(view: View): JObject = {
           ("rel" -> view.name) ~
-            ("href" -> { "/" + bankAlias + "/accounts/" + accountAlias + "/transactions/" + view.permalink }) ~
-            ("method" -> "GET") ~
-            ("title" -> view.description)
+          ("href" -> { "/" + bankAlias + "/accounts/" + accountAlias + "/transactions/" + view.permalink }) ~
+          ("method" -> "GET") ~
+          ("title" -> view.description)
         }
         
         def bankAccountMetaData(mv : ModeratedAccountAndViews) = {
@@ -273,6 +273,33 @@ import code.model.traits.ModeratedBankAccount
         //TODO: An office model needs to be created
         val offices : List[JObject] = Nil
         JsonResponse("offices" -> offices)
+      }
+      
+      case bankAlias :: "bank" :: Nil JsonGet json => {
+        
+        def links = {
+          def accounts = {
+            ("rel" -> "accounts") ~
+            ("href" -> {"/" + bankAlias + "/accounts"}) ~
+            ("method" -> "GET") ~
+          	("title" -> "Get list of accounts available")
+          }
+          
+          def offices = {
+            ("rel" -> "offices") ~
+            ("href" -> {"/" + bankAlias + "/offices"}) ~
+            ("method" -> "GET") ~
+          	("title" -> "Get list of offices")
+          }
+          
+          List(accounts, offices)
+        }
+        
+        val bank = for {
+          bank <- Bank(bankAlias) ?~ { "bank " + bankAlias + " not found"} ~> 404
+        } yield bank
+        
+        bank.map(b => JsonResponse(b.detailedJson ~ ("links" -> links)))
       }
       
       case "banks" :: Nil JsonGet json => {
