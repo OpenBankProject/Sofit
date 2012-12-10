@@ -83,7 +83,8 @@ class ModeratedTransaction(filteredId: String, filteredBankAccount: Option[Moder
     JString(date.map(d => ModeratedTransaction.dateFormat.format(d)) getOrElse "")
   }
   
-  def toJson: JObject = {
+  def toJson(view: View): JObject = {
+    ("view" -> view.permalink) ~
     ("uuid" -> id) ~
       ("this_account" -> bankAccount) ~
       ("other_account" -> otherBankAccount) ~

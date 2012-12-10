@@ -163,15 +163,15 @@ import code.model.traits.ModeratedBankAccount
           } else Nil
         }
         
-        val transactions = for {
+        val response = for {
           bankAccount <- BankAccount(bankAlias, accountAlias)
           view <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
-        } yield getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
-        
-        transactions match {
-          case Full(ts) => JsonResponse("transactions" -> ts.map(t => t.toJson))
-          case _ => InMemoryResponse(data, headers, Nil, 401)
+        } yield {
+          val ts = getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
+          JsonResponse("transactions" -> ts.map(t => t.toJson(view)))
         }
+        
+        response getOrElse InMemoryResponse(data, headers, Nil, 401) : LiftResponse
       }
       
       case bankAlias :: "accounts" :: accountAlias :: "transactions" ::
@@ -180,16 +180,18 @@ import code.model.traits.ModeratedBankAccount
     	val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
     	val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
     	
-    	val moderatedTransaction = for {
+    	val moderatedTransactionAndView = for {
     	  bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
     	  account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
     	  view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
     	  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
-    	} yield moderatedTransaction
+    	} yield {
+    	  (moderatedTransaction, view)
+    	}
     	
     	val links : List[JObject] = Nil
     	
-        moderatedTransaction.map(mt => JsonResponse(("transaction" -> mt.toJson) ~
+        moderatedTransactionAndView.map(mtAndView => JsonResponse(("transaction" -> mtAndView._1.toJson(mtAndView._2)) ~
             										("links" -> links)))
       }
     	  
