@@ -1,4 +1,15 @@
-Open Bank Project README
+Welcome to the Open Bank Project Social Finance / Transparency Web Application
+
+This appliation demostrates some of the principles of the Open Bank Project:
+
+1) Sliding scale of privacy and disclosure. e.g. Use aliases to protect real names but still show the flow of money .
+2) Different views on account data (Public / Share holders / Team etc.) e.g. hide balances on public view.
+3) Comment on transactions
+4) Add other meta data e.g. tags / images to transactions / payees.
+
+Currently this repository also contains API code - but that is in the process of moving to https://github.com/OpenBankProject/OBP-API
+
+README
 
 This file only contains some notes regarding setup.
 (A vagrant setup is in progress)
