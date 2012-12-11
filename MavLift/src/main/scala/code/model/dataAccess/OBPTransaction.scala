@@ -45,6 +45,7 @@ import scala.util.Random
 import com.mongodb.QueryBuilder
 import com.mongodb.BasicDBObject
 import code.model.traits.Comment
+import net.liftweb.common.Loggable
 
 /**
  * "Current Account View"
@@ -162,10 +163,14 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     val num = thisAcc.number.get
     val accKind = thisAcc.kind.get
     val bankName = thisAcc.bank.get.name.get
-    val qry = QueryBuilder.start("number").is(num).
-      put("kind").is(accKind).
-      put("bankName").is(bankName).get
-    Account.find(qry)
+    val accQry = QueryBuilder.start("number").is(num).
+      put("kind").is(accKind).get
+    
+    for {
+      account <- Account.find(accQry)
+      bank <- HostedBank.find("name", bankName)
+      if(bank.id.get == account.bankID.get)
+    } yield account
   }
    
   object DateDescending extends Ordering[OBPEnvelope] {
@@ -214,7 +219,7 @@ class OBPComment private() extends BsonRecord[OBPComment] with Comment {
 
 object OBPComment extends OBPComment with BsonMetaRecord[OBPComment]
 
-object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] {
+object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Loggable {
   
   class OBPQueryParam
   trait OBPOrder { def orderValue : Int }
@@ -313,7 +318,10 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] {
             updatedAccount.saveTheRecord()
             Full(randomAliasName)
           }
-          case _ => Empty
+          case _ => {
+            logger.warn("Account not found to create aliases for")
+            Empty
+          }
         }
       }
 
