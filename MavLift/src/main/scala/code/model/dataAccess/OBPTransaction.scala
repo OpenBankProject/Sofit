@@ -148,13 +148,11 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    * @param text The text of the comment
    */
   def addComment(userId: Long, viewId : Long, text: String, datePosted : Date) = {
-    println("############## adding a comment ")
     val comment = OBPComment.createRecord.userId(userId).
       textField(text).
       date(datePosted).
       viewID(viewId).save
-    val newlist = comment :: obp_comments.objs 
-    obp_comments(newlist.map(_.id.is)).save
+    obp_comments(comment.id.is :: obp_comments.get ).save
   }
 
   lazy val theAccount = {
