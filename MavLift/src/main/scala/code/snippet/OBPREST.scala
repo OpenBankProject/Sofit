@@ -1,30 +1,33 @@
-/**
- * Open Bank Project
- *
- * Copyright 2011,2012 TESOBE / Music Pictures Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Open Bank Project (http://www.openbankproject.com)
- * Copyright 2011,2012 TESOBE / Music Pictures Ltd
- *
- * This product includes software developed at
- * TESOBE (http://www.tesobe.com/)
- * by
- * Simon Redfern : simon AT tesobe DOT com
- * Everett Sochowski: everett AT tesobe DOT com
- * Ayoub Benali : ayoub AT tesobe DOT com
- *
+/** 
+Open Bank Project - Transparency / Social Finance Web Application
+Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Email: contact@tesobe.com 
+TESOBE / Music Pictures Ltd 
+Osloerstrasse 16/17
+Berlin 13359, Germany
+
+  This product includes software developed at
+  TESOBE (http://www.tesobe.com/)
+  by 
+  Simon Redfern : simon AT tesobe DOT com
+  Stefan Bethge : stefan AT tesobe DOT com
+  Everett Sochowski : everett AT tesobe DOT com
+  Ayoub Benali: ayoub AT tesobe DOT com
+
  */
 package com.tesobe.utils {
 
@@ -163,15 +166,15 @@ import code.model.traits.ModeratedBankAccount
           } else Nil
         }
         
-        val transactions = for {
+        val response = for {
           bankAccount <- BankAccount(bankAlias, accountAlias)
           view <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
-        } yield getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
-        
-        transactions match {
-          case Full(ts) => JsonResponse("transactions" -> ts.map(t => t.toJson))
-          case _ => InMemoryResponse(data, headers, Nil, 401)
+        } yield {
+          val ts = getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
+          JsonResponse("transactions" -> ts.map(t => t.toJson(view)))
         }
+        
+        response getOrElse InMemoryResponse(data, headers, Nil, 401) : LiftResponse
       }
       
       case bankAlias :: "accounts" :: accountAlias :: "transactions" ::
@@ -180,16 +183,18 @@ import code.model.traits.ModeratedBankAccount
     	val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
     	val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
     	
-    	val moderatedTransaction = for {
+    	val moderatedTransactionAndView = for {
     	  bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
     	  account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
     	  view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
     	  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
-    	} yield moderatedTransaction
+    	} yield {
+    	  (moderatedTransaction, view)
+    	}
     	
     	val links : List[JObject] = Nil
     	
-        moderatedTransaction.map(mt => JsonResponse(("transaction" -> mt.toJson) ~
+        moderatedTransactionAndView.map(mtAndView => JsonResponse(("transaction" -> mtAndView._1.toJson(mtAndView._2)) ~
             										("links" -> links)))
       }
     	  
