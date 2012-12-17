@@ -19,8 +19,8 @@ Currently this repository also contains API code - but that is in the process of
 
 LICENSE
 
-This software is dual licensed under the AGPL V3 (see NOTICE) and a commercial license from TESOBE
-
+This project is dual licensed under the AGPL V3 (see NOTICE) and a commercial license from TESOBE
+Some files (OAuth related) are licensed under the Apache 2 license.
 
 SETUP
 
