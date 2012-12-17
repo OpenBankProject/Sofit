@@ -1,29 +1,32 @@
 /** 
-Open Bank Project
+Open Bank Project - Transparency / Social Finance Web Application
+Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
-Copyright 2011,2012 TESOBE / Music Pictures Ltd.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
-http://www.apache.org/licenses/LICENSE-2.0
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and 
-limitations under the License.      
+Email: contact@tesobe.com 
+TESOBE / Music Pictures Ltd 
+Osloerstrasse 16/17
+Berlin 13359, Germany
 
-Open Bank Project (http://www.openbankproject.com)
-      Copyright 2011,2012 TESOBE / Music Pictures Ltd
-
-      This product includes software developed at
-      TESOBE (http://www.tesobe.com/)
-    by 
-    Simon Redfern : simon AT tesobe DOT com
-    Everett Sochowski: everett AT tesobe DOT com
-    Benali Ayoub : ayoub AT tesobe DOT com
+  This product includes software developed at
+  TESOBE (http://www.tesobe.com/)
+  by 
+  Simon Redfern : simon AT tesobe DOT com
+  Stefan Bethge : stefan AT tesobe DOT com
+  Everett Sochowski : everett AT tesobe DOT com
+  Ayoub Benali: ayoub AT tesobe DOT com
 
  */
 package code.model.dataAccess
@@ -45,6 +48,7 @@ import scala.util.Random
 import com.mongodb.QueryBuilder
 import com.mongodb.BasicDBObject
 import code.model.traits.Comment
+import net.liftweb.common.Loggable
 
 /**
  * "Current Account View"
@@ -147,14 +151,11 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    * @param text The text of the comment
    */
   def addComment(userId: Long, viewId : Long, text: String, datePosted : Date) = {
-    println("adding a comment from the user : "+ userId + " with this content "+ text)
-    println("view ID : "+viewId)
-    val comments = obp_comments.get
-    val c2 = comments ++ List(OBPComment.createRecord.userId(userId).
+    val comment = OBPComment.createRecord.userId(userId).
       textField(text).
       date(datePosted).
-      viewID(viewId))
-    obp_comments(c2).saveTheRecord()
+      viewID(viewId).save
+    obp_comments(comment.id.is :: obp_comments.get ).save
   }
 
   lazy val theAccount = {
@@ -162,10 +163,14 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     val num = thisAcc.number.get
     val accKind = thisAcc.kind.get
     val bankName = thisAcc.bank.get.name.get
-    val qry = QueryBuilder.start("number").is(num).
-      put("kind").is(accKind).
-      put("bankName").is(bankName).get
-    Account.find(qry)
+    val accQry = QueryBuilder.start("number").is(num).
+      put("kind").is(accKind).get
+    
+    for {
+      account <- Account.find(accQry)
+      bank <- HostedBank.find("name", bankName)
+      if(bank.id.get == account.bankID.get)
+    } yield account
   }
    
   object DateDescending extends Ordering[OBPEnvelope] {
@@ -186,7 +191,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   object obp_transaction extends BsonRecordField(this, OBPTransaction)
   
   //not named comments as "comments" was used in an older mongo document version
-  object obp_comments extends BsonRecordListField[OBPEnvelope, OBPComment](this, OBPComment)
+  object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
   object narrative extends StringField(this, 255)
   
   /**
@@ -194,27 +199,28 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    */
   def whenAddedJson : JObject = {
     JObject(List(JField("obp_transaction", obp_transaction.get.whenAddedJson(id.toString)),
-        		 JField("obp_comments", JArray(obp_comments.get.map(comment => {
+        		 JField("obp_comments", JArray(obp_comments.objs.map(comment => {
         		   JObject(List(JField("text", JString(comment.textField.is))))
         		 })))))
   }
 }
 
-class OBPComment private() extends BsonRecord[OBPComment] with Comment {
+class OBPComment private() extends MongoRecord[OBPComment] with ObjectIdPk[OBPComment] with Comment {
   def meta = OBPComment
   def postedBy = OBPUser.find(userId)
   def viewId = viewID.get
   def text = textField.get
   def datePosted = date.get
+  def id_ = id.is.toString
   object userId extends LongField(this)
   object viewID extends LongField(this)
   object textField extends StringField(this, 255)
   object date extends DateField(this)
 }
 
-object OBPComment extends OBPComment with BsonMetaRecord[OBPComment]
+object OBPComment extends OBPComment with MongoMetaRecord[OBPComment]
 
-object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] {
+object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Loggable {
   
   class OBPQueryParam
   trait OBPOrder { def orderValue : Int }
@@ -313,7 +319,10 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] {
             updatedAccount.saveTheRecord()
             Full(randomAliasName)
           }
-          case _ => Empty
+          case _ => {
+            logger.warn("Account not found to create aliases for")
+            Empty
+          }
         }
       }
 
