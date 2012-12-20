@@ -15,4 +15,3 @@ MavLift/src/main/resources/git.properties
 
 MavLift/src/main/webapp/WEB-INF/jetty.xml
 MavLift/src/main/webapp/conf.html
-mktestdb.js
