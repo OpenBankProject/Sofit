@@ -56,6 +56,5 @@ class OtherBankAccountImpl(theAccount: Account, otherAccount: OBPAccount) extend
   val iban = Some(otherAccount.bank.get.IBAN.get)
   val number = otherAccount.number.get.toString
   val bankName = "" //TODO: need to add this to the json/model
-  val metadata = new OtherBankAccountMetadataImpl(oAcc.publicAlias.get, oAcc.privateAlias.get, oAcc.moreInfo.get,
-      oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get)
+  val metadata = new OtherBankAccountMetadataImpl(oAcc)
 }

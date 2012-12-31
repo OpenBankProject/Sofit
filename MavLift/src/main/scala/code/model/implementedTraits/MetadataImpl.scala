@@ -36,16 +36,16 @@ import code.model.dataAccess.{OtherAccount, OBPComment}
 import net.liftweb.common.Loggable
 import java.util.Date
 
-class OtherBankAccountMetadataImpl(_publicAlias : String, _privateAlias : String,_moreInfo : String,
-_url : String, _imageUrl : String, _openCorporatesUrl : String) extends OtherBankAccountMetadata {
+class OtherBankAccountMetadataImpl(oAcc: OtherAccount) extends OtherBankAccountMetadata {
 
-   def publicAlias : String = _publicAlias
-   def privateAlias : String = _privateAlias
-   def moreInfo : String = _moreInfo
-   def url : String = _url
-   def imageUrl : String = _imageUrl
-   def openCorporatesUrl : String = _openCorporatesUrl
+   def publicAlias : String = oAcc.publicAlias.get
+   def privateAlias : String = oAcc.privateAlias.get
+   def moreInfo : String = oAcc.moreInfo.get
+   def url : String = oAcc.url.get
+   def imageUrl : String = oAcc.imageUrl.get
+   def openCorporatesUrl : String = oAcc.openCorporatesUrl.get
 }
+
 class TransactionMetadataImpl(narative : String, comments_ : List[Comment], 
   saveOwnerComment : String => Unit, addCommentFunc : (Long,Long, String, Date) => Unit ) 
   extends TransactionMetadata with Loggable
