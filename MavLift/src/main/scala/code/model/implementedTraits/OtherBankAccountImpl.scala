@@ -32,18 +32,30 @@ Berlin 13359, Germany
 package code.model.implementedTraits
 
 import code.model.traits.{OtherBankAccountMetadata,OtherBankAccount}
+import code.model.dataAccess.OBPAccount
+import code.model.dataAccess.Account
+import code.model.dataAccess.OtherAccount
 
-class OtherBankAccountImpl(id_ : String, label_ : String, nationalIdentifier_ : String,
-	swift_bic_ : Option[String], iban_ : Option[String], number_ : String,
-	bankName_ : String, metadata_ : OtherBankAccountMetadata) extends OtherBankAccount
+class OtherBankAccountImpl(theAccount: Account, otherAccount: OBPAccount) extends OtherBankAccount
 {
+  
+  private val oAccs = theAccount.otherAccounts.get
+  val otherUnmediatedHolder = otherAccount.holder.get.toString
+  val oAccOpt = oAccs.find(o => {
+    otherUnmediatedHolder.equals(o.holder.get)
+  })
 
-	def id = id_
-	def label = label_
-	def nationalIdentifier = nationalIdentifier_
-	def swift_bic = swift_bic_
-	def iban = iban_
-	def number = number_
-	def bankName = bankName_
-	def metadata = metadata_
+  val oAcc = oAccOpt getOrElse {
+    OtherAccount.createRecord
+  }
+  
+  val id = ""
+  val label = otherAccount.holder.get.toString
+  val nationalIdentifier = otherAccount.bank.get.national_identifier.get
+  val swift_bic = None //TODO: need to add this to the json/model
+  val iban = Some(otherAccount.bank.get.IBAN.get)
+  val number = otherAccount.number.get.toString
+  val bankName = "" //TODO: need to add this to the json/model
+  val metadata = new OtherBankAccountMetadataImpl(oAcc.publicAlias.get, oAcc.privateAlias.get, oAcc.moreInfo.get,
+      oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get)
 }
