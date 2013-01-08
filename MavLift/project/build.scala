@@ -47,16 +47,18 @@ object LiftProjectBuild extends Build {
       case _ => t
     }
 
-    lazy val pomDeps = for{
+    lazy val pomDeps = (for{
       dep <- pom \ "dependencies" \ "dependency"
     } yield {
       val scope = (dep \ "scope")
       val groupId = (dep \ "groupId").text
       val noScope = populateProps(groupId) % populateProps((dep \ "artifactId").text) % populateProps((dep \ "version").text)
-      if (groupId.endsWith("jetty")) noScope % "container" //hack to add jetty deps in container scope as it is required by the web plugin
-      else if (scope.nonEmpty) noScope  % populateProps(scope.text)
-      else noScope
-    }
+      val nonCustom = if (scope.nonEmpty) noScope  % populateProps(scope.text)
+                      else noScope
+
+      if (groupId.endsWith("jetty")) Seq(noScope % "container", nonCustom) //hack to add jetty deps in container scope as it is required by the web plugin
+      else Seq(nonCustom)
+    }).flatten
 
     lazy val pomRepos = for {
       rep <- pom \ "repositories" \ "repository"
