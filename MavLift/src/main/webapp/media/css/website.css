@@ -547,16 +547,23 @@ div#addCommentbloc
 {
 	margin-bottom: 25px;
 }
-a#feedBack
-{
+#feedBack {
 	display: block;
 	position: fixed;
-	left:0;
+	left: -195px;
 	top: 50%;
-	width: 26px;
-	height: 87px;
-	background: url(../images/feedback-button.gif);
+	width: 215px;
+	height: 200px;
 	cursor: pointer;
+	background-image: url(../images/feedback-button.gif);
+	background-repeat: no-repeat;
+	background-position: 195px;
+	background-color: #0c5276;
+	border-radius: 0 5px 5px 0;
+	padding: 20px 5px;
+}
+#feedBack form {
+	width:210px;
 }
 span#registrationDetails
 {
