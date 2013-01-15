@@ -18,16 +18,16 @@ $(document).ready(function() {
   });
 
   $('#feedback-demon').submit(function(e) {
-    e.preventDefault();
     $.post($(this).attr("action"), $(this).serialize(), function(data) {
       console.log("it works");
       console.log(data);
     });
+    return false;
   });
 
   $("#feedback-idea .submit-button").click(function() {
+    e.preventDefault();
     $('#feedback-idea').submit(function(e) {
-      e.preventDefault();
       $.post($(this).attr("action"), $(this).serialize(), function(data) {
         console.log("it works"),
         console.log(data);
