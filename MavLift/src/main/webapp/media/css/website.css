@@ -565,6 +565,11 @@ div#addCommentbloc
 #feedBack form {
 	width:210px;
 }
+.feedback-slider {
+    float: right;
+    width: 30px;
+    height: 100%;
+}
 span#registrationDetails
 {
 	font-size: 10px;
