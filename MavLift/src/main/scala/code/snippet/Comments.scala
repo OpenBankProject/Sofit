@@ -120,7 +120,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
         }
       } &
       ".label *" #> {
-            transaction.label.getOrElse("")
+            transaction.label.getOrElse(FORBIDDEN)
       } &
       ".new_balance *" #> {
             transaction.balance + " " + theCurrency
