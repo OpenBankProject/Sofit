@@ -26,6 +26,7 @@ $(document).ready(function() {
   });
 
   $("#feedback-idea .submit-button").click(function() {
+    e.preventDefault();
     $('#feedback-idea').submit(function(e) {
       e.preventDefault();
       $.post($(this).attr("action"), $(this).serialize(), function(data) {
