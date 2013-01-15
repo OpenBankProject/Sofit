@@ -154,7 +154,7 @@ object Anonymous extends BaseView {
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
     val transactionCurrency = Some(transaction.currency)
-    val transactionLabel = transaction.label
+    val transactionLabel = None
     val transactionStartDate = Some(transaction.startDate)
     val transactionFinishDate = Some(transaction.finishDate)
     val transactionBalance =  if (transaction.balance.toString().startsWith("-")) "-" else "+"
