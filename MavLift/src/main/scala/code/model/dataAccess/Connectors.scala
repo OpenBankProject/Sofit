@@ -118,7 +118,7 @@ class MongoDBLocalStorage extends LocalStorage {
     val transactionType = env.obp_transaction.get.details.get.type_en.get
     val amount = env.obp_transaction.get.details.get.value.get.amount.get
     val currency = env.obp_transaction.get.details.get.value.get.currency.get
-    val label = None
+    val label = Some(env.obp_transaction.get.details.get.label.get)
     val startDate = env.obp_transaction.get.details.get.posted.get
     val finishDate = env.obp_transaction.get.details.get.completed.get
     val balance = env.obp_transaction.get.details.get.new_balance.get.amount.get

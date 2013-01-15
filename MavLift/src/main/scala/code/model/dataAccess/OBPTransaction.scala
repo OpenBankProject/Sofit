@@ -443,6 +443,7 @@ class OBPDetails private() extends BsonRecord[OBPDetails]{
   object new_balance extends BsonRecordField(this, OBPBalance)
   object value extends BsonRecordField(this, OBPValue)
   object completed extends DateField(this)
+  object label extends net.liftweb.record.field.StringField(this, 255)
   
   
   def formatDate(date : Date) : String = {
