@@ -465,6 +465,7 @@ import code.model.traits.ModeratedBankAccount
 
         createdEnvelopes match {
           case Full(l: List[JObject]) =>{
+              logger.info("insered " + l.size + "transactions")
               if(envelopes.size!=0)
               {  
                 //we assume here that all the Envelopes concerns only one account 
@@ -474,7 +475,7 @@ import code.model.traits.ModeratedBankAccount
                 Account.find(("number" -> accountNumber) ~ ("bankName" -> bankName) ~ ("kind" -> accountKind))
                 match {
                   case Full(account) =>  account.lastUpdate(new Date).save
-                  case _ => 
+                  case _ => logger.info("BankName/accountNumber/king not found :  " + bankName + "/" + accountNumber + "/" + accountKind)
                 }
               }
               JsonResponse(JArray(l))
