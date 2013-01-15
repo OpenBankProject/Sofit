@@ -5,31 +5,31 @@ $(document).ready(function() {
               return false;
       },
       function(){
-          $("#feedBack").animate({left:"-195px"});    
+          $("#feedBack").animate({left:"-195px"});
           return false;
       }
   );
-	$('#feedback-angel').submit(function(e) {
-	  e.preventDefault();
-	  $.post($(this).attr("action"), $(this).serialize(), function(data) {
-	    console.log("it works");
-	    console.log(data);
-	  });
-	});
+  $('#feedback-angel').submit(function(e) {
+    e.preventDefault();
+    $.post($(this).attr("action"), $(this).serialize(), function(data) {
+      console.log("it works");
+      console.log(data);
+    });
+  });
 
-	$('#feedback-demon').submit(function(e) {
-	  e.preventDefault();
-	  $.post($(this).attr("action"), $(this).serialize(), function(data) {
-	    console.log("it works");
-	    console.log(data);
-	  });
-	});
+  $('#feedback-demon').submit(function(e) {
+    e.preventDefault();
+    $.post($(this).attr("action"), $(this).serialize(), function(data) {
+      console.log("it works");
+      console.log(data);
+    });
+  });
 
-	$('#feedback-idea').submit(function(e) {
-	  e.preventDefault();
-	  $.post($(this).attr("action"), $(this).serialize(), function(data) {
-	    console.log("it works"),
-	    console.log(data);
-	  });
-	});	
-});    
+  $('#feedback-idea').submit(function(e) {
+    e.preventDefault();
+    $.post($(this).attr("action"), $(this).serialize(), function(data) {
+      console.log("it works"),
+      console.log(data);
+    });
+  });
+});
