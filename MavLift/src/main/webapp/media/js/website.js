@@ -25,11 +25,13 @@ $(document).ready(function() {
     });
   });
 
-  $('#feedback-idea').submit(function(e) {
-    e.preventDefault();
-    $.post($(this).attr("action"), $(this).serialize(), function(data) {
-      console.log("it works"),
-      console.log(data);
+  $("#feedback-idea .submit-button").click(function() {
+    $('#feedback-idea').submit(function(e) {
+      e.preventDefault();
+      $.post($(this).attr("action"), $(this).serialize(), function(data) {
+        console.log("it works"),
+        console.log(data);
+      });
     });
   });
 });
