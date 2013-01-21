@@ -19,8 +19,10 @@ $(document).ready(function() {
 
   $(".feedback-slider").toggle(
       function(){
+          $("#feedback").find('form').show();
+          $("#feedback").find('-thanks').hide();
           $("#feedBack").animate({left:"0px"});
-              return false;
+          return false;
       },
       function(){
           $("#feedBack").animate({left:"-195px"});
@@ -32,7 +34,7 @@ $(document).ready(function() {
         url: $(this).attr("action"),
         data: $(this).serialize(),
         success: function() {
-            $('#feedback-angel').html("<p>Thank you!</p>");
+            $('#feedback-angel').hide().parent().prepend("<p class='thanks'>Thank you!</p>");
         }
     });
     return false;
@@ -43,7 +45,7 @@ $(document).ready(function() {
         url: $(this).attr("action"),
         data: $(this).serialize(),
         success: function() {
-            $('#feedback-demon').html("<p>Thank you!</p>");
+            $('#feedback-demon').hide().parent().prepend("<p class='thanks'>Thank you!</p>");
         }
     });
     return false;
@@ -54,7 +56,7 @@ $(document).ready(function() {
         url: $(this).attr("action"),
         data: $(this).serialize(),
         success: function() {
-            $('#feedback-idea').html("<p>Thank you!</p>");
+            $('#feedback-idea').hide().parent().prepend("<p class='thanks'>Thank you!</p>");
         }
     });
     return false;
