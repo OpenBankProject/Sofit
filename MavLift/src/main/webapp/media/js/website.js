@@ -14,24 +14,26 @@ $(document).ready(function() {
     $.post($(this).attr("action"), $(this).serialize(), function(data) {
       console.log("it works");
       console.log(data);
+      $('#feedback-angel').html("<p>Thank you!</p>");
     });
   });
 
   $('#feedback-demon').submit(function(e) {
+    e.preventDefault();
     $.post($(this).attr("action"), $(this).serialize(), function(data) {
       console.log("it works");
       console.log(data);
+      $('#feedback-demon').html("<p>Thank you!</p>");
     });
     return false;
   });
 
-  $("#feedback-idea .submit-button").click(function() {
-    e.preventDefault();
-    $('#feedback-idea').submit(function(e) {
-      $.post($(this).attr("action"), $(this).serialize(), function(data) {
-        console.log("it works"),
-        console.log(data);
-      });
+  $('#feedback-idea').submit(function(e) {
+  e.preventDefault();
+    $.post($(this).attr("action"), $(this).serialize(), function(data) {
+      console.log("it works"),
+      console.log(data);
+      $('#feedback-idea').html("<p>Thank you!</p>");
     });
   });
 });
