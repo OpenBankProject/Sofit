@@ -9,13 +9,13 @@ $(document).ready(function() {
           return false;
       }
   );
-  $('#feedback-angel').submit(function(e) {
-    e.preventDefault();
+  $('#feedback-angel').submit(function() {
     $.post($(this).attr("action"), $(this).serialize(), function(data) {
       console.log("it works");
       console.log(data);
       $('#feedback-angel').html("<p>Thank you!</p>");
     });
+    return false;
   });
 
   $('#feedback-demon').submit(function(e) {
@@ -28,12 +28,13 @@ $(document).ready(function() {
     return false;
   });
 
-  $('#feedback-idea').submit(function(e) {
-  e.preventDefault();
+  $('#feedback-idea').submit(function() {
     $.post($(this).attr("action"), $(this).serialize(), function(data) {
       console.log("it works"),
       console.log(data);
       $('#feedback-idea').html("<p>Thank you!</p>");
     });
+    return false;
   });
+
 });
