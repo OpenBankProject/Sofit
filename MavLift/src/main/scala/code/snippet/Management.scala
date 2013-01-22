@@ -58,7 +58,7 @@ class Management(currentAccount : Account) {
   def showAll(xhtml: NodeSeq) : NodeSeq = {
     
     def getMostUpToDateOtherAccount(holder: String) = {
-      currentAccount.otherAccounts.get.find(o => {
+      currentAccount.otherAccounts.objs.find(o => {
         o.holder.get.equals(holder)
       })
     }
@@ -93,26 +93,25 @@ class Management(currentAccount : Account) {
       editable(initialValue, holder, openCorporatesUrl, "Open Corporates URL")
     }
     
-    def editable(initialValue: String, holder: String,  alterOtherAccount: (OtherAccount, String) => OtherAccount,
-        defaultValue: String) = {
+    def editable(
+      initialValue: String, 
+      holder: String,  
+      alterOtherAccount: (OtherAccount, String) => OtherAccount,
+      defaultValue: String ) = {
       var currentValue = initialValue
       
       def saveValue() = {
         val otherAcc = getMostUpToDateOtherAccount(holder)
-        if(otherAcc.isDefined){
-          val newOtherAcc = alterOtherAccount(otherAcc.get, currentValue)
-          val newOtherAccs = currentAccount.otherAccounts.get -- List(otherAcc.get) ++ List(newOtherAcc) 
-          currentAccount.otherAccounts(newOtherAccs).save
-        }
+        if(otherAcc.isDefined)
+          alterOtherAccount(otherAcc.get, currentValue).save
       }
-      
       CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{
         saveValue()
         Noop
       }, defaultValue)
     }
     
-    currentAccount.otherAccounts.get.sortBy(_.holder.get).flatMap(other => {
+    currentAccount.otherAccounts.objs.sortBy(_.holder.get).flatMap(other => {
       
       val account = other.holder.get
       val publicAlias = other.publicAlias.get
@@ -144,75 +143,6 @@ class Management(currentAccount : Account) {
        moreInfoSelector &
        imageURLSelector).apply(xhtml)
     })
-  }
-  
-  def listAll(xhtml: NodeSeq) : NodeSeq  = {
-    
-    def getMostUpToDateOtherAccount(holder: String) = {
-      currentAccount.otherAccounts.get.find(o => {
-        o.holder.get.equals(holder)
-      })
-    }
-    
-    def editable(initialValue: String, holder: String,  alterOtherAccount: (OtherAccount, String) => OtherAccount) = {
-      var currentValue = initialValue
-      
-      def saveValue() = {
-        val otherAcc = getMostUpToDateOtherAccount(holder)
-        if(otherAcc.isDefined){
-          val newOtherAcc = alterOtherAccount(otherAcc.get, currentValue)
-          val newOtherAccs = currentAccount.otherAccounts.get -- List(otherAcc.get) ++ List(newOtherAcc) 
-          currentAccount.otherAccounts(newOtherAccs).save
-        }
-        
-      }
-      
-      SHtml.ajaxEditable(Text(currentValue), SHtml.text(currentValue, currentValue = _), () =>{
-        saveValue()
-        Noop
-      })
-    }
-    
-    def editablePublicAlias(initialValue : String, holder: String) = {
-      def alterPublicAlias = (oAccount: OtherAccount, newValue: String) => oAccount.publicAlias(newValue)
-      editable(initialValue, holder, alterPublicAlias)
-    }
-    
-    def editablePrivateAlias(initialValue : String, holder: String) = {
-      def alterPrivateAlias = (oAccount: OtherAccount, newValue: String) => oAccount.privateAlias(newValue)
-      editable(initialValue, holder, alterPrivateAlias)
-    }
-    
-    def editableImageUrl(initialValue : String, holder: String) = {
-      def alterImageUrl = (oAccount: OtherAccount, newValue: String) => oAccount.imageUrl(newValue)
-      editable(initialValue, holder, alterImageUrl)
-    }
-    
-    def editableUrl(initialValue : String, holder: String) = {
-      def alterUrl = (oAccount: OtherAccount, newValue: String) => oAccount.url(newValue)
-      editable(initialValue, holder, alterUrl)
-    }
-    
-    def editableMoreInfo(initialValue : String, holder: String) = {
-      def moreInfo = (oAccount: OtherAccount, newValue: String) => oAccount.moreInfo(newValue)
-      editable(initialValue, holder, moreInfo)
-    }
-    
-    def editableOpenCorporatesUrl(initialValue : String, holder: String) = {
-      def openCorporatesUrl = (oAccount: OtherAccount, newValue: String) => oAccount.openCorporatesUrl(newValue)
-      editable(initialValue, holder, openCorporatesUrl)
-    }
-    
-    currentAccount.otherAccounts.get.flatMap(other => {
-      (".image *" #> editableImageUrl(other.imageUrl.get, other.holder.get) &
-       ".real_name *" #> Text(other.holder.get) &
-       ".public_alias_name *" #> editablePublicAlias(other.publicAlias.get, other.holder.get) &
-       ".private_alias_name *" #> editablePrivateAlias(other.privateAlias.get, other.holder.get) &
-       ".more_info *" #> editableMoreInfo(other.moreInfo.get, other.holder.get) &
-       ".website_url *" #> editableUrl(other.url.get, other.holder.get) &
-       ".open_corporates_url *" #> editableOpenCorporatesUrl(other.openCorporatesUrl.get, other.holder.get)).apply(xhtml)
-    })
-    
   }
   
 }
