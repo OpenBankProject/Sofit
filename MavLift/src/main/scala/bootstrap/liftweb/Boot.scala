@@ -128,7 +128,7 @@ class Boot extends Loggable{
       } yield (b.getModeratedTransactions(v.moderate), v)
 
       transactionsAndView match {
-        case Failure(msg, _, _) => logger.info("Could not get transactions and view: " + msg)
+        case Failure(msg, _, _) => logger.warn("Could not get transactions and view: " + msg)
         case _ => //don't log anything
       }
       transactionsAndView
@@ -231,7 +231,6 @@ class Boot extends Loggable{
     S.addAround(DB.buildLoanWrapper)
     
     TableSorter.init
-    
     /**
      * A temporary measure to make sure there is an owner for the account, so that someone can set permissions
      */

@@ -246,7 +246,7 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
       def publicAliasExists(realValue: String): Boolean = {
         env.theAccount match {
           case Full(a) => {
-            val otherAccs = a.otherAccounts.get
+            val otherAccs = a.otherAccounts.objs
             val aliasInQuestion = otherAccs.find(o =>
               o.holder.get.equals(realValue))
             aliasInQuestion.isDefined
@@ -258,7 +258,7 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
       def privateAliasExists(realValue: String): Boolean = {
         env.theAccount match {
           case Full(a) => {
-            val otherAccs = a.otherAccounts.get
+            val otherAccs = a.otherAccounts.objs
             val aliasInQuestion = otherAccs.find(o =>
               o.holder.get.equals(realValue))
             aliasInQuestion.isDefined
@@ -267,7 +267,7 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
         }
       }
 
-      def createPublicAlias() = {
+      def createPublicAlias(realOtherAccHolder : String) = {
         //TODO: Guarantee a unique public alias string
 
         /**
@@ -281,7 +281,7 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
            * Returns true if @publicAlias is already the name of a public alias within @account
            */
           def isDuplicate(publicAlias: String, account: Account) = {
-            account.otherAccounts.get.find(oAcc => {
+            account.otherAccounts.objs.find(oAcc => {
               oAcc.publicAlias.get == newAlias
             }).isDefined
           }
@@ -302,21 +302,9 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
         env.theAccount match {
           case Full(a) => {
             val randomAliasName = newPublicAliasName(a)
-            val oAccHolderName = env.obp_transaction.get.other_account.get.holder.get
-            val otherAccount = a.otherAccounts.get.find(acc => acc.holder.equals(oAccHolderName))
-            val updatedAccount = otherAccount match {
-              case Some(o) => {
-                //update the "otherAccount"
-                val newOtherAcc = o.publicAlias(randomAliasName)
-                a.otherAccounts(a.otherAccounts.get -- List(o) ++ List(newOtherAcc))
-              }
-              case _ => {
-                //create a new "otherAccount"
-                a.otherAccounts(a.otherAccounts.get ++ List(OtherAccount.createRecord.holder(oAccHolderName).publicAlias(randomAliasName)))
-              }
-            }
-
-            updatedAccount.saveTheRecord()
+            //create a new "otherAccount" 
+            val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).publicAlias(randomAliasName).save                
+            a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save
             Full(randomAliasName)
           }
           case _ => {
@@ -326,34 +314,29 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
         }
       }
 
-      def createPlaceholderPrivateAlias() = {
+      def createPlaceholderPrivateAlias(realOtherAccHolder : String) = {
         env.theAccount match {
           case Full(a) => {
-            val oAccHolderName = env.obp_transaction.get.other_account.get.holder.get
-            val otherAccount = a.otherAccounts.get.find(acc => acc.holder.equals(oAccHolderName))
-            val updatedAccount = otherAccount match {
-              case Some(o) => {
+            a.otherAccounts.objs.find(acc => acc.holder.equals(realOtherAccHolder)) match {
+              case Some(o) => 
                 //update the "otherAccount"
-                val newOtherAcc = o.privateAlias("")
-                a.otherAccounts(a.otherAccounts.get -- List(o) ++ List(newOtherAcc))
-              }
+                val newOtherAcc = o.privateAlias("").save
               case _ => {
                 //create a new "otherAccount"
-                a.otherAccounts(a.otherAccounts.get ++ List(OtherAccount.createRecord.holder(oAccHolderName)))
+                val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).privateAlias("").save                
+                a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save                
               }
             }
-            updatedAccount.saveTheRecord()
             Full("")
           }
           case _ => Empty
         }
       }
-      
-      
-      if (!publicAliasExists(realOtherAccHolder)) {
-        createPublicAlias()
-      }
-      if (!privateAliasExists(realOtherAccHolder)) createPlaceholderPrivateAlias()
+
+      if (!publicAliasExists(realOtherAccHolder)) 
+        createPublicAlias(realOtherAccHolder)
+      if (!privateAliasExists(realOtherAccHolder)) 
+        createPlaceholderPrivateAlias(realOtherAccHolder)
     }
     
     val created = super.fromJValue(jval)

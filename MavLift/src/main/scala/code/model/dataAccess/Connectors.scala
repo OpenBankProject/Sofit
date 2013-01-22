@@ -92,7 +92,7 @@ class MongoDBLocalStorage extends LocalStorage {
 
     val thisBankAccount = Account.toBankAccount(theAccount)
           
-    val oAccs = theAccount.otherAccounts.get
+    val oAccs = theAccount.otherAccounts.objs
     val oAccOpt = oAccs.find(o => {
       otherUnmediatedHolder.equals(o.holder.get)
     })

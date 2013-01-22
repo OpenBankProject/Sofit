@@ -142,8 +142,6 @@ object CustomTableSorter {
     val onLoad = """jQuery(document).ready(function(){
         jQuery('"""+selector+"""').tablesorter("""+options+""")
       });"""
-        println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\nAAAAAAAAAAA")
-        println(onLoad)
     <head>
       <link rel="stylesheet" href={"/" + LiftRules.resourceServerPath + "/tablesorter/themes/blue/style.css"} type="text/css" id="" media="print, projection, screen" />
       <script type="text/javascript" src={"/" + LiftRules.resourceServerPath + "/tablesorter/jquery.tablesorter.js"}/>
