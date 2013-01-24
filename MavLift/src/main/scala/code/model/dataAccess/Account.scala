@@ -39,7 +39,7 @@ import net.liftweb.mongodb.record.MongoMetaRecord
 import net.liftweb.mongodb.record.field.ObjectIdPk
 import net.liftweb.mongodb.record.field.ObjectIdRefListField
 import net.liftweb.mongodb.record.MongoRecord
-import net.liftweb.mongodb.record.field.{BsonRecordField , ObjectIdRefField}
+import net.liftweb.mongodb.record.field.ObjectIdRefField
 import net.liftweb.mongodb.record.field.MongoJsonObjectListField
 import net.liftweb.mongodb.record.field.DateField
 import net.liftweb.common.{ Box, Empty, Full }
@@ -75,7 +75,7 @@ class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
   object currency extends StringField(this, 255)
   object iban extends StringField(this, 255)
   object lastUpdate extends DateField(this)
-  object otherAccounts extends ObjectIdRefListField[Account, OtherAccount](this, OtherAccount)
+  object otherAccounts extends ObjectIdRefListField(this, OtherAccount)
   
   def bankName : String = bankID.obj match  {
     case Full(bank) => bank.name.get
@@ -132,7 +132,7 @@ object Account extends Account with MongoMetaRecord[Account] {
   }
 }
 
-class OtherAccount extends MongoRecord[OtherAccount] with ObjectIdPk[OtherAccount] {
+class OtherAccount private() extends MongoRecord[OtherAccount] with ObjectIdPk[OtherAccount] {
   def meta = OtherAccount
 
   object holder extends StringField(this, 200)
