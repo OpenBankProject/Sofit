@@ -92,19 +92,15 @@ class MongoDBLocalStorage extends LocalStorage {
 
     val thisBankAccount = Account.toBankAccount(theAccount)
           
-    val oAccs = theAccount.otherAccounts.get
-    val oAccOpt = oAccs.find(o => {
+    val oAcc = theAccount.otherAccounts.objs.find(o => {
       otherUnmediatedHolder.equals(o.holder.get)
-    })
-
-    val oAcc = oAccOpt getOrElse {
+    }).getOrElse {
       OtherAccount.createRecord
     }
 
     val id = env.id.is.toString()
-    val oSwiftBic = None
     val otherAccount = new OtherBankAccountImpl(
-        id_ = "", 
+        id_ = oAcc.id.is.toString, 
         label_ = otherAccount_.holder.get,
         nationalIdentifier_ = otherAccount_.bank.get.national_identifier.get,
         swift_bic_ = None, //TODO: need to add this to the json/model
@@ -115,13 +111,13 @@ class MongoDBLocalStorage extends LocalStorage {
         oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get))
     val metadata = new TransactionMetadataImpl(env.narrative.get, env.obp_comments.objs,
       (text => env.narrative(text).save), env.addComment _)
-    val transactionType = env.obp_transaction.get.details.get.type_en.get
-    val amount = env.obp_transaction.get.details.get.value.get.amount.get
-    val currency = env.obp_transaction.get.details.get.value.get.currency.get
-    val label = None
-    val startDate = env.obp_transaction.get.details.get.posted.get
-    val finishDate = env.obp_transaction.get.details.get.completed.get
-    val balance = env.obp_transaction.get.details.get.new_balance.get.amount.get
+    val transactionType = transaction.details.get.type_en.get
+    val amount = transaction.details.get.value.get.amount.get
+    val currency = transaction.details.get.value.get.currency.get
+    val label = Some(transaction.details.get.label.get)
+    val startDate = transaction.details.get.posted.get
+    val finishDate = transaction.details.get.completed.get
+    val balance = transaction.details.get.new_balance.get.amount.get
     new TransactionImpl(id, thisBankAccount, otherAccount, metadata, transactionType, amount, currency,
       label, startDate, finishDate, balance)
   }
@@ -143,12 +139,12 @@ class MongoDBLocalStorage extends LocalStorage {
 
   def getBank(permalink: String): Box[Bank] = 
     HostedBank.find("permalink", permalink).
-      map( bank => new BankImpl(bank.id.toString, bank.name.get, permalink))
+      map( bank => new BankImpl(bank.id.is.toString, bank.name.is, bank.permalink.is))
   
   
   def allBanks : List[Bank] = 
   HostedBank.findAll.
-    map(bank => new BankImpl(bank.id.toString, bank.name.get, bank.permalink.get))
+    map(bank => new BankImpl(bank.id.is.toString, bank.name.is, bank.permalink.is))
   
   def getBankAccounts(bank: Bank): Set[BankAccount] = {
     val bankId = new ObjectId(bank.id)

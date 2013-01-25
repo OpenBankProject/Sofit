@@ -119,6 +119,9 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
           case _ => FORBIDDEN 
         }
       } &
+      ".label *" #> {
+            transaction.label.getOrElse(FORBIDDEN)
+      } &
       ".new_balance *" #> {
             transaction.balance + " " + theCurrency
       }

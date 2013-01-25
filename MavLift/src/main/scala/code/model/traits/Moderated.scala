@@ -94,7 +94,7 @@ object ModeratedOtherBankAccountMetadata {
 class ModeratedTransaction(filteredId: String, filteredBankAccount: Option[ModeratedBankAccount], 
   filteredOtherBankAccount: Option[ModeratedOtherBankAccount], filteredMetaData : Option[ModeratedTransactionMetadata], 
   filteredTransactionType: Option[String], filteredAmount: Option[BigDecimal], filteredCurrency: Option[String], 
-  filteredLabel: Option[Option[String]],filteredStartDate: Option[Date], filteredFinishDate: Option[Date],
+  filteredLabel: Option[String],filteredStartDate: Option[Date], filteredFinishDate: Option[Date],
   filteredBalance : String) {
   
   //the filteredBlance type in this class is a string rather than Big decimal like in Transaction trait for snippet (display) reasons.

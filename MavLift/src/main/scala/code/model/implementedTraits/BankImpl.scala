@@ -33,6 +33,7 @@ package code.model.implementedTraits
 
 import code.model.traits.{Bank, BankAccount}
 import code.model.dataAccess.LocalStorage
+import code.model.dataAccess.HostedBank
 
 class BankImpl(_id: String, _name : String, _permalink : String) extends Bank
 {

@@ -46,6 +46,7 @@ _url : String, _imageUrl : String, _openCorporatesUrl : String) extends OtherBan
    def imageUrl : String = _imageUrl
    def openCorporatesUrl : String = _openCorporatesUrl
 }
+
 class TransactionMetadataImpl(narative : String, comments_ : List[Comment], 
   saveOwnerComment : String => Unit, addCommentFunc : (Long,Long, String, Date) => Unit ) 
   extends TransactionMetadata with Loggable

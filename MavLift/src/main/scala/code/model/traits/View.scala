@@ -235,7 +235,7 @@ trait View {
       else None
 
     val transactionLabel = 
-      if (canSeeTransactionLabel) Some(transaction.label)
+      if (canSeeTransactionLabel) transaction.label
       else None
     
     val transactionStartDate = 

@@ -31,7 +31,6 @@ Berlin 13359, Germany
  */
 package bootstrap.liftweb
 
-import code.snippet._
 import net.liftweb._
 import util._
 import common._
@@ -39,7 +38,7 @@ import http._
 import sitemap._
 import Loc._
 import mapper._
-import code.model.dataAccess.{MongoConfig,OBPUser,Privilege,Account,HostedBank, MongoDBLocalStorage, HostedAccount}
+import code.model.dataAccess.{MongoConfig,OBPUser,Privilege,Account,MongoDBLocalStorage, HostedAccount}
 import code.model.{Nonce, Consumer, Token}
 import code.model.traits.{Bank, View, ModeratedTransaction}
 import code.model.implementedTraits.{BankImpl, Anonymous, View}
@@ -129,7 +128,7 @@ class Boot extends Loggable{
       } yield (b.getModeratedTransactions(v.moderate), v)
 
       transactionsAndView match {
-        case Failure(msg, _, _) => logger.info("Could not get transactions and view: " + msg)
+        case Failure(msg, _, _) => logger.warn("Could not get transactions and view: " + msg)
         case _ => //don't log anything
       }
       transactionsAndView
