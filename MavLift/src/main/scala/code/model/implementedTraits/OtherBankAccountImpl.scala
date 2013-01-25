@@ -32,18 +32,27 @@ Berlin 13359, Germany
 package code.model.implementedTraits
 
 import code.model.traits.{OtherBankAccountMetadata,OtherBankAccount}
+import code.model.dataAccess.OBPAccount
+import code.model.dataAccess.Account
+import code.model.dataAccess.OtherAccount
 
-class OtherBankAccountImpl(id_ : String, label_ : String, nationalIdentifier_ : String,
-	swift_bic_ : Option[String], iban_ : Option[String], number_ : String,
-	bankName_ : String, metadata_ : OtherBankAccountMetadata) extends OtherBankAccount
+class OtherBankAccountImpl(
+  id_ : String, 
+  label_ : String, 
+  nationalIdentifier_ : String, 
+  swift_bic_ : Option[String], 
+  iban_ : Option[String], 
+  number_ : String,
+  bankName_ : String, 
+  metadata_ : OtherBankAccountMetadata
+) extends OtherBankAccount 
 {
-
-	def id = id_
-	def label = label_
-	def nationalIdentifier = nationalIdentifier_
-	def swift_bic = swift_bic_
-	def iban = iban_
-	def number = number_
-	def bankName = bankName_
-	def metadata = metadata_
+  def id = id_
+  def label = label_
+  def nationalIdentifier = nationalIdentifier_
+  def swift_bic = swift_bic_
+  def iban = iban_
+  def number = number_
+  def bankName = bankName_
+  def metadata = metadata_
 }
