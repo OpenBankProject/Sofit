@@ -29,40 +29,53 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 -->
 
-    <div id="main" class="lift:surround?with=default;at=content">
-      <table>
-        <thead>
-          <tr>
-            <th class="span-1">Cleared</th>
-            <th class="span-1">Amount</th>
-            <th class="span-1">To/From</th>
-            <th class="span-1">Label</th>
-            <th class="span-1">Balance</th>            
-          </tr>
-        </thead>
-        <tbody>
-          <tr class=lift:Comments.commentPageTitle>
-            <td class="date_cleared">completed date</td>
-            <td class="amount">obp_transaction_amount</td>
-            <td class="other_account_holder">
-              <span class="the_name">Ronald Montgomery</span>
-              <span class="alias_indicator"></span>
-            </td>
-            <td class="label">obp_transaction_label</td>
-            <td class="new_balance">obp_transaction_new_balance</td>
-          </tr>
-        </tbody>
-      </table>
-      <p>
-        <div>Comments:</div>
-        <ul id="comment_list" class="lift:Comments.showAll?eager_eval=true container">
-          <span id="noComments">No comments</span>
-          <div class="lift:embed?what=_comment"></div>
-	      </ul>
-        <div id="addCommentbloc">
-        <div class="lift:Comments.addComment" >
-          <span class="add">Add a comment here</span>
-        </div>
-        </div>
-	    </p>
+<div id="main" class="lift:surround?with=default;at=content">
+  <table>
+    <thead>
+      <tr>
+        <th class="span-1">Cleared</th>
+        <th class="span-1">Amount</th>
+        <th class="span-1">To/From</th>
+        <th class="span-1">Label</th>
+        <th class="span-1">Balance</th>            
+      </tr>
+    </thead>
+    <tbody>
+      <tr class=lift:Comments.commentPageTitle>
+        <td class="date_cleared">completed date</td>
+        <td class="amount">obp_transaction_amount</td>
+        <td class="other_account_holder">
+          <span class="the_name">Ronald Montgomery</span>
+          <span class="alias_indicator"></span>
+        </td>
+        <td class="label">obp_transaction_label</td>
+        <td class="new_balance">obp_transaction_new_balance</td>
+      </tr>
+    </tbody>
+  </table>
+  <p id="tagsBloc">
+    <div id="tagsTitle">Tags:</div>
+    <div id="tags_list" class="lift:Comments.showTags?eager_eval=true tagsContainer">
+      <span id="noTags">No tags</span>
+      <div class="lift:embed?what=_tag"></div>
     </div>
+    <div id="addTagbloc">
+      <div class="lift:Comments.addTag" >
+        <span class="add">Add a Tag here</span>
+      </div>
+    </div>
+  </p>  
+
+  <p id="commentsBloc">
+    <div>Comments:</div>
+    <ul id="comment_list" class="lift:Comments.showComments?eager_eval=true commentsContainer">
+      <span id="noComments">No comments</span>
+      <div class="lift:embed?what=_comment"></div>
+    </ul>
+    <div id="addCommentbloc">
+    <div class="lift:Comments.addComment" >
+      <span class="add">Add a comment here</span>
+    </div>
+    </div>
+  </p>
+</div>

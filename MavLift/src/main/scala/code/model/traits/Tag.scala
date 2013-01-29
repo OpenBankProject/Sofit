@@ -32,24 +32,19 @@ Berlin 13359, Germany
 
 package code.model.traits
 import java.util.Date
+import net.liftweb.common.Box
 
-trait TransactionMetadata {
-  
-  // Owner provided comment, done in OBP
-  def ownerComment : Option[String]
-  def ownerComment(comment : String) : Unit 
-  def comments : List[Comment]
-  def addComment(userId : Long, viewId : Long, text : String, postedDate : Date) : Unit
-  def tags : List[Tag]
-  def addTag(userId : Long, viewId : Long, tag : String, postedDate :Date) : String
-  def deleteTag(id : String) : Unit
-}
-trait OtherBankAccountMetadata 
-{
-	def publicAlias : String
-  def privateAlias : String
-  def moreInfo : String
-	def url : String
-	def imageUrl : String
-	def openCorporatesUrl : String
+trait Tag {
+
+  def id_ : String
+ 
+  def datePosted : Date
+
+  def postedBy : Box[User]
+
+  def viewId : Long 
+
+  def value : String
+
+
 }
