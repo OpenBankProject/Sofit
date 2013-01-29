@@ -547,16 +547,28 @@ div#addCommentbloc
 {
 	margin-bottom: 25px;
 }
-a#feedBack
-{
+#feedBack {
 	display: block;
 	position: fixed;
-	left:0;
+	left: -195px;
 	top: 50%;
-	width: 26px;
-	height: 87px;
-	background: url(../images/feedback-button.gif);
+	width: 215px;
+	height: 200px;
 	cursor: pointer;
+	background-image: url(../images/feedback-button.gif);
+	background-repeat: no-repeat;
+	background-position: 195px;
+	background-color: #0c5276;
+	border-radius: 0 5px 5px 0;
+	padding: 20px 5px;
+}
+#feedBack form {
+	width:210px;
+}
+.feedback-slider {
+    float: right;
+    width: 30px;
+    height: 100%;
 }
 span#registrationDetails
 {
@@ -587,4 +599,43 @@ span#submissionFailed
 span#accountsMsg
 {
 	font-size: 13px;
+}
+#tagsTitle{
+	margin-bottom: 10px;
+}
+#tags_list{
+	padding : 15px 10px;
+	border: 1px solid black;
+	height: auto;
+}
+.tagID{
+	margin-right: 10px;
+	padding: 3px 10px;
+	background: #64A8D1;
+	display: inline-block;
+	margin-bottom: 10px;
+}
+.tagValue{
+	padding-right: 20px;
+}
+.deleteTag{
+	font-size: 11px;
+	vertical-align:top;
+	margin-left: 5px;
+	text-decoration: none;
+	font-weight:      bold;
+}
+.deleteTag:hover {
+	cursor: pointer;
+	display: :block;
+	color: red;
+}
+#addTagbloc{
+	margin-top : 15px;
+}
+#tagsBloc{
+
+}
+#commentsBloc{
+	margin-top: 15px;
 }

@@ -148,9 +148,17 @@ object Anonymous extends BaseView {
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,
           None, None, None, otherAccountMetadata))
     }
-    val transactionMetadata = Some(new ModeratedTransactionMetadata(
-      transaction.metadata.ownerComment,Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
-      None,Some(transaction.metadata.addComment _)))
+    val transactionMetadata = 
+      Some(
+        new ModeratedTransactionMetadata(
+          transaction.metadata.ownerComment,
+          Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
+          None,
+          Some(transaction.metadata.addComment _),
+          Some(transaction.metadata.tags.filter(_.viewId==id)),
+          Some(transaction.metadata.addTag),
+          Some(transaction.metadata.deleteTag)
+      ))
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
     val transactionCurrency = Some(transaction.currency)
@@ -159,10 +167,19 @@ object Anonymous extends BaseView {
     val transactionFinishDate = Some(transaction.finishDate)
     val transactionBalance =  if (transaction.balance.toString().startsWith("-")) "-" else "+"
     
-    new ModeratedTransaction(transactionId, thisBankAccount, otherBankAccount, transactionMetadata,
-     transactionType, transactionAmount, transactionCurrency, transactionLabel, transactionStartDate,
-      transactionFinishDate, transactionBalance)
-
+    new ModeratedTransaction(
+      transactionId, 
+      thisBankAccount, 
+      otherBankAccount, 
+      transactionMetadata,
+      transactionType, 
+      transactionAmount, 
+      transactionCurrency, 
+      transactionLabel, 
+      transactionStartDate,
+      transactionFinishDate, 
+      transactionBalance
+    )
   }
   
 }
@@ -199,8 +216,17 @@ object Anonymous extends BaseView {
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,None,
           None, None, otherAccountMetadata))
     }      
-    val transactionMetadata = Some(new ModeratedTransactionMetadata(transaction.metadata.ownerComment,
-      Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),None,Some(transaction.metadata.addComment _)))
+    val transactionMetadata = 
+      Some(
+        new ModeratedTransactionMetadata(
+          transaction.metadata.ownerComment,
+          Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
+          None,
+          Some(transaction.metadata.addComment _),
+          Some(transaction.metadata.tags.filter(_.viewId==id)),
+          Some(transaction.metadata.addTag),
+          Some(transaction.metadata.deleteTag)          
+      ))
 
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
