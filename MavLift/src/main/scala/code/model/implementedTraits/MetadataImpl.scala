@@ -31,13 +31,18 @@ Berlin 13359, Germany
  */
 package code.model.implementedTraits
 
-import code.model.traits.{Comment, OtherBankAccountMetadata, TransactionMetadata}
+import code.model.traits.{Comment, OtherBankAccountMetadata, TransactionMetadata,Tag}
 import code.model.dataAccess.{OtherAccount, OBPComment}
 import net.liftweb.common.Loggable
 import java.util.Date
 
-class OtherBankAccountMetadataImpl(_publicAlias : String, _privateAlias : String,_moreInfo : String,
-_url : String, _imageUrl : String, _openCorporatesUrl : String) extends OtherBankAccountMetadata {
+class OtherBankAccountMetadataImpl(
+  _publicAlias : String, 
+  _privateAlias : String,
+  _moreInfo : String,
+  _url : String, 
+  _imageUrl : String, 
+  _openCorporatesUrl : String) extends OtherBankAccountMetadata {
 
    def publicAlias : String = _publicAlias
    def privateAlias : String = _privateAlias
@@ -47,8 +52,15 @@ _url : String, _imageUrl : String, _openCorporatesUrl : String) extends OtherBan
    def openCorporatesUrl : String = _openCorporatesUrl
 }
 
-class TransactionMetadataImpl(narative : String, comments_ : List[Comment], 
-  saveOwnerComment : String => Unit, addCommentFunc : (Long,Long, String, Date) => Unit ) 
+class TransactionMetadataImpl(
+  narative : String, 
+  comments_ : List[Comment], 
+  saveOwnerComment : String => Unit, 
+  addCommentFunc : (Long,Long, String, Date) => Unit,
+  tags_ : List[Tag],
+  addTagFunc : (Long, Long, String, Date) => String,
+  deleteTagFunc : (String) => Unit
+) 
   extends TransactionMetadata with Loggable
 {
   def ownerComment = if(! narative.isEmpty) Some(narative) else None
@@ -56,5 +68,10 @@ class TransactionMetadataImpl(narative : String, comments_ : List[Comment],
   def comments : List[Comment] = comments_
   def addComment(userId: Long, viewId : Long, text: String, datePosted : Date) : Unit = 
     addCommentFunc(userId, viewId, text, datePosted)
+  def tags = tags_
+  def addTag(userId : Long, viewId : Long, tag : String, postedDate :Date) : String = 
+    addTagFunc(userId,viewId,tag, postedDate) 
+  def deleteTag(id : String) : Unit = 
+    deleteTagFunc(id)    
 }
 
