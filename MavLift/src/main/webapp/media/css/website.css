@@ -529,9 +529,9 @@ li.comment
 {
 	margin-top: 10px;
 }
-div#addCommentbloc
+#addCommentbloc
 {
-	margin-top: 15px;
+	margin-top: 50px;
 }
 #submitComment
 {
@@ -600,25 +600,25 @@ span#accountsMsg
 {
 	font-size: 13px;
 }
-#tagsTitle{
+
+#tagsTitle, #commentsTitle{
 	margin-bottom: 10px;
+	font-weight: bold;
+	border-bottom: 2px solid #cbcbcb;
+	padding-bottom: 10px
 }
 #tags_list{
-	padding : 15px 10px;
-	border: 1px solid black;
 	height: auto;
-}
-
-.tag {
-	margin:0 10px;
-	display:inline-block;
-	border: 2px solid #CBCBCB;
 }
 
 .tagID{
 	padding: 5px 10px;
 	background: #F3F9F8;
 	display: inline-block;
+	margin-right: 10px;
+	display: inline-block;
+	border: 2px solid #CBCBCB;
+	margin-bottom: 5px;
 }
 
 .tagValue{
@@ -636,11 +636,19 @@ span#accountsMsg
 }
 
 #addTagbloc{
-	margin-top : 15px;
+	margin-top : 25px;
+	margin-bottom: 50px;
 }
 #tagsBloc{
 
 }
 #commentsBloc{
 	margin-top: 15px;
+}
+#addTagInput{
+	height: 25px;
+}
+#submitTag{
+	height: 30px;
+	padding: 0 15px;
 }
