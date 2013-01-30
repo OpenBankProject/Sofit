@@ -150,8 +150,8 @@ class MongoDBLocalStorage extends LocalStorage {
   
   
   def allBanks : List[Bank] = 
-  HostedBank.findAll.
-    map(bank => new BankImpl(bank.id.is.toString, bank.name.is, bank.permalink.is))
+    HostedBank.findAll.
+      map(bank => new BankImpl(bank.id.is.toString, bank.name.is, bank.permalink.is))
   
   def getBankAccounts(bank: Bank): Set[BankAccount] = {
     val bankId = new ObjectId(bank.id)

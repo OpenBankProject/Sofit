@@ -35,12 +35,14 @@ package code.model.traits
 trait OtherBankAccount {
 
 	def id : String
-	//account holder hame
+	//account holder name
 	def label : String
 	def nationalIdentifier : String
 	def bankName : String
 	def number : String
-  	def swift_bic : Option[String]
-  	def iban : Option[String]
-  	def metadata : OtherBankAccountMetadata
+  //the bank international identifier
+	def swift_bic : Option[String]
+  //the international account identifier 
+	def iban : Option[String]
+	def metadata : OtherBankAccountMetadata
 }

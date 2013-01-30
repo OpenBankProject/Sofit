@@ -168,13 +168,13 @@ class AccountRegistration extends Loggable {
 				
 				//now we create the form fields
 				"#bankListCol" 		#> SHtml.selectElem(banks,Full(bankName.is),("id","bankList"))((v : String) => bankName.set(v)) &
-				"#accountNumberCol" #> SHtml.textElem(accountNumber,("id","accountNumber")) &
-				"#accountPINCol" 	#> SHtml.passwordElem(accountPIN,("id","accountPIN")) &		
+				"#accountNumberCol" #> SHtml.textElem(accountNumber,("id","accountNumber"),("placeholder","123456")) &
+				"#accountPINCol" 	#> SHtml.passwordElem(accountPIN,("id","accountPIN"),("placeholder","*******")) &		
 				"#publicViewCol" 	#> SHtml.radioElem(options.keys.toList,Full(optionsSwaped(publicAccess.is)))((v : Box[String]) => publicAccess.set(getBooleanValue(v))).toForm &		
-				"#accountHolderCol" #> SHtml.textElem(accountHolder,("id","accountHolder")) &		
-				"#accountKindCol"	#> SHtml.textElem(accountKind,("id","accountKind")) &						
-				"#accountLabelCol" 	#> SHtml.textElem(accountLabel,("id","accountLabel")) &
-				"#accountNameCol" 	#> SHtml.textElem(accountName,("id","accountName")) &																							
+				"#accountHolderCol" #> SHtml.textElem(accountHolder,("id","accountHolder"),("placeholder","John Doe")) &		
+				"#accountKindCol"	#> SHtml.textElem(accountKind,("id","accountKind"),("placeholder","saving, current, ...")) &						
+				"#accountLabelCol" 	#> SHtml.textElem(accountLabel,("id","accountLabel"),("placeholder","John main buisness account,...")) &
+				"#accountNameCol" 	#> SHtml.textElem(accountName,("id","accountName"),("placeholder","mycompany, personal, etc")) &																							
 				"type=submit" 		#> SHtml.onSubmitUnit(check) &
 				"#loginMsg" 		#> NodeSeq.Empty	
 			}
