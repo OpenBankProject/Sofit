@@ -153,7 +153,8 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                         metadata.deleteTag.map(t => t(tag.id_))
                         Hide(tag.id_)
                       },
-                      Text("x")
+                      Text("x"),
+                      ("title","Remove the tag")
                     )                  
                 })
             }
@@ -203,7 +204,8 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                                     case _ => Alert("deleting tags is not allowed in this view")
                                   }
                                 },
-                                Text("x")
+                                Text("x"),
+                                ("title","Remove the tag")
                               )  
                           })
                         }
