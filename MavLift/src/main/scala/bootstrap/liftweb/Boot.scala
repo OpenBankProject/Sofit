@@ -31,6 +31,7 @@ Berlin 13359, Germany
  */
 package bootstrap.liftweb
 
+import code.snippet._
 import net.liftweb._
 import util._
 import common._
