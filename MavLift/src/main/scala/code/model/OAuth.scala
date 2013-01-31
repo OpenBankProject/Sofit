@@ -95,7 +95,7 @@ object Nonce extends Nonce with LongKeyedMetaMapper[Nonce]{}
 class Token extends LongKeyedMapper[Token]{
 	def getSingleton = Token 
 	def primaryKeyField = id
-	object id extends MappedLongIndex(this) //TODO : auto increment
+	object id extends MappedLongIndex(this)
 	object tokenType extends MappedEnum(this, TokenType)
 	object consumerId extends MappedLongForeignKey(this, Consumer)
 	object userId extends MappedLongForeignKey(this, OBPUser)

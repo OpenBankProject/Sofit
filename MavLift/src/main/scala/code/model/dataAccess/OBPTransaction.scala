@@ -294,7 +294,6 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
       }
 
       def createPublicAlias(realOtherAccHolder : String) = {
-        //TODO: Guarantee a unique public alias string
 
         /**
          * Generates a new alias name that is guaranteed not to collide with any existing public alias names

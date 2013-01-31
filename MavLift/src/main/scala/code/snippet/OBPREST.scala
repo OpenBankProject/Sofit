@@ -72,7 +72,7 @@ import code.model.traits.View
 import code.model.implementedTraits.View
 import code.model.dataAccess.OBPEnvelope._
 import code.model.traits.BankAccount
-import code.model.implementedTraits.Anonymous
+import code.model.implementedTraits.Public
 import code.model.traits.Bank
 import code.model.traits.User
 import java.util.Date

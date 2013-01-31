@@ -56,7 +56,7 @@ import java.text.SimpleDateFormat
 import code.model.dataAccess.{OBPAccount,OBPUser}
 import net.liftweb.common.Loggable
 import code.model.dataAccess.Account
-import code.model.traits.{ModeratedTransaction,Public,Private,NoAlias,Comment, View, Tag}
+import code.model.traits.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag}
 import java.util.Currency
 import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
 import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
@@ -105,9 +105,9 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
           case Some(otherBankaccount) =>{
             ".the_name" #> otherBankaccount.label.display &
             {otherBankaccount.label.aliasType match {
-                case Public => ".alias_indicator [class+]" #> "alias_indicator_public" &
+                case PublicAlias => ".alias_indicator [class+]" #> "alias_indicator_public" &
                     ".alias_indicator *" #> "(Alias)"
-                case Private => ".alias_indicator [class+]" #> "alias_indicator_private" &
+                case PrivateAlias => ".alias_indicator [class+]" #> "alias_indicator_private" &
                     ".alias_indicator *" #> "(Alias)"
                 case _ => NOOP_SELECTOR
             }} 

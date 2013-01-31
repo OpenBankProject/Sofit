@@ -42,14 +42,14 @@ import net.liftweb.common.Full
 
 class AliasType
 class Alias extends AliasType
-object Public extends Alias
-object Private extends Alias
+object PublicAlias extends Alias
+object PrivateAlias extends Alias
 object NoAlias extends AliasType
 case class AccountName(display: String, aliasType: AliasType)
 
 trait View {
 	  
-  //e.g. "Anonymous", "Authorities", "Our Network", etc.
+  //e.g. "Public", "Authorities", "Our Network", etc.
   def id: Long
   def name: String
   def description : String
@@ -164,15 +164,15 @@ trait View {
 
           val publicAlias = transaction.otherAccount.metadata.publicAlias
 
-          if (! publicAlias.isEmpty ) AccountName(publicAlias, Public)
+          if (! publicAlias.isEmpty ) AccountName(publicAlias, PublicAlias)
           else AccountName(realName, NoAlias)
 
         } else if (usePrivateAliasIfOneExists) {
 
           val privateAlias = transaction.otherAccount.metadata.privateAlias
 
-          if (! privateAlias.isEmpty) AccountName(privateAlias, Private)
-          else AccountName(realName, Private)
+          if (! privateAlias.isEmpty) AccountName(privateAlias, PrivateAlias)
+          else AccountName(realName, PrivateAlias)
         } else 
           AccountName(realName, NoAlias)
       }
@@ -222,7 +222,7 @@ trait View {
         val addOwnerCommentFunc:Option[String=> Unit] = if (canEditOwnerComment) Some(transaction.metadata.ownerComment _) else None
         val tags = 
           if(canSeeTags)
-            Some(transaction.metadata.tags) 
+            Some(transaction.metadata.tags.filter(_.viewId==id)) 
           else None
         val addTagFunc = 
           if(canAddTag) 
@@ -283,7 +283,7 @@ trait View {
   }
   
   def moderate(bankAccount: BankAccount) : Box[ModeratedBankAccount] = {
-    if(bankAccount.allowAnnoymousAccess) {
+    if(bankAccount.allowPublicAccess) {
       val owners : Set[AccountOwner] = if(canSeeBankAccountOwners) bankAccount.owners else Set()
       val balance = if(canSeeBankAccountBalance){
         bankAccount.balance.toString

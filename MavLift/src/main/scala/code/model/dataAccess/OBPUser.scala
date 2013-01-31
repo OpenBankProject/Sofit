@@ -68,7 +68,7 @@ class OBPUser extends MegaProtoUser[OBPUser] with User{
     if (OBPUser.hasBoardPermission(account)) views = views + Board
     if (OBPUser.hasAuthoritiesPermission(account)) views = views + Authorities
     if (OBPUser.hasOwnerPermission(account)) views = views + Owner
-    if (account.allowAnnoymousAccess) views = views + Anonymous
+    if (account.allowPublicAccess) views = views + Public
     views
   }
   

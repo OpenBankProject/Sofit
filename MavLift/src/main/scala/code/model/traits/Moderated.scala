@@ -55,7 +55,7 @@ class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountNam
     def number = filteredNumber
     def metadata = filteredMetadata 
     def isAlias = filteredLabel.aliasType match{
-    case Public | Private => true
+    case PublicAlias | PrivateAlias => true
     case _ => false
   }
 }
@@ -134,7 +134,7 @@ class ModeratedTransaction(
         ("posted" -> dateOption2JString(startDate)) ~
         ("completed" -> dateOption2JString(finishDate)) ~
         ("new_balance" ->
-          ("currency" -> currency.getOrElse("")) ~ //TODO: Need separate currency for balances and values?
+          ("currency" -> currency.getOrElse("")) ~ 
           ("amount" -> balance)) ~
           ("value" ->
             ("currency" -> currency.getOrElse("")) ~
