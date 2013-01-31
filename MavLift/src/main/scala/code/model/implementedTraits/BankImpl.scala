@@ -35,10 +35,18 @@ import code.model.traits.{Bank, BankAccount}
 import code.model.dataAccess.LocalStorage
 import code.model.dataAccess.HostedBank
 
-class BankImpl(_id: String, _name : String, _permalink : String) extends Bank
+class BankImpl(
+  _id: String, 
+  _shortName : String, 
+  _fullName : String, 
+  _permalink : String,
+  _logoURL : String
+) extends Bank
 {
 	def id = _id
-	def name = _name
+	def shortName = _shortName
+  def fullName = _fullName
+  def logoURL = _logoURL
 	def permalink = _permalink
 	def accounts = LocalStorage.getBankAccounts(this)
 }
