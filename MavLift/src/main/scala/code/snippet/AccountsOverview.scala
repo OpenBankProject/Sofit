@@ -37,7 +37,7 @@ import code.model.traits.BankAccount
 import net.liftweb.common.Full
 import code.model.dataAccess.OBPUser
 import code.model.traits.User
-import code.model.implementedTraits.Anonymous
+import code.model.implementedTraits.Public
 import code.model.implementedTraits.Owner
 import code.model.implementedTraits.Board
 import code.model.implementedTraits.Authorities
@@ -58,7 +58,7 @@ class AccountsOverview {
       ".accountList" #> publicAccounts.map(acc => {
         ".accLink *" #> acc.label &
         //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
-        ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Anonymous.permalink } 
+        ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Public.permalink } 
       })
   }
   

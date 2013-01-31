@@ -76,9 +76,9 @@ class Nav {
         case _ => LocalStorage.getAccount(url(2), url(4)) match {
           case Full(account) => if(account.anonAccess.is)
                                   ".navitem *" #> {
-                                     val anoymousUrl = "/banks/"+url(2)+"/accounts/"+url(4)+"/anonymous"
+                                     val anoymousUrl = "/banks/"+url(2)+"/accounts/"+url(4)+"/public"
                                     ".navlink [href]" #>  {anoymousUrl} &
-                                    ".navlink *" #> "Anonymous" &
+                                    ".navlink *" #> "Public" &
                                     ".navlink [class+]" #> markIfSelected(anoymousUrl)  
                                   }
                                 else
@@ -170,9 +170,9 @@ class Nav {
       val bankAndaccount = selectValue.split(",",0)      
       if(bankAndaccount.size==2)
         if (LocalStorage.correctBankAndAccount(bankAndaccount(0), bankAndaccount(1)))
-          //TODO : the account may not has an anonymous view, so this redirection would retun a 404
+          //TODO : the account may not has an public view, so this redirection would retun a 404
           //a better solution has to be found
-          S.redirectTo("/banks/" + bankAndaccount(0) + "/accounts/" + bankAndaccount(1) +"/anonymous")
+          S.redirectTo("/banks/" + bankAndaccount(0) + "/accounts/" + bankAndaccount(1) +"/public")
         else 
         _Noop
       else

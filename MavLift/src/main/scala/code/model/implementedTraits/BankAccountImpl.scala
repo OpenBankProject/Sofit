@@ -82,7 +82,7 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
   def permittedViews(user: Box[User]) : Set[code.model.traits.View] = {
     user match {
       case Full(u) => u.permittedViews(this)
-      case _ => if(this.allowAnnoymousAccess) Set(Anonymous) else Set()
+      case _ => if(this.allowPublicAccess) Set(Public) else Set()
     }
   }
   
@@ -92,7 +92,7 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
   def transaction(id: String): Box[Transaction] = { 
     LocalStorage.getTransaction(id, bankPermalink, permalink)    
   }
-  def allowAnnoymousAccess = allowAnnoymousAccess_
+  def allowPublicAccess = allowAnnoymousAccess_
 
   def getModeratedTransactions(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction] = {
    LocalStorage.getModeratedTransactions(permalink, bankPermalink)(moderate)
@@ -112,7 +112,7 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
 
   def authorisedAccess(view: code.model.traits.View, user: Option[OBPUser]) = {
     view match {
-      case Anonymous => allowAnnoymousAccess
+      case Public => allowPublicAccess
       case _ => user match {
         case Some(u) => u.permittedViews(this).contains(view)
         case _ => false
