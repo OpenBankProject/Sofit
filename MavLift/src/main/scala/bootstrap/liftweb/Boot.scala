@@ -43,16 +43,17 @@ import code.model.dataAccess.{MongoConfig,OBPUser,Privilege,Account, HostedAccou
 import code.model.{Nonce, Consumer, Token}
 import code.model.traits.{Bank, View, ModeratedTransaction}
 import code.model.implementedTraits.{View}
-import com.tesobe.utils._
+import code.api._
 import net.liftweb.util.Helpers._
 import net.liftweb.widgets.tablesorter.TableSorter
 import net.liftweb.json.JsonDSL._
-import code.snippet.OAuthHandshake
+import code.api.OAuthHandshake
 import net.liftweb.util.Schedule
 import net.liftweb.mongodb.BsonDSL._
 import code.model.dataAccess.LocalStorage
 import code.model.traits.BankAccount
 import net.liftweb.http.js.jquery.JqJsCmds
+
 import javax.mail.{ Authenticator, PasswordAuthentication }
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -94,7 +95,8 @@ class Boot extends Loggable{
     LiftRules.addToPackages("code")
 
     // For some restful stuff
-    LiftRules.statelessDispatchTable.append(OBPRest) // stateless -- no session created
+    LiftRules.statelessDispatchTable.append(OBPAPI1_0) 
+    LiftRules.statelessDispatchTable.append(ImporterAPI) 
     
     //OAuth API call
     LiftRules.dispatch.append(OAuthHandshake) 
@@ -106,7 +108,7 @@ class Boot extends Loggable{
     Schemifier.schemify(true, Schemifier.infoF _, Consumer) 
     Schemifier.schemify(true, Schemifier.infoF _, HostedAccount)
     //lunch the scheduler to clean the database from the expired tokens and nonces
-    Schedule.schedule(()=> OAuthHandshake.dataBaseCleaner, 2 minutes)   
+    Schedule.schedule(()=> OAuthAuthorisation.dataBaseCleaner, 2 minutes)   
     
     def check(bool: Boolean) : Box[LiftResponse] = {
       if(bool){
