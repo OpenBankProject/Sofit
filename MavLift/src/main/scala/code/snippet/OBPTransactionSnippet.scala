@@ -108,10 +108,10 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
           {
             ".the_name *" #> otherAccount.label.display &
             {otherAccount.label.aliasType match{
-                case Public =>
+                case PublicAlias =>
                   ".alias_indicator [class+]" #> "alias_indicator_public" &
                     ".alias_indicator *" #> "(Alias)"
-                case Private =>
+                case PrivateAlias =>
                   ".alias_indicator [class+]" #> "alias_indicator_private" &
                     ".alias_indicator *" #> "(Alias)"
                 case _ => NOOP_SELECTOR
@@ -283,7 +283,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
     }
   }
   def hideSocialWidgets = {
-    if(view.name!="Anonymous") "#socialButtons *" #> NodeSeq.Empty
+    if(view.name!="Public") "#socialButtons *" #> NodeSeq.Empty
     else NOOP_SELECTOR
   }
 }

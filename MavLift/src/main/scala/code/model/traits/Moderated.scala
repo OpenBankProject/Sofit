@@ -55,7 +55,7 @@ class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountNam
     def number = filteredNumber
     def metadata = filteredMetadata 
     def isAlias = filteredLabel.aliasType match{
-    case Public | Private => true
+    case PublicAlias | PrivateAlias => true
     case _ => false
   }
 }
