@@ -53,6 +53,7 @@ import net.liftweb.mongodb.BsonDSL._
 import code.model.dataAccess.LocalStorage
 import code.model.traits.BankAccount
 import net.liftweb.http.js.jquery.JqJsCmds
+import code.snippet.OAuthAuthorisation
 
 import javax.mail.{ Authenticator, PasswordAuthentication }
 /**
