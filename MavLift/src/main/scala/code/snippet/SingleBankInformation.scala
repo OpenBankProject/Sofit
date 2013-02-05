@@ -45,6 +45,6 @@ import net.liftweb.http.js.JsCmds.Noop
 class SingleBankInformations(bank : Bank)
 {
 	def name ={ 
-		"#name * " #> bank.name
+		"#name * " #> bank.shortName
 	}
 }

@@ -152,7 +152,7 @@ class HostedBank extends MongoRecord[HostedBank] with ObjectIdPk[HostedBank]{
 
   object name extends StringField(this, 255)
   object alias extends StringField(this, 255)
-  object logo extends StringField(this, 255)
+  object logoURL extends StringField(this, 255)
   object website extends StringField(this, 255)
   object email extends StringField(this, 255)
   object permalink extends StringField(this, 255)

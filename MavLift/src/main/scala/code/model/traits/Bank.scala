@@ -40,19 +40,21 @@ import net.liftweb.json.JsonAST.JArray
 trait Bank 
 {
 	def id : String
-	def name : String
+	def shortName : String
+  def fullName : String
 	def permalink : String
+  def logoURL : String
 	def accounts : Set[BankAccount]
 	
 	def detailedJson : JObject = {
-	  ("name" -> name) ~
+	  ("name" -> shortName) ~
 	  ("website" -> "") ~
 	  ("email" -> "")
 	}
 	
 	def toJson : JObject = {
 	  ("alias" -> permalink) ~
-      ("name" -> name) ~
+      ("name" -> shortName) ~
       ("logo" -> "") ~
       ("links" -> linkJson)
 	}

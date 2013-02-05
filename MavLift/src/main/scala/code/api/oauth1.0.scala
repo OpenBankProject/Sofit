@@ -126,7 +126,7 @@ object OAuthHandshake extends RestHelper
 				    
 			    if (input contains "=") {
 			    	val split = input.split("=",2)
-		      	val parameterValue = URLDecoder.decode(split(1)).replace("\"","")
+		      	val parameterValue = URLDecoder.decode(split(1),"UTF-8").replace("\"","")
 		      	//add only OAuth parameters and not empty
 		      	if(oauthPossibleParameters.contains(split(0)) && ! parameterValue.isEmpty)
 		       		Some(split(0),parameterValue)  // return key , value
@@ -215,7 +215,7 @@ object OAuthHandshake extends RestHelper
 	     	var parameters =""
 
 	     	//sort the parameters by name
-	     	OAuthparameters.toList.sort(sortParam _).foreach(
+	     	OAuthparameters.toList.sortWith(sortParam _).foreach(
 	     		t => 
 	      		if(t._1 != "oauth_signature")
 			     		parameters += URLEncoder.encode(t._1,"UTF-8")+"%3D"+ URLEncoder.encode(t._2,"UTF-8")+"%26"

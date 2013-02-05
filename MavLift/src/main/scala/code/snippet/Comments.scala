@@ -32,7 +32,7 @@ Berlin 13359, Germany
 package code.snippet
 
 import net.liftweb.http.js.JsCmds.Noop
-import net.liftweb.http.TemplateFinder
+import net.liftweb.http.Templates
 import net.liftweb.util.Helpers._
 import net.liftweb.http.S
 import code.model.dataAccess.OBPEnvelope
@@ -144,7 +144,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                 tag1.datePosted.before(tag2.datePosted)
               "#noTags" #> "" &
               ".tag" #>
-                tags.sort(orderByDateDescending).map(tag => {
+                tags.sortWith(orderByDateDescending).map(tag => {
                   ".tagID [id]" #> tag.id_ &
                   ".tagValue" #> tag.value & 
                   ".deleteTag" #> 
@@ -188,7 +188,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                   SHtml.ajaxSubmit(
                     "Tag",
                     () => {
-                      val tagXml = TemplateFinder.findAnyTemplate(List("templates-hidden","_tag")).map({ 
+                      val tagXml = Templates(List("templates-hidden","_tag")).map({ 
                         ".tag" #> {
                           tagValues.zipWithIndex.map(t => {
                             ".tagID [id]" #> tagIds(t._2) &
@@ -241,7 +241,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                 comment1.datePosted.before(comment2.datePosted)
               "#noComments" #> "" &
               ".comment" #>
-                comments.sort(orderByDateDescending).zipWithIndex.map(comment => {
+                comments.sortWith(orderByDateDescending).zipWithIndex.map(comment => {
                   val commentId="comment_"+{comment._2 + 1 }
                   ".commentLink * " #>{"#"+ {comment._2 + 1}} &
                   ".commentLink [id]"#>commentId &                  
@@ -291,7 +291,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                     ("placeholder","add a comment here") 
                   ) ++
                   SHtml.ajaxSubmit("add a comment",() => {
-                    val commentXml = TemplateFinder.findAnyTemplate(List("templates-hidden","_comment")).map({ 
+                    val commentXml = Templates(List("templates-hidden","_comment")).map({ 
                       commentsListSize = commentsListSize + 1
                       val commentId="comment_"+commentsListSize.toString
                       ".commentLink * " #>{"#"+ commentsListSize} &
