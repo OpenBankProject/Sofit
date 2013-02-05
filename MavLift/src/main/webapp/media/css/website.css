@@ -548,27 +548,63 @@ li.comment
 	margin-bottom: 25px;
 }
 #feedBack {
-	display: block;
-	position: fixed;
-	left: -195px;
-	top: 50%;
-	width: 215px;
-	height: 200px;
-	cursor: pointer;
-	background-image: url(../images/feedback-button.gif);
-	background-repeat: no-repeat;
-	background-position: 195px;
-	background-color: #0c5276;
-	border-radius: 0 5px 5px 0;
-	padding: 20px 5px;
+    display: block;
+    position: fixed;
+    left: -195px;
+    top: 50%;
+    width: 215px;
+    height: 250px;
+    cursor: pointer;
+    background-color: #0c5276;
+    border-radius: 0 5px 5px 0;
+    padding: 20px 10px;
+    background-image: url(../images/polarize-logo.png);
+    background-repeat: no-repeat;
+    background-position: 200px 260px;
+    background-size: 30px;
 }
 #feedBack form {
-	width:210px;
+    width: 180px;
+    margin-bottom: 8px;
 }
+
+#feedBack p {
+    color: #ffffff;
+    margin:10px 0;
+}
+
+#feedBack img {
+    height:50px;
+}
+
+#feedBack input, #feedBack textarea {
+    border-radius: 3px;
+    width:176px;
+}
+
+#feedBack textarea {
+    border:none;
+}
+
+#feedBack input[type="submit"] {
+    background: #C1E7E1;
+    border: 1px solid #22A890;
+    padding: 2px 5px;
+    color: #58988E;
+    font-size: 12px;
+    cursor: pointer;
+    width:inherit;
+    margin-top:4px;
+}
+
 .feedback-slider {
     float: right;
     width: 30px;
     height: 100%;
+    background-image: url(../images/feedback-button.gif);
+    background-repeat: no-repeat;
+    background-size: 30px;
+    background-position: center;
 }
 span#registrationDetails
 {

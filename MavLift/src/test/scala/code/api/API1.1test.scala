@@ -1,4 +1,4 @@
-package code.api
+/*package code.api
 
 import org.scalatest._
 import org.scalatest.FeatureSpec
@@ -30,9 +30,9 @@ class API1_1Tests extends FeatureSpec
   with BeforeAndAfter with GivenWhenThen 
   with ShouldMatchers with BeforeAndAfterAll {
 
-  /**
+  *//**
   * test server settings
-  */
+  *//*
   val host = "localhost"
   val port = 8000
   val server = new Server
@@ -52,23 +52,23 @@ class API1_1Tests extends FeatureSpec
   val baseRequest = (:/(host, Integer.valueOf(port)))
   val v1_1Request = baseRequest / "obp" / "1.1"
 
-  /**
+  *//**
   * the methods lunched before all the tests
-  */
+  *//*
   override def beforeAll() {
     server.start()
   }
 
-  /**
+  *//**
   * the methods lunched after all the tests
-  */    
+  *//*    
   override def afterAll() {
     server.stop()
   }
 
-  /**
+  *//**
   * this method do a post request given a URL, a JSON and an optional Headers Map 
-  */
+  *//*
   def makePostRequest(req: Request, json: String, headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
     val jsonReq = req << (json, "application/json") <:< headers
     val jsonHandler = jsonReq ># {json => json}
@@ -85,9 +85,9 @@ class API1_1Tests extends FeatureSpec
     }
   }
 
-  /**
+  *//**
   * this method do a post request given a URL 
-  */
+  *//*
   def makeGetRequest(req: Request, headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
     val jsonReq = req <:< headers
     val jsonHandler = jsonReq ># {json => json}
@@ -101,7 +101,7 @@ class API1_1Tests extends FeatureSpec
     makeGetRequest(request)
   }
 
-  /************************ the tests ************************/
+  *//************************ the tests ************************//*
   feature("base line URL works"){
     
     scenario("we get the api information") {
@@ -114,3 +114,4 @@ class API1_1Tests extends FeatureSpec
     }
   }
 }       
+*/
