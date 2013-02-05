@@ -96,8 +96,9 @@ class Boot extends Loggable{
 
     // For some restful stuff
     LiftRules.statelessDispatchTable.append(OBPAPI1_0) 
+    LiftRules.statelessDispatchTable.append(OBPAPI1_1)     
     LiftRules.statelessDispatchTable.append(ImporterAPI) 
-    
+
     //OAuth API call
     LiftRules.dispatch.append(OAuthHandshake) 
     LiftRules.statelessDispatchTable.append(OAuthHandshake) 

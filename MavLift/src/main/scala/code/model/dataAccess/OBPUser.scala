@@ -37,8 +37,7 @@ import net.liftweb.common._
 import net.liftweb.record.field.StringField
 import scala.xml.NodeSeq
 import net.liftweb.sitemap.Loc.LocGroup
-import net.liftweb.http.S
-import net.liftweb.http.SessionVar
+import net.liftweb.http.{S,SessionVar,Templates}
 import com.mongodb.QueryBuilder
 import code.model.traits.{View,BankAccount,User}
 import code.model.implementedTraits._
@@ -139,7 +138,7 @@ object OBPUser extends OBPUser with MetaMegaProtoUser[OBPUser]{
   override def loginXhtml = {
     import net.liftweb.http.TemplateFinder
     import net.liftweb.http.js.JsCmds.Noop
-    val loginXml = TemplateFinder.findAnyTemplate(List("templates-hidden","_login")).map({
+    val loginXml = Templates(List("templates-hidden","_login")).map({
         "form [action]" #> {S.uri} &
         "#loginText * " #> {S.??("log.in")} &
         "#emailAddressText * " #> {S.??("email.address")} &
@@ -309,8 +308,8 @@ object Privilege extends Privilege with LongKeyedMetaMapper[Privilege] with CRUD
   override def displayName = "Privilege"
   override def showAllMenuLocParams = LocGroup("admin") :: Nil
   override def createMenuLocParams = LocGroup("admin") :: Nil
-  override def fieldsForDisplay = super.fieldsForDisplay -- List(createdAt)
-  override def fieldsForEditing = super.fieldsForEditing -- List(createdAt, updatedAt)
+  override def fieldsForDisplay = super.fieldsForDisplay filterNot (List(createdAt) contains)
+  override def fieldsForEditing = super.fieldsForEditing filterNot (List(createdAt, updatedAt) contains)
   def showAll = doCrudAll(_)
   override def findForList(start : Long, count : Int)= {
     OBPUser.currentUser match {

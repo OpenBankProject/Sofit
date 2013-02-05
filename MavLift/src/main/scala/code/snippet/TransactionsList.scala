@@ -179,7 +179,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
       date1.after(date2)
     }
     
-    val sortedTransactions = groupByDate(filteredTransactions.toList.sort(orderByDateDescending))
+    val sortedTransactions = groupByDate(filteredTransactions.toList.sortWith(orderByDateDescending))
     
     "* *" #> sortedTransactions.map( transactionsForDay => {daySummary(transactionsForDay)})
   }
