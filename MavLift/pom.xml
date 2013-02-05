@@ -143,7 +143,6 @@
 	<build>
 		<sourceDirectory>src/main</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
-		<pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.scala-tools</groupId>
@@ -266,7 +265,6 @@
 					</configuration>
 				</plugin>
 			</plugins>
-		</pluginManagement>
 	</build>
 	<reporting>
 		<plugins>
