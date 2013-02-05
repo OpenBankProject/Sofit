@@ -42,14 +42,14 @@ import net.liftweb.common.Full
 
 class AliasType
 class Alias extends AliasType
-object Public extends Alias
-object Private extends Alias
+object PublicAlias extends Alias
+object PrivateAlias extends Alias
 object NoAlias extends AliasType
 case class AccountName(display: String, aliasType: AliasType)
 
 trait View {
 	  
-  //e.g. "Anonymous", "Authorities", "Our Network", etc.
+  //e.g. "Public", "Authorities", "Our Network", etc.
   def id: Long
   def name: String
   def description : String
@@ -76,6 +76,7 @@ trait View {
   //transaction metadata
   def canSeeComments: Boolean
   def canSeeOwnerComment: Boolean
+  def canSeeTags : Boolean
 
   //Bank account fields
   def canSeeBankAccountOwners : Boolean
@@ -107,6 +108,8 @@ trait View {
   //writing access
   def canEditOwnerComment: Boolean
   def canAddComments : Boolean
+  def canAddTag : Boolean
+  def canDeleteTag : Boolean
 
   // In the future we can add a method here to allow someone to show only transactions over a certain limit
   
@@ -161,15 +164,15 @@ trait View {
 
           val publicAlias = transaction.otherAccount.metadata.publicAlias
 
-          if (! publicAlias.isEmpty ) AccountName(publicAlias, Public)
+          if (! publicAlias.isEmpty ) AccountName(publicAlias, PublicAlias)
           else AccountName(realName, NoAlias)
 
         } else if (usePrivateAliasIfOneExists) {
 
           val privateAlias = transaction.otherAccount.metadata.privateAlias
 
-          if (! privateAlias.isEmpty) AccountName(privateAlias, Private)
-          else AccountName(realName, Private)
+          if (! privateAlias.isEmpty) AccountName(privateAlias, PrivateAlias)
+          else AccountName(realName, PrivateAlias)
         } else 
           AccountName(realName, NoAlias)
       }
@@ -208,19 +211,43 @@ trait View {
       
     //transation metadata
     val transactionMetadata = 
-    if(canSeeTransactionMetadata)
-    {
-      val ownerComment = if (canSeeOwnerComment) transaction.metadata.ownerComment else None
-      val comments = 
-        if (canSeeComments)
-          Some(transaction.metadata.comments.filter(comment => comment.viewId==id))
-        else None
-      val addCommentFunc= if(canAddComments) Some(transaction.metadata.addComment _) else None
-      val addOwnerCommentFunc:Option[String=> Unit] = if (canEditOwnerComment) Some(transaction.metadata.ownerComment _) else None
-      new Some(new ModeratedTransactionMetadata(ownerComment,comments,addOwnerCommentFunc,addCommentFunc))
-    }
-    else
-      None
+      if(canSeeTransactionMetadata)
+      {
+        val ownerComment = if (canSeeOwnerComment) transaction.metadata.ownerComment else None
+        val comments = 
+          if (canSeeComments)
+            Some(transaction.metadata.comments.filter(comment => comment.viewId==id))
+          else None
+        val addCommentFunc= if(canAddComments) Some(transaction.metadata.addComment _) else None
+        val addOwnerCommentFunc:Option[String=> Unit] = if (canEditOwnerComment) Some(transaction.metadata.ownerComment _) else None
+        val tags = 
+          if(canSeeTags)
+            Some(transaction.metadata.tags.filter(_.viewId==id)) 
+          else None
+        val addTagFunc = 
+          if(canAddTag) 
+            Some(transaction.metadata.addTag _)
+          else
+            None
+        val deleteTagFunc = 
+            if(canDeleteTag)
+              Some(transaction.metadata.deleteTag _)
+            else
+              None
+
+        new Some(
+          new ModeratedTransactionMetadata(
+            ownerComment,
+            comments,
+            addOwnerCommentFunc,
+            addCommentFunc,
+            tags,
+            addTagFunc,
+            deleteTagFunc
+        ))
+      }
+      else
+        None
 
     val transactionType = 
       if (canSeeTransactionType) Some(transaction.transactionType)
@@ -256,7 +283,7 @@ trait View {
   }
   
   def moderate(bankAccount: BankAccount) : Box[ModeratedBankAccount] = {
-    if(bankAccount.allowAnnoymousAccess) {
+    if(bankAccount.allowPublicAccess) {
       val owners : Set[AccountOwner] = if(canSeeBankAccountOwners) bankAccount.owners else Set()
       val balance = if(canSeeBankAccountBalance){
         bankAccount.balance.toString
@@ -323,6 +350,7 @@ class BaseView extends View {
   //transaction metadata
   def canSeeComments = false
   def canSeeOwnerComment = false
+  def canSeeTags = false
 
   //Bank account fields
   def canSeeBankAccountOwners = false
@@ -354,6 +382,8 @@ class BaseView extends View {
   //writing access
   def canEditOwnerComment = false
   def canAddComments = false
+  def canAddTag = false 
+  def canDeleteTag = false  
 
 }
 
@@ -384,6 +414,7 @@ class FullView extends View {
   //transaction metadata
   def canSeeComments = true
   def canSeeOwnerComment = true
+  def canSeeTags = true
 
   //Bank account fields
   def canSeeBankAccountOwners = true
@@ -415,6 +446,8 @@ class FullView extends View {
   //writing access
   def canEditOwnerComment = true
   def canAddComments = true
+  def canAddTag = true
+  def canDeleteTag = true  
 
 }
 

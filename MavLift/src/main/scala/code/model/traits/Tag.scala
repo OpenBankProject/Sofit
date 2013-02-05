@@ -31,18 +31,20 @@ Berlin 13359, Germany
  */
 
 package code.model.traits
+import java.util.Date
+import net.liftweb.common.Box
 
-trait OtherBankAccount {
+trait Tag {
 
-	def id : String
-	//account holder name
-	def label : String
-	def nationalIdentifier : String
-	def bankName : String
-	def number : String
-  //the bank international identifier
-	def swift_bic : Option[String]
-  //the international account identifier 
-	def iban : Option[String]
-	def metadata : OtherBankAccountMetadata
+  def id_ : String
+ 
+  def datePosted : Date
+
+  def postedBy : Box[User]
+
+  def viewId : Long 
+
+  def value : String
+
+
 }

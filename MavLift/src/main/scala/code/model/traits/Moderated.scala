@@ -55,7 +55,7 @@ class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountNam
     def number = filteredNumber
     def metadata = filteredMetadata 
     def isAlias = filteredLabel.aliasType match{
-    case Public | Private => true
+    case PublicAlias | PrivateAlias => true
     case _ => false
   }
 }
@@ -91,11 +91,19 @@ object ModeratedOtherBankAccountMetadata {
 }
 
 
-class ModeratedTransaction(filteredId: String, filteredBankAccount: Option[ModeratedBankAccount], 
-  filteredOtherBankAccount: Option[ModeratedOtherBankAccount], filteredMetaData : Option[ModeratedTransactionMetadata], 
-  filteredTransactionType: Option[String], filteredAmount: Option[BigDecimal], filteredCurrency: Option[String], 
-  filteredLabel: Option[String],filteredStartDate: Option[Date], filteredFinishDate: Option[Date],
-  filteredBalance : String) {
+class ModeratedTransaction(
+  filteredId: String, 
+  filteredBankAccount: Option[ModeratedBankAccount], 
+  filteredOtherBankAccount: Option[ModeratedOtherBankAccount], 
+  filteredMetaData : Option[ModeratedTransactionMetadata], 
+  filteredTransactionType: Option[String], 
+  filteredAmount: Option[BigDecimal], 
+  filteredCurrency: Option[String], 
+  filteredLabel: Option[String],
+  filteredStartDate: Option[Date], 
+  filteredFinishDate: Option[Date],
+  filteredBalance : String
+) {
   
   //the filteredBlance type in this class is a string rather than Big decimal like in Transaction trait for snippet (display) reasons.
   //the view should be able to return a sign (- or +) or the real value. casting signs into bigdecimal is not possible  
@@ -126,7 +134,7 @@ class ModeratedTransaction(filteredId: String, filteredBankAccount: Option[Moder
         ("posted" -> dateOption2JString(startDate)) ~
         ("completed" -> dateOption2JString(finishDate)) ~
         ("new_balance" ->
-          ("currency" -> currency.getOrElse("")) ~ //TODO: Need separate currency for balances and values?
+          ("currency" -> currency.getOrElse("")) ~ 
           ("amount" -> balance)) ~
           ("value" ->
             ("currency" -> currency.getOrElse("")) ~
@@ -138,18 +146,27 @@ object ModeratedTransaction {
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 }
 
-class ModeratedTransactionMetadata(filteredOwnerComment : Option[String], filteredComments : Option[List[Comment]], 
-  addOwnerComment : Option[(String => Unit)], addCommentFunc: Option[(Long, Long, String, Date) => Unit])
-  {
-    def ownerComment = filteredOwnerComment
-    def comments = filteredComments
-    def ownerComment(text : String) = addOwnerComment match {
-      case None => None
-      case Some(o) => o.apply(text)
-    }
-    def addComment= addCommentFunc
-
+class ModeratedTransactionMetadata(
+  filteredOwnerComment : Option[String], 
+  filteredComments : Option[List[Comment]], 
+  addOwnerComment : Option[(String => Unit)],
+  addCommentFunc: Option[(Long, Long, String, Date) => Unit],
+  tags_ : Option[List[Tag]],
+  addTagFunc : Option[(Long, Long, String, Date) => String],
+  deleteTagFunc : Option[(String) => Unit]
+)
+{
+  def ownerComment = filteredOwnerComment
+  def comments = filteredComments
+  def ownerComment(text : String) = addOwnerComment match {
+    case None => None
+    case Some(o) => o.apply(text)
   }
+  def addComment= addCommentFunc
+  def tags = tags_
+  def addTag = addTagFunc
+  def deleteTag = deleteTagFunc
+}
 
 object ModeratedTransactionMetadata {
   implicit def moderatedTransactionMetadata2Json(mTransactionMeta: ModeratedTransactionMetadata) : JObject = {

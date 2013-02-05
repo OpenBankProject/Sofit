@@ -31,6 +31,7 @@ Berlin 13359, Germany
  */
 package bootstrap.liftweb
 
+import code.snippet._
 import net.liftweb._
 import util._
 import common._
@@ -38,10 +39,10 @@ import http._
 import sitemap._
 import Loc._
 import mapper._
-import code.model.dataAccess.{MongoConfig,OBPUser,Privilege,Account, MongoDBLocalStorage, HostedAccount}
+import code.model.dataAccess.{MongoConfig,OBPUser,Privilege,Account, HostedAccount}
 import code.model.{Nonce, Consumer, Token}
 import code.model.traits.{Bank, View, ModeratedTransaction}
-import code.model.implementedTraits.{BankImpl, Anonymous, View}
+import code.model.implementedTraits.{View}
 import com.tesobe.utils._
 import net.liftweb.util.Helpers._
 import net.liftweb.widgets.tablesorter.TableSorter

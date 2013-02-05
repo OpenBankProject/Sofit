@@ -47,7 +47,7 @@ object View {
       case "our-network" => Full(OurNetwork)
       case "team" => Full(Team)
       case "owner" => Full(Owner)
-      case "anonymous" => Full(Anonymous)
+      case "public" => Full(Public)
       case _ => Empty
     }
 
@@ -84,21 +84,21 @@ object Authorities extends FullView {
   override def canEditOwnerComment= false    
 }
 
-object Anonymous extends BaseView { 
+object Public extends BaseView { 
   //the actual class extends the BaseView but in fact it does not matters be cause we don't care about the values 
   //of the canSeeMoreInfo, canSeeUrl,etc  attributes and we implement a specific moderate method
   
     /**
    * Current rules: 
    * 
-   * If anonymous, and a public alias exists : Show the public alias
-   * If anonymous, and no public alias exists : Show the real account holder
+   * If Public, and a public alias exists : Show the public alias
+   * If Public, and no public alias exists : Show the real account holder
    * If our network, and a private alias exists : Show the private alias
    * If our network, and no private alias exists : Show the real account holder
    */
   override def id = 6  
-  override def name = "Anonymous"
-  override def permalink = "anonymous" 
+  override def name = "Public"
+  override def permalink = "public" 
   override def description = "A view of the account accessible by anyone."
     
   //Bank account fields
@@ -130,11 +130,11 @@ object Anonymous extends BaseView {
         if(publicAlias.isEmpty)
           AccountName(transaction.otherAccount.label, NoAlias)
         else
-          AccountName(publicAlias, Public)
+          AccountName(publicAlias, PublicAlias)
       }
       val otherAccountMetadata = {
         def isPublicAlias = otherAccountLabel.aliasType match {
-          case Public => true
+          case PublicAlias => true
           case _ => false
         }
         val moreInfo = if (isPublicAlias) None else Some(transaction.otherAccount.metadata.moreInfo)
@@ -148,9 +148,17 @@ object Anonymous extends BaseView {
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,
           None, None, None, otherAccountMetadata))
     }
-    val transactionMetadata = Some(new ModeratedTransactionMetadata(
-      transaction.metadata.ownerComment,Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
-      None,Some(transaction.metadata.addComment _)))
+    val transactionMetadata = 
+      Some(
+        new ModeratedTransactionMetadata(
+          transaction.metadata.ownerComment,
+          Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
+          None,
+          Some(transaction.metadata.addComment _),
+          Some(transaction.metadata.tags.filter(_.viewId==id)),
+          Some(transaction.metadata.addTag),
+          Some(transaction.metadata.deleteTag)
+      ))
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
     val transactionCurrency = Some(transaction.currency)
@@ -159,10 +167,19 @@ object Anonymous extends BaseView {
     val transactionFinishDate = Some(transaction.finishDate)
     val transactionBalance =  if (transaction.balance.toString().startsWith("-")) "-" else "+"
     
-    new ModeratedTransaction(transactionId, thisBankAccount, otherBankAccount, transactionMetadata,
-     transactionType, transactionAmount, transactionCurrency, transactionLabel, transactionStartDate,
-      transactionFinishDate, transactionBalance)
-
+    new ModeratedTransaction(
+      transactionId, 
+      thisBankAccount, 
+      otherBankAccount, 
+      transactionMetadata,
+      transactionType, 
+      transactionAmount, 
+      transactionCurrency, 
+      transactionLabel, 
+      transactionStartDate,
+      transactionFinishDate, 
+      transactionBalance
+    )
   }
   
 }
@@ -189,7 +206,7 @@ object Anonymous extends BaseView {
         if(privateAlias.isEmpty)
           AccountName(transaction.otherAccount.label, NoAlias)
         else
-          AccountName(privateAlias, Private)
+          AccountName(privateAlias, PrivateAlias)
       }
       val otherAccountMetadata = 
         Some(new ModeratedOtherBankAccountMetadata(Some(transaction.otherAccount.metadata.moreInfo), 
@@ -199,8 +216,17 @@ object Anonymous extends BaseView {
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,None,
           None, None, otherAccountMetadata))
     }      
-    val transactionMetadata = Some(new ModeratedTransactionMetadata(transaction.metadata.ownerComment,
-      Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),None,Some(transaction.metadata.addComment _)))
+    val transactionMetadata = 
+      Some(
+        new ModeratedTransactionMetadata(
+          transaction.metadata.ownerComment,
+          Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
+          None,
+          Some(transaction.metadata.addComment _),
+          Some(transaction.metadata.tags.filter(_.viewId==id)),
+          Some(transaction.metadata.addTag),
+          Some(transaction.metadata.deleteTag)          
+      ))
 
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)

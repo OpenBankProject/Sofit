@@ -91,8 +91,8 @@ trait BankAccount {
     } else Empty
   }
   
-  //Is an anonymous view available for this bank account
-  def allowAnnoymousAccess : Boolean
+  //Is a public view is available for this bank account
+  def allowPublicAccess : Boolean
   
   def permittedViews(user: Box[User]) : Set[View]
   

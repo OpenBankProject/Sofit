@@ -109,8 +109,15 @@ class MongoDBLocalStorage extends LocalStorage {
         bankName_ = "", //TODO: need to add this to the json/model
         metadata_ = new OtherBankAccountMetadataImpl(oAcc.publicAlias.get, oAcc.privateAlias.get, oAcc.moreInfo.get,
         oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get))
-    val metadata = new TransactionMetadataImpl(env.narrative.get, env.obp_comments.objs,
-      (text => env.narrative(text).save), env.addComment _)
+    val metadata = new TransactionMetadataImpl(
+      env.narrative.get, 
+      env.obp_comments.objs,
+      (text => env.narrative(text).save), 
+      env.addComment _,
+      env.tags.objs,
+      env.addTag _,
+      env.deleteTag _
+    )
     val transactionType = transaction.details.get.type_en.get
     val amount = transaction.details.get.value.get.amount.get
     val currency = transaction.details.get.value.get.currency.get
@@ -143,8 +150,8 @@ class MongoDBLocalStorage extends LocalStorage {
   
   
   def allBanks : List[Bank] = 
-  HostedBank.findAll.
-    map(bank => new BankImpl(bank.id.is.toString, bank.name.is, bank.permalink.is))
+    HostedBank.findAll.
+      map(bank => new BankImpl(bank.id.is.toString, bank.name.is, bank.permalink.is))
   
   def getBankAccounts(bank: Bank): Set[BankAccount] = {
     val bankId = new ObjectId(bank.id)

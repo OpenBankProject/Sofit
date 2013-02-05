@@ -47,8 +47,9 @@ import net.liftweb.mongodb.record.field.{MongoJsonObjectListField, MongoRefField
 import scala.util.Random
 import com.mongodb.QueryBuilder
 import com.mongodb.BasicDBObject
-import code.model.traits.Comment
+import code.model.traits.{Comment,Tag}
 import net.liftweb.common.Loggable
+import org.bson.types.ObjectId
 
 /**
  * "Current Account View"
@@ -158,6 +159,28 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     obp_comments(comment.id.is :: obp_comments.get ).save
   }
 
+  def addTag(userId: Long, viewId : Long, value: String, datePosted : Date) : String = {
+    val tag = OBPTag.createRecord.
+      userId(userId).
+      tag(value).
+      date(datePosted).
+      viewID(viewId).save
+    tags(tag.id.is :: tags.get ).save
+    tag.id.is.toString
+  }
+  def deleteTag(id : String) = {
+    OBPTag.find(id) match {
+      case Full(tag) => {
+        if(tag.delete_!)
+        {  
+          println("==> deleted tag id : " + id)
+          tags(tags.get.diff(Seq(new ObjectId(id)))).save
+        }
+      }
+      case _ =>  
+    }
+  }  
+
   lazy val theAccount = {
     val thisAcc = obp_transaction.get.this_account.get
     val num = thisAcc.number.get
@@ -192,6 +215,9 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   
   //not named comments as "comments" was used in an older mongo document version
   object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
+
+  object tags extends ObjectIdRefListField(this, OBPTag)
+
   object narrative extends StringField(this, 255)
   
   /**
@@ -268,7 +294,6 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
       }
 
       def createPublicAlias(realOtherAccHolder : String) = {
-        //TODO: Guarantee a unique public alias string
 
         /**
          * Generates a new alias name that is guaranteed not to collide with any existing public alias names
@@ -475,4 +500,18 @@ class OBPValue private() extends BsonRecord[OBPValue]{
 
 object OBPValue extends OBPValue with BsonMetaRecord[OBPValue]
 
+class OBPTag private() extends MongoRecord[OBPTag] with ObjectIdPk[OBPTag] with Tag {
+  def meta = OBPTag
+  object userId extends LongField(this)
+  object viewID extends LongField(this)
+  object tag extends StringField(this, 255)
+  object date extends DateField(this) 
 
+  def id_ = id.is.toString
+  def datePosted = date.get
+  def postedBy = OBPUser.find(userId)
+  def viewId = viewID.get
+  def value = tag.get
+}
+
+object OBPTag extends OBPTag with MongoMetaRecord[OBPTag] 

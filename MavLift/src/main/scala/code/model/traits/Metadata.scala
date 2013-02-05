@@ -40,6 +40,9 @@ trait TransactionMetadata {
   def ownerComment(comment : String) : Unit 
   def comments : List[Comment]
   def addComment(userId : Long, viewId : Long, text : String, postedDate : Date) : Unit
+  def tags : List[Tag]
+  def addTag(userId : Long, viewId : Long, tag : String, postedDate :Date) : String
+  def deleteTag(id : String) : Unit
 }
 trait OtherBankAccountMetadata 
 {

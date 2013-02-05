@@ -86,7 +86,7 @@ input.submit {
 }
 
 #social {
-	float: right;	
+	float: right;
 }
 
 #nav {
@@ -423,7 +423,7 @@ table.management td.website {
 }
 
 table.management th.information {
-	width: 200px;
+	width: 230px;
 }
 
 table.management td.information {
@@ -450,7 +450,7 @@ div.extra_account_logo {
 
 div.extra_account_logo img {
     max-width: 200px;
-    max-height: 100px;    
+    max-height: 100px;
 }
 
 div.extra_info_and_links {
@@ -510,11 +510,11 @@ span.edit_error_class {
 }
 
 .account_header {
-	margin-bottom: 10px;	
+	margin-bottom: 10px;
 }
 
 .account {
-	margin-bottom: 5px;	
+	margin-bottom: 5px;
 }
 
 li.comment
@@ -525,13 +525,13 @@ li.comment
 	line-height: 1em;
 	font-size: 13px;
 }
-#comment_list 
+#comment_list
 {
 	margin-top: 10px;
 }
-div#addCommentbloc
+#addCommentbloc
 {
-	margin-top: 15px;
+	margin-top: 50px;
 }
 #submitComment
 {
@@ -541,22 +541,34 @@ div#addCommentbloc
 {
 	margin-top: 5px;
 	font-size: 13px;
-	display: block;	 
+	display: block;
 }
-#account_details 
+#account_details
 {
 	margin-bottom: 25px;
 }
-a#feedBack
-{
+#feedBack {
 	display: block;
 	position: fixed;
-	left:0;
+	left: -195px;
 	top: 50%;
-	width: 26px;
-	height: 87px;
-	background: url(../images/feedback-button.gif);
+	width: 215px;
+	height: 200px;
 	cursor: pointer;
+	background-image: url(../images/feedback-button.gif);
+	background-repeat: no-repeat;
+	background-position: 195px;
+	background-color: #0c5276;
+	border-radius: 0 5px 5px 0;
+	padding: 20px 5px;
+}
+#feedBack form {
+	width:210px;
+}
+.feedback-slider {
+    float: right;
+    width: 30px;
+    height: 100%;
 }
 span#registrationDetails
 {
@@ -580,11 +592,63 @@ span#submissionSuccess, span#submissionFailed
 	padding: 15px 20px;
 	background: #66ee55;
 }
-span#submissionFailed 
+span#submissionFailed
 {
 	background: #ff3311;
 }
 span#accountsMsg
 {
 	font-size: 13px;
+}
+
+#tagsTitle, #commentsTitle{
+	margin-bottom: 10px;
+	font-weight: bold;
+	border-bottom: 2px solid #cbcbcb;
+	padding-bottom: 10px
+}
+#tags_list{
+	height: auto;
+}
+
+.tagID{
+	padding: 5px 10px;
+	background: #F3F9F8;
+	display: inline-block;
+	margin-right: 10px;
+	display: inline-block;
+	border: 2px solid #CBCBCB;
+	margin-bottom: 5px;
+}
+
+.tagValue{
+	padding-right: 20px;
+}
+
+.deleteTag{
+	margin-left: 5px;
+	text-decoration: none;
+}
+
+.deleteTag:hover {
+	cursor: pointer;
+	color: red;
+}
+
+#addTagbloc{
+	margin-top : 25px;
+	margin-bottom: 50px;
+}
+#tagsBloc{
+
+}
+#commentsBloc{
+	margin-top: 15px;
+}
+#addTagInput{
+	height: 25px;
+}
+#submitTag{
+	height: 30px;
+	padding: 0 15px;
 }

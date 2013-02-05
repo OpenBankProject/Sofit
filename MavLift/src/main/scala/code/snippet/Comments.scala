@@ -56,11 +56,12 @@ import java.text.SimpleDateFormat
 import code.model.dataAccess.{OBPAccount,OBPUser}
 import net.liftweb.common.Loggable
 import code.model.dataAccess.Account
-import code.model.traits.{ModeratedTransaction,Public,Private,NoAlias,Comment, View}
+import code.model.traits.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag}
 import java.util.Currency
-import net.liftweb.http.js.jquery.JqJsCmds.AppendHtml
-import net.liftweb.http.js.JsCmds.{SetHtml,SetValById} 
+import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
+import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
 import net.liftweb.http.js.JE.Str 
+import net.liftweb.http.js.JsCmds.Alert
 
 /**
  * This whole class is a rather hastily put together mess
@@ -70,6 +71,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
   val view = transactionAndView._2
   val commentDateFormat = new SimpleDateFormat("kk:mm:ss EEE MMM dd yyyy")
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""  
+  
   def commentPageTitle(xhtml: NodeSeq): NodeSeq = {
     val FORBIDDEN = "---"
     val dateFormat = new SimpleDateFormat("EEE MMM dd yyyy")
@@ -103,9 +105,9 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
           case Some(otherBankaccount) =>{
             ".the_name" #> otherBankaccount.label.display &
             {otherBankaccount.label.aliasType match {
-                case Public => ".alias_indicator [class+]" #> "alias_indicator_public" &
+                case PublicAlias => ".alias_indicator [class+]" #> "alias_indicator_public" &
                     ".alias_indicator *" #> "(Alias)"
-                case Private => ".alias_indicator [class+]" #> "alias_indicator_private" &
+                case PrivateAlias => ".alias_indicator [class+]" #> "alias_indicator_private" &
                     ".alias_indicator *" #> "(Alias)"
                 case _ => NOOP_SELECTOR
             }} 
@@ -127,8 +129,105 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       }
     ).apply(xhtml)
   }
+  def noTags = ".tag" #> ""
   
-  def showAll = 
+  def showTags = 
+    transaction.metadata match {
+      case Some(metadata) => metadata.tags match {
+        case Some(tags) => 
+          if(tags.isEmpty)
+            noTags
+          else
+            ".tagsContainer" #>
+            { 
+              def orderByDateDescending = (tag1 : Tag, tag2 : Tag) =>
+                tag1.datePosted.before(tag2.datePosted)
+              "#noTags" #> "" &
+              ".tag" #>
+                tags.sort(orderByDateDescending).map(tag => {
+                  ".tagID [id]" #> tag.id_ &
+                  ".tagValue" #> tag.value & 
+                  ".deleteTag" #> 
+                    SHtml.a(
+                      () => {
+                        metadata.deleteTag.map(t => t(tag.id_))
+                        Hide(tag.id_)
+                      },
+                      Text("x"),
+                      ("title","Remove the tag")
+                    )                  
+                })
+            }
+        case _ => noTags
+      }
+      case _ => noTags
+    }
+  def addTag(xhtml: NodeSeq) : NodeSeq = 
+    OBPUser.currentUser match {
+      case Full(user) =>     
+        transaction.metadata match {
+          case Some(metadata) =>
+            metadata.addTag match {
+              case Some(addTag) => {
+                var tagValues : List[String] = Nil
+                var tagDate = new Date
+                var tagIds : List[String] = List()
+                SHtml.ajaxForm(
+                  SHtml.text(
+                    "",
+                    tags => {
+                      val tagsList = tags.split(" ").toList.filter(tag => !tag.isEmpty)
+                      tagValues = tagsList
+                      tagDate = new Date
+                      tagIds = tagsList.map(addTag(user.id, view.id, _ ,tagDate))
+                    },
+                    ("placeholder","Add tags seperated by spaces"),
+                    ("id","addTagInput"),
+                    ("size","30") 
+                  ) ++
+                  SHtml.ajaxSubmit(
+                    "Tag",
+                    () => {
+                      val tagXml = TemplateFinder.findAnyTemplate(List("templates-hidden","_tag")).map({ 
+                        ".tag" #> {
+                          tagValues.zipWithIndex.map(t => {
+                            ".tagID [id]" #> tagIds(t._2) &
+                            ".tagValue" #> t._1 &
+                            ".deleteTag" #> 
+                              SHtml.a(
+                                () => {
+                                  metadata.deleteTag match {
+                                    case Some(del) => {
+                                      del(tagIds(t._2))
+                                      Hide(tagIds(t._2))
+                                    }
+                                    case _ => Alert("deleting tags is not allowed in this view")
+                                  }
+                                },
+                                Text("x"),
+                                ("title","Remove the tag")
+                              )  
+                          })
+                        }
+
+                      })
+                      val content = Str("")
+                      SetValById("addTagInput",content)&
+                      SetHtml("noTags",NodeSeq.Empty) &
+                      AppendHtml("tags_list",tagXml.getOrElse(NodeSeq.Empty))
+                    },
+                    ("id","submitTag")
+                  )
+                )
+              }
+              case _ => (".add" #> "You cannot add tags to transactions on this view").apply(xhtml)
+            }
+          case _ => (".add" #> "You cannot add tags to transactions on this view").apply(xhtml)
+        }
+      case _ => (".add" #> "You need to login before you can add tags").apply(xhtml) 
+    }   
+
+  def showComments = 
     transaction.metadata match {
       case Some(metadata)  => 
         metadata.comments match {
@@ -136,7 +235,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
             if(comments.size==0)
               ".comment" #> ""
             else
-            ".container" #>
+            ".commentsContainer" #>
             { 
               def orderByDateDescending = (comment1 : Comment, comment2 : Comment) =>
                 comment1.datePosted.before(comment2.datePosted)
@@ -180,11 +279,17 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                 var commentText = ""
                 var commentDate = new Date
                 SHtml.ajaxForm(
-                  SHtml.textarea("put a comment here",comment => {
-                    commentText = comment
-                    commentDate = new Date
-                    addComment(user.id, view.id, comment,commentDate)},
-                    ("rows","4"),("cols","50"),("id","addCommentTextArea") ) ++
+                  SHtml.textarea(
+                    "",
+                    comment => {
+                      commentText = comment
+                      commentDate = new Date
+                      addComment(user.id, view.id, comment,commentDate)
+                    },
+                    ("rows","4"),("cols","50"),
+                    ("id","addCommentTextArea"),
+                    ("placeholder","add a comment here") 
+                  ) ++
                   SHtml.ajaxSubmit("add a comment",() => {
                     val commentXml = TemplateFinder.findAnyTemplate(List("templates-hidden","_comment")).map({ 
                       commentsListSize = commentsListSize + 1

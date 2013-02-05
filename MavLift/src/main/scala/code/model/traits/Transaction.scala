@@ -47,7 +47,6 @@ trait Transaction {
   //E.g. cash withdrawal, electronic payment, etc.
   def transactionType : String
   
-  //TODO: Check if BigDecimal is an appropriate data type
   def amount : BigDecimal
   
   //ISO 4217, e.g. EUR, GBP, USD, etc.
@@ -63,7 +62,6 @@ trait Transaction {
   def finishDate : Date
   
   //the new balance for the bank account
-  //TODO : Rethink this
   def balance : BigDecimal
   
 }
