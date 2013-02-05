@@ -105,6 +105,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>net.databinder</groupId>
+      <artifactId>dispatch-lift-json_${scala.version}</artifactId>
+      <version>0.8.5</version>
+    </dependency>     
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_2.9.1</artifactId>
+      <version>2.0.M5</version>
+      <scope>test</scope>
+    </dependency>      
+    <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpg-jdk16</artifactId>
       <version>1.46</version>
@@ -149,6 +160,10 @@
             <jvmArg>-Xmx1024m</jvmArg>
             <jvmArg>-DpackageLinkDefs=file://${project.build.directory}/packageLinkDefs.properties</jvmArg>
           </jvmArgs>
+          <args>
+            <arg>-unchecked</arg>
+            <arg>-deprecation</arg>
+          </args>          
         </configuration>
         <executions>
           <execution>
