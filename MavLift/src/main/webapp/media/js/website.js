@@ -34,7 +34,7 @@ $(document).ready(function() {
         url: $(this).attr("action"),
         data: $(this).serialize(),
         success: function() {
-            $('#feedback-angel').hide().parent().prepend("<p class='thanks'>Thank you!</p>");
+            $('#feedback-angel').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be an angel!</p>");
         }
     });
     return false;
@@ -45,7 +45,7 @@ $(document).ready(function() {
         url: $(this).attr("action"),
         data: $(this).serialize(),
         success: function() {
-            $('#feedback-demon').hide().parent().prepend("<p class='thanks'>Thank you!</p>");
+            $('#feedback-demon').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be a demon!</p>");
         }
     });
     return false;
@@ -56,7 +56,7 @@ $(document).ready(function() {
         url: $(this).attr("action"),
         data: $(this).serialize(),
         success: function() {
-            $('#feedback-idea').hide().parent().prepend("<p class='thanks'>Thank you!</p>");
+            $('#feedback-idea').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for you Ideas!</p>");
         }
     });
     return false;
