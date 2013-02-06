@@ -19,10 +19,11 @@ $(document).ready(function() {
 
   $(".feedback-slider").toggle(
       function(){
-          $("#feedBack").find('.polarize-input').show();
-          $("#feedBack").find('input[type="text"], textarea').val("");
-          $("#feedBack").find('.thanks').hide();
-          $("#feedBack").animate({left:"0px"});
+          var $feedback = $("#feedBack");
+          $feedback.find('.polarize-input').show();
+          $feedback.find('input[type="text"], textarea').val("");
+          $feedback.find('.thanks').hide();
+          $feedback.animate({left:"0px"});
           return false;
       },
       function(){
