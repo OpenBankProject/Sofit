@@ -20,6 +20,7 @@ $(document).ready(function() {
   $(".feedback-slider").toggle(
       function(){
           $("#feedBack").find('.polarize-input').show();
+          $("#feedBack").find('input[type="text"], textarea').val("");
           $("#feedBack").find('.thanks').hide();
           $("#feedBack").animate({left:"0px"});
           return false;
