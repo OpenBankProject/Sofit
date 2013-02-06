@@ -32,6 +32,7 @@ $(document).ready(function() {
       }
   );
   $('#feedback-angel').submit(function() {
+    var $this = $(this);
     if ($.trim($("#feedback-angel input[type=text]").val()).length !== 0) {
       $.ajax({
           url: $(this).attr("action"),
@@ -44,13 +45,14 @@ $(document).ready(function() {
     return false;
   });
 
-  $('#feedback-demon').submit(function(e) {
-    if ($.trim($("#feedback-demon input[type=text]").val()).length !== 0) {
+  $('#feedback-demon').submit(function() {
+    var $this = $(this);
+    if ($.trim($this.find("input[type=text]").val()).length !== 0) {
       $.ajax({
           url: $(this).attr("action"),
           data: $(this).serialize(),
           success: function() {
-              $('#feedback-demon').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be a demon!</p>");
+              $this.find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be a demon!</p>");
           }
       });
     }
@@ -58,12 +60,13 @@ $(document).ready(function() {
   });
 
   $('#feedback-idea').submit(function() {
-    if ($.trim($("#feedback-idea textarea").val()).length !== 0) {
+    var $this = $(this);
+    if ($.trim($this.find("textarea").val()).length !== 0) {
       $.ajax({
           url: $(this).attr("action"),
           data: $(this).serialize(),
           success: function() {
-              $('#feedback-idea').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for you Ideas!</p>");
+              $this.find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for you Ideas!</p>");
           }
       });
     }
