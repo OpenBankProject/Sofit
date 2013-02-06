@@ -30,35 +30,41 @@ $(document).ready(function() {
       }
   );
   $('#feedback-angel').submit(function() {
-    $.ajax({
-        url: $(this).attr("action"),
-        data: $(this).serialize(),
-        success: function() {
-            $('#feedback-angel').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be an angel!</p>");
-        }
-    });
+    if ($.trim($("#feedback-angel input[type=text]").val()).length !== 0) {
+      $.ajax({
+          url: $(this).attr("action"),
+          data: $(this).serialize(),
+          success: function() {
+              $('#feedback-angel').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be an angel!</p>");
+          }
+      });
+    }
     return false;
   });
 
   $('#feedback-demon').submit(function(e) {
-    $.ajax({
-        url: $(this).attr("action"),
-        data: $(this).serialize(),
-        success: function() {
-            $('#feedback-demon').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be a demon!</p>");
-        }
-    });
+    if ($.trim($("#feedback-angel input[type=text]").val()).length !== 0) {
+      $.ajax({
+          url: $(this).attr("action"),
+          data: $(this).serialize(),
+          success: function() {
+              $('#feedback-demon').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be a demon!</p>");
+          }
+      });
+    }
     return false;
   });
 
   $('#feedback-idea').submit(function() {
-    $.ajax({
-        url: $(this).attr("action"),
-        data: $(this).serialize(),
-        success: function() {
-            $('#feedback-idea').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for you Ideas!</p>");
-        }
-    });
+    if ($.trim($("#feedback-angel textarea").val()).length !== 0) {
+      $.ajax({
+          url: $(this).attr("action"),
+          data: $(this).serialize(),
+          success: function() {
+              $('#feedback-idea').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for you Ideas!</p>");
+          }
+      });
+    }
     return false;
   });
 
