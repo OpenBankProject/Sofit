@@ -19,8 +19,8 @@ $(document).ready(function() {
 
   $(".feedback-slider").toggle(
       function(){
-          $("#feedback").find('form').show();
-          $("#feedback").find('.thanks').hide();
+          $("#feedBack").find('form').show();
+          $("#feedBack").find('.thanks').hide();
           $("#feedBack").animate({left:"0px"});
           return false;
       },
