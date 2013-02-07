@@ -602,13 +602,15 @@ li.comment
 }
 
 .feedback-slider {
-    float: right;
-    width: 30px;
+    width: 40px;
     height: 100%;
     background-image: url(../images/feedback-button.gif);
     background-repeat: no-repeat;
     background-size: 30px;
-    background-position: center;
+    background-position: 50%;
+    position: absolute;
+    right:0;
+    top:0;
 }
 span#registrationDetails
 {
