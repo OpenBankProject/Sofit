@@ -46,6 +46,7 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.RedirectTo
 import net.liftweb.http.SessionVar
 import scala.xml.Text
+import net.liftweb.json._
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JString
@@ -63,6 +64,11 @@ import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
 import net.liftweb.http.js.JE.Str
 import net.liftweb.http.js.JsCmds.Alert
 import code.model.traits.TransactionImage
+import net.liftweb.util.Props
+import scala.xml.Utility
+import net.liftweb.common.Failure
+import java.net.URL
+import java.net.URI
 
 /**
  * This whole class is a rather hastily put together mess
@@ -141,7 +147,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
         "#foo" #> "bar" //TODO: fill this in
       })
     
-    for {
+    val sel = for {
       metadata <- transaction.metadata
       images <- metadata.images
     } yield {
@@ -149,17 +155,67 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       else imagesSelector(images)
     }
     
-    //TODO make this return CssSel instead of Option[CssSel]
+    sel getOrElse {"* *" #> ""}
   }
   
   def addImage = {
-    for {
-      //TODO: Can return a CssSel from ?~!  ?
-      user <- OBPUser.currentUser ?~! "You must be logged in to add an image" //{ ".add" #> "You must be logged in to add an image" }
-      metadata <- transaction.metadata
+    
+    //transloadit requires its parameters to be an escaped json string
+    val transloadItParams : String = {
+      import net.liftweb.json.JsonDSL._
+      import net.liftweb.json._
       
+      val authKey = Props.get("transloadit.authkey") getOrElse ""
+      val addImageTemplate = Props.get("transloadit.addImageTemplate") getOrElse ""
+      val json =
+        ("auth" ->
+        	("key" -> authKey)) ~
+        ("template_id" -> addImageTemplate)
+      
+      val escapedJson = Utility.escape(compact(render(json)), new StringBuilder).toString
+      escapedJson
     }
-    ".add *" #> "bar"
+    
+    val addImageSelector = for {
+      user <- OBPUser.currentUser ?~ "You must be logged in to add an image"
+      metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
+      addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
+    } yield {
+      "#imageUploader [action]" #> S.uri &
+      "#imageUploader" #> {
+        "name=params [value]" #> transloadItParams
+      }
+    }
+    
+    if(S.post_?) {
+      val description = S.param("description") getOrElse ""
+      val viewId = view.id
+      val datePosted = now
+      val addFunction = for {
+        transloadit <- S.param("transloadit") ?~! "No transloadit data received"
+        json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"
+        urlString <- {val JString(a) = json \ "results" \ "resize_to_100" \ "url"; Full(a)}
+        foo <- Full(new URI(urlString))
+        url <- tryo{println("test url: " + new URL("http://example.com"));println("test url 2: " + new URL("http://tmp.transloadit.com.s3.amazonaws.com/a1ce0c6763c219217b185be4b291ed0a.png"));println("urlstring: " + urlString);val a = new URL(urlString); println("url: " + a); a;}
+        metadata <- Box(transaction.metadata) ?~! "Could not access transaction metadata"
+        addImage <- Box(metadata.addImage) ?~! "Could not access add image function"
+        userId <- OBPUser.currentUser.map(_.id) ?~! "Could not retrieve current user id"
+      } yield {
+        () => addImage(userId, viewId, description, datePosted, url)
+      }
+      
+      addFunction match {
+        case Full(add) => add()
+        case Failure(msg, _ , _) => logger.warn("Problem adding new image: " + msg)
+        case _ => logger.warn("Problem adding new image")
+      }
+    } 
+    
+    addImageSelector match {
+      case Full(s) => s
+      case Failure(msg, _, _) => ".add *" #> msg
+      case _ => ".add *" #> ""
+    }
   }
   
   def noTags = ".tag" #> ""
