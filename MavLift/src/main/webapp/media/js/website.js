@@ -19,7 +19,7 @@ $(document).ready(function() {
 
   $(".feedback-slider").toggle(
       function(){
-          var $feedback = $("#feedBack");
+          var $feedback = $("#feedBack").removeClass("feedback-bg");
           $feedback.find('.polarize-input').show();
           $feedback.find('input[type="text"], textarea').val("");
           $feedback.find('.thanks').hide();
@@ -27,7 +27,7 @@ $(document).ready(function() {
           return false;
       },
       function(){
-          $("#feedBack").animate({left:"-195px"});
+          $("#feedBack").addClass("feedback-bg").animate({left:"-195px"});
           return false;
       }
   );

@@ -558,11 +558,15 @@ li.comment
     background-color: #0c5276;
     border-radius: 0 5px 5px 0;
     padding: 20px 10px;
-    background-image: url(../images/polarize-logo.png);
     background-repeat: no-repeat;
     background-position: 200px 260px;
     background-size: 30px;
 }
+
+.feedback-bg {
+	background-image: url(../images/polarize-logo.png);
+}
+
 #feedBack form {
     width: 180px;
     margin-bottom: 8px;
