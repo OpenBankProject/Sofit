@@ -32,6 +32,7 @@ Berlin 13359, Germany
 
 package code.model.traits
 import java.util.Date
+import java.net.URL
 
 trait TransactionMetadata {
   
@@ -43,6 +44,9 @@ trait TransactionMetadata {
   def tags : List[Tag]
   def addTag(userId : Long, viewId : Long, tag : String, postedDate :Date) : String
   def deleteTag(id : String) : Unit
+  def images : List[TransactionImage]
+  def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
+  def deleteImage(id : String) : Unit
 }
 trait OtherBankAccountMetadata 
 {

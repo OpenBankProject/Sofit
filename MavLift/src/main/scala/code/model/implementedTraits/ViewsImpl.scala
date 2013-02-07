@@ -157,7 +157,10 @@ object Public extends BaseView {
           Some(transaction.metadata.addComment _),
           Some(transaction.metadata.tags.filter(_.viewId==id)),
           Some(transaction.metadata.addTag),
-          Some(transaction.metadata.deleteTag)
+          Some(transaction.metadata.deleteTag),
+          Some(transaction.metadata.images.filter(_.viewId==id)), //TODO: Better if image takes a view as a parameter?
+          Some(transaction.metadata.addImage),
+          Some(transaction.metadata.deleteImage)
       ))
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
@@ -225,7 +228,10 @@ object Public extends BaseView {
           Some(transaction.metadata.addComment _),
           Some(transaction.metadata.tags.filter(_.viewId==id)),
           Some(transaction.metadata.addTag),
-          Some(transaction.metadata.deleteTag)          
+          Some(transaction.metadata.deleteTag),
+          Some(transaction.metadata.images.filter(_.viewId==id)), //TODO: Better if image takes a view as a parameter?
+          Some(transaction.metadata.addImage),
+          Some(transaction.metadata.deleteImage)	
       ))
 
     val transactionType = Some(transaction.transactionType)

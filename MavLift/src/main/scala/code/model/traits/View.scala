@@ -77,6 +77,7 @@ trait View {
   def canSeeComments: Boolean
   def canSeeOwnerComment: Boolean
   def canSeeTags : Boolean
+  def canSeeImages : Boolean
 
   //Bank account fields
   def canSeeBankAccountOwners : Boolean
@@ -110,6 +111,8 @@ trait View {
   def canAddComments : Boolean
   def canAddTag : Boolean
   def canDeleteTag : Boolean
+  def canAddImage : Boolean
+  def canDeleteImage : Boolean
 
   // In the future we can add a method here to allow someone to show only transactions over a certain limit
   
@@ -234,7 +237,18 @@ trait View {
               Some(transaction.metadata.deleteTag _)
             else
               None
-
+        val images = 
+          if(canSeeImages) Some(transaction.metadata.images.filter(_.viewId == id))
+          else None
+          
+        val addImageFunc = 
+          if(canAddImage) Some(transaction.metadata.addImage _)
+          else None
+          
+        val deleteImageFunc = 
+          if(canDeleteImage) Some(transaction.metadata.deleteImage _)
+          else None
+          
         new Some(
           new ModeratedTransactionMetadata(
             ownerComment,
@@ -243,7 +257,10 @@ trait View {
             addCommentFunc,
             tags,
             addTagFunc,
-            deleteTagFunc
+            deleteTagFunc,
+            images,
+            addImageFunc,
+            deleteImageFunc
         ))
       }
       else
@@ -351,6 +368,7 @@ class BaseView extends View {
   def canSeeComments = false
   def canSeeOwnerComment = false
   def canSeeTags = false
+  def canSeeImages = false
 
   //Bank account fields
   def canSeeBankAccountOwners = false
@@ -384,6 +402,8 @@ class BaseView extends View {
   def canAddComments = false
   def canAddTag = false 
   def canDeleteTag = false  
+  def canAddImage = false
+  def canDeleteImage = false
 
 }
 
@@ -415,6 +435,7 @@ class FullView extends View {
   def canSeeComments = true
   def canSeeOwnerComment = true
   def canSeeTags = true
+  def canSeeImages = true
 
   //Bank account fields
   def canSeeBankAccountOwners = true
@@ -448,6 +469,8 @@ class FullView extends View {
   def canAddComments = true
   def canAddTag = true
   def canDeleteTag = true  
+  def canAddImage = true
+  def canDeleteImage = true
 
 }
 

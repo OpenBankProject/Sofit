@@ -60,8 +60,9 @@ import code.model.traits.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,
 import java.util.Currency
 import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
 import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
-import net.liftweb.http.js.JE.Str 
+import net.liftweb.http.js.JE.Str
 import net.liftweb.http.js.JsCmds.Alert
+import code.model.traits.TransactionImage
 
 /**
  * This whole class is a rather hastily put together mess
@@ -129,6 +130,38 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       }
     ).apply(xhtml)
   }
+  
+  def noImages = ".tag" #> ""
+  
+  def showImages = {
+    
+    def imagesSelector(images : List[TransactionImage]) =
+      "#noTags" #> "" &
+      ".image" #> images.map(image => {
+        "#foo" #> "bar" //TODO: fill this in
+      })
+    
+    for {
+      metadata <- transaction.metadata
+      images <- metadata.images
+    } yield {
+      if(images.isEmpty) noImages
+      else imagesSelector(images)
+    }
+    
+    //TODO make this return CssSel instead of Option[CssSel]
+  }
+  
+  def addImage = {
+    for {
+      //TODO: Can return a CssSel from ?~!  ?
+      user <- OBPUser.currentUser ?~! "You must be logged in to add an image" //{ ".add" #> "You must be logged in to add an image" }
+      metadata <- transaction.metadata
+      
+    }
+    ".add *" #> "bar"
+  }
+  
   def noTags = ".tag" #> ""
   
   def showTags = 

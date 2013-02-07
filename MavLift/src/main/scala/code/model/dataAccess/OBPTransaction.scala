@@ -50,6 +50,10 @@ import com.mongodb.BasicDBObject
 import code.model.traits.{Comment,Tag}
 import net.liftweb.common.Loggable
 import org.bson.types.ObjectId
+import code.model.traits.TransactionImage
+import net.liftweb.util.Helpers._
+import net.liftweb.http.S
+import java.net.URL
 
 /**
  * "Current Account View"
@@ -180,6 +184,28 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
       case _ =>  
     }
   }  
+  
+  /**
+   * @return the id of the newly added image
+   */
+  def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
+    val image = OBPTransactionImage.createRecord.
+    		userId(userId).imageComment(description).date(datePosted).viewID(viewId).save
+    images(image.id.is :: images.get)
+    image.id.is.toString
+  }
+  
+  def deleteImage(id : String) {
+    OBPTransactionImage.find(id) match {
+      case Full(image) => {
+        if(image.delete_!) {
+          println("==> deleted image id : " + id)
+          images(images.get.diff(Seq(new ObjectId(id)))).save
+          //TODO: Delete the actual image file?
+        }
+      }
+    }
+  }
 
   lazy val theAccount = {
     val thisAcc = obp_transaction.get.this_account.get
@@ -217,6 +243,8 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
 
   object tags extends ObjectIdRefListField(this, OBPTag)
+  
+  object images extends ObjectIdRefListField(this, OBPTransactionImage)
 
   object narrative extends StringField(this, 255)
   
@@ -515,3 +543,27 @@ class OBPTag private() extends MongoRecord[OBPTag] with ObjectIdPk[OBPTag] with 
 }
 
 object OBPTag extends OBPTag with MongoMetaRecord[OBPTag] 
+
+class OBPTransactionImage private() extends MongoRecord[OBPTransactionImage] 
+		with ObjectIdPk[OBPTransactionImage] with TransactionImage {
+  def meta = OBPTransactionImage
+  
+  object userId extends LongField(this)
+  object viewID extends LongField(this)
+  object imageComment extends StringField(this, 1000)
+  object date extends DateField(this) 
+  object url extends StringField(this, 500)
+
+  def id_ = id.is.toString
+  def datePosted = date.get
+  def postedBy = OBPUser.find(userId)
+  def viewId = viewID.get
+  def description = imageComment.get
+  def imageUrl = {
+    tryo {new URL(url.get)} getOrElse OBPTransactionImage.notFoundUrl
+  }
+}
+
+object OBPTransactionImage extends OBPTransactionImage with MongoMetaRecord[OBPTransactionImage] {
+  val notFoundUrl = new URL(S.hostAndPath + "/notfound.png") //TODO: Make this image exist?
+}
