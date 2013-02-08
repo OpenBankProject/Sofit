@@ -143,22 +143,38 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
   
   def noImages = ".images_list" #> ""
   
+  def imageHtmlId(image: TransactionImage) : String = "trans-image-" + image.id_
+  
   def showImages = {
+    
+    def deleteImage(image: TransactionImage) = {
+      transaction.metadata.flatMap(_.deleteImage) match {
+        case Some(delete) => delete(image.id_)
+        case _ => logger.warn("No delete image function found.")
+      }
+      
+      val jqueryRemoveImage = "$('.image-holder[data-id=\"" + imageHtmlId(image) + "\"]').remove();"
+      JsRaw(jqueryRemoveImage).cmd
+    }
     
     def imagesSelector(images : List[TransactionImage]) =
       ".noImages" #> "" &
       ".image-holder" #> images.map(image => {
-        ".transaction-image [src]" #> image.imageUrl.toString &
+        ".image-holder [data-id]" #> imageHtmlId(image) &
+        ".trans-image [src]" #> image.imageUrl.toString &
         ".image-description *" #> image.description &
         ".postedBy *" #> { image.postedBy.map(_.emailAddress) getOrElse "unknown" } &
-        ".postedTime *" #> commentDateFormat.format(image.datePosted)
+        ".postedTime *" #> commentDateFormat.format(image.datePosted) &
+        //TODO: This could be optimised into calling an ajax function with image id as a parameter to avoid
+        //storing multiple closures server side (i.e. one client side function maps to on server side function 
+        //that takes a parameter)
+        ".deleteImage [onclick]" #> SHtml.ajaxInvoke(() => deleteImage(image))
       })
     
     val sel = for {
       metadata <- transaction.metadata
       images <- metadata.images
     } yield {
-      images.foreach(img => println(img.imageUrl + ", " + img.description))
       if(images.isEmpty) noImages
       else imagesSelector(images)
     }
@@ -191,7 +207,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       val addFunction = for {
         transloadit <- S.param("transloadit") ?~! "No transloadit data received"
         json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"
-        urlString <- tryo{val JString(a) = json \ "results" \ "resize_to_100" \ "url"; a} ?~! "Could not extract url string from json"
+        urlString <- tryo{val JString(a) = json \ "results" \\ "url"; a} ?~! {"Could not extract url string from json: " + compact(render(json))}
         url <- tryo{new URL(urlString)} ?~! "Could not parse url string as a valid URL"
         metadata <- Box(transaction.metadata) ?~! "Could not access transaction metadata"
         addImage <- Box(metadata.addImage) ?~! "Could not access add image function"
