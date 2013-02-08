@@ -77,12 +77,13 @@ Berlin 13359, Germany
   	<div id="addImageBlock">
       <div class="add">
 				<form id="imageUploader" method="post" enctype="multipart/form-data">
-					<input type="file" name="my_file"></input> 
-					<label for="description">Image Caption:</label>
-					<input type="text" name="description"></input> 
+					<span>Add a new image: </span>
+					<input class="chooseFile" type="file" name="my_file"></input>
+					<br />
+					<textarea class="description" rows="4" cols="50" name="description" placeholder="A short description of the image being posted."></textarea> 
 					<input type="hidden" name="params"></input>
-					<input id="uploadedImageUrl" type="hidden" name="imageUrl"></input>
-					<input type="submit" value="Add Image"></input>
+					<br />
+					<input class="addImageSubmit" type="submit" value="Add Image"></input>
 				</form>
 				<script type="text/javascript" src="http://assets.transloadit.com/js/jquery.transloadit2.js"></script>
 		<script type="text/javascript">

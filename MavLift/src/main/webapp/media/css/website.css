@@ -684,9 +684,17 @@ span#accountsMsg
 #addTagInput{
 	height: 25px;
 }
-#submitTag{
+#submitTag, 
+#addImageBlock .addImageSubmit,
+#addImageBlock .chooseFile{
 	height: 30px;
 	padding: 0 15px;
+}
+
+#addImageBlock {
+	border-top: 2px solid #cbcbcb;
+	padding-top: 10px;
+	margin-top: 10px;
 }
 
 .image-holder {
