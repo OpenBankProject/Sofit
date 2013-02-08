@@ -137,13 +137,17 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
     ).apply(xhtml)
   }
   
+  def images = {
+    addImage andThen showImages
+  }
+  
   def noImages = ".images_list" #> ""
   
   def showImages = {
     
     def imagesSelector(images : List[TransactionImage]) =
       ".noImages" #> "" &
-      ".image" #> images.map(image => {
+      ".image-holder" #> images.map(image => {
         ".transaction-image [src]" #> image.imageUrl.toString &
         ".image-description *" #> image.description &
         ".postedBy *" #> { image.postedBy.map(_.emailAddress) getOrElse "unknown" } &
@@ -154,6 +158,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       metadata <- transaction.metadata
       images <- metadata.images
     } yield {
+      images.foreach(img => println(img.imageUrl + ", " + img.description))
       if(images.isEmpty) noImages
       else imagesSelector(images)
     }
@@ -179,17 +184,6 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       escapedJson
     }
     
-    val addImageSelector = for {
-      user <- OBPUser.currentUser ?~ "You need to long before you can add an image"
-      metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
-      addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
-    } yield {
-      "#imageUploader [action]" #> S.uri &
-      "#imageUploader" #> {
-        "name=params [value]" #> transloadItParams
-      }
-    }
-    
     if(S.post_?) {
       val description = S.param("description") getOrElse ""
       val viewId = view.id
@@ -207,11 +201,26 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       }
       
       addFunction match {
-        case Full(add) => add()
+        case Full(add) => {
+          add()
+          //kind of a hack, but we redirect to a get request here so that we get the updated transaction (with the new image)
+          S.redirectTo(S.uri)
+        }
         case Failure(msg, _ , _) => logger.warn("Problem adding new image: " + msg)
         case _ => logger.warn("Problem adding new image")
       }
     } 
+    
+    val addImageSelector = for {
+      user <- OBPUser.currentUser ?~ "You need to long before you can add an image"
+      metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
+      addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
+    } yield {
+      "#imageUploader [action]" #> S.uri &
+      "#imageUploader" #> {
+        "name=params [value]" #> transloadItParams
+      }
+    }
     
     addImageSelector match {
       case Full(s) => s
