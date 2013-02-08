@@ -137,14 +137,17 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
     ).apply(xhtml)
   }
   
-  def noImages = ".tag" #> ""
+  def noImages = ".images_list" #> ""
   
   def showImages = {
     
     def imagesSelector(images : List[TransactionImage]) =
-      "#noTags" #> "" &
+      ".noImages" #> "" &
       ".image" #> images.map(image => {
-        "#foo" #> "bar" //TODO: fill this in
+        ".transaction-image [src]" #> image.imageUrl.toString &
+        ".image-description *" #> image.description &
+        ".postedBy *" #> { image.postedBy.map(_.emailAddress) getOrElse "unknown" } &
+        ".postedTime *" #> commentDateFormat.format(image.datePosted)
       })
     
     val sel = for {
@@ -177,7 +180,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
     }
     
     val addImageSelector = for {
-      user <- OBPUser.currentUser ?~ "You must be logged in to add an image"
+      user <- OBPUser.currentUser ?~ "You need to long before you can add an image"
       metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
       addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
     } yield {
