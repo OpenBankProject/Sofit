@@ -194,9 +194,8 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       val addFunction = for {
         transloadit <- S.param("transloadit") ?~! "No transloadit data received"
         json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"
-        urlString <- {val JString(a) = json \ "results" \ "resize_to_100" \ "url"; Full(a)}
-        foo <- Full(new URI(urlString))
-        url <- tryo{println("test url: " + new URL("http://example.com"));println("test url 2: " + new URL("http://tmp.transloadit.com.s3.amazonaws.com/a1ce0c6763c219217b185be4b291ed0a.png"));println("urlstring: " + urlString);val a = new URL(urlString); println("url: " + a); a;}
+        urlString <- tryo{val JString(a) = json \ "results" \ "resize_to_100" \ "url"; a} ?~! "Could not extract url string from json"
+        url <- tryo{new URL(urlString)} ?~! "Could not parse url string as a valid URL"
         metadata <- Box(transaction.metadata) ?~! "Could not access transaction metadata"
         addImage <- Box(metadata.addImage) ?~! "Could not access add image function"
         userId <- OBPUser.currentUser.map(_.id) ?~! "Could not retrieve current user id"
