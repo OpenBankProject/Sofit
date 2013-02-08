@@ -195,16 +195,16 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     image.id.is.toString
   }
   
-  def deleteImage(id : String, userId: Long) {
+  def deleteImage(id : String){//, userId: Long) {
     OBPTransactionImage.find(id) match {
       case Full(image) => {
-        if(image.postedBy.isDefined && image.postedBy.get.id.get == userId) {
+        //if(image.postedBy.isDefined && image.postedBy.get.id.get == userId) {
           if (image.delete_!) {
             logger.info("==> deleted image id : " + id)
             images(images.get.diff(Seq(new ObjectId(id)))).save
             //TODO: Delete the actual image file? We don't always control the url of the image so we can't always delete it 
           }
-        } else logger.warn("Image with id " + id + " does not belong to user with id " + userId + " so delete request is being denied.")
+       // } else logger.warn("Image with id " + id + " does not belong to user with id " + userId + " so delete request is being denied.")
       }
       case _ => logger.warn("Could not find image with id " + id + " to delete.")
     }
