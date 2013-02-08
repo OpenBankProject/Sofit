@@ -157,7 +157,7 @@ class ModeratedTransactionMetadata(
   deleteTagFunc : Option[(String) => Unit],
   images_ : Option[List[TransactionImage]],
   addImageFunc : Option[(Long, Long, String, Date, URL) => String],
-  deleteImageFunc  : Option[String => Unit]
+  deleteImageFunc  : Option[(String, Long) => Unit]
 )
 {
   def ownerComment = filteredOwnerComment

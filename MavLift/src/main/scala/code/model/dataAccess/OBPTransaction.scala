@@ -146,7 +146,7 @@ curl -i -H "Content-Type: application/json" -X POST -d '[{
  */
 
 // Seems to map to a collection of the plural name
-class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBPEnvelope] {
+class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBPEnvelope] with Loggable{
   def meta = OBPEnvelope
 
   /**
@@ -190,20 +190,23 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    */
   def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
     val image = OBPTransactionImage.createRecord.
-    		userId(userId).imageComment(description).date(datePosted).viewID(viewId).save
+    		userId(userId).imageComment(description).date(datePosted).viewID(viewId).url(imageURL.toString).save
     images(image.id.is :: images.get)
     image.id.is.toString
   }
   
-  def deleteImage(id : String) {
+  def deleteImage(id : String, userId: Long) {
     OBPTransactionImage.find(id) match {
       case Full(image) => {
-        if(image.delete_!) {
-          println("==> deleted image id : " + id)
-          images(images.get.diff(Seq(new ObjectId(id)))).save
-          //TODO: Delete the actual image file?
-        }
+        if(image.postedBy.isDefined && image.postedBy.get.id.get == userId) {
+          if (image.delete_!) {
+            logger.info("==> deleted image id : " + id)
+            images(images.get.diff(Seq(new ObjectId(id)))).save
+            //TODO: Delete the actual image file? We don't always control the url of the image so we can't always delete it 
+          }
+        } else logger.warn("Image with id " + id + " does not belong to user with id " + userId + " so delete request is being denied.")
       }
+      case _ => logger.warn("Could not find image with id " + id + " to delete.")
     }
   }
 

@@ -46,7 +46,10 @@ trait TransactionMetadata {
   def deleteTag(id : String) : Unit
   def images : List[TransactionImage]
   def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
-  def deleteImage(id : String) : Unit
+  /**
+   * @param userId : The user id of the user trying to delete the image with id "id"
+   */
+  def deleteImage(id : String, userId: Long) : Unit
 }
 trait OtherBankAccountMetadata 
 {

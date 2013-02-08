@@ -64,7 +64,7 @@ class TransactionMetadataImpl(
   deleteTagFunc : (String) => Unit,
   images_ : List[TransactionImage],
   addImageFunc : (Long, Long, String, Date, URL) => String,
-  deleteImageFunc : String => Unit
+  deleteImageFunc : (String, Long) => Unit
 ) 
   extends TransactionMetadata with Loggable
 {
@@ -81,6 +81,6 @@ class TransactionMetadataImpl(
   def images = images_
   def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageUrl : URL) = 
     addImageFunc(userId, viewId, description, datePosted, imageUrl)
-  def deleteImage(id : String) = deleteImageFunc(id)
+  def deleteImage(id : String, userId: Long) = deleteImageFunc(id, userId)
 }
 
