@@ -191,7 +191,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
     val image = OBPTransactionImage.createRecord.
     		userId(userId).imageComment(description).date(datePosted).viewID(viewId).url(imageURL.toString).save
-    images(image.id.is :: images.get)
+    images(image.id.is :: images.get).save
     image.id.is.toString
   }
   
