@@ -47,28 +47,42 @@ object TokenType extends Enumeration("request", "access")
 	val Request, Access = Value
 }
 
-class Consumer extends LongKeyedMapper[Consumer]{
+class Consumer extends LongKeyedMapper[Consumer] with CreatedUpdated{
 	def getSingleton = Consumer
 	def primaryKeyField = id
-	object id extends MappedLongIndex(this) 
+	object id extends MappedLongIndex(this)
 	object key extends MappedString(this, 250){
-		override def dbIndexed_? = true
+      override def dbIndexed_? = true
 	} 
 	object secret extends MappedString(this, 250)
 	object isActive extends MappedBoolean(this)
 	object name extends MappedString(this, 100){
 		override def dbIndexed_? = true
+		override def displayName = "App name:"
 	} 
-	object appType extends MappedEnum(this,AppType)
-	object description extends MappedText(this)
-	object developerEmail extends MappedString(this, 100)
-	object insertDate extends MappedDateTime(this){
-	  override def defaultValue = new Date(Platform.currentTime)
+	object appType extends MappedEnum(this,AppType) {
+	  override def displayName = "App type:"
 	}
-	object updateDate extends MappedDateTime(this)
+	object description extends MappedText(this) {
+	  override def displayName = "Description"
+	}
+	object developerEmail extends MappedEmail(this, 100) {
+	  override def displayName = "Email:"
+	}
+	
 }
 
-object Consumer extends Consumer with LongKeyedMetaMapper[Consumer]{} 
+object Consumer extends Consumer with LongKeyedMetaMapper[Consumer] with CRUDify[Long, Consumer]{
+	//list all path : /admin/consumer/list
+	override def calcPrefix = List("admin",_dbTableNameLC)
+	
+	override def editMenuLocParams = List(OBPUser.testSuperUser)
+	override def showAllMenuLocParams = List(OBPUser.testSuperUser)
+	override def deleteMenuLocParams = List(OBPUser.testSuperUser)
+	override def createMenuLocParams = List(OBPUser.testSuperUser)
+	override def viewMenuLocParams = List(OBPUser.testSuperUser)
+	
+} 
 
 
 class Nonce extends LongKeyedMapper[Nonce] {
