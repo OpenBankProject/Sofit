@@ -66,6 +66,37 @@ Berlin 13359, Germany
     </div>
   </p>  
 
+  <div id="imagesBlock" class="lift:Comments.images?eager_eval=true">
+  	<div class="imagesTitle">Images:</div>
+  	<div class="images_list">
+  		<span class="noImages">No images</span>
+  		<div class="image-holder">
+  			<div class="lift:embed?what=_transactionImage"></div>
+  		</div>
+  	</div>
+  	<div id="addImageBlock">
+      <div class="add">
+				<form id="imageUploader" method="post" enctype="multipart/form-data">
+					<span>Add a new image: </span>
+					<input class="chooseFile" type="file" name="my_file"></input>
+					<br />
+					<textarea class="description" rows="4" cols="50" name="description" placeholder="A short description of the image being posted."></textarea> 
+					<input type="hidden" name="params"></input>
+					<br />
+					<input class="addImageSubmit" type="submit" value="Add Image"></input>
+				</form>
+				<script type="text/javascript" src="http://assets.transloadit.com/js/jquery.transloadit2.js"></script>
+		<script type="text/javascript">
+   			$(document).ready(function() {
+     			$('#imageUploader').transloadit({
+     				wait: true
+     			});
+   			});
+		</script>
+      </div>
+    </div>
+  </div>
+
   <p id="commentsBloc">
     <div id="commentsTitle">Comments:</div>
     <ul id="comment_list" class="lift:Comments.showComments?eager_eval=true commentsContainer">

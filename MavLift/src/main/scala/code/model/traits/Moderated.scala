@@ -40,6 +40,7 @@ import net.liftweb.json.JsonDSL._
 import net.liftweb.http.JsonResponse
 import net.liftweb.http.LiftResponse
 import java.text.SimpleDateFormat
+import java.net.URL
 
 class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountName, 
   filteredNationalIdentifier : Option[String], filteredSWIFT_BIC : Option[Option[String]], 
@@ -153,7 +154,11 @@ class ModeratedTransactionMetadata(
   addCommentFunc: Option[(Long, Long, String, Date) => Unit],
   tags_ : Option[List[Tag]],
   addTagFunc : Option[(Long, Long, String, Date) => String],
-  deleteTagFunc : Option[(String) => Unit]
+  deleteTagFunc : Option[(String) => Unit],
+  images_ : Option[List[TransactionImage]],
+  addImageFunc : Option[(Long, Long, String, Date, URL) => String],
+  deleteImageFunc  : Option[String => Unit]
+  //deleteImageFunc  : Option[(String, Long) => Unit]
 )
 {
   def ownerComment = filteredOwnerComment
@@ -166,6 +171,9 @@ class ModeratedTransactionMetadata(
   def tags = tags_
   def addTag = addTagFunc
   def deleteTag = deleteTagFunc
+  def images = images_
+  def addImage  = addImageFunc
+  def deleteImage = deleteImageFunc
 }
 
 object ModeratedTransactionMetadata {

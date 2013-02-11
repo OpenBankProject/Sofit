@@ -50,6 +50,10 @@ import com.mongodb.BasicDBObject
 import code.model.traits.{Comment,Tag}
 import net.liftweb.common.Loggable
 import org.bson.types.ObjectId
+import code.model.traits.TransactionImage
+import net.liftweb.util.Helpers._
+import net.liftweb.http.S
+import java.net.URL
 
 /**
  * "Current Account View"
@@ -142,7 +146,7 @@ curl -i -H "Content-Type: application/json" -X POST -d '[{
  */
 
 // Seems to map to a collection of the plural name
-class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBPEnvelope] {
+class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBPEnvelope] with Loggable{
   def meta = OBPEnvelope
 
   /**
@@ -180,6 +184,31 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
       case _ =>  
     }
   }  
+  
+  /**
+   * @return the id of the newly added image
+   */
+  def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
+    val image = OBPTransactionImage.createRecord.
+    		userId(userId).imageComment(description).date(datePosted).viewID(viewId).url(imageURL.toString).save
+    images(image.id.is :: images.get).save
+    image.id.is.toString
+  }
+  
+  def deleteImage(id : String){//, userId: Long) {
+    OBPTransactionImage.find(id) match {
+      case Full(image) => {
+        //if(image.postedBy.isDefined && image.postedBy.get.id.get == userId) {
+          if (image.delete_!) {
+            logger.info("==> deleted image id : " + id)
+            images(images.get.diff(Seq(new ObjectId(id)))).save
+            //TODO: Delete the actual image file? We don't always control the url of the image so we can't always delete it 
+          }
+       // } else logger.warn("Image with id " + id + " does not belong to user with id " + userId + " so delete request is being denied.")
+      }
+      case _ => logger.warn("Could not find image with id " + id + " to delete.")
+    }
+  }
 
   lazy val theAccount = {
     val thisAcc = obp_transaction.get.this_account.get
@@ -217,6 +246,8 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
 
   object tags extends ObjectIdRefListField(this, OBPTag)
+  
+  object images extends ObjectIdRefListField(this, OBPTransactionImage)
 
   object narrative extends StringField(this, 255)
   
@@ -515,3 +546,27 @@ class OBPTag private() extends MongoRecord[OBPTag] with ObjectIdPk[OBPTag] with 
 }
 
 object OBPTag extends OBPTag with MongoMetaRecord[OBPTag] 
+
+class OBPTransactionImage private() extends MongoRecord[OBPTransactionImage] 
+		with ObjectIdPk[OBPTransactionImage] with TransactionImage {
+  def meta = OBPTransactionImage
+  
+  object userId extends LongField(this)
+  object viewID extends LongField(this)
+  object imageComment extends StringField(this, 1000)
+  object date extends DateField(this) 
+  object url extends StringField(this, 500)
+
+  def id_ = id.is.toString
+  def datePosted = date.get
+  def postedBy = OBPUser.find(userId)
+  def viewId = viewID.get
+  def description = imageComment.get
+  def imageUrl = {
+    tryo {new URL(url.get)} getOrElse OBPTransactionImage.notFoundUrl
+  }
+}
+
+object OBPTransactionImage extends OBPTransactionImage with MongoMetaRecord[OBPTransactionImage] {
+  val notFoundUrl = new URL(S.hostAndPath + "/notfound.png") //TODO: Make this image exist?
+}
