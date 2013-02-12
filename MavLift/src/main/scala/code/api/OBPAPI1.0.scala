@@ -399,9 +399,11 @@ object OBPAPI1_0 extends RestHelper with Loggable {
         cal.set(Calendar.MILLISECOND,0)
         cal.getTime
        }
+
+      def byOldestDate(x : APICallsForDay, y :  APICallsForDay) : Boolean = 
+        x.date before y.date
       
-      val results  = APICallsPerDay(APIMetric.findAll.groupBy[Date](byDay).toSeq.map(t => APICallsForDay(t._2.length,t._1)).toList)
-      
+      val results  = APICallsPerDay(APIMetric.findAll.groupBy[Date](byDay).toSeq.map(t => APICallsForDay(t._2.length,t._1)).toList.sort(byOldestDate))
       JsonResponse(Extraction.decompose(results))
     }
 
