@@ -29,39 +29,17 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 
  */
-
-package code.model.traits
-import scala.math.BigDecimal
-import java.util.Date
-
-trait Transaction {
-
-  def id : String
  
-  var thisAccount : BankAccount
+ package code.model.dataAccess
 
-  def otherAccount : OtherBankAccount
-  
-  def metadata : TransactionMetadata
-  
-  //E.g. cash withdrawal, electronic payment, etc.
-  def transactionType : String
-  
-  def amount : BigDecimal
-  
-  //ISO 4217, e.g. EUR, GBP, USD, etc.
-  def currency : String
-  
-  // Bank provided comment
-  def label : Option[String]
-  
-  // The date the transaction was initiated
-  def startDate : Date
-  
-  // The date when the money finished changing hands
-  
-  def finishDate : Date
-  //the new balance for the bank account
-  def balance : BigDecimal
-  
+ import net.liftweb.mongodb.record.field.{ObjectIdPk,DateField}
+ import net.liftweb.record.field.{StringField}
+ import net.liftweb.mongodb.record.{MongoRecord,MongoMetaRecord}
+
+class APIMetric extends MongoRecord[APIMetric] with ObjectIdPk[APIMetric] {
+  def meta = APIMetric
+  object url extends StringField(this,255)
+  object date extends DateField(this)
 }
+
+object APIMetric extends APIMetric with MongoMetaRecord[APIMetric]
