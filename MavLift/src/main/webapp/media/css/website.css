@@ -730,12 +730,17 @@ span#accountsMsg
 }
 
 .register-header {
-	margin-bottom: 20px;
+	margin-bottom: 15px;
+}
+
+.registration form {
+	width: 500px;
+	clear: both;
 }
 
 .registration input {
-	display: block;
-	font-size: 12px;
+	font-size: 16px;
+	float: left;
 	width: 350px;
 	height: 25px;
 	margin-bottom: 10px;
@@ -745,7 +750,13 @@ span#accountsMsg
 }
 
 .registration input[type="submit"] {
+	float: left;
 	width : 100px;
+}
+
+.registration label {
+	float: left;
+	width: 150px;
 }
 
 .registration textarea {

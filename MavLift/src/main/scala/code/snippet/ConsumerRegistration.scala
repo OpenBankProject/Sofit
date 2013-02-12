@@ -96,7 +96,7 @@ class ConsumerRegistration {
     
     def showErrors(errors : List[FieldError]) = {
       register &
-      ".registration-error *" #> errors.map(_.msg.toString).mkString(" ,")
+      ".registration-error *" #> errors.map(_.msg.toString).mkString(", ")
     }
     
     def analyseResult = {

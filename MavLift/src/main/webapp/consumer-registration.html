@@ -33,18 +33,27 @@ Berlin 13359, Germany
 	<div class="lift:ConsumerRegistration.registerForm">
 		<div class="registration">
 			<h1 class="register-header">Register to use the Open Bank API with your app:</h1>
-			<span class="registration-error"></span>
+			<div>
+				<span class="registration-error"></span>
+				<br/>
+			</div>
 			<form class="register" method="post">
-				<label><span>App Name</span></label>
-				<input type="text" name="app-name"></input>
 				<label><span>App Type</span></label>
 				<select name="app-type">
 					<option class="app-type-option"></option>
 				</select>
-				<label><span>App Description</span></label>
-				<textarea rows="4" name="app-description"></textarea>
-				<label><span>Developer Email</span></label>
-				<input type="text" name="app-developer"></input>
+				<div class="foo">
+					<label><span>App Name</span></label>
+					<input type="text" name="app-name"></input>
+				</div>
+				<div class="foo">
+					<label><span>Developer Email</span></label>
+					<input type="text" name="app-developer"></input>
+				</div>
+				<div class="foo">
+					<label><span>App Description</span></label>
+					<textarea rows="4" name="app-description"></textarea>
+				</div>
 				<input type="submit" value="Register"/>
 			</form>
 		</div>
