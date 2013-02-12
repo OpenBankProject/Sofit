@@ -1,0 +1,44 @@
+.chart div {
+    background-color: green;
+    text-align: right;
+    padding: 3px;
+    margin: 1px;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    word-break: break-word;
+}
+
+.axis{
+    position:relative;
+    top: 30px;
+    font-size: 10px;    
+}
+
+line {
+  stroke: black;
+}
+
+path {
+    fill: none;
+    stroke: green;
+}
+
+span {
+    float:left;
+}
+
+h1, h2 {
+    line-height: 20px;
+    font-weight: bold;
+}
+h1{
+    font-size: 18px;
+}
+h2{
+    font-size: 16px;
+}
+
+h3{
+    font-size: 14px;
+}
