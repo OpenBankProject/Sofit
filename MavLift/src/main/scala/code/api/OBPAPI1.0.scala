@@ -374,7 +374,7 @@ object OBPAPI1_0 extends RestHelper with Loggable {
 
   // metrics API calls
 
-  serve("obp" / "v1.0" prefix {  
+  serve("obp" / "v1.0" / "metrics" prefix {  
     case "demo-bar" :: Nil JsonGet json => {
       def byURL(metric : APIMetric) : String = 
         metric.url.get
