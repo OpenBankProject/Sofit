@@ -29,35 +29,17 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 
  */
+ 
+ package code.model.dataAccess
 
-package code.model.traits
-import java.util.Date
-import java.net.URL
+ import net.liftweb.mongodb.record.field.{ObjectIdPk,DateField}
+ import net.liftweb.record.field.{StringField}
+ import net.liftweb.mongodb.record.{MongoRecord,MongoMetaRecord}
 
-trait TransactionMetadata {
-  
-  // Owner provided comment, done in OBP
-  def ownerComment : Option[String]
-  def ownerComment(comment : String) : Unit 
-  def comments : List[Comment]
-  def addComment(userId : Long, viewId : Long, text : String, postedDate : Date) : Unit
-  def tags : List[Tag]
-  def addTag(userId : Long, viewId : Long, tag : String, postedDate :Date) : String
-  def deleteTag(id : String) : Unit
-  def images : List[TransactionImage]
-  def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
-  def deleteImage(id : String) : Unit
-  /**
-   * @param userId : The user id of the user trying to delete the image with id "id"
-   *//*
-  def deleteImage(id : String, userId: Long) : Unit*/
+class APIMetric extends MongoRecord[APIMetric] with ObjectIdPk[APIMetric] {
+  def meta = APIMetric
+  object url extends StringField(this,255)
+  object date extends DateField(this)
 }
-trait OtherBankAccountMetadata 
-{
-	def publicAlias : String
-  def privateAlias : String
-  def moreInfo : String
-	def url : String
-	def imageUrl : String
-	def openCorporatesUrl : String
-}
+
+object APIMetric extends APIMetric with MongoMetaRecord[APIMetric]

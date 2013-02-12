@@ -46,6 +46,7 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.RedirectTo
 import net.liftweb.http.SessionVar
 import scala.xml.Text
+import net.liftweb.json._
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JString
@@ -60,8 +61,14 @@ import code.model.traits.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,
 import java.util.Currency
 import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
 import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
-import net.liftweb.http.js.JE.Str 
+import net.liftweb.http.js.JE.Str
 import net.liftweb.http.js.JsCmds.Alert
+import code.model.traits.TransactionImage
+import net.liftweb.util.Props
+import scala.xml.Utility
+import net.liftweb.common.Failure
+import java.net.URL
+import java.net.URI
 
 /**
  * This whole class is a rather hastily put together mess
@@ -129,6 +136,115 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       }
     ).apply(xhtml)
   }
+  
+  def images = {
+    addImage andThen showImages
+  }
+  
+  def noImages = ".images_list" #> ""
+  
+  def imageHtmlId(image: TransactionImage) : String = "trans-image-" + image.id_
+  
+  def showImages = {
+    
+    def deleteImage(image: TransactionImage) = {
+      transaction.metadata.flatMap(_.deleteImage) match {
+        case Some(delete) => delete(image.id_)
+        case _ => logger.warn("No delete image function found.")
+      }
+      
+      val jqueryRemoveImage = "$('.image-holder[data-id=\"" + imageHtmlId(image) + "\"]').remove();"
+      JsRaw(jqueryRemoveImage).cmd
+    }
+    
+    def imagesSelector(images : List[TransactionImage]) =
+      ".noImages" #> "" &
+      ".image-holder" #> images.map(image => {
+        ".image-holder [data-id]" #> imageHtmlId(image) &
+        ".trans-image [src]" #> image.imageUrl.toString &
+        ".image-description *" #> image.description &
+        ".postedBy *" #> { image.postedBy.map(_.emailAddress) getOrElse "unknown" } &
+        ".postedTime *" #> commentDateFormat.format(image.datePosted) &
+        //TODO: This could be optimised into calling an ajax function with image id as a parameter to avoid
+        //storing multiple closures server side (i.e. one client side function maps to on server side function 
+        //that takes a parameter)
+        ".deleteImage [onclick]" #> SHtml.ajaxInvoke(() => deleteImage(image))
+      })
+    
+    val sel = for {
+      metadata <- transaction.metadata
+      images <- metadata.images
+    } yield {
+      if(images.isEmpty) noImages
+      else imagesSelector(images)
+    }
+    
+    sel getOrElse {"* *" #> ""}
+  }
+  
+  def addImage = {
+    
+    //transloadit requires its parameters to be an escaped json string
+    val transloadItParams : String = {
+      import net.liftweb.json.JsonDSL._
+      import net.liftweb.json._
+      
+      val authKey = Props.get("transloadit.authkey") getOrElse ""
+      val addImageTemplate = Props.get("transloadit.addImageTemplate") getOrElse ""
+      val json =
+        ("auth" ->
+        	("key" -> authKey)) ~
+        ("template_id" -> addImageTemplate)
+      
+      val escapedJson = Utility.escape(compact(render(json)), new StringBuilder).toString
+      escapedJson
+    }
+    
+    if(S.post_?) {
+      val description = S.param("description") getOrElse ""
+      val viewId = view.id
+      val datePosted = now
+      val addFunction = for {
+        transloadit <- S.param("transloadit") ?~! "No transloadit data received"
+        json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"
+        urlString <- tryo{val JString(a) = json \ "results" \\ "url"; a} ?~! {"Could not extract url string from json: " + compact(render(json))}
+        url <- tryo{new URL(urlString)} ?~! "Could not parse url string as a valid URL"
+        metadata <- Box(transaction.metadata) ?~! "Could not access transaction metadata"
+        addImage <- Box(metadata.addImage) ?~! "Could not access add image function"
+        userId <- OBPUser.currentUser.map(_.id) ?~! "Could not retrieve current user id"
+      } yield {
+        () => addImage(userId, viewId, description, datePosted, url)
+      }
+      
+      addFunction match {
+        case Full(add) => {
+          add()
+          //kind of a hack, but we redirect to a get request here so that we get the updated transaction (with the new image)
+          S.redirectTo(S.uri)
+        }
+        case Failure(msg, _ , _) => logger.warn("Problem adding new image: " + msg)
+        case _ => logger.warn("Problem adding new image")
+      }
+    } 
+    
+    val addImageSelector = for {
+      user <- OBPUser.currentUser ?~ "You need to long before you can add an image"
+      metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
+      addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
+    } yield {
+      "#imageUploader [action]" #> S.uri &
+      "#imageUploader" #> {
+        "name=params [value]" #> transloadItParams
+      }
+    }
+    
+    addImageSelector match {
+      case Full(s) => s
+      case Failure(msg, _, _) => ".add *" #> msg
+      case _ => ".add *" #> ""
+    }
+  }
+  
   def noTags = ".tag" #> ""
   
   def showTags = 

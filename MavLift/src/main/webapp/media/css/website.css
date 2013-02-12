@@ -643,7 +643,7 @@ span#accountsMsg
 	font-size: 13px;
 }
 
-#tagsTitle, #commentsTitle{
+#tagsTitle, #commentsTitle, #imagesBlock > .imagesTitle {
 	margin-bottom: 10px;
 	font-weight: bold;
 	border-bottom: 2px solid #cbcbcb;
@@ -684,13 +684,49 @@ span#accountsMsg
 #tagsBloc{
 
 }
-#commentsBloc{
+#commentsBloc, #imagesBlock{
 	margin-top: 15px;
 }
 #addTagInput{
 	height: 25px;
 }
-#submitTag{
+#submitTag, 
+#addImageBlock .addImageSubmit,
+#addImageBlock .chooseFile{
 	height: 30px;
 	padding: 0 15px;
+}
+
+#addImageBlock {
+	border-top: 2px solid #cbcbcb;
+	padding-top: 10px;
+	margin-top: 10px;
+}
+
+.image-holder {
+	padding: 5px 10px;
+	background: #F3F9F8;
+	display: inline-block;
+	margin-right: 10px;
+	display: inline-block;
+	border: 2px solid #CBCBCB;
+	vertical-align: top;
+	margin-bottom: 10px;
+	width: 300px;
+}
+
+.deleteImage{
+	float: right;
+	margin-left: 5px;
+	text-decoration: none;
+}
+
+.deleteImage:hover {
+	cursor: pointer;
+	color: red;
+}
+
+.image-description {
+	margin-top: 5px;
+	margin-bottom: 5px;
 }

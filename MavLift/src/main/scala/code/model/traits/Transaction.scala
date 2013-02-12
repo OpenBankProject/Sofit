@@ -59,8 +59,8 @@ trait Transaction {
   def startDate : Date
   
   // The date when the money finished changing hands
-  def finishDate : Date
   
+  def finishDate : Date
   //the new balance for the bank account
   def balance : BigDecimal
   
