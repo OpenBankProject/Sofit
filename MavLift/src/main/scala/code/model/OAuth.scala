@@ -34,6 +34,10 @@ import net.liftweb.mapper._
 import java.util.Date
 import scala.compat.Platform
 import code.model.dataAccess.OBPUser
+import net.liftweb.http.SHtml
+import net.liftweb.util.FieldError
+import net.liftweb.util.FieldIdentifier
+import net.liftweb.common.Full
 
 object AppType extends Enumeration("web", "mobile") 
 {
@@ -47,28 +51,57 @@ object TokenType extends Enumeration("request", "access")
 	val Request, Access = Value
 }
 
-class Consumer extends LongKeyedMapper[Consumer]{
+class Consumer extends LongKeyedMapper[Consumer] with CreatedUpdated{
 	def getSingleton = Consumer
 	def primaryKeyField = id
-	object id extends MappedLongIndex(this) 
+	object id extends MappedLongIndex(this)
+	
+	def minLength3(field: MappedString[Consumer])( s : String) = {
+	  if(s.length() < 3) List(FieldError(field, {field.displayName + " must be at least 3 characters"}))
+	  else Nil
+	}
+	
 	object key extends MappedString(this, 250){
-		override def dbIndexed_? = true
+      override def dbIndexed_? = true
 	} 
 	object secret extends MappedString(this, 250)
 	object isActive extends MappedBoolean(this)
 	object name extends MappedString(this, 100){
+		override def validations = minLength3(this) _ :: super.validations
 		override def dbIndexed_? = true
+		override def displayName = "App name:"
 	} 
-	object appType extends MappedEnum(this,AppType)
-	object description extends MappedText(this)
-	object developerEmail extends MappedString(this, 100)
-	object insertDate extends MappedDateTime(this){
-	  override def defaultValue = new Date(Platform.currentTime)
+	object appType extends MappedEnum(this,AppType) {
+	  override def displayName = "App type:"
 	}
-	object updateDate extends MappedDateTime(this)
+	object description extends MappedText(this) {
+	  override def displayName = "Description:"
+	}
+	object developerEmail extends MappedEmail(this, 100) {
+	  def uniqueEmail(field: MappedEmail[Consumer])(s : String) = {
+	    Consumer.find(By(Consumer.developerEmail, s)) match {
+	      case Full(c) => List(FieldError(field, {"This email address is already registered."}))
+	      case _ => Nil
+	    }
+	  }
+	  override def displayName = "Email:"
+	  override def validations = uniqueEmail(this) _ :: super.validations
+	}
+	
 }
 
-object Consumer extends Consumer with LongKeyedMetaMapper[Consumer]{} 
+object Consumer extends Consumer with LongKeyedMetaMapper[Consumer] with CRUDify[Long, Consumer]{
+	//list all path : /admin/consumer/list
+	override def calcPrefix = List("admin",_dbTableNameLC)
+	
+	override def editMenuLocParams = List(OBPUser.testSuperUser)
+	override def showAllMenuLocParams = List(OBPUser.testSuperUser)
+	override def deleteMenuLocParams = List(OBPUser.testSuperUser)
+	override def createMenuLocParams = List(OBPUser.testSuperUser)
+	override def viewMenuLocParams = List(OBPUser.testSuperUser)
+	
+	override def fieldOrder = List(name, appType, description, developerEmail)
+} 
 
 
 class Nonce extends LongKeyedMapper[Nonce] {

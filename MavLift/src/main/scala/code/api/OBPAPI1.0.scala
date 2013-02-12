@@ -374,12 +374,15 @@ object OBPAPI1_0 extends RestHelper with Loggable {
 
   // metrics API calls
 
-  serve("obp" / "v1.0" prefix {  
+  serve("obp" / "v1.0" / "metrics" prefix {  
     case "demo-bar" :: Nil JsonGet json => {
       def byURL(metric : APIMetric) : String = 
         metric.url.get
-
-    	val results  = APICallAmounts(APIMetric.findAll.groupBy[String](byURL).toSeq.map(t => APICallAmount(t._1,t._2.length)).toList)
+      
+      def byUsage(x : APICallAmount, y : APICallAmount) = 
+        x.amount > y.amount
+        
+      val results = APICallAmounts(APIMetric.findAll.groupBy[String](byURL).toSeq.map(t => APICallAmount(t._1,t._2.length)).toList.sort(byUsage))
       
       JsonResponse(Extraction.decompose(results))
     }
@@ -396,9 +399,11 @@ object OBPAPI1_0 extends RestHelper with Loggable {
         cal.set(Calendar.MILLISECOND,0)
         cal.getTime
        }
+
+      def byOldestDate(x : APICallsForDay, y :  APICallsForDay) : Boolean = 
+        x.date before y.date
       
-      val results  = APICallsPerDay(APIMetric.findAll.groupBy[Date](byDay).toSeq.map(t => APICallsForDay(t._2.length,t._1)).toList)
-      
+      val results  = APICallsPerDay(APIMetric.findAll.groupBy[Date](byDay).toSeq.map(t => APICallsForDay(t._2.length,t._1)).toList.sort(byOldestDate))
       JsonResponse(Extraction.decompose(results))
     }
 

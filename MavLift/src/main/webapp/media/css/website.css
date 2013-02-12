@@ -730,3 +730,68 @@ span#accountsMsg
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
+
+.registration-error {
+	color: red;
+}
+
+.register-header {
+	margin-bottom: 15px;
+}
+
+.registration form {
+	width: 500px;
+	clear: both;
+}
+
+.registration input {
+	font-size: 16px;
+	float: left;
+	width: 350px;
+	height: 25px;
+	margin-bottom: 10px;
+	-webkit-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+	box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+}
+
+.registration input[type="submit"] {
+	float: left;
+	width : 100px;
+}
+
+.registration label {
+	float: left;
+	width: 150px;
+}
+
+.registration textarea {
+	width: 350px;
+}
+
+.registration select {
+	display: block;
+	margin-bottom: 10px;
+}
+
+.registration textarea {
+	display: block;
+	margin-bottom: 10px;
+}
+
+.success .info {
+	margin: 5px;
+}
+
+.success .success-message {
+	margin-bottom: 10px;	
+}
+
+.success .user-generated {
+	margin: 10px;
+}
+
+.success .server-generated {
+	margin: 10px;
+	font-weight: bold;
+}

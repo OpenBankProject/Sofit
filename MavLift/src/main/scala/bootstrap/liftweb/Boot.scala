@@ -187,7 +187,11 @@ class Boot extends Loggable{
             check(OBPUser.loggedIn_?)
           }) >> LocGroup("admin") 
           	submenus(Privilege.menus : _*),
-          Menu.i("OAuth") / "oauth" / "authorize", //OAuth authorization page            
+          Menu.i("Consumer Admin") / "admin" / "consumers" >> LocGroup("admin")
+          	submenus(Consumer.menus : _*),
+          Menu("Consumer Registration", "Developers") / "consumer-registration",
+          Menu.i("Metrics") / "metrics",
+          Menu.i("OAuth") / "oauth" / "authorize", //OAuth authorization page
           Menu.i("Connect") / "connect", 
 
           Menu.i("Banks") / "banks", //no test => list of open banks
