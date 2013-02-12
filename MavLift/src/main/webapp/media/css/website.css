@@ -772,3 +772,20 @@ span#accountsMsg
 	display: block;
 	margin-bottom: 10px;
 }
+
+.success .info {
+	margin: 5px;
+}
+
+.success .success-message {
+	margin-bottom: 10px;	
+}
+
+.success .user-generated {
+	margin: 10px;
+}
+
+.success .server-generated {
+	margin: 10px;
+	font-weight: bold;
+}

@@ -72,7 +72,7 @@ class ConsumerRegistration {
           })
         } &
     	"name=app-name [value]" #> nameVar.get &
-    	"name=app-description [value]" #> descriptionVar.get &
+    	"name=app-description *" #> descriptionVar.get &
     	"name=app-developer [value]" #> devEmailVar.get
       } &
       ".success" #> ""
@@ -86,7 +86,7 @@ class ConsumerRegistration {
       ".app-developer *" #> consumer.developerEmail.get &
       ".auth-key *" #> consumer.key.get &
       ".secret-key *" #> consumer.secret.get &
-      ".register" #> ""
+      ".registration" #> ""
     }
     
     def saveAndShowResults(consumer : Consumer) = {

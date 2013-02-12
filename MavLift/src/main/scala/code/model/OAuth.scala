@@ -37,6 +37,7 @@ import code.model.dataAccess.OBPUser
 import net.liftweb.http.SHtml
 import net.liftweb.util.FieldError
 import net.liftweb.util.FieldIdentifier
+import net.liftweb.common.Full
 
 object AppType extends Enumeration("web", "mobile") 
 {
@@ -77,7 +78,14 @@ class Consumer extends LongKeyedMapper[Consumer] with CreatedUpdated{
 	  override def displayName = "Description:"
 	}
 	object developerEmail extends MappedEmail(this, 100) {
+	  def uniqueEmail(field: MappedEmail[Consumer])(s : String) = {
+	    Consumer.find(By(Consumer.developerEmail, s)) match {
+	      case Full(c) => List(FieldError(field, {"This email address is already registered."}))
+	      case _ => Nil
+	    }
+	  }
 	  override def displayName = "Email:"
+	  override def validations = uniqueEmail(this) _ :: super.validations
 	}
 	
 }
