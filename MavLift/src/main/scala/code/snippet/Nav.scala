@@ -118,13 +118,33 @@ class Nav {
     } yield l)
     
     ".navitem *" #>{
-      loc.map(l => {
-        ".navlink [href]" #> l.calcDefaultHref &
-        ".navlink *" #> l.linkText &
-        ".navlink [class+]" #> markIfSelected(l.calcDefaultHref)
-      })
+      loc.map(navItemSelector)
     }
-  }      
+  }  
+  
+  def navItemSelector(l : Loc[_]) = {
+     ".navlink [href]" #> l.calcDefaultHref &
+     ".navlink *" #> l.linkText &
+     ".navlink [class+]" #> markIfSelected(l.calcDefaultHref)
+  }
+  
+  def onlyOnSomePages = {
+    val pages : List[String]= S.attr("pages").map(_.toString.split(",").toList).getOrElse(Nil)
+    
+    val locs = pages.flatMap(page => (for{
+      sitemap <- LiftRules.siteMap
+      l <- new SiteMapSingleton().findAndTestLoc(page)
+    } yield l))
+    
+    val isPage = locs.map(l => {
+      //hack due to deadline to fix / and /index being the same
+      val currentPage = if(S.uri == "/") "/index" else S.uri
+      (l.calcDefaultHref == currentPage)
+    }).exists(_ == true)
+
+    if(isPage) item
+    else "* *" #> ""
+  }
   
   def privilegeAdmin = {
     val url = S.uri.split("/", 0)
