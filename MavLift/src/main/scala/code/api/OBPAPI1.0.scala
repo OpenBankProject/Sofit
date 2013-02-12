@@ -378,8 +378,11 @@ object OBPAPI1_0 extends RestHelper with Loggable {
     case "demo-bar" :: Nil JsonGet json => {
       def byURL(metric : APIMetric) : String = 
         metric.url.get
-
-    	val results  = APICallAmounts(APIMetric.findAll.groupBy[String](byURL).toSeq.map(t => APICallAmount(t._1,t._2.length)).toList)
+      
+      def byUsage(x : APICallAmount, y : APICallAmount) = 
+        x.amount > y.amount
+        
+      val results = APICallAmounts(APIMetric.findAll.groupBy[String](byURL).toSeq.map(t => APICallAmount(t._1,t._2.length)).toList.sort(byUsage))
       
       JsonResponse(Extraction.decompose(results))
     }
