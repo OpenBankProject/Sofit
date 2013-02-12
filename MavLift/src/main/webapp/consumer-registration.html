@@ -1,0 +1,71 @@
+<!-- 
+Open Bank Project - Transparency / Social Finance Web Application
+Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Email: contact@tesobe.com 
+TESOBE / Music Pictures Ltd 
+Osloerstrasse 16/17
+Berlin 13359, Germany
+
+  This product includes software developed at
+  TESOBE (http://www.tesobe.com/)
+  by 
+  Simon Redfern : simon AT tesobe DOT com
+  Stefan Bethge : stefan AT tesobe DOT com
+  Everett Sochowski : everett AT tesobe DOT com
+  Ayoub Benali: ayoub AT tesobe DOT com
+-->
+
+<div id="main" class="lift:surround?with=default;at=content">
+	<div class="lift:ConsumerRegistration.registerForm">
+		<div class="registration">
+			<h1 class="register-header">Register to use the Open Bank API with your app:</h1>
+			<span class="registration-error"></span>
+			<form class="register" method="post">
+				<label><span>App Name</span></label>
+				<input type="text" name="app-name"></input>
+				<label><span>App Type</span></label>
+				<select name="app-type">
+					<option class="app-type-option"></option>
+				</select>
+				<label><span>App Description</span></label>
+				<textarea rows="4" name="app-description"></textarea>
+				<label><span>Developer Email</span></label>
+				<input type="text" name="app-developer"></input>
+				<input type="submit" value="Register"/>
+			</form>
+		</div>
+		<div class="success">
+			<h1>Thank you for registering. Here is your developer information. Please write this down and save it.</h1>
+			<div class=user-generated">
+				App Name: <span class=app-name>ABC</span>
+				<br/>
+				App Type: <span class=app-type>web</span>
+				<br />
+				Description: <span class=app-description>ABCDEF</span>
+				<br />
+				Developer Email: <span class=app-developer>abc@example.com</span>
+				<br />
+			</div>
+			<div class="server-generated">
+				Auth Key: <span class="auth-key">23432432432432</span>
+				<br />
+				Secret Key: <span class="secret-key">3334543543543</span>
+			</div>
+		</div>
+	</div>
+	
+</div>

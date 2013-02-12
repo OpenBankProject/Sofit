@@ -34,6 +34,9 @@ import net.liftweb.mapper._
 import java.util.Date
 import scala.compat.Platform
 import code.model.dataAccess.OBPUser
+import net.liftweb.http.SHtml
+import net.liftweb.util.FieldError
+import net.liftweb.util.FieldIdentifier
 
 object AppType extends Enumeration("web", "mobile") 
 {
@@ -51,12 +54,19 @@ class Consumer extends LongKeyedMapper[Consumer] with CreatedUpdated{
 	def getSingleton = Consumer
 	def primaryKeyField = id
 	object id extends MappedLongIndex(this)
+	
+	def minLength3(field: MappedString[Consumer])( s : String) = {
+	  if(s.length() < 3) List(FieldError(field, {field.displayName + " must be at least 3 characters"}))
+	  else Nil
+	}
+	
 	object key extends MappedString(this, 250){
       override def dbIndexed_? = true
 	} 
 	object secret extends MappedString(this, 250)
 	object isActive extends MappedBoolean(this)
 	object name extends MappedString(this, 100){
+		override def validations = minLength3(this) _ :: super.validations
 		override def dbIndexed_? = true
 		override def displayName = "App name:"
 	} 
@@ -64,7 +74,7 @@ class Consumer extends LongKeyedMapper[Consumer] with CreatedUpdated{
 	  override def displayName = "App type:"
 	}
 	object description extends MappedText(this) {
-	  override def displayName = "Description"
+	  override def displayName = "Description:"
 	}
 	object developerEmail extends MappedEmail(this, 100) {
 	  override def displayName = "Email:"
@@ -82,6 +92,7 @@ object Consumer extends Consumer with LongKeyedMetaMapper[Consumer] with CRUDify
 	override def createMenuLocParams = List(OBPUser.testSuperUser)
 	override def viewMenuLocParams = List(OBPUser.testSuperUser)
 	
+	override def fieldOrder = List(name, appType, description, developerEmail)
 } 
 
 

@@ -724,3 +724,40 @@ span#accountsMsg
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
+
+.registration-error {
+	color: red;
+}
+
+.register-header {
+	margin-bottom: 20px;
+}
+
+.registration input {
+	display: block;
+	font-size: 12px;
+	width: 350px;
+	height: 25px;
+	margin-bottom: 10px;
+	-webkit-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+	box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+}
+
+.registration input[type="submit"] {
+	width : 100px;
+}
+
+.registration textarea {
+	width: 350px;
+}
+
+.registration select {
+	display: block;
+	margin-bottom: 10px;
+}
+
+.registration textarea {
+	display: block;
+	margin-bottom: 10px;
+}
