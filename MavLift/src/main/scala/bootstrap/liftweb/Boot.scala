@@ -189,6 +189,7 @@ class Boot extends Loggable{
           Menu.i("Consumer Admin") / "admin" / "consumers" >> LocGroup("admin")
           	submenus(Consumer.menus : _*),
           Menu("Consumer Registration", "Developers") / "consumer-registration",
+          Menu.i("Metrics") / "metrics",
           Menu.i("OAuth") / "oauth" / "authorize", //OAuth authorization page
           Menu.i("Connect") / "connect", 
 
