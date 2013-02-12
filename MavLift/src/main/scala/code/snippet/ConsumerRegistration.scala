@@ -63,12 +63,12 @@ class ConsumerRegistration {
             val selected = appTypeVar.get.toString == t
             
             def markIfSelected = 
-              if(selected) "[selected]" #> "selected"
+              if(selected) "* [selected]" #> "selected"
               else NOOP_SELECTOR
             
             markIfSelected &
             "* *" #> t &
-            "[value]" #> t
+            "* [value]" #> t
           })
         } &
     	"name=app-name [value]" #> nameVar.get &
