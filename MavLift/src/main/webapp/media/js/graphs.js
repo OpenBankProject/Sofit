@@ -6,10 +6,10 @@ $.getJSON("obp/v1.0/metrics/demo-bar",function(data) {
             .data(bar_data.stats)
         .enter().append("div")
             .style("width", function(d) { return d.amount * 200 + "px"; })
-            .html(function(d) { return "<span class='count'>" + d.amount + "</span>" + d.url;});    
+            .html(function(d) { return "<span class='count'>" + d.amount + "</span>" + d.url;});
     $(".chart").before("<h2>Bar Graph</h2><h3>Most used API calls<h3>");
   });
- 
+
 
 $.getJSON("obp/v1.0/metrics/demo-line",function(data) {
 
@@ -90,5 +90,5 @@ $.getJSON("obp/v1.0/metrics/demo-line",function(data) {
                     .attr("class", "y axis")
                     .attr("transform", "translate(0,0)")
                     .call(yAxisLeft);
-  $("svg").before("<h2>Line Graph</h2><h3>Daily API Request</h3><p class='axis'>Request</p>");                    
+  $("svg").before("<h2>Line Graph</h2><h3>Daily API Request</h3><p class='axis'>Request</p>");
   })

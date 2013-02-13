@@ -6,13 +6,13 @@
     color: white;
     font-weight: bold;
     font-size: 12px;
-    word-break: break-word;
+    word-break: break-all;
 }
 
-.axis{
-    position:relative;
+.axis {
+    position: relative;
     top: 30px;
-    font-size: 10px;    
+    font-size: 10px;
 }
 
 line {
@@ -25,20 +25,19 @@ path {
 }
 
 span {
-    float:left;
+    float: left;
 }
 
 h1, h2 {
+    font-size: 18px;
     line-height: 20px;
     font-weight: bold;
 }
-h1{
-    font-size: 18px;
-}
-h2{
+
+h2 {
     font-size: 16px;
 }
 
-h3{
+h3 {
     font-size: 14px;
 }
