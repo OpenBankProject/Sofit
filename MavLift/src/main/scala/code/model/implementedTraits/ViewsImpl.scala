@@ -47,7 +47,7 @@ object View {
       case "our-network" => Full(OurNetwork)
       case "team" => Full(Team)
       case "owner" => Full(Owner)
-      case "public" => Full(Public)
+      case "public" | "anonymous" => Full(Public)
       case _ => Empty
     }
 
