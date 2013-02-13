@@ -1,12 +1,15 @@
 d3.json("obp/v1.0/metrics/demo-bar", function(data) {
-    var bar_chart = d3.select("#content").append("div").attr("class", "chart");
+    var content = d3.select("#content");
+    var bar_chart = content.append("div").attr("class", "bar-chart");
+
+    content.insert("h2", ".bar-chart").text("Bar Graph");
+    content.insert("h3", ".bar-chart").text("Most used API calls");
 
     bar_chart.selectAll("div")
             .data(data.stats)
         .enter().append("div")
             .style("width", function(d) { return d.amount * 200 + "px"; })
             .html(function(d) { return "<span class='count'>" + d.amount + "</span>" + d.url;});
-    $(".chart").before("<h2>Bar Graph</h2><h3>Most used API calls<h3>");
   });
 
 
@@ -33,6 +36,7 @@ d3.json("obp/v1.0/metrics/demo-line",function(data) {
   .append("svg:svg")
   .attr("width", w + p * 2)
   .attr("height", h + p * 2)
+  .attr("class", "line-chart")
   .append("svg:g")
   .attr("transform", "translate(" + p + "," + p + ")");
 
@@ -89,5 +93,9 @@ d3.json("obp/v1.0/metrics/demo-line",function(data) {
                     .attr("class", "y axis")
                     .attr("transform", "translate(0,0)")
                     .call(yAxisLeft);
-  $("svg").before("<h2>Line Graph</h2><h3>Daily API Request</h3><p class='axis'>Request</p>");
-  })
+
+    var content = d3.select("#content");
+    content.insert("h2", ".line-chart").text("Line Graph");
+    content.insert("h3", ".line-chart").text("Daily API Request");
+    content.insert("p", ".line-chart").attr("class", "axis").text("Request");
+});
