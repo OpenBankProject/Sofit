@@ -5,12 +5,59 @@ d3.json("obp/v1.0/metrics/demo-bar", function(data) {
     content.insert("h2", ".bar-chart").text("Bar Graph");
     content.insert("h3", ".bar-chart").text("Most used API calls");
 
-    bar_chart.selectAll("div")
+    //Width and height
+    var w = 1000;
+    var h = 500;
+    var barPadding = 2;
+    var margin = 20;
+
+    //Create SVG element
+    var svg = content
+                .append("svg")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("class", "svg-bar-chart");
+
+        var xScale = d3.scale.linear()
+                     .domain([0, d3.max(data.stats, function(d) { return parseFloat(d.amount); })])
+                     .range([0, w]);
+
+        svg.selectAll("rect")
             .data(data.stats)
-        .enter().append("div")
-            .style("width", function(d) { return d.amount * 200 + "px"; })
-            .html(function(d) { return "<span class='count'>" + d.amount + "</span>" + d.url;});
-  });
+            .enter()
+            .append("rect")
+            .attr("y", function(d, i) {
+                return i * (w / data.stats.length);
+            })
+            .attr("x", function(d) {
+                return margin;
+            })
+            .attr("height", w / data.stats.length - barPadding)
+            .attr("width", function(d) {
+                return xScale(d.amount);
+            })
+            .attr("fill", function(d) {
+                return "rgb(100, 0, " + (d.amount * 25) + ")";
+            });
+
+            svg.selectAll("text")
+               .data(data.stats)
+               .enter()
+               .append("text")
+               .text(function(d) {
+                    return d.amount;
+               })
+               .attr("text-anchor", "middle")
+               .attr("y", function(d, i) {
+                    return i * (w / data.stats.length) + (w / data.stats.length - barPadding) / 2;
+               })
+               .attr("x", function(d) {
+                    return margin * 2;
+               })
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "11px")
+               .attr("fill", "white");
+});
 
 
 d3.json("obp/v1.0/metrics/demo-line",function(data) {
