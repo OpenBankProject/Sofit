@@ -34,6 +34,7 @@ package code.model.traits
 
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST.JObject
+import code.model.
 
 trait User {
   def id_ : String
@@ -48,3 +49,8 @@ trait User {
     ("provider" -> "sofi.openbankproject.com") ~
     ("display_name" -> {theFistName + " " + theLastName})
 }
+
+object User {
+  def findById(id : String) : Box[User] = 
+    Locals
+} 
