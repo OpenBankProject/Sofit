@@ -1,9 +1,8 @@
-$.getJSON("obp/v1.0/metrics/demo-bar",function(data) {
-    var bar_data = data;
+d3.json("obp/v1.0/metrics/demo-bar", function(data) {
     var bar_chart = d3.select("#content").append("div").attr("class", "chart");
 
     bar_chart.selectAll("div")
-            .data(bar_data.stats)
+            .data(data.stats)
         .enter().append("div")
             .style("width", function(d) { return d.amount * 200 + "px"; })
             .html(function(d) { return "<span class='count'>" + d.amount + "</span>" + d.url;});
@@ -11,7 +10,7 @@ $.getJSON("obp/v1.0/metrics/demo-bar",function(data) {
   });
 
 
-$.getJSON("obp/v1.0/metrics/demo-line",function(data) {
+d3.json("obp/v1.0/metrics/demo-line",function(data) {
 
   // helper function
   function getDate(d) {
