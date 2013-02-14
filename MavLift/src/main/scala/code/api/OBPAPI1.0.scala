@@ -64,7 +64,7 @@ import net.liftweb.mongodb.{ Skip, Limit }
 import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.mapper.view._
 import com.mongodb._
-import code.model.dataAccess.{ Account, OBPEnvelope, OBPUser }
+import code.model.dataAccess.{ Account, OBPEnvelope, OBPUser,APIMetric }
 import code.model.dataAccess.HostedAccount
 import code.model.dataAccess.LocalStorage
 import code.model.traits.ModeratedTransaction
@@ -78,8 +78,31 @@ import code.model.traits.User
 import java.util.Date
 import code.api.OAuthHandshake._
 import code.model.traits.ModeratedBankAccount
+import net.liftweb.util.Helpers.now
+import net.liftweb.json.Extraction
+import _root_.net.liftweb.json.Serialization
+import net.liftweb.json.NoTypeHints
+
+  case class APICallAmount(
+      url: String,
+      amount: Int
+    )
+  case class APICallAmounts(
+      stats : List[APICallAmount]
+    )
+
+
+  case class APICallsForDay(
+      amount : Int,
+      date : Date
+    )
+  case class APICallsPerDay(
+      stats : List[APICallsForDay]
+    )
 
 object OBPAPI1_0 extends RestHelper with Loggable {
+
+  implicit val _formats = Serialization.formats(NoTypeHints)
 
   val dateFormat = ModeratedTransaction.dateFormat
   private def getUser(httpCode : Int, tokenID : Box[String]) : Box[OBPUser] = 
@@ -93,11 +116,19 @@ object OBPAPI1_0 extends RestHelper with Loggable {
   }
   else 
     Empty 
+
+  private def logAPICall = 
+    APIMetric.createRecord.
+      url(S.uriAndQueryString.getOrElse("")).
+      date((now: TimeSpan)).
+      save
   
   serve("obp" / "v1.0" prefix {
     
     case Nil JsonGet json => {
-      
+      //log the API call 
+      logAPICall      
+
       def gitCommit : String = {
         val commit = tryo{
           val properties = new java.util.Properties()
@@ -126,6 +157,10 @@ object OBPAPI1_0 extends RestHelper with Loggable {
     }
     
     case bankAlias :: "accounts" :: accountAlias :: "transactions" :: viewName :: Nil JsonGet json => {
+      
+      //log the API call 
+      logAPICall
+
       import code.api.OAuthHandshake._
       val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
@@ -180,19 +215,22 @@ object OBPAPI1_0 extends RestHelper with Loggable {
     case bankAlias :: "accounts" :: accountAlias :: "transactions" ::
       transactionID :: "transaction" :: viewName :: Nil JsonGet  json => {
     
-    val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
-    val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
-    
-    val moderatedTransactionAndView = for {
-      bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
-      account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
-      view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
-      moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
-    } yield {
-      (moderatedTransaction, view)
-    }
-    
-    val links : List[JObject] = Nil
+      //log the API call 
+      logAPICall    
+      
+      val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
+      val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+      
+      val moderatedTransactionAndView = for {
+        bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
+        account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
+        view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
+        moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
+      } yield {
+        (moderatedTransaction, view)
+      }
+      
+      val links : List[JObject] = Nil
     
       moderatedTransactionAndView.map(mtAndView => JsonResponse(("transaction" -> mtAndView._1.toJson(mtAndView._2)) ~
                               ("links" -> links)))
@@ -200,25 +238,32 @@ object OBPAPI1_0 extends RestHelper with Loggable {
       
     case bankAlias :: "accounts" :: accountAlias :: "transactions" :: 
       transactionID :: "comments" :: viewName :: Nil JsonGet json => {
-        
-    val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
-    val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
-    
-    val comments = for {
-      bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
-      account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
-      view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
-      moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
-      comments <- Box(moderatedTransaction.metadata).flatMap(_.comments) ?~ "transaction metadata not authorised" ~> 401
-    } yield comments
-        
-    val links : List[JObject] = Nil
-    
-      comments.map(cs => JsonResponse(("comments" -> cs.map(_.toJson)) ~ 
-                      ("links" -> links)))
+
+      //log the API call 
+      logAPICall
+
+      val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")     
+      val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+      
+      val comments = for {
+        bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
+        account <- BankAccount(bankAlias, accountAlias) ?~ { "account "  + accountAlias + " not found for bank"} ~> 404
+        view <- View.fromUrl(viewName) ?~ { "view "  + viewName + " not found for account"} ~> 404
+        moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorised" ~> 401
+        comments <- Box(moderatedTransaction.metadata).flatMap(_.comments) ?~ "transaction metadata not authorised" ~> 401
+      } yield comments
+          
+      val links : List[JObject] = Nil
+      
+        comments.map(cs => JsonResponse(("comments" -> cs.map(_.toJson)) ~ 
+                        ("links" -> links)))
     }
     
     case bankPermalink :: "accounts" :: Nil JsonGet json => {
+    
+      //log the API call 
+      logAPICall
+
       val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
       val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
@@ -245,6 +290,10 @@ object OBPAPI1_0 extends RestHelper with Loggable {
     }
     
     case bankAlias :: "accounts" :: accountAlias :: "account" :: viewName :: Nil JsonGet json => {
+
+      //log the API call 
+      logAPICall
+
       val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
       val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
@@ -275,6 +324,10 @@ object OBPAPI1_0 extends RestHelper with Loggable {
     }
     
     case bankAlias :: "offices" :: Nil JsonGet json => {
+      
+      //log the API call 
+      logAPICall
+
       //TODO: An office model needs to be created
       val offices : List[JObject] = Nil
       JsonResponse("offices" -> offices)
@@ -282,6 +335,9 @@ object OBPAPI1_0 extends RestHelper with Loggable {
     
     case bankAlias :: "bank" :: Nil JsonGet json => {
       
+      //log the API call 
+      logAPICall
+
       def links = {
         def accounts = {
           ("rel" -> "accounts") ~
@@ -308,7 +364,48 @@ object OBPAPI1_0 extends RestHelper with Loggable {
     }
     
     case "banks" :: Nil JsonGet json => {
+      
+      //log the API call 
+      logAPICall
+
       JsonResponse("banks" -> Bank.toJson(Bank.all))
     }
+  })
+
+  // metrics API calls
+
+  serve("obp" / "v1.0" / "metrics" prefix {  
+    case "demo-bar" :: Nil JsonGet json => {
+      def byURL(metric : APIMetric) : String = 
+        metric.url.get
+      
+      def byUsage(x : APICallAmount, y : APICallAmount) = 
+        x.amount > y.amount
+        
+      val results = APICallAmounts(APIMetric.findAll.groupBy[String](byURL).toSeq.map(t => APICallAmount(t._1,t._2.length)).toList.sort(byUsage))
+      
+      JsonResponse(Extraction.decompose(results))
+    }
+
+    case "demo-line" :: Nil JsonGet json => {
+    	
+      def byDay(metric  : APIMetric) : Date = {
+        val metricDate = metric.date.get
+        val cal = Calendar.getInstance()
+        cal.setTime(metricDate)
+        cal.set(Calendar.HOUR,0)
+        cal.set(Calendar.MINUTE,0)
+        cal.set(Calendar.SECOND,0)
+        cal.set(Calendar.MILLISECOND,0)
+        cal.getTime
+       }
+
+      def byOldestDate(x : APICallsForDay, y :  APICallsForDay) : Boolean = 
+        x.date before y.date
+      
+      val results  = APICallsPerDay(APIMetric.findAll.groupBy[Date](byDay).toSeq.map(t => APICallsForDay(t._2.length,t._1)).toList.sort(byOldestDate))
+      JsonResponse(Extraction.decompose(results))
+    }
+
   })
 }
