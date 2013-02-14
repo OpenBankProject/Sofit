@@ -31,9 +31,7 @@ d3.json("obp/v1.0/metrics/demo-bar", function(data) {
             .attr("y", function(d, i) {
                 return i * (h / data_length);
             })
-            .attr("x", function(d) {
-                return margin;
-            })
+            .attr("x", margin)
             .attr("height", h / data_length - barPadding)
             .attr("width", function(d) {
                 return xScale(d.amount);
