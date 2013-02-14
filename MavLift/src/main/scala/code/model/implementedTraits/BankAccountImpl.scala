@@ -48,7 +48,7 @@ import code.model.dataAccess.OBPEnvelope._
 import code.model.dataAccess.OBPUser
 import code.model.traits.User
 
-class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType_ : String,
+class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType_ : String, currentBalance_ : BigDecimal,
   currency_ : String, label_ : String, nationalIdentifier_ : String, swift_bic_ : Option[String],
   iban_ : Option[String], allowAnnoymousAccess_ : Boolean,
   number_ : String, bankName_ : String, bankPermalink_ : String, permalink_ : String) extends BankAccount {
@@ -57,18 +57,7 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
   def owners = _owners
   def owners_=(owners_ : Set[AccountOwner]) = _owners = owners_
   def accountType = accountType_
-  def balance = {
-    val newest = getTransactions(OBPLimit(1), OBPOrdering(None, OBPDescending))
-    newest match {
-      case Full(n) => {
-        n match {
-          case Nil => None
-          case x :: xs => Some(x.balance)
-        }
-      }
-      case _ => None
-    }
-  }
+  def balance = Some(currentBalance_)
   def bankPermalink = bankPermalink_
   def permalink = permalink_
   def currency = currency_

@@ -235,6 +235,8 @@ object ImporterAPI extends RestHelper with Loggable {
             logger.info("insered " + l.size + "transactions")
             if(envelopes.size!=0)
             {  
+              //TODO: Update Account.currentBalance
+              
               //we assume here that all the Envelopes concerns only one account 
               val accountNumber = envelopes(0).get.obp_transaction.get.this_account.get.number.get
               val bankName = envelopes(0).get.obp_transaction.get.this_account.get.bank.get.name.get
