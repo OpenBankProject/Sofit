@@ -23,41 +23,39 @@ d3.json("obp/v1.0/metrics/demo-bar", function(data) {
                 .attr("height", h)
                 .attr("class", "svg-bar-chart");
 
-    var xScale = d3.scale.linear()
-                    .domain([0, d3.max(data.stats, function(d) { return parseFloat(d.amount); })])
-                    .range([0, w]);
+    var xScale = d3.scale.linear().domain([0, d3.max(data.stats, function(d) {
+                    return parseFloat(d.amount);
+                 })]).range([0, w]);
 
     svg.selectAll("rect")
-        .data(datasets)
-        .enter()
-        .append("rect")
-        .attr("y", function(d, i) {
-            return i * (h / data_length);
-        })
-        .attr("x", function(d) {
-            return margin;
-        })
-        .attr("height", h / data_length - barPadding)
-        .attr("width", function(d) {
-            return xScale(d.amount);
-        })
-        .attr("fill", function(d) {
-            return "rgb(243, 249, " + (d.amount * 10 + 200) + ")";
-        });
+            .data(datasets)
+        .enter().append("rect")
+            .attr("y", function(d, i) {
+                return i * (h / data_length);
+            })
+            .attr("x", function(d) {
+                return margin;
+            })
+            .attr("height", h / data_length - barPadding)
+            .attr("width", function(d) {
+                return xScale(d.amount);
+            })
+            .attr("fill", function(d) {
+                return "rgb(243, 249, " + (d.amount * 10 + 200) + ")";
+            });
 
         svg.selectAll("text")
-           .data(datasets)
-           .enter()
-           .append("text")
-           .text(function(d) {
-                return d.amount;
-           })
-           .attr("y", function(d, i) {
-                return i * (h / data_length) + (h / data_length - barPadding) / 1.5;
-           })
-           .attr("x", function(d) {
-                return margin * 2;
-           });
+                .data(datasets)
+           .enter().append("text")
+               .text(function(d) {
+                    return d.amount;
+               })
+               .attr("y", function(d, i) {
+                    return i * (h / data_length) + (h / data_length - barPadding) / 1.5;
+               })
+               .attr("x", function(d) {
+                    return margin * 2;
+               });
 });
 
 
