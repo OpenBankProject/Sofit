@@ -23,9 +23,7 @@ d3.json("obp/v1.0/metrics/demo-bar", function(data) {
                 .attr("height", h)
                 .attr("class", "svg-bar-chart");
 
-    var xScale = d3.scale.linear().domain([0, d3.max(data.stats, function(d) {
-                    return parseFloat(d.amount);
-                 })]).range([0, w]);
+    var xScale = d3.scale.linear().domain([0, d3.max(data.stats).amount]).range([0, w]);
 
     svg.selectAll("rect")
             .data(datasets)
