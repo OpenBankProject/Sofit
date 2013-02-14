@@ -2,8 +2,13 @@ d3.json("obp/v1.0/metrics/demo-bar", function(data) {
     var content = d3.select("#content");
     var bar_chart = content.append("div").attr("class", "bar-chart");
 
+    // Include headings ffor the Graph
     content.insert("h2", ".bar-chart").text("Bar Graph");
     content.insert("h3", ".bar-chart").text("Most used API calls");
+
+    // Bind only the nested data to the dataset
+    var datasets = data.stats;
+    var data_length = datasets.length;
 
     //Width and height
     var w = 1000;
@@ -18,45 +23,46 @@ d3.json("obp/v1.0/metrics/demo-bar", function(data) {
                 .attr("height", h)
                 .attr("class", "svg-bar-chart");
 
-        var xScale = d3.scale.linear()
-                     .domain([0, d3.max(data.stats, function(d) { return parseFloat(d.amount); })])
-                     .range([0, w]);
+    var xScale = d3.scale.linear()
+                    .domain([0, d3.max(data.stats, function(d) { return parseFloat(d.amount); })])
+                    .range([0, w]);
 
-        svg.selectAll("rect")
-            .data(data.stats)
-            .enter()
-            .append("rect")
-            .attr("y", function(d, i) {
-                return i * (w / data.stats.length);
-            })
-            .attr("x", function(d) {
-                return margin;
-            })
-            .attr("height", w / data.stats.length - barPadding)
-            .attr("width", function(d) {
-                return xScale(d.amount);
-            })
-            .attr("fill", function(d) {
-                return "rgb(100, 0, " + (d.amount * 25) + ")";
-            });
+    svg.selectAll("rect")
+        .data(datasets)
+        .enter()
+        .append("rect")
+        .attr("y", function(d, i) {
+            return i * (h / data_length);
+        })
+        .attr("x", function(d) {
+            return margin;
+        })
+        .attr("height", h / data_length - barPadding)
+        .attr("width", function(d) {
+            return xScale(d.amount);
+        })
+        .attr("fill", function(d) {
+            return "rgb(243, 249, " + (d.amount * 10 + 200) + ")";
+        });
 
-            svg.selectAll("text")
-               .data(data.stats)
-               .enter()
-               .append("text")
-               .text(function(d) {
-                    return d.amount;
-               })
-               .attr("text-anchor", "middle")
-               .attr("y", function(d, i) {
-                    return i * (w / data.stats.length) + (w / data.stats.length - barPadding) / 2;
-               })
-               .attr("x", function(d) {
-                    return margin * 2;
-               })
-               .attr("font-family", "sans-serif")
-               .attr("font-size", "11px")
-               .attr("fill", "white");
+        svg.selectAll("text")
+           .data(datasets)
+           .enter()
+           .append("text")
+           .text(function(d) {
+                return d.amount;
+           })
+           .attr("text-anchor", "middle")
+           .attr("y", function(d, i) {
+                return i * (h / data_length) + (h / data_length - barPadding) / 1.5;
+           })
+           .attr("x", function(d) {
+                return margin * 2;
+           })
+           .attr("font-family", "sans-serif")
+           .attr("font-size", ".8em")
+           .attr("font-weight", "bold")
+           .attr("fill", "black");
 });
 
 
