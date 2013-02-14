@@ -52,17 +52,12 @@ d3.json("obp/v1.0/metrics/demo-bar", function(data) {
            .text(function(d) {
                 return d.amount;
            })
-           .attr("text-anchor", "middle")
            .attr("y", function(d, i) {
                 return i * (h / data_length) + (h / data_length - barPadding) / 1.5;
            })
            .attr("x", function(d) {
                 return margin * 2;
-           })
-           .attr("font-family", "sans-serif")
-           .attr("font-size", ".8em")
-           .attr("font-weight", "bold")
-           .attr("fill", "black");
+           });
 });
 
 

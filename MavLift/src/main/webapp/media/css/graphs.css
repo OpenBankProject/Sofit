@@ -31,3 +31,11 @@ h3 {
     font-size: 14px;
     margin-bottom:20px;
 }
+
+.svg-bar-chart text{
+    font-family: sans-serif;
+    font-size: .8em;
+    font-weight: bold;
+    fill: black;
+    text-anchor: middle;
+}
