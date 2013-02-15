@@ -39,3 +39,25 @@ h3 {
     fill: black;
     text-anchor: middle;
 }
+
+.bar rect {
+    fill: #F2F8F1;
+    stroke:#000000;
+}
+
+.label {
+    font-size: .6em;
+    fill-opacity: .6;
+}
+
+.value {
+    font-size: .7em;
+    fill-opacity: .6;
+    font-weight: bold;
+}
+
+.tick_label {
+    font-size: .7em;
+    fill-opacity: .6;
+    font-weight: bold;
+}
