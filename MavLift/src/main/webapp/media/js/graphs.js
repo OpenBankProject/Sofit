@@ -1,5 +1,5 @@
-d3.json("obp/v1.0/metrics/demo-bar", function(data) {
-    data = data.stats;
+var draw_bar_graph = function(data) {
+        data = data.stats;
     //maximum of data you want to use
     var content = d3.select("#content"),
         data_max = d3.max(data).amount,
@@ -137,6 +137,11 @@ d3.json("obp/v1.0/metrics/demo-bar", function(data) {
         .attr("y1", chart_top)
         .attr("y2", chart_top)
         .attr("stroke", "black");
+};
+
+
+d3.json("obp/v1.0/metrics/demo-bar", function (data) {
+    draw_bar_graph(data);
 });
 
 
