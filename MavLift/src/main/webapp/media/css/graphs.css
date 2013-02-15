@@ -10,7 +10,7 @@ line {
 
 path {
     fill: none;
-    stroke: green;
+    stroke: #000000;
 }
 
 span {
@@ -30,6 +30,10 @@ h2 {
 h3 {
     font-size: 14px;
     margin-bottom:20px;
+}
+
+svg {
+    background: #fafafa;
 }
 
 .svg-bar-chart text{
