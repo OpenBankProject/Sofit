@@ -1,5 +1,5 @@
 var draw_bar_graph = function(data) {
-        data = data.stats;
+    data = data.stats;
     //maximum of data you want to use
     var content = d3.select("#content"),
         data_max = d3.max(data).amount,
@@ -11,7 +11,10 @@ var draw_bar_graph = function(data) {
         top_margin = 30,
         bottom_margin = 0;
 
-    var w = 1222,                        //width
+    content.insert("h2", ".bar-chart").text("Bar Graph");
+    content.insert("h3", ".bar-chart").text("Daily API Request");
+
+    var w = 1050,                        //width
         h = 600,                        //height
         color = function(id) { return '#00b3dc';};
 
@@ -156,7 +159,7 @@ d3.json("obp/v1.0/metrics/demo-line",function(data) {
   var minDate = getDate(data.stats[0]),
       maxDate = getDate(data.stats[data.stats.length-1]);
 
-  var w = 450,
+  var w = 990,
   h = 450,
   p = 30,
   margin = 20,
