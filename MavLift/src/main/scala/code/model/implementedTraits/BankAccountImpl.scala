@@ -45,7 +45,6 @@ import code.model.dataAccess.OBPEnvelope.OBPQueryParam
 import net.liftweb.common.Box
 import code.model.dataAccess.LocalStorage
 import code.model.dataAccess.OBPEnvelope._
-import code.model.dataAccess.OBPUser
 import code.model.traits.User
 
 class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType_ : String,
@@ -110,7 +109,7 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
    LocalStorage.getTransactions(permalink, bankPermalink)
   }
 
-  def authorisedAccess(view: code.model.traits.View, user: Option[OBPUser]) = {
+  def authorisedAccess(view: code.model.traits.View, user: Option[User]) = {
     view match {
       case Public => allowPublicAccess
       case _ => user match {

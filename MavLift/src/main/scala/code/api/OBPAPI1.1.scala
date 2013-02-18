@@ -38,7 +38,7 @@ import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Printer._
 import net.liftweb.json.Extraction._
 import net.liftweb.json.JsonAST._
-import net.liftweb.common.{Failure,Full,Empty}
+import net.liftweb.common.{Failure,Full,Empty, Box, Loggable}
 import net.liftweb.mongodb._
 import net.liftweb.json.JsonAST.JString
 import com.mongodb.casbah.Imports._
@@ -54,7 +54,6 @@ import _root_.scala.xml._
 import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.http.RequestVar
 import _root_.net.liftweb.util.Helpers._
-import _root_.net.liftweb.common.Full
 import net.liftweb.mongodb.{ Skip, Limit }
 import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.mapper.view._
@@ -79,7 +78,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
   {
     import code.model.Token
     Token.find(By(Token.key, tokenID.get)) match {
-      case Full(token) => User.findById(token.userId)
+      case Full(token) => User.findById(token.userId.get)
       case _ => Empty   
     }         
   }

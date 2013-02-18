@@ -34,7 +34,8 @@ package code.model.traits
 
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST.JObject
-import code.model.
+import code.model.dataAccess.LocalStorage
+import net.liftweb.common.Box
 
 trait User {
   def id_ : String
@@ -52,5 +53,7 @@ trait User {
 
 object User {
   def findById(id : String) : Box[User] = 
-    Locals
+    LocalStorage.getUser(id)
+  def currentUser : Box[User] = 
+    LocalStorage.getCurrentUser
 } 

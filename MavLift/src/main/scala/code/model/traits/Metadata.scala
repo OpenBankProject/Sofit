@@ -40,12 +40,12 @@ trait TransactionMetadata {
   def ownerComment : Option[String]
   def ownerComment(comment : String) : Unit 
   def comments : List[Comment]
-  def addComment(userId : Long, viewId : Long, text : String, postedDate : Date) : Unit
+  def addComment(userId : String, viewId : Long, text : String, postedDate : Date) : Unit
   def tags : List[Tag]
-  def addTag(userId : Long, viewId : Long, tag : String, postedDate :Date) : String
+  def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String
   def deleteTag(id : String) : Unit
   def images : List[TransactionImage]
-  def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
+  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
   def deleteImage(id : String) : Unit
   /**
    * @param userId : The user id of the user trying to delete the image with id "id"

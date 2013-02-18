@@ -110,7 +110,12 @@ object OBPAPI1_0 extends RestHelper with Loggable {
   {
     import code.model.Token
     Token.find(By(Token.key, tokenID.get)) match {
-      case Full(token) => OBPUser.find(By(OBPUser.id, token.userId))
+      case Full(token) => tryo{
+          token.userId.get.toLong
+        } match {
+          case Full(id) => OBPUser.find(By(OBPUser.id, id))
+          case _ => Empty
+      }
       case _ => Empty   
     }         
   }

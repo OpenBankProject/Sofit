@@ -45,9 +45,13 @@ import net.liftweb.util.Helpers
 import code.model.AppType._
 import code.model.TokenType._
 import scala.compat.Platform
-import code.model.dataAccess.OBPUser
 import scala.xml.NodeSeq
 import net.liftweb.util.Helpers._
+
+/** 
+* This object provides the API calls necessary to third party applications 
+* so they could authenticate their users.
+*/
 
 object OAuthHandshake extends RestHelper
 {
