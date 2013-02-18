@@ -1,17 +1,154 @@
-$.getJSON("obp/v1.0/metrics/demo-bar",function(data) {
-    var bar_data = data;
-    var bar_chart = d3.select("#content").append("div").attr("class", "chart");
+var draw_bar_graph = function(data) {
+    data = data.stats;
+    //maximum of data you want to use
+    var content = d3.select("#content"),
+        data_max = d3.max(data).amount,
+        //number of tickmarks to use
+        num_ticks = 20,
+        //margins
+        left_margin = 330,
+        right_margin = 330,
+        top_margin = 30,
+        bottom_margin = 0;
 
-    bar_chart.selectAll("div")
-            .data(bar_data.stats)
-        .enter().append("div")
-            .style("width", function(d) { return d.amount * 200 + "px"; })
-            .html(function(d) { return "<span class='count'>" + d.amount + "</span>" + d.url;});    
-    $(".chart").before("<h2>Bar Graph</h2><h3>Most used API calls<h3>");
-  });
- 
+    content.insert("h2", ".bar-chart").text("Bar Graph");
+    content.insert("h3", ".bar-chart").text("Daily API Request");
 
-$.getJSON("obp/v1.0/metrics/demo-line",function(data) {
+    var w = 1050,                        //width
+        h = 600,                        //height
+        color = function(id) { return '#00b3dc';};
+
+    var x = d3.scale.linear()
+        .domain([0, data_max])
+        .range([0, w - (left_margin + right_margin) ]),
+        y = d3.scale.ordinal()
+        .domain(d3.range(data.length))
+        .rangeBands([bottom_margin, h - top_margin], 0.5);
+
+
+    var chart_top = h - y.rangeBand()/2 - top_margin;
+    var chart_bottom = bottom_margin + y.rangeBand()/2;
+    var chart_left = left_margin;
+    var chart_right = w - right_margin;
+
+    /*
+     *  Setup the SVG element and position it
+     */
+    var vis = content
+        .append("svg:svg")
+            .attr("width", w)
+            .attr("height", h)
+        .append("svg:g")
+            .attr("id", "barchart")
+            .attr("class", "barchart");
+
+
+    //Ticks
+    var rules = vis.selectAll("g.rule")
+        .data(x.ticks(num_ticks))
+    .enter()
+        .append("svg:g")
+        .attr("transform", function(d)
+                {
+                return "translate(" + (chart_left + x(d)) + ")";});
+    rules.append("svg:line")
+        .attr("class", "tick")
+        .attr("y1", chart_top)
+        .attr("y2", chart_top + 4)
+        .attr("stroke", "black");
+
+    rules.append("svg:text")
+        .attr("class", "tick_label")
+        .attr("text-anchor", "middle")
+        .attr("y", chart_top)
+        .text(function(d)
+        {
+        return d;
+        });
+    var bbox = vis.selectAll(".tick_label").node().getBBox();
+    vis.selectAll(".tick_label")
+    .attr("transform", function(d)
+            {
+            return "translate(0," + (bbox.height) + ")";
+            });
+
+    var bars = vis.selectAll("g.bar")
+        .data(data)
+    .enter()
+        .append("svg:g")
+            .attr("class", "bar")
+            .attr("transform", function(d, i) {
+                    return "translate(0, " + y(i) + ")";
+            });
+
+    bars.append("svg:rect")
+        .attr("x", right_margin)
+        .attr("width", function(d) {
+                return (x(d.amount));
+                })
+        .attr("height", y.rangeBand())
+        .attr("fill", color(0))
+        .attr("stroke", color(0));
+
+
+    //Labels
+    var labels = vis.selectAll("g.bar")
+        .append("svg:a").attr("width", 200).append("svg:text")
+            .attr("class", "label")
+            .attr("x", 20)
+            .attr("text-anchor", "right")
+            .text(function(d) {
+                    return d.url;
+                    });
+
+    bbox = labels.node().getBBox();
+    vis.selectAll(".label")
+        .attr("transform", function(d) {
+                return "translate(0, " + (y.rangeBand()/2 + bbox.height / 4 ) + ")";
+                });
+
+
+    labels = vis.selectAll("g.bar")
+        .append("svg:text")
+            .attr("class", "value")
+            .attr("x", function(d) {
+                return x(d.amount) + right_margin + 10;
+            })
+            .attr("text-anchor", "left")
+            .text(function(d) {
+                return "" + d.amount;
+            });
+
+    bbox = labels.node().getBBox();
+    vis.selectAll(".value")
+        .attr("transform", function(d) {
+            return "translate(0, " + (y.rangeBand()/2 + bbox.height/4) + ")";
+        });
+
+    //Axes
+    vis.append("svg:line")
+        .attr("class", "axes")
+        .attr("x1", chart_left)
+        .attr("x2", chart_left)
+        .attr("y1", chart_bottom)
+        .attr("y2", chart_top)
+        .attr("stroke", "black");
+     vis.append("svg:line")
+        .attr("class", "axes")
+        .attr("x1", chart_left)
+        .attr("x2", chart_right)
+        .attr("y1", chart_top)
+        .attr("y2", chart_top)
+        .attr("stroke", "black");
+};
+
+
+d3.json("obp/v1.0/metrics/demo-bar", function (data) {
+    draw_bar_graph(data);
+});
+
+
+d3.json("obp/v1.0/metrics/demo-line",function(data) {
 
   // helper function
   function getDate(d) {
@@ -22,7 +159,7 @@ $.getJSON("obp/v1.0/metrics/demo-line",function(data) {
   var minDate = getDate(data.stats[0]),
       maxDate = getDate(data.stats[data.stats.length-1]);
 
-  var w = 450,
+  var w = 990,
   h = 450,
   p = 30,
   margin = 20,
@@ -34,6 +171,7 @@ $.getJSON("obp/v1.0/metrics/demo-line",function(data) {
   .append("svg:svg")
   .attr("width", w + p * 2)
   .attr("height", h + p * 2)
+  .attr("class", "line-chart")
   .append("svg:g")
   .attr("transform", "translate(" + p + "," + p + ")");
 
@@ -90,5 +228,9 @@ $.getJSON("obp/v1.0/metrics/demo-line",function(data) {
                     .attr("class", "y axis")
                     .attr("transform", "translate(0,0)")
                     .call(yAxisLeft);
-  $("svg").before("<h2>Line Graph</h2><h3>Daily API Request</h3><p class='axis'>Request</p>");                    
-  })
+
+    var content = d3.select("#content");
+    content.insert("h2", ".line-chart").text("Line Graph");
+    content.insert("h3", ".line-chart").text("Daily API Request");
+    content.insert("p", ".line-chart").attr("class", "axis").text("Request");
+});

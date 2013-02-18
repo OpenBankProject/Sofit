@@ -1,18 +1,7 @@
-.chart div {
-    background-color: green;
-    text-align: right;
-    padding: 3px;
-    margin: 1px;
-    color: white;
-    font-weight: bold;
-    font-size: 12px;
-    word-break: break-word;
-}
-
-.axis{
-    position:relative;
+.axis {
+    position: relative;
     top: 30px;
-    font-size: 10px;    
+    font-size: 10px;
 }
 
 line {
@@ -21,24 +10,58 @@ line {
 
 path {
     fill: none;
-    stroke: green;
+    stroke: #000000;
 }
 
 span {
-    float:left;
+    float: left;
 }
 
 h1, h2 {
+    font-size: 18px;
     line-height: 20px;
     font-weight: bold;
 }
-h1{
-    font-size: 18px;
-}
-h2{
+
+h2 {
     font-size: 16px;
 }
 
-h3{
+h3 {
     font-size: 14px;
+    margin-bottom:20px;
+}
+
+svg {
+    background: #fafafa;
+}
+
+.svg-bar-chart text{
+    font-family: sans-serif;
+    font-size: .8em;
+    font-weight: bold;
+    fill: black;
+    text-anchor: middle;
+}
+
+.bar rect {
+    fill: #F2F8F1;
+    stroke:#000000;
+}
+
+.label {
+    font-size: .6em;
+    fill-opacity: .6;
+}
+
+.value {
+    font-size: .7em;
+    fill-opacity: .6;
+    font-weight: bold;
+}
+
+.tick_label {
+    font-size: .7em;
+    fill-opacity: .6;
+    font-weight: bold;
 }
