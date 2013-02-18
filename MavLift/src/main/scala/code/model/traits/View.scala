@@ -125,8 +125,7 @@ trait View {
     {
       val owners = if(canSeeBankAccountOwners) Some(transaction.thisAccount.owners) else None
       val accountType = if(canSeeBankAccountType) Some(transaction.thisAccount.accountType) else None
-      val balance = if(canSeeBankAccountBalance) {
-        transaction.thisAccount.balance.toString
+      val balance = if(canSeeBankAccountBalance) { transaction.thisAccount.balance.toString
       } else if (canSeeBankAccountBalancePositiveOrNegative) {
         if(transaction.thisAccount.balance.toString.startsWith("-")) "-" else "+"
       } else ""
