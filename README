@@ -47,6 +47,7 @@ Alternatively, maven can also be used:
 
 mvn jetty:run
 
+
 Note: You may need to add the pluginGroup to the $HOME/.m2/settings.xml
 
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"

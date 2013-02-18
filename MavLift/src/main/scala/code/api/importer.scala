@@ -247,7 +247,10 @@ object ImporterAPI extends RestHelper with Loggable {
               wantedAccount match {
                 case Some(account) =>  {
                   def updateAccountBalance() = {
-                    val newest = OBPEnvelope.findAll(JObject(Nil),("obp_transaction.details.completed" -> -1), Limit(1)).headOption
+                    val newest = OBPEnvelope.findAll(("obp_transaction.this_account.number" -> accountNumber) ~
+                    								 ("obp_transaction.this_account.kind" -> accountKind) ~
+                    								 ("obp_transaction.this_account.bank.name" -> bankName),
+                    								 ("obp_transaction.details.completed" -> -1), Limit(1)).headOption
                     if(newest.isDefined) {
                       logger.debug("Updating current balance for " + bankName + "/" + accountNumber + "/" + accountKind)
                       account.balance(newest.get.obp_transaction.get.details.get.new_balance.get.amount.get).save

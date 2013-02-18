@@ -32,9 +32,8 @@ Berlin 13359, Germany
 
 package code.snippet
 import net.liftweb.json.JsonAST._
-import code.model.dataAccess.Account
+import code.model.dataAccess.{Account,OtherAccount}
 import net.liftweb.util.Helpers._
-import code.model.dataAccess.OtherAccount
 import scala.xml.NodeSeq
 import scala.xml.Text
 import net.liftweb.http.{S, SHtml}
@@ -105,6 +104,7 @@ class Management(currentAccount : Account) {
         if(otherAcc.isDefined)
           alterOtherAccount(otherAcc.get, currentValue).save
       }
+      
       CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{
         saveValue()
         Noop
