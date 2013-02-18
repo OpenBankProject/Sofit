@@ -44,6 +44,12 @@ import com.mongodb.BasicDBList
 import java.util.ArrayList
 import org.bson.types.ObjectId
 
+/** 
+ *  this object will be used by the 'hight level' classes to get the data 
+ *  from any connector. The application allow to use just one connector at the time.
+ *  Currently it is MongoDB.
+ */  
+
 object LocalStorage extends MongoDBLocalStorage
 
 trait LocalStorage extends Loggable {
@@ -79,6 +85,10 @@ trait LocalStorage extends Loggable {
 
   def getAccount(bankpermalink: String, account: String): Box[Account]
   def getTransaction(id : String, bankPermalink : String, accountPermalink : String) : Box[Transaction]  
+
+  def getUser(id : String) : Box[User] 
+  def getCurrentUser : Box[User]
+
 }
 
 class MongoDBLocalStorage extends LocalStorage {
@@ -205,4 +215,8 @@ class MongoDBLocalStorage extends LocalStorage {
   def getAllAccounts() : List[Account] = Account.findAll
   
   def getAllPublicAccounts() : List[Account] = Account.findAll("anonAccess", true)
+
+  def getUser(id : String) : Box[User] = 
+    OBPUser.find(id)
+  def getCurrentUser : Box[User] = OBPUser.currentUser
 }

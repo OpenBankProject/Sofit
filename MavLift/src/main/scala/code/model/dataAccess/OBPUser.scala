@@ -138,7 +138,7 @@ object OBPUser extends OBPUser with MetaMegaProtoUser[OBPUser]{
   override def loginXhtml = {
     import net.liftweb.http.TemplateFinder
     import net.liftweb.http.js.JsCmds.Noop
-    val loginXml = Templates(List("templates-hidden","_login")).map({
+    val loginXml = Templates(List("templates-hidden","_UserLogin")).map({
         "form [action]" #> {S.uri} &
         "#loginText * " #> {S.??("log.in")} &
         "#emailAddressText * " #> {S.??("email.address")} &

@@ -68,7 +68,7 @@ object OAuthAuthorisation {
 						    {
 						    	val randomVerifier = Helpers.base64Encode(Helpers.randomString(20).getBytes()).dropRight(1)  
 						    	appToken.verifier(randomVerifier)
-						    	appToken.userId(OBPUser.currentUserId.get.toLong)
+						    	appToken.userId(OBPUser.currentUserId.get)
 						    	if(appToken.save())
 						    		verifier = randomVerifier
 					    	}

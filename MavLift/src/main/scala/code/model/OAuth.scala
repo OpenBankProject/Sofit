@@ -33,11 +33,12 @@ package code.model
 import net.liftweb.mapper._
 import java.util.Date
 import scala.compat.Platform
-import code.model.dataAccess.OBPUser
+import code.model.traits.User
 import net.liftweb.http.SHtml
 import net.liftweb.util.FieldError
 import net.liftweb.util.FieldIdentifier
 import net.liftweb.common.Full
+import code.model.dataAccess.Admin
 
 object AppType extends Enumeration("web", "mobile") 
 {
@@ -94,11 +95,11 @@ object Consumer extends Consumer with LongKeyedMetaMapper[Consumer] with CRUDify
 	//list all path : /admin/consumer/list
 	override def calcPrefix = List("admin",_dbTableNameLC)
 	
-	override def editMenuLocParams = List(OBPUser.testSuperUser)
-	override def showAllMenuLocParams = List(OBPUser.testSuperUser)
-	override def deleteMenuLocParams = List(OBPUser.testSuperUser)
-	override def createMenuLocParams = List(OBPUser.testSuperUser)
-	override def viewMenuLocParams = List(OBPUser.testSuperUser)
+	override def editMenuLocParams = List(Admin.testLogginIn)
+	override def showAllMenuLocParams = List(Admin.testLogginIn)
+	override def deleteMenuLocParams = List(Admin.testLogginIn)
+	override def createMenuLocParams = List(Admin.testLogginIn)
+	override def viewMenuLocParams = List(Admin.testLogginIn)
 	
 	override def fieldOrder = List(name, appType, description, developerEmail)
 } 
@@ -131,7 +132,7 @@ class Token extends LongKeyedMapper[Token]{
 	object id extends MappedLongIndex(this)
 	object tokenType extends MappedEnum(this, TokenType)
 	object consumerId extends MappedLongForeignKey(this, Consumer)
-	object userId extends MappedLongForeignKey(this, OBPUser)
+	object userId extends MappedString(this,255) 
 	object key extends MappedString(this,250)
 	object secret extends MappedString(this,250)
 	object callbackURL extends MappedString(this,250)
@@ -139,5 +140,6 @@ class Token extends LongKeyedMapper[Token]{
 	object duration extends MappedLong(this)//expressed in milliseconds 
 	object expirationDate extends MappedDateTime(this)
 	object insertDate extends MappedDateTime(this)
+	def user = User.findById(userId.get)
 }
-object Token extends Token with LongKeyedMetaMapper[Token]{}
+object Token extends Token with LongKeyedMetaMapper[Token]

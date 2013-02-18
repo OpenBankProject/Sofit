@@ -155,7 +155,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    * @param email The email address of the person posting the comment
    * @param text The text of the comment
    */
-  def addComment(userId: Long, viewId : Long, text: String, datePosted : Date) = {
+  def addComment(userId: String, viewId : Long, text: String, datePosted : Date) = {
     val comment = OBPComment.createRecord.userId(userId).
       textField(text).
       date(datePosted).
@@ -163,7 +163,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     obp_comments(comment.id.is :: obp_comments.get ).save
   }
 
-  def addTag(userId: Long, viewId : Long, value: String, datePosted : Date) : String = {
+  def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : String = {
     val tag = OBPTag.createRecord.
       userId(userId).
       tag(value).
@@ -176,10 +176,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     OBPTag.find(id) match {
       case Full(tag) => {
         if(tag.delete_!)
-        {  
-          println("==> deleted tag id : " + id)
           tags(tags.get.diff(Seq(new ObjectId(id)))).save
-        }
       }
       case _ =>  
     }
@@ -188,14 +185,14 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   /**
    * @return the id of the newly added image
    */
-  def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
+  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
     val image = OBPTransactionImage.createRecord.
     		userId(userId).imageComment(description).date(datePosted).viewID(viewId).url(imageURL.toString).save
     images(image.id.is :: images.get).save
     image.id.is.toString
   }
   
-  def deleteImage(id : String){//, userId: Long) {
+  def deleteImage(id : String){
     OBPTransactionImage.find(id) match {
       case Full(image) => {
         //if(image.postedBy.isDefined && image.postedBy.get.id.get == userId) {
@@ -204,7 +201,6 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
             images(images.get.diff(Seq(new ObjectId(id)))).save
             //TODO: Delete the actual image file? We don't always control the url of the image so we can't always delete it 
           }
-       // } else logger.warn("Image with id " + id + " does not belong to user with id " + userId + " so delete request is being denied.")
       }
       case _ => logger.warn("Could not find image with id " + id + " to delete.")
     }
@@ -269,7 +265,7 @@ class OBPComment private() extends MongoRecord[OBPComment] with ObjectIdPk[OBPCo
   def text = textField.get
   def datePosted = date.get
   def id_ = id.is.toString
-  object userId extends LongField(this)
+  object userId extends StringField(this,255)
   object viewID extends LongField(this)
   object textField extends StringField(this, 255)
   object date extends DateField(this)
@@ -533,7 +529,7 @@ object OBPValue extends OBPValue with BsonMetaRecord[OBPValue]
 
 class OBPTag private() extends MongoRecord[OBPTag] with ObjectIdPk[OBPTag] with Tag {
   def meta = OBPTag
-  object userId extends LongField(this)
+  object userId extends StringField(this,255)
   object viewID extends LongField(this)
   object tag extends StringField(this, 255)
   object date extends DateField(this) 
@@ -551,7 +547,7 @@ class OBPTransactionImage private() extends MongoRecord[OBPTransactionImage]
 		with ObjectIdPk[OBPTransactionImage] with TransactionImage {
   def meta = OBPTransactionImage
   
-  object userId extends LongField(this)
+  object userId extends StringField(this,255)
   object viewID extends LongField(this)
   object imageComment extends StringField(this, 1000)
   object date extends DateField(this) 
