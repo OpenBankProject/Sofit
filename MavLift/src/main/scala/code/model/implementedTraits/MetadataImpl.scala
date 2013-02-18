@@ -58,12 +58,12 @@ class TransactionMetadataImpl(
   narative : String, 
   comments_ : List[Comment], 
   saveOwnerComment : String => Unit, 
-  addCommentFunc : (Long,Long, String, Date) => Unit,
+  addCommentFunc : (String,Long, String, Date) => Unit,
   tags_ : List[Tag],
-  addTagFunc : (Long, Long, String, Date) => String,
+  addTagFunc : (String, Long, String, Date) => String,
   deleteTagFunc : (String) => Unit,
   images_ : List[TransactionImage],
-  addImageFunc : (Long, Long, String, Date, URL) => String,
+  addImageFunc : (String, Long, String, Date, URL) => String,
   deleteImageFunc : String => Unit //(String, Long) => Unit
 ) 
   extends TransactionMetadata with Loggable
@@ -71,17 +71,16 @@ class TransactionMetadataImpl(
   def ownerComment = if(! narative.isEmpty) Some(narative) else None
   def ownerComment(comment : String) = saveOwnerComment(comment)
   def comments : List[Comment] = comments_
-  def addComment(userId: Long, viewId : Long, text: String, datePosted : Date) : Unit = 
+  def addComment(userId: String, viewId : Long, text: String, datePosted : Date) : Unit = 
     addCommentFunc(userId, viewId, text, datePosted)
   def tags = tags_
-  def addTag(userId : Long, viewId : Long, tag : String, postedDate :Date) : String = 
+  def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String = 
     addTagFunc(userId,viewId,tag, postedDate) 
   def deleteTag(id : String) : Unit = 
     deleteTagFunc(id)  
   def images = images_
-  def addImage(userId: Long, viewId : Long, description: String, datePosted : Date, imageUrl : URL) = 
+  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) = 
     addImageFunc(userId, viewId, description, datePosted, imageUrl)
   def deleteImage(id : String) = deleteImageFunc(id)
-  //def deleteImage(id : String, userId: Long) = deleteImageFunc(id, userId)
 }
 

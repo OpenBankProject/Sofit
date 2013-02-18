@@ -151,12 +151,12 @@ class ModeratedTransactionMetadata(
   filteredOwnerComment : Option[String], 
   filteredComments : Option[List[Comment]], 
   addOwnerComment : Option[(String => Unit)],
-  addCommentFunc: Option[(Long, Long, String, Date) => Unit],
+  addCommentFunc: Option[(String, Long, String, Date) => Unit],
   tags_ : Option[List[Tag]],
-  addTagFunc : Option[(Long, Long, String, Date) => String],
+  addTagFunc : Option[(String, Long, String, Date) => String],
   deleteTagFunc : Option[(String) => Unit],
   images_ : Option[List[TransactionImage]],
-  addImageFunc : Option[(Long, Long, String, Date, URL) => String],
+  addImageFunc : Option[(String, Long, String, Date, URL) => String],
   deleteImageFunc  : Option[String => Unit]
   //deleteImageFunc  : Option[(String, Long) => Unit]
 )

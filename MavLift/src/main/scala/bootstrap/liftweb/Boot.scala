@@ -39,7 +39,7 @@ import http._
 import sitemap._
 import Loc._
 import mapper._
-import code.model.dataAccess.{MongoConfig,OBPUser,Privilege,Account, HostedAccount}
+import code.model.dataAccess._
 import code.model.{Nonce, Consumer, Token}
 import code.model.traits.{Bank, View, ModeratedTransaction}
 import code.model.implementedTraits.{View}
@@ -89,7 +89,7 @@ class Boot extends Loggable{
     // Use Lift's Mapper ORM to populate the database
     // you don't need to use Mapper to use Lift... use
     // any ORM you want
-    Schemifier.schemify(true, Schemifier.infoF _, OBPUser, Privilege)
+    Schemifier.schemify(true, Schemifier.infoF _, OBPUser, Privilege, Admin)
 
     // where to search snippet
     LiftRules.addToPackages("code")

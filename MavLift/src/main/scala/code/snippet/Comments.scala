@@ -35,8 +35,6 @@ import net.liftweb.http.js.JsCmds.Noop
 import net.liftweb.http.Templates
 import net.liftweb.util.Helpers._
 import net.liftweb.http.S
-import code.model.dataAccess.OBPEnvelope
-import code.model.dataAccess.OBPAccount.{APublicAlias,APrivateAlias}
 import net.liftweb.common.Full
 import scala.xml.NodeSeq
 import net.liftweb.http.SHtml
@@ -54,10 +52,8 @@ import net.liftweb.json.JsonAST.JArray
 import net.liftweb.http.StringField
 import java.util.Date
 import java.text.SimpleDateFormat
-import code.model.dataAccess.{OBPAccount,OBPUser}
 import net.liftweb.common.Loggable
-import code.model.dataAccess.Account
-import code.model.traits.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag}
+import code.model.traits.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag, User}
 import java.util.Currency
 import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
 import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
@@ -192,12 +188,14 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       val authKey = Props.get("transloadit.authkey") getOrElse ""
       val addImageTemplate = Props.get("transloadit.addImageTemplate") getOrElse ""
       val json =
-        ("auth" ->
-        	("key" -> authKey)) ~
+        (
+          "auth" -> (
+            "key" -> authKey
+          )
+        ) ~
         ("template_id" -> addImageTemplate)
       
-      val escapedJson = Utility.escape(compact(render(json)), new StringBuilder).toString
-      escapedJson
+      Utility.escape(compact(render(json)), new StringBuilder).toString
     }
     
     if(S.post_?) {
@@ -211,7 +209,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
         url <- tryo{new URL(urlString)} ?~! "Could not parse url string as a valid URL"
         metadata <- Box(transaction.metadata) ?~! "Could not access transaction metadata"
         addImage <- Box(metadata.addImage) ?~! "Could not access add image function"
-        userId <- OBPUser.currentUser.map(_.id) ?~! "Could not retrieve current user id"
+        userId <- User.currentUser.map(_.id_) ?~! "Could not retrieve current user id"
       } yield {
         () => addImage(userId, viewId, description, datePosted, url)
       }
@@ -228,7 +226,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
     } 
     
     val addImageSelector = for {
-      user <- OBPUser.currentUser ?~ "You need to long before you can add an image"
+      user <- User.currentUser ?~ "You need to long before you can add an image"
       metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
       addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
     } yield {
@@ -279,7 +277,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       case _ => noTags
     }
   def addTag(xhtml: NodeSeq) : NodeSeq = 
-    OBPUser.currentUser match {
+    User.currentUser match {
       case Full(user) =>     
         transaction.metadata match {
           case Some(metadata) =>
@@ -295,7 +293,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                       val tagsList = tags.split(" ").toList.filter(tag => !tag.isEmpty)
                       tagValues = tagsList
                       tagDate = new Date
-                      tagIds = tagsList.map(addTag(user.id, view.id, _ ,tagDate))
+                      tagIds = tagsList.map(addTag(user.id_, view.id, _ ,tagDate))
                     },
                     ("placeholder","Add tags seperated by spaces"),
                     ("id","addTagInput"),
@@ -386,7 +384,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
   }
   
   def addComment(xhtml: NodeSeq) : NodeSeq = {
-    OBPUser.currentUser match {
+    User.currentUser match {
       case Full(user) =>     
         transaction.metadata match {
           case Some(metadata) =>
@@ -400,7 +398,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                     comment => {
                       commentText = comment
                       commentDate = new Date
-                      addComment(user.id, view.id, comment,commentDate)
+                      addComment(user.id_, view.id, comment,commentDate)
                     },
                     ("rows","4"),("cols","50"),
                     ("id","addCommentTextArea"),

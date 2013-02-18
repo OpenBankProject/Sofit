@@ -38,7 +38,6 @@ import code.model.dataAccess.LocalStorage
 import net.liftweb.common.{Full, Empty}
 import code.model.dataAccess.Account
 import code.model.dataAccess.OBPEnvelope.OBPQueryParam
-import code.model.dataAccess.OBPUser
 import net.liftweb.json.JObject
 import net.liftweb.json.JsonDSL._
 import net.liftweb.http.LiftResponse
@@ -100,7 +99,7 @@ trait BankAccount {
   
   def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
   
-  def authorisedAccess(view: View, user: Option[OBPUser]) : Boolean
+  def authorisedAccess(view: View, user: Option[User]) : Boolean
 
   def overviewJson(user: Box[User]): JObject = {
     val views = permittedViews(user)

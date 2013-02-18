@@ -38,10 +38,7 @@ import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Printer._
 import net.liftweb.json.Extraction._
 import net.liftweb.json.JsonAST._
-import java.util.Calendar
-import net.liftweb.common.Failure
-import net.liftweb.common.Full
-import net.liftweb.common.Empty
+import net.liftweb.common.{Failure,Full,Empty, Box, Loggable}
 import net.liftweb.mongodb._
 import net.liftweb.json.JsonAST.JString
 import com.mongodb.casbah.Imports._
@@ -49,9 +46,7 @@ import _root_.java.math.MathContext
 import org.bson.types._
 import org.joda.time.{ DateTime, DateTimeZone }
 import java.util.regex.Pattern
-import _root_.net.liftweb.common._
 import _root_.net.liftweb.util._
-import _root_.net.liftweb.http._
 import _root_.net.liftweb.mapper._
 import _root_.net.liftweb.util.Helpers._
 import _root_.net.liftweb.sitemap._
@@ -59,18 +54,14 @@ import _root_.scala.xml._
 import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.http.RequestVar
 import _root_.net.liftweb.util.Helpers._
-import _root_.net.liftweb.common.Full
 import net.liftweb.mongodb.{ Skip, Limit }
 import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.mapper.view._
 import com.mongodb._
-import code.model.dataAccess.{ Account, OBPEnvelope, OBPUser }
-import code.model.dataAccess.HostedAccount
 import code.model.dataAccess.LocalStorage
 import code.model.traits.ModeratedTransaction
 import code.model.traits.View
 import code.model.implementedTraits.View
-import code.model.dataAccess.OBPEnvelope._
 import code.model.traits.BankAccount
 import code.model.implementedTraits.Public
 import code.model.traits.Bank
@@ -82,12 +73,12 @@ import code.model.traits.ModeratedBankAccount
 object OBPAPI1_1 extends RestHelper with Loggable {
 
   val dateFormat = ModeratedTransaction.dateFormat
-  private def getUser(httpCode : Int, tokenID : Box[String]) : Box[OBPUser] = 
+  private def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] = 
   if(httpCode==200)
   {
     import code.model.Token
     Token.find(By(Token.key, tokenID.get)) match {
-      case Full(token) => OBPUser.find(By(OBPUser.id, token.userId))
+      case Full(token) => User.findById(token.userId.get)
       case _ => Empty   
     }         
   }

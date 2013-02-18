@@ -45,7 +45,7 @@ import net.liftweb.mongodb.record.field.DateField
 import net.liftweb.common.{ Box, Empty, Full }
 import net.liftweb.mongodb.record.field.BsonRecordListField
 import net.liftweb.mongodb.record.{ BsonRecord, BsonMetaRecord }
-import net.liftweb.record.field.{ StringField, BooleanField }
+import net.liftweb.record.field.{ StringField, BooleanField, DecimalField }
 import net.liftweb.mongodb.{Limit, Skip}
 import code.model.dataAccess.OBPEnvelope._
 import code.model.traits.ModeratedTransaction
@@ -64,6 +64,7 @@ import net.liftweb.mongodb.BsonDSL._
 class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
   def meta = Account
 
+  object balance extends DecimalField(this, 0)
   object anonAccess extends BooleanField(this, false)
   object holder extends StringField(this, 255)
   object number extends StringField(this, 255)
@@ -122,7 +123,7 @@ class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
 object Account extends Account with MongoMetaRecord[Account] {
   def toBankAccount(account: Account): BankAccount = {
     val iban = if (account.iban.toString.isEmpty) None else Some(account.iban.toString)
-    var bankAccount = new BankAccountImpl(account.id.toString, Set(), account.kind.toString, account.currency.toString, account.label.toString,
+    var bankAccount = new BankAccountImpl(account.id.toString, Set(), account.kind.toString, account.balance.get, account.currency.toString, account.label.toString,
       "", None, iban, account.anonAccess.get, account.number.get, account.bankName, account.bankPermalink, account.permalink.get)
     val owners = Set(new AccountOwnerImpl("", account.holder.toString, Set(bankAccount)))
     bankAccount.owners = Set(new AccountOwnerImpl("", account.holder.toString, Set(bankAccount)))

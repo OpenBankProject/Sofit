@@ -232,17 +232,32 @@ object ImporterAPI extends RestHelper with Loggable {
 
       createdEnvelopes match {
         case Full(l: List[JObject]) =>{
-            logger.info("insered " + l.size + "transactions")
+            logger.info("inserted " + l.size + "transactions")
             if(envelopes.size!=0)
             {  
               //we assume here that all the Envelopes concerns only one account 
               val accountNumber = envelopes(0).get.obp_transaction.get.this_account.get.number.get
               val bankName = envelopes(0).get.obp_transaction.get.this_account.get.bank.get.name.get
               val accountKind = envelopes(0).get.obp_transaction.get.this_account.get.kind.get
-              Account.find(("number" -> accountNumber) ~ ("bankName" -> bankName) ~ ("kind" -> accountKind))
-              match {
-                case Full(account) =>  account.lastUpdate(new Date).save
-                case _ => logger.info("BankName/accountNumber/king not found :  " + bankName + "/" + accountNumber + "/" + accountKind)
+              //Get all accounts with this account number and kind
+              val accounts = Account.findAll(("number" -> accountNumber) ~ ("kind" -> accountKind))
+              //Now get the one that actually belongs to the right bank
+              accounts.foreach(a => println(a.bankName))
+              val wantedAccount = accounts.find(_.bankName == bankName)
+              wantedAccount match {
+                case Some(account) =>  {
+                  def updateAccountBalance() = {
+                    val newest = OBPEnvelope.findAll(JObject(Nil),("obp_transaction.details.completed" -> -1), Limit(1)).headOption
+                    if(newest.isDefined) {
+                      logger.debug("Updating current balance for " + bankName + "/" + accountNumber + "/" + accountKind)
+                      account.balance(newest.get.obp_transaction.get.details.get.new_balance.get.amount.get).save
+                    }
+                    else logger.warn("Could not update latest account balance")
+                  }
+                  account.lastUpdate(new Date).save
+                  updateAccountBalance()
+                }
+                case _ => logger.info("BankName/accountNumber/kind not found :  " + bankName + "/" + accountNumber + "/" + accountKind)
               }
             }
             JsonResponse(JArray(l))
