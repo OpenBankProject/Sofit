@@ -31,15 +31,10 @@ Berlin 13359, Germany
  */
 package code.model.implementedTraits
 
-import code.model.dataAccess.{OBPEnvelope,OBPTransaction,OtherAccount}
 import code.model.traits.{Transaction,BankAccount,OtherBankAccount, TransactionMetadata}
 import scala.math.BigDecimal
 import java.util.Date
-import scala.collection.immutable.List
 import net.liftweb.common.Loggable
-import net.liftweb.common.Box
-import code.model.traits.Comment
-import code.model.dataAccess.Account
 
 class TransactionImpl(id_ : String, var _thisAccount : BankAccount = null, otherAccount_ : OtherBankAccount, 
   metadata_ : TransactionMetadata, transactionType_ : String, amount_ : BigDecimal, currency_ : String,
