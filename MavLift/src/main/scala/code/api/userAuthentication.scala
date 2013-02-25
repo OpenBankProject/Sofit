@@ -41,6 +41,7 @@ import net.liftweb.http.JsonResponse
 import net.liftweb.json.Extraction
 import net.liftweb.json.JsonAST.JValue
 import code.model.Token
+import code.mode.TokenType
 
 case class ErrorMessage(
   error : String
@@ -70,11 +71,11 @@ object BankMockAPI extends RestHelper with Loggable {
     localKey == sentKey
   }
   serve("obp" / "v1.0" prefix {
-    case "token-verification" :: Nil JsonGet _ => {
+    case "request-token-verification" :: Nil JsonGet _ => {
       if(isValidKey)
         S.param("oauth_token") match {
           case Full(token) => {
-            Token.find(By(Token.key,token)) match {
+            Token.find(By(Token.key,token), By(Token.tokenType,TokenType.Request)) match {
               case Full(tkn) => JsonResponse(TokenValidity(tkn.isValid), Nil, Nil, 200)
               case _ => JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
             }

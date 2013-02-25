@@ -49,7 +49,7 @@ object AppType extends Enumeration("web", "mobile")
 
 object TokenType extends Enumeration("request", "access")
 {
-	type TokenType=Value
+	type TokenType = Value
 	val Request, Access = Value
 }
 
