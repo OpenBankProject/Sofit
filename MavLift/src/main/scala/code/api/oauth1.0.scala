@@ -182,8 +182,8 @@ object OAuthHandshake extends RestHelper
 	      case _ => true
 	    }
 	  }
-	  def wrongTimestamp(requestTimestamp : Date) = {
-	  	val currentTime = Platform.currentTime
+	  def wrongTimestamp(requestTimestamp : Date) : Boolean = {
+	  	val currentTime = Platform.currentTime / 1000
 	  	val timeRange : Long = 180000 //3 minutes
 	  	//check if the timestamp is positive and in the time range
 	  	requestTimestamp.getTime < 0 || requestTimestamp.before(new Date(currentTime - timeRange)) ||  requestTimestamp.after(new Date(currentTime + timeRange))

@@ -58,7 +58,7 @@ case class TokenValidity(
 object BankMockAPI extends RestHelper with Loggable {
 
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
-  implicit def errorToJson(msg: TokenValidity): JValue = Extraction.decompose(msg)
+  implicit def TokenValidityToJson(msg: TokenValidity): JValue = Extraction.decompose(msg)
 
   //extract and compare the sent key with the local one (shared secret)
   def isValidKey : Boolean = {
