@@ -231,7 +231,7 @@ object OAuthHandshake extends RestHelper
 	    }
 
 			//prepare the base string
-	    var baseString = httpMethod+"&"+URLEncoder.encode(S.hostAndPath,"UTF-8")+"&"
+	    var baseString = httpMethod+"&"+URLEncoder.encode(S.hostAndPath + S.uri,"UTF-8")+"&"
 	    baseString+= generateOAuthParametersString(OAuthparameters)
 
 	    //get the key to sign
