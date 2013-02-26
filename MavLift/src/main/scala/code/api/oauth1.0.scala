@@ -66,8 +66,7 @@ object OAuthHandshake extends RestHelper
 	  	if(httpCode==200)
 	  	{
 	  		//Generate the token and secret
-	    	val (token,secret) = generateTokenAndSecret(oAuthParameters.get
-	    		("oauth_consumer_key").get)
+	    	val (token,secret) = generateTokenAndSecret()
 	    	//Save the token that we have generated
 	    	if(saveRequestToken(oAuthParameters,token, secret))
 	    		data=("oauth_token="+token+"&oauth_token_secret="+
@@ -86,8 +85,7 @@ object OAuthHandshake extends RestHelper
 	  	if(httpCode==200)
 	  	{
 	  		//Generate the token and secret
-	    	val (token,secret) = generateTokenAndSecret(oAuthParameters.get
-	    		("oauth_consumer_key").get)
+	    	val (token,secret) = generateTokenAndSecret()
 	    	//Save the token that we have generated
 	    	if(saveAuthorizationToken(oAuthParameters,token, secret))
     		//remove the request token so the application could not exchange it
@@ -369,26 +367,14 @@ object OAuthHandshake extends RestHelper
 
 	  (httpCode, data.getBytes(), parameters)
 	}
-	private def generateTokenAndSecret(ConsumerKey : String) =
-	{
-  	import java.util.UUID._
+    private def generateTokenAndSecret() =
+    {
+      // generate some random strings
+      val token_data = Helpers.randomString(40)
+      val secret_data = Helpers.randomString(40)
 
-    // generate random string
-    val token_data = ConsumerKey + randomUUID().toString() + Helpers.randomString(20)
-    //use HmacSHA256 to compute the token
-    val m = Mac.getInstance("HmacSHA256");
-    m.init(new SecretKeySpec(token_data.getBytes(),"HmacSHA256"))
-    val token = Helpers.base64Encode(m.doFinal(token_data.getBytes)).dropRight(1)
-
-    // generate random string
-    val secret_data = ConsumerKey + randomUUID().toString() + Helpers.randomString(20) + token
-    //use HmacSHA256 to compute the token
-    val n = Mac.getInstance("HmacSHA256");
-    n.init(new SecretKeySpec(secret_data.getBytes(),"HmacSHA256"))
-    val secret = Helpers.base64Encode(n.doFinal(token_data.getBytes)).dropRight(1)
-
-    (token,secret)
-	}
+      (token_data, secret_data)
+    }
 	private def saveRequestToken(oAuthParameters : Map[String, String], tokenKey : String, tokenSecret : String) =
 	{
     import code.model.{Nonce, Token, TokenType}
