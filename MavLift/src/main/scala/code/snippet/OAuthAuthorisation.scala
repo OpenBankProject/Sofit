@@ -77,7 +77,7 @@ object OAuthAuthorisation {
 
 				   			// show the verifier if the application does not support
 				   			// redirection
-                if(Token.callbackURL=="oob")
+                if(appToken.callbackURL.is =="oob")
                 	"#verifier " #> verifier
                 else
                 {
