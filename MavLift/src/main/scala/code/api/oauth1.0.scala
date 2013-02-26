@@ -243,15 +243,15 @@ object OAuthHandshake extends RestHelper
 	    OAuthparameters.get("oauth_token") match {
 	      case Some(tokenKey) => Token.find(By(Token.key,tokenKey)) match {
 	        	case Full(token) => secret+= "&" +token.secret.toString()
-	        	case _ => None
+	        	case _ => secret+= "&"
 	        }
-	      case _ => None
+	      case _ => secret+= "&"
 	    }
 
 	    //signing process
 	    var m = Mac.getInstance("HmacSHA256");
-	    m.init(new SecretKeySpec(secret.getBytes(),"HmacSHA256"))
-	    val calculatedSignature = Helpers.base64Encode(m.doFinal(baseString.getBytes)).dropRight(1) //remove the "=" added by the base64Encode method
+	    m.init(new SecretKeySpec(secret.getBytes("UTF-8"),"HmacSHA256"))
+	    val calculatedSignature = Helpers.base64Encode(m.doFinal(baseString.getBytes))
 
 	    calculatedSignature==OAuthparameters.get("oauth_signature").get
 	  }
