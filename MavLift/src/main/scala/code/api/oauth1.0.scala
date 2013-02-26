@@ -384,7 +384,7 @@ object OAuthHandshake extends RestHelper
     val secret_data = ConsumerKey + randomUUID().toString() + Helpers.randomString(20) + token
     //use HmacSHA256 to compute the token
     val n = Mac.getInstance("HmacSHA256");
-    n.init(new SecretKeySpec(token_data.getBytes(),"HmacSHA256"))
+    n.init(new SecretKeySpec(secret_data.getBytes(),"HmacSHA256"))
     val secret = Helpers.base64Encode(n.doFinal(token_data.getBytes)).dropRight(1)
 
     (token,secret)
