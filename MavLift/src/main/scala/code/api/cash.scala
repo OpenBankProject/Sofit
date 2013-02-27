@@ -36,10 +36,10 @@ import net.liftweb.http.rest._
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Printer._
 import net.liftweb.json.Extraction._
-import net.liftweb.json.JsonAST._
+import net.liftweb.json.JsonAST
+import JsonAST._
 import net.liftweb.common.{Failure,Full, Empty, Box,Loggable}
 import net.liftweb.mongodb._
-import net.liftweb.json.JsonAST.JString
 import com.mongodb.casbah.Imports._
 import _root_.java.math.MathContext
 import org.bson.types._
@@ -67,7 +67,7 @@ import net.liftweb.json.NoTypeHints
 import scala.math.BigDecimal._
 
 case class CashTransaction(
-  otherparty : String,
+  otherParty : String,
   date : Date,
   amount : Double,
   kind : String,
@@ -118,7 +118,7 @@ object CashAccountAPI extends RestHelper with Loggable {
                     name("")
 
                   val otherAccount = OBPAccount.createRecord.
-                    holder(cashTransaction.otherparty).
+                    holder(cashTransaction.otherParty).
                     number("").
                     kind("").
                     bank(otherAccountBank)
@@ -155,13 +155,29 @@ object CashAccountAPI extends RestHelper with Loggable {
 
                   val env = OBPEnvelope.createRecord.
                     obp_transaction(transaction).save
-                  account.balance(account.balance.get + amount).lastUpdate(now).save
+                  account.balance(account.balance.get + amount).lastUpdate(now)
+                  env.createAliases
+                  env.save
 
                   JsonResponse(SuccessMessage("transaction successfully added"), Nil, Nil, 200)
                 }
-                case _ => JsonResponse(ErrorMessage("wrong json format" ), Nil, Nil, 401)
+                case _ =>{
+                  val error = "Post data must be in the format: \n" +
+                    pretty(
+                      JsonAST.render(
+                        Extraction.decompose(
+                          CashTransaction(
+                            otherParty = "other party",
+                            date = new Date,
+                            amount = 1231.12,
+                            kind = "in / out",
+                            label = "what is this transaction for",
+                            otherInformation = "more info"
+                          ))))
+                  JsonResponse(ErrorMessage(error), Nil, Nil, 400)
+                }
               }
-          case _ => JsonResponse(ErrorMessage("Account " + id + " not found" ), Nil, Nil, 401)
+          case _ => JsonResponse(ErrorMessage("Account " + id + " not found" ), Nil, Nil, 400)
         }
       else
         JsonResponse(ErrorMessage("No key found or wrong key"), Nil, Nil, 401)
