@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -151,7 +151,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
 
   /**
    * Add a user generated comment to the transaction. Saves the db model when called.
-   * 
+   *
    * @param email The email address of the person posting the comment
    * @param text The text of the comment
    */
@@ -178,10 +178,10 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
         if(tag.delete_!)
           tags(tags.get.diff(Seq(new ObjectId(id)))).save
       }
-      case _ =>  
+      case _ =>
     }
-  }  
-  
+  }
+
   /**
    * @return the id of the newly added image
    */
@@ -191,7 +191,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     images(image.id.is :: images.get).save
     image.id.is.toString
   }
-  
+
   def deleteImage(id : String){
     OBPTransactionImage.find(id) match {
       case Full(image) => {
@@ -199,7 +199,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
           if (image.delete_!) {
             logger.info("==> deleted image id : " + id)
             images(images.get.diff(Seq(new ObjectId(id)))).save
-            //TODO: Delete the actual image file? We don't always control the url of the image so we can't always delete it 
+            //TODO: Delete the actual image file? We don't always control the url of the image so we can't always delete it
           }
       }
       case _ => logger.warn("Could not find image with id " + id + " to delete.")
@@ -213,14 +213,14 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     val bankName = thisAcc.bank.get.name.get
     val accQry = QueryBuilder.start("number").is(num).
       put("kind").is(accKind).get
-    
+
     for {
       account <- Account.find(accQry)
       bank <- HostedBank.find("name", bankName)
       if(bank.id.get == account.bankID.get)
     } yield account
   }
-   
+
   object DateDescending extends Ordering[OBPEnvelope] {
     def compare(e1: OBPEnvelope, e2: OBPEnvelope) = {
       val date1 = e1.obp_transaction.get.details.get.completed.get
@@ -228,25 +228,25 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
       date1.compareTo(date2)
     }
   }
-  
+
   def orderByDateDescending = (e1: OBPEnvelope, e2: OBPEnvelope) => {
     val date1 = e1.obp_transaction.get.details.get.completed.get
     val date2 = e2.obp_transaction.get.details.get.completed.get
     date1.after(date2)
   }
-  
+
   // This creates a json attribute called "obp_transaction"
   object obp_transaction extends BsonRecordField(this, OBPTransaction)
-  
+
   //not named comments as "comments" was used in an older mongo document version
   object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
 
   object tags extends ObjectIdRefListField(this, OBPTag)
-  
+
   object images extends ObjectIdRefListField(this, OBPTransactionImage)
 
   object narrative extends StringField(this, 255)
-  
+
   /**
    * A JSON representation of the transaction to be returned when successfully added via an API call
    */
@@ -274,7 +274,7 @@ class OBPComment private() extends MongoRecord[OBPComment] with ObjectIdPk[OBPCo
 object OBPComment extends OBPComment with MongoMetaRecord[OBPComment]
 
 object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Loggable {
-  
+
   class OBPQueryParam
   trait OBPOrder { def orderValue : Int }
   object OBPOrder {
@@ -290,7 +290,7 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
   case class OBPFromDate(value: Date) extends OBPQueryParam
   case class OBPToDate(value: Date) extends OBPQueryParam
   case class OBPOrdering(field: Option[String], order: OBPOrder) extends OBPQueryParam
-  
+
   override def fromJValue(jval: JValue) = {
 
     def createAliases(env: OBPEnvelope) = {
@@ -354,8 +354,8 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
         env.theAccount match {
           case Full(a) => {
             val randomAliasName = newPublicAliasName(a)
-            //create a new "otherAccount" 
-            val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).publicAlias(randomAliasName).save                
+            //create a new "otherAccount"
+            val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).publicAlias(randomAliasName).save
             a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save
             Full(randomAliasName)
           }
@@ -370,13 +370,13 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
         env.theAccount match {
           case Full(a) => {
             a.otherAccounts.objs.find(acc => acc.holder.equals(realOtherAccHolder)) match {
-              case Some(o) => 
+              case Some(o) =>
                 //update the "otherAccount"
                 val newOtherAcc = o.privateAlias("").save
               case _ => {
                 //create a new "otherAccount"
-                val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).privateAlias("").save                
-                a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save                
+                val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).privateAlias("").save
+                a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save
               }
             }
             Full("")
@@ -385,12 +385,12 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
         }
       }
 
-      if (!publicAliasExists(realOtherAccHolder)) 
+      if (!publicAliasExists(realOtherAccHolder))
         createPublicAlias(realOtherAccHolder)
-      if (!privateAliasExists(realOtherAccHolder)) 
+      if (!privateAliasExists(realOtherAccHolder))
         createPlaceholderPrivateAlias(realOtherAccHolder)
     }
-    
+
     val created = super.fromJValue(jval)
     created match {
       case Full(c) => createAliases(c)
@@ -398,17 +398,17 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
     }
     created
   }
-  
+
 }
 
 
 class OBPTransaction private() extends BsonRecord[OBPTransaction]{
   def meta = OBPTransaction
-  
+
   object this_account extends BsonRecordField(this, OBPAccount)
   object other_account extends BsonRecordField(this, OBPAccount)
   object details extends BsonRecordField(this, OBPDetails)
-  
+
   def whenAddedJson(envelopeId : String) : JObject  = {
     JObject(List(JField("obp_transaction_uuid", JString(envelopeId)),
     			 JField("this_account", this_account.get.whenAddedJson),
@@ -456,7 +456,7 @@ class OBPBank private() extends BsonRecord[OBPBank]{
   object national_identifier extends net.liftweb.record.field.StringField(this, 255)
   object name extends net.liftweb.record.field.StringField(this, 255)
 
-  
+
   def whenAddedJson : JObject = {
     JObject(List( JField("IBAN", JString(IBAN.get)),
         		  JField("national_identifier", JString(national_identifier.get)),
@@ -479,12 +479,12 @@ class OBPDetails private() extends BsonRecord[OBPDetails]{
   object value extends BsonRecordField(this, OBPValue)
   object completed extends DateField(this)
   object label extends net.liftweb.record.field.StringField(this, 255)
-  
-  
+
+
   def formatDate(date : Date) : String = {
     OBPDetails.formats.dateFormat.format(date)
   }
-  
+
   def whenAddedJson : JObject = {
     JObject(List( JField("type_en", JString(type_en.get)),
         		  JField("type_de", JString(type_de.get)),
@@ -518,7 +518,7 @@ class OBPValue private() extends BsonRecord[OBPValue]{
 
   object currency extends net.liftweb.record.field.StringField(this, 5)
   object amount extends net.liftweb.record.field.DecimalField(this, 0) // ok to use decimal?
-  
+
   def whenAddedJson : JObject = {
     JObject(List( JField("currency", JString(currency.get)),
         		  JField("amount", JString(amount.get.toString))))
@@ -532,7 +532,7 @@ class OBPTag private() extends MongoRecord[OBPTag] with ObjectIdPk[OBPTag] with 
   object userId extends StringField(this,255)
   object viewID extends LongField(this)
   object tag extends StringField(this, 255)
-  object date extends DateField(this) 
+  object date extends DateField(this)
 
   def id_ = id.is.toString
   def datePosted = date.get
@@ -541,16 +541,16 @@ class OBPTag private() extends MongoRecord[OBPTag] with ObjectIdPk[OBPTag] with 
   def value = tag.get
 }
 
-object OBPTag extends OBPTag with MongoMetaRecord[OBPTag] 
+object OBPTag extends OBPTag with MongoMetaRecord[OBPTag]
 
-class OBPTransactionImage private() extends MongoRecord[OBPTransactionImage] 
+class OBPTransactionImage private() extends MongoRecord[OBPTransactionImage]
 		with ObjectIdPk[OBPTransactionImage] with TransactionImage {
   def meta = OBPTransactionImage
-  
+
   object userId extends StringField(this,255)
   object viewID extends LongField(this)
   object imageComment extends StringField(this, 1000)
-  object date extends DateField(this) 
+  object date extends DateField(this)
   object url extends StringField(this, 500)
 
   def id_ = id.is.toString
