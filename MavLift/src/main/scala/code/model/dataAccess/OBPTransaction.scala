@@ -172,6 +172,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     tags(tag.id.is :: tags.get ).save
     tag.id.is.toString
   }
+
   def deleteTag(id : String) = {
     OBPTag.find(id) match {
       case Full(tag) => {
@@ -182,6 +183,103 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     }
   }
 
+  def createAliases = {
+    val realOtherAccHolder = this.obp_transaction.get.other_account.get.holder.get
+
+    def publicAliasExists(realValue: String): Boolean = {
+      this.theAccount match {
+        case Full(a) => {
+          val otherAccs = a.otherAccounts.objs
+          val aliasInQuestion = otherAccs.find(o =>
+            o.holder.get.equals(realValue))
+          aliasInQuestion.isDefined
+        }
+        case _ => false
+      }
+    }
+
+    def privateAliasExists(realValue: String): Boolean = {
+      this.theAccount match {
+        case Full(a) => {
+          val otherAccs = a.otherAccounts.objs
+          val aliasInQuestion = otherAccs.find(o =>
+            o.holder.get.equals(realValue))
+          aliasInQuestion.isDefined
+        }
+        case _ => false
+      }
+    }
+
+    def createPublicAlias(realOtherAccHolder : String) = {
+
+      /**
+       * Generates a new alias name that is guaranteed not to collide with any existing public alias names
+       * for the account in question
+       */
+      def newPublicAliasName(account: Account): String = {
+        val newAlias = "ALIAS_" + Random.nextLong().toString.take(6)
+
+        /**
+         * Returns true if @publicAlias is already the name of a public alias within @account
+         */
+        def isDuplicate(publicAlias: String, account: Account) = {
+          account.otherAccounts.objs.find(oAcc => {
+            oAcc.publicAlias.get == newAlias
+          }).isDefined
+        }
+
+        /**
+         * Appends things to @publicAlias until it a unique public alias name within @account
+         */
+        def appendUntilUnique(publicAlias: String, account: Account): String = {
+          val newAlias = publicAlias + Random.nextLong().toString.take(1)
+          if (isDuplicate(newAlias, account)) appendUntilUnique(newAlias, account)
+          else newAlias
+        }
+
+        if (isDuplicate(newAlias, account)) appendUntilUnique(newAlias, account)
+        else newAlias
+      }
+
+      this.theAccount match {
+        case Full(a) => {
+          val randomAliasName = newPublicAliasName(a)
+          //create a new "otherAccount"
+          val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).publicAlias(randomAliasName).save
+          a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save
+          Full(randomAliasName)
+        }
+        case _ => {
+          logger.warn("Account not found to create aliases for")
+          Empty
+        }
+      }
+    }
+
+    def createPlaceholderPrivateAlias(realOtherAccHolder : String) = {
+      this.theAccount match {
+        case Full(a) => {
+          a.otherAccounts.objs.find(acc => acc.holder.equals(realOtherAccHolder)) match {
+            case Some(o) =>
+              //update the "otherAccount"
+              val newOtherAcc = o.privateAlias("").save
+            case _ => {
+              //create a new "otherAccount"
+              val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).privateAlias("").save
+              a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save
+            }
+          }
+          Full("")
+        }
+        case _ => Empty
+      }
+    }
+
+    if (!publicAliasExists(realOtherAccHolder))
+      createPublicAlias(realOtherAccHolder)
+    if (!privateAliasExists(realOtherAccHolder))
+      createPlaceholderPrivateAlias(realOtherAccHolder)
+  }
   /**
    * @return the id of the newly added image
    */
@@ -292,113 +390,13 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
   case class OBPOrdering(field: Option[String], order: OBPOrder) extends OBPQueryParam
 
   override def fromJValue(jval: JValue) = {
-
-    def createAliases(env: OBPEnvelope) = {
-      val realOtherAccHolder = env.obp_transaction.get.other_account.get.holder.get
-
-      def publicAliasExists(realValue: String): Boolean = {
-        env.theAccount match {
-          case Full(a) => {
-            val otherAccs = a.otherAccounts.objs
-            val aliasInQuestion = otherAccs.find(o =>
-              o.holder.get.equals(realValue))
-            aliasInQuestion.isDefined
-          }
-          case _ => false
-        }
-      }
-
-      def privateAliasExists(realValue: String): Boolean = {
-        env.theAccount match {
-          case Full(a) => {
-            val otherAccs = a.otherAccounts.objs
-            val aliasInQuestion = otherAccs.find(o =>
-              o.holder.get.equals(realValue))
-            aliasInQuestion.isDefined
-          }
-          case _ => false
-        }
-      }
-
-      def createPublicAlias(realOtherAccHolder : String) = {
-
-        /**
-         * Generates a new alias name that is guaranteed not to collide with any existing public alias names
-         * for the account in question
-         */
-        def newPublicAliasName(account: Account): String = {
-          val newAlias = "ALIAS_" + Random.nextLong().toString.take(6)
-
-          /**
-           * Returns true if @publicAlias is already the name of a public alias within @account
-           */
-          def isDuplicate(publicAlias: String, account: Account) = {
-            account.otherAccounts.objs.find(oAcc => {
-              oAcc.publicAlias.get == newAlias
-            }).isDefined
-          }
-
-          /**
-           * Appends things to @publicAlias until it a unique public alias name within @account
-           */
-          def appendUntilUnique(publicAlias: String, account: Account): String = {
-            val newAlias = publicAlias + Random.nextLong().toString.take(1)
-            if (isDuplicate(newAlias, account)) appendUntilUnique(newAlias, account)
-            else newAlias
-          }
-
-          if (isDuplicate(newAlias, account)) appendUntilUnique(newAlias, account)
-          else newAlias
-        }
-
-        env.theAccount match {
-          case Full(a) => {
-            val randomAliasName = newPublicAliasName(a)
-            //create a new "otherAccount"
-            val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).publicAlias(randomAliasName).save
-            a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save
-            Full(randomAliasName)
-          }
-          case _ => {
-            logger.warn("Account not found to create aliases for")
-            Empty
-          }
-        }
-      }
-
-      def createPlaceholderPrivateAlias(realOtherAccHolder : String) = {
-        env.theAccount match {
-          case Full(a) => {
-            a.otherAccounts.objs.find(acc => acc.holder.equals(realOtherAccHolder)) match {
-              case Some(o) =>
-                //update the "otherAccount"
-                val newOtherAcc = o.privateAlias("").save
-              case _ => {
-                //create a new "otherAccount"
-                val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).privateAlias("").save
-                a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save
-              }
-            }
-            Full("")
-          }
-          case _ => Empty
-        }
-      }
-
-      if (!publicAliasExists(realOtherAccHolder))
-        createPublicAlias(realOtherAccHolder)
-      if (!privateAliasExists(realOtherAccHolder))
-        createPlaceholderPrivateAlias(realOtherAccHolder)
-    }
-
     val created = super.fromJValue(jval)
     created match {
-      case Full(c) => createAliases(c)
+      case Full(c) => createAliases
       case _ => //don't create anything
     }
     created
   }
-
 }
 
 
