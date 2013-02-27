@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -39,8 +39,9 @@ import net.liftweb.util.FieldError
 import net.liftweb.util.FieldIdentifier
 import net.liftweb.common.Full
 import code.model.dataAccess.Admin
+import net.liftweb.util.Helpers.now
 
-object AppType extends Enumeration("web", "mobile") 
+object AppType extends Enumeration("web", "mobile")
 {
 	type AppType = Value
 	val Web, Mobile = Value
@@ -56,22 +57,22 @@ class Consumer extends LongKeyedMapper[Consumer] with CreatedUpdated{
 	def getSingleton = Consumer
 	def primaryKeyField = id
 	object id extends MappedLongIndex(this)
-	
+
 	def minLength3(field: MappedString[Consumer])( s : String) = {
 	  if(s.length() < 3) List(FieldError(field, {field.displayName + " must be at least 3 characters"}))
 	  else Nil
 	}
-	
+
 	object key extends MappedString(this, 250){
       override def dbIndexed_? = true
-	} 
+	}
 	object secret extends MappedString(this, 250)
 	object isActive extends MappedBoolean(this)
 	object name extends MappedString(this, 100){
 		override def validations = minLength3(this) _ :: super.validations
 		override def dbIndexed_? = true
 		override def displayName = "App name:"
-	} 
+	}
 	object appType extends MappedEnum(this,AppType) {
 	  override def displayName = "App type:"
 	}
@@ -88,28 +89,28 @@ class Consumer extends LongKeyedMapper[Consumer] with CreatedUpdated{
 	  override def displayName = "Email:"
 	  override def validations = uniqueEmail(this) _ :: super.validations
 	}
-	
+
 }
 
 object Consumer extends Consumer with LongKeyedMetaMapper[Consumer] with CRUDify[Long, Consumer]{
 	//list all path : /admin/consumer/list
 	override def calcPrefix = List("admin",_dbTableNameLC)
-	
+
 	override def editMenuLocParams = List(Admin.testLogginIn)
 	override def showAllMenuLocParams = List(Admin.testLogginIn)
 	override def deleteMenuLocParams = List(Admin.testLogginIn)
 	override def createMenuLocParams = List(Admin.testLogginIn)
 	override def viewMenuLocParams = List(Admin.testLogginIn)
-	
+
 	override def fieldOrder = List(name, appType, description, developerEmail)
-} 
+}
 
 
 class Nonce extends LongKeyedMapper[Nonce] {
-  
+
 	def getSingleton = Nonce
 	def primaryKeyField = id
-	object id extends MappedLongIndex(this) 
+	object id extends MappedLongIndex(this)
 	object consumerkey extends MappedString(this, 250) //we store the consumer Key and we don't need to keep a reference to the token consumer as foreign key
 	object tokenKey extends MappedString(this, 250){ //we store the token Key and we don't need to keep a reference to the token object as foreign key
 		override def defaultValue = ""
@@ -121,25 +122,26 @@ class Nonce extends LongKeyedMapper[Nonce] {
 	  }
 	}
 	object value extends MappedString(this,250)
-	
+
 }
 object Nonce extends Nonce with LongKeyedMetaMapper[Nonce]{}
 
 
 class Token extends LongKeyedMapper[Token]{
-	def getSingleton = Token 
+	def getSingleton = Token
 	def primaryKeyField = id
 	object id extends MappedLongIndex(this)
 	object tokenType extends MappedEnum(this, TokenType)
 	object consumerId extends MappedLongForeignKey(this, Consumer)
-	object userId extends MappedString(this,255) 
+	object userId extends MappedString(this,255)
 	object key extends MappedString(this,250)
 	object secret extends MappedString(this,250)
 	object callbackURL extends MappedString(this,250)
 	object verifier extends MappedString(this,250)
-	object duration extends MappedLong(this)//expressed in milliseconds 
+	object duration extends MappedLong(this)//expressed in milliseconds
 	object expirationDate extends MappedDateTime(this)
 	object insertDate extends MappedDateTime(this)
 	def user = User.findById(userId.get)
+	def isValid : Boolean = expirationDate before now
 }
 object Token extends Token with LongKeyedMetaMapper[Token]
