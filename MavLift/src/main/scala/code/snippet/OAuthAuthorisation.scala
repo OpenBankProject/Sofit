@@ -66,7 +66,11 @@ object OAuthAuthorisation {
 						    // if the user is logged in and non verifier have been generated
 						    if(appToken.verifier.isEmpty)
 						    {
-						    	val randomVerifier = Helpers.base64Encode(Helpers.randomString(20).getBytes()).dropRight(1)
+						    	def fiveRandomNumbers() : String = {
+						    	  def r() = Helpers.randomInt(9).toString //from zero to 9
+						    	  (1 to 5).map(x => r()).foldLeft("")(_ + _)
+						    	}
+						    	val randomVerifier = fiveRandomNumbers()
 						    	appToken.verifier(randomVerifier)
 						    	appToken.userId(OBPUser.currentUserId.get)
 						    	if(appToken.save())
