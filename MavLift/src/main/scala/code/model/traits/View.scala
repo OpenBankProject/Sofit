@@ -302,9 +302,9 @@ trait View {
     if(bankAccount.allowPublicAccess) {
       val owners : Set[AccountOwner] = if(canSeeBankAccountOwners) bankAccount.owners else Set()
       val balance = if(canSeeBankAccountBalance){
-        bankAccount.balance.toString
+        bankAccount.balance.getOrElse(0).toString
       } else if(canSeeBankAccountBalancePositiveOrNegative) {
-        if(bankAccount.balance.toString.startsWith("-")) "-" else "+"
+        if(bankAccount.balance.getOrElse(0).toString.startsWith("-")) "-" else "+"
       } else ""
       val accountType = if(canSeeBankAccountType) Some(bankAccount.accountType) else None
       val currency = if(canSeeBankAccountCurrency) Some(bankAccount.currency) else None
