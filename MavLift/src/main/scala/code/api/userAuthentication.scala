@@ -41,7 +41,7 @@ import net.liftweb.http.JsonResponse
 import net.liftweb.json.Extraction
 import net.liftweb.json.JsonAST.JValue
 import code.model.Token
-import code.mode.TokenType
+import code.model.TokenType
 
 case class ErrorMessage(
   error : String
