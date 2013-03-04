@@ -47,6 +47,10 @@ case class ErrorMessage(
   error : String
 )
 
+case class SuccessMessage(
+  success : String
+)
+
 case class TokenValidity(
   isValid : Boolean
 )
