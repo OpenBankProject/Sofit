@@ -62,17 +62,60 @@ class OBPUser extends MegaProtoUser[OBPUser] with User{
 
   def permittedViews(account: BankAccount): Set[View] = {
     var views: Set[View] = Set()
-    if (OBPUser.hasOurNetworkPermission(account)) views = views + OurNetwork
-    if (OBPUser.hasTeamPermission(account)) views = views + Team
-    if (OBPUser.hasBoardPermission(account)) views = views + Board
-    if (OBPUser.hasAuthoritiesPermission(account)) views = views + Authorities
-    if (OBPUser.hasOwnerPermission(account)) views = views + Owner
+    if (hasOurNetworkPermission(account)) views = views + OurNetwork
+    if (hasTeamPermission(account)) views = views + Team
+    if (hasBoardPermission(account)) views = views + Board
+    if (hasAuthoritiesPermission(account)) views = views + Authorities
+    if (hasOwnerPermission(account)) views = views + Owner
     if (account.allowPublicAccess) views = views + Public
     views
   }
   
   def hasMangementAccess(bankAccount: BankAccount)  = {
-    OBPUser.hasManagementPermission(bankAccount)
+    hasManagementPermission(bankAccount)
+  }
+  
+  def hasOurNetworkPermission(account: BankAccount) : Boolean = {
+    hasPermission(account, (p: Privilege) => p.ourNetworkPermission.is)
+  }
+  
+  def hasTeamPermission(account: BankAccount) : Boolean = {
+    hasPermission(account, (p: Privilege) => p.teamPermission.is)
+  }
+  
+  def hasBoardPermission(account: BankAccount) : Boolean = {
+    hasPermission(account, (p: Privilege) => p.boardPermission.is)
+  }
+  
+  def hasAuthoritiesPermission(account: BankAccount) : Boolean = {
+    hasPermission(account, (p: Privilege) => p.authoritiesPermission.is)
+  }
+  
+  def hasOwnerPermission(account: BankAccount) : Boolean = {
+    hasPermission(account, (p: Privilege) => p.ownerPermission.is)
+  }
+  def hasManagementPermission(account: BankAccount) : Boolean = {
+    hasPermission(account, (p: Privilege) => p.mangementPermission.is)
+  }
+  
+  def hasMoreThanAnonAccess(account: BankAccount) : Boolean = {
+      OBPUser.hasAuthoritiesPermission(account) ||
+      OBPUser.hasBoardPermission(account) ||
+      OBPUser.hasOurNetworkPermission(account) ||
+      OBPUser.hasOwnerPermission(account) ||
+      OBPUser.hasTeamPermission(account) ||
+      OBPUser.hasManagementPermission(account)
+  }
+
+  def hasPermission(bankAccount: BankAccount, permissionCheck: (Privilege) => Boolean): Boolean = {
+    HostedAccount.find(By(HostedAccount.accountID, bankAccount.id)) match {
+      case Full(hostedAccount) =>
+        Privilege.find(By(Privilege.account, hostedAccount), By(Privilege.user, this)) match {
+          case Full(p) => permissionCheck(p)
+          case _ => false
+        }
+      case _ => false
+    }
   }
   
   def accountsWithMoreThanAnonAccess : Set[BankAccount] = {
@@ -161,52 +204,6 @@ object OBPUser extends OBPUser with MetaMegaProtoUser[OBPUser]{
     super.login
   }
   
-  def hasOurNetworkPermission(account: BankAccount) : Boolean = {
-    hasPermission(account, (p: Privilege) => p.ourNetworkPermission.is)
-  }
-  
-  def hasTeamPermission(account: BankAccount) : Boolean = {
-    hasPermission(account, (p: Privilege) => p.teamPermission.is)
-  }
-  
-  def hasBoardPermission(account: BankAccount) : Boolean = {
-    hasPermission(account, (p: Privilege) => p.boardPermission.is)
-  }
-  
-  def hasAuthoritiesPermission(account: BankAccount) : Boolean = {
-    hasPermission(account, (p: Privilege) => p.authoritiesPermission.is)
-  }
-  
-  def hasOwnerPermission(account: BankAccount) : Boolean = {
-    hasPermission(account, (p: Privilege) => p.ownerPermission.is)
-  }
-  def hasManagementPermission(account: BankAccount) : Boolean = {
-    hasPermission(account, (p: Privilege) => p.mangementPermission.is)
-  }
-  
-  def hasMoreThanAnonAccess(account: BankAccount) : Boolean = {
-      OBPUser.hasAuthoritiesPermission(account) ||
-      OBPUser.hasBoardPermission(account) ||
-      OBPUser.hasOurNetworkPermission(account) ||
-      OBPUser.hasOwnerPermission(account) ||
-      OBPUser.hasTeamPermission(account) ||
-      OBPUser.hasManagementPermission(account)
-  }
-  
-  def hasPermission(bankAccount: BankAccount, permissionCheck: (Privilege) => Boolean) : Boolean = {
-    currentUser match{
-      case Full(u) => 
-        HostedAccount.find(By(HostedAccount.accountID, bankAccount.id)) match {
-          case Full(hostedAccount) =>
-                  Privilege.find(By(Privilege.account, hostedAccount), By(Privilege.user, u)) match{
-                    case Full(p) => permissionCheck(p)
-                    case _ => false
-                  } 
-          case _ => false 
-        }
-      case _ => false
-    }
-  }
 }
 
 /**

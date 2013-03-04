@@ -69,6 +69,8 @@ import code.model.traits.User
 import java.util.Date
 import code.api.OAuthHandshake._
 import code.model.traits.ModeratedBankAccount
+import code.model.dataAccess.APIMetric
+import code.model.traits.AccountOwner
 
 object OBPAPI1_1 extends RestHelper with Loggable {
 
@@ -85,9 +87,16 @@ object OBPAPI1_1 extends RestHelper with Loggable {
   else 
     Empty 
   
+  private def logAPICall = 
+    APIMetric.createRecord.
+      url(S.uriAndQueryString.getOrElse("")).
+      date((now: TimeSpan)).
+      save  
+    
   serve("obp" / "v1.1" prefix {
     
     case Nil JsonGet json => {
+      logAPICall
       
       def gitCommit : String = {
         val commit = tryo{
@@ -117,6 +126,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
     }
     
     case "banks" :: Nil JsonGet json => {
+      logAPICall
       def bankToJson( b : Bank) = {
         ("bank" -> 
           ("id" -> b.permalink) ~
@@ -128,5 +138,64 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       JsonResponse("banks" -> Bank.all.map(bankToJson _ ))
     }  
+  })
+
+  serve("obp" / "v1.1" prefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
+      logAPICall
+      val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")
+      val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
+      val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+
+      case class ModeratedAccountAndViews(account: ModeratedBankAccount, views: Set[View])
+
+      val moderatedAccountAndViews = for {
+        bank <- Bank(bankId) ?~ { "bank " + bankId + " not found" } ~> 404
+        account <- BankAccount(bankId, accountId) ?~ { "account " + accountId + " not found for bank" } ~> 404
+        view <- View.fromUrl(viewId) ?~ { "view " + viewId + " not found for account" } ~> 404
+        moderatedAccount <- account.moderatedBankAccount(view, user) ?~ { "view/account not authorised" } ~> 401
+        availableViews <- Full(account.permittedViews(user))
+      } yield ModeratedAccountAndViews(moderatedAccount, availableViews)
+
+      val bankName = moderatedAccountAndViews.flatMap(_.account.bankName) getOrElse ""
+      
+      def viewJson(view: View): JObject = {
+
+        val isPublic: Boolean =
+          view match {
+            case Public => true
+            case _ => false
+          }
+
+        ("id" -> view.id) ~
+        ("short_name" -> view.name) ~
+        ("description" -> view.description) ~
+        ("is_public" -> isPublic)
+      }
+
+      def ownerJson(accountOwner: AccountOwner): JObject = {
+        ("user_id" -> accountOwner.id) ~
+        ("user_provider" -> bankName) ~
+        ("display_name" -> accountOwner.name)
+      }
+
+      def balanceJson(account: ModeratedBankAccount): JObject = {
+        ("currency" -> account.currency) ~
+        ("amount" -> account.balance)
+      }
+
+      def json(account: ModeratedBankAccount, views: Set[View]): JObject = {
+        ("account" ->
+        ("number" -> account.number) ~
+        ("owners" -> account.owners.flatten.map(ownerJson)) ~
+        ("type" -> account.accountType) ~
+        ("balance" -> balanceJson(account)) ~
+        ("IBAN" -> account.iban) ~
+        ("views_available" -> views.map(viewJson)))
+      }
+
+      moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
+    }
+
   })
 }

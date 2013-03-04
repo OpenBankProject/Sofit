@@ -1,4 +1,4 @@
- /** 
+ /**
 Open Bank Project
 
 Copyright 2011,2012 TESOBE / Music Pictures Ltd.
@@ -12,18 +12,18 @@ http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and 
-limitations under the License.  
+See the License for the specific language governing permissions and
+limitations under the License.
 
  Open Bank Project (http://www.openbankproject.com)
       Copyright 2011,2012 TESOBE / Music Pictures Ltd
 
       This product includes software developed at
       TESOBE (http://www.tesobe.com/)
-		by 
+		by
 		Simon Redfern : simon AT tesobe DOT com
 		Everett Sochowski: everett AT tesobe DOT com
-		Ayoub Benali : ayoub AT tesobe Dot com    
+		Ayoub Benali : ayoub AT tesobe Dot com
 */
 package code.snippet
 import net.liftweb.http.rest.RestHelper
@@ -51,22 +51,26 @@ import net.liftweb.util.Helpers._
 
 object OAuthAuthorisation {
 
- 	// this method is specific to the authorization page ( where the user login to grant access 
- 	// to the application (step 2))  
- 	def tokenCheck = 
+ 	// this method is specific to the authorization page ( where the user login to grant access
+ 	// to the application (step 2))
+ 	def tokenCheck =
   	S.param("oauth_token") match {
-	    case Full(token) => 
-      	Token.find(By(Token.key,token.toString)) match {
-	        case Full(appToken) => 
+	    case Full(token) =>
+      	Token.find(By(Token.key,Helpers.urlDecode(token.toString))) match {
+	        case Full(appToken) =>
           	//check if the token is still valid
           	if(appToken.expirationDate.compareTo(new Date(Platform.currentTime)) == 1)
         	  	if(OBPUser.loggedIn_?)
             	{
 						    var verifier =""
-						    // if the user is logged in and non verifier have been generated 
-						    if(appToken.verifier.isEmpty) 
+						    // if the user is logged in and non verifier have been generated
+						    if(appToken.verifier.isEmpty)
 						    {
-						    	val randomVerifier = Helpers.base64Encode(Helpers.randomString(20).getBytes()).dropRight(1)  
+						    	def fiveRandomNumbers() : String = {
+						    	  def r() = Helpers.randomInt(9).toString //from zero to 9
+						    	  (1 to 5).map(x => r()).foldLeft("")(_ + _)
+						    	}
+						    	val randomVerifier = fiveRandomNumbers()
 						    	appToken.verifier(randomVerifier)
 						    	appToken.userId(OBPUser.currentUserId.get)
 						    	if(appToken.save())
@@ -74,11 +78,13 @@ object OAuthAuthorisation {
 					    	}
 					    	else
 					    		verifier=appToken.verifier
-				   
-				   			// show the verifier if the application does not support 
-				   			// redirection  	
-                if(Token.callbackURL=="oob")
-                	"#verifier " #> verifier 
+
+				   			// show the verifier if the application does not support
+				   			// redirection
+                if(appToken.callbackURL.is =="oob")
+                	"#verify-code *" #> verifier &
+                	"#errorMessage" #> "" &
+                	"#account" #> ""
                 else
                 {
                 	//redirect the user to the application with the verifier
@@ -86,8 +92,8 @@ object OAuthAuthorisation {
                 		"&oauth_verifier="+verifier)
                 	"#verifier" #> "you should be redirected"
                 }
-			  			} 
-            	else 
+			  			}
+            	else
             		//the user is not logged in so we show a login form
 	        	  	Consumer.find(By(Consumer.id,appToken.consumerId)) match {
 			            case Full(consumer) => {
@@ -100,44 +106,44 @@ object OAuthAuthorisation {
 						        		val href = for {
 						          		menu <- OBPUser.resetPasswordMenuLoc
 						        		} yield menu.loc.calcDefaultHref
-						        		
+
 						        		href getOrElse "#"
-						    			} & 
-						    			".signup [href]" #> 
-						    			OBPUser.signUpPath.foldLeft("")(_ + "/" + _) 
+						    			} &
+						    			".signup [href]" #>
+						    			OBPUser.signUpPath.foldLeft("")(_ + "/" + _)
 			             	}
 			            }
-		            	case _ => 
+		            	case _ =>
 		            		"#errorMessage" #> "Application not found" &
-					    			"#userAccess" #> NodeSeq.Empty 
+					    			"#userAccess" #> NodeSeq.Empty
 		          	}
-						else 
+						else
         	  	"#errorMessage" #> "Token expired" &
-		      		"#userAccess" #> NodeSeq.Empty 
-	        case _ => 
+		      		"#userAccess" #> NodeSeq.Empty
+	        case _ =>
 	          "#errorMessage" #> "This token does not exist" &
-		      	"#userAccess" #> NodeSeq.Empty 
+		      	"#userAccess" #> NodeSeq.Empty
       	}
-	    case _ => 
+	    case _ =>
       	"#errorMessage" #> "There is no Token"&
-      	"#userAccess" #> NodeSeq.Empty 
+      	"#userAccess" #> NodeSeq.Empty
 		}
 
-	//looks for expired tokens and nonces and delete them 
+	//looks for expired tokens and nonces and delete them
 	def dataBaseCleaner : Unit = {
 		import net.liftweb.util.Schedule
 		import net.liftweb.mapper.By_<
 		Schedule.schedule(dataBaseCleaner _, 1 hour)
 
 		val currentDate = new Date()
-		
+
 		/*
 			As in "wrong timestamp" function, 3 minutes is the timestamp limit where we accept
 			requests. So this function will delete nonces which have a timestamp older than
-			currentDate - 3 minutes   
-		*/ 
-		val timeLimit = new Date(currentDate.getTime + 180000) 
-		
+			currentDate - 3 minutes
+		*/
+		val timeLimit = new Date(currentDate.getTime + 180000)
+
 		//delete expired tokens and nonces
 		(Token.findAll(By_<(Token.expirationDate,currentDate)) ++ Nonce.findAll(By_<(Nonce.timestamp,timeLimit))).foreach(t => t.delete_!)
 	}
