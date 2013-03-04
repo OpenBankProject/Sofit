@@ -82,10 +82,11 @@ object BankMockAPI extends RestHelper with Loggable {
       if(isValidKey)
         S.param("oauth_token") match {
           case Full(token) => {
-            Token.find(By(Token.key,token), By(Token.tokenType,TokenType.Request)) match {
-              case Full(tkn) => JsonResponse(TokenValidity(tkn.isValid), Nil, Nil, 200)
-              case _ => JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
-            }
+            JsonResponse(TokenValidity(true), Nil, Nil, 200)
+            // Token.find(By(Token.key,token), By(Token.tokenType,TokenType.Request)) match {
+            //   case Full(tkn) => JsonResponse(TokenValidity(tkn.isValid), Nil, Nil, 200)
+            //   case _ => JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
+            // }
           }
           case _ => JsonResponse(ErrorMessage("No OAuth token"), Nil, Nil, 401)
         }
@@ -97,23 +98,28 @@ object BankMockAPI extends RestHelper with Loggable {
       if(isValidKey)
         S.param("oauth_token") match {
           case Full(token) => {
-            Token.find(By(Token.key,token), By(Token.tokenType,TokenType.Request)) match {
-              case Full(tkn) =>
-                if(tkn.isValid)
-                  tkn.consumerId.foreign match {
-                    case Full(app) => {
-                      val applicationInfo = ApplicationInformation(
-                        name  = app.name,
-                        callbackURL = tkn.callbackURL.get
-                      )
-                      JsonResponse(applicationInfo, Nil, Nil, 200)
-                    }
-                    case _ => JsonResponse(ErrorMessage("Application not found"), Nil, Nil, 400)
-                  }
-                else
-                  JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
-              case _ => JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
-            }
+            val applicationInfo = ApplicationInformation(
+              name  = "hello world app",
+              callbackURL = "oob"
+            )
+            JsonResponse(applicationInfo, Nil, Nil, 200)
+            // Token.find(By(Token.key,token), By(Token.tokenType,TokenType.Request)) match {
+            //   case Full(tkn) =>
+            //     if(tkn.isValid)
+            //       tkn.consumerId.foreign match {
+            //         case Full(app) => {
+            //           val applicationInfo = ApplicationInformation(
+            //             name  = app.name,
+            //             callbackURL = tkn.callbackURL.get
+            //           )
+            //           JsonResponse(applicationInfo, Nil, Nil, 200)
+            //         }
+            //         case _ => JsonResponse(ErrorMessage("Application not found"), Nil, Nil, 400)
+            //       }
+            //     else
+            //       JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
+            //   case _ => JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
+            // }
           }
           case _ => JsonResponse(ErrorMessage("No OAuth token"), Nil, Nil, 401)
         }

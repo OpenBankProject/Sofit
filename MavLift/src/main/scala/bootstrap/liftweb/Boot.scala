@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -68,9 +68,9 @@ class Boot extends Loggable{
 
     if (!DB.jndiJdbcConnAvailable_?) {
       val driver = Props.get("db.driver") openOr "org.h2.Driver"
-      val vendor = 
+      val vendor =
 	      new StandardDBVendor(driver,
-			     Props.get("db.url") openOr 
+			     Props.get("db.url") openOr
 			     "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
 			     Props.get("db.user"), Props.get("db.password"))
 
@@ -79,13 +79,13 @@ class Boot extends Loggable{
 
       DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
     }
-    Mailer.authenticator = for { 
+    Mailer.authenticator = for {
       user <- Props.get("mail.username")
-      pass <- Props.get("mail.password") 
+      pass <- Props.get("mail.password")
     } yield new Authenticator {
-      override def getPasswordAuthentication = 
-        new PasswordAuthentication(user,pass) 
-    }    
+      override def getPasswordAuthentication =
+        new PasswordAuthentication(user,pass)
+    }
 
     // Use Lift's Mapper ORM to populate the database
     // you don't need to use Mapper to use Lift... use
@@ -96,22 +96,23 @@ class Boot extends Loggable{
     LiftRules.addToPackages("code")
 
     // For some restful stuff
-    LiftRules.statelessDispatchTable.append(OBPAPI1_0) 
-    LiftRules.statelessDispatchTable.append(OBPAPI1_1)     
-    LiftRules.statelessDispatchTable.append(ImporterAPI) 
+    LiftRules.statelessDispatchTable.append(OBPAPI1_0)
+    LiftRules.statelessDispatchTable.append(OBPAPI1_1)
+    LiftRules.statelessDispatchTable.append(ImporterAPI)
+    LiftRules.statelessDispatchTable.append(BankMockAPI)
 
     //OAuth API call
-    LiftRules.dispatch.append(OAuthHandshake) 
-    LiftRules.statelessDispatchTable.append(OAuthHandshake) 
+    LiftRules.dispatch.append(OAuthHandshake)
+    LiftRules.statelessDispatchTable.append(OAuthHandshake)
 
-    //OAuth Mapper 
+    //OAuth Mapper
     Schemifier.schemify(true, Schemifier.infoF _, Nonce)
     Schemifier.schemify(true, Schemifier.infoF _, Token)
-    Schemifier.schemify(true, Schemifier.infoF _, Consumer) 
+    Schemifier.schemify(true, Schemifier.infoF _, Consumer)
     Schemifier.schemify(true, Schemifier.infoF _, HostedAccount)
     //lunch the scheduler to clean the database from the expired tokens and nonces
-    Schedule.schedule(()=> OAuthAuthorisation.dataBaseCleaner, 2 minutes)   
-    
+    Schedule.schedule(()=> OAuthAuthorisation.dataBaseCleaner, 2 minutes)
+
     def check(bool: Boolean) : Box[LiftResponse] = {
       if(bool){
         Empty
@@ -119,16 +120,16 @@ class Boot extends Loggable{
         Full(PlainTextResponse("unauthorized"))
       }
     }
-     
-    def getTransactionsAndView (URLParameters : List[String]) : Box[(List[ModeratedTransaction], View)] = 
+
+    def getTransactionsAndView (URLParameters : List[String]) : Box[(List[ModeratedTransaction], View)] =
     {
       val bank = URLParameters(0)
       val account = URLParameters(1)
       val viewName = URLParameters(2)
-      
+
       val transactionsAndView : Box[(List[ModeratedTransaction], View)] = for {
-        b <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank} 
-        v <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found for account " + account + " and bank " + bank} 
+        b <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
+        v <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found for account " + account + " and bank " + bank}
         if(b.authorisedAccess(v, OBPUser.currentUser))
       } yield (b.getModeratedTransactions(v.moderate), v)
 
@@ -138,25 +139,25 @@ class Boot extends Loggable{
       }
       transactionsAndView
     }
-    
-    def getAccount(URLParameters : List[String]) = 
+
+    def getAccount(URLParameters : List[String]) =
     {
       val bankUrl = URLParameters(0)
       val accountUrl = URLParameters(1)
       val account = for {
-        account <- LocalStorage.getAccount(bankUrl,accountUrl) ?~ {"account " + accountUrl + " not found for bank " + bankUrl} 
+        account <- LocalStorage.getAccount(bankUrl,accountUrl) ?~ {"account " + accountUrl + " not found for bank " + bankUrl}
         user <- OBPUser.currentUser  ?~ {"user not found when attempting to access account " + account + " of bank " + bankUrl}
         bankAccount <- BankAccount(bankUrl, accountUrl) ?~ {"account " + account + " not found for bank " + bankUrl}
         if(user.hasMangementAccess(bankAccount))
       } yield account
-      
+
       account match {
         case Failure(msg, _, _) => logger.info("Could not get account: " + msg)
         case _ => //don't log anything
       }
       account
     }
-    def getTransaction(URLParameters : List[String]) = 
+    def getTransaction(URLParameters : List[String]) =
     {
       if(URLParameters.length==4)
       {
@@ -165,12 +166,12 @@ class Boot extends Loggable{
         val transactionID = URLParameters(2)
         val viewName = URLParameters(3)
         val transaction = for{
-          bankAccount <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank} 
-          transaction <- bankAccount.transaction(transactionID) ?~ {"transaction " + transactionID + " not found in account " + account + " for bank " + bank} 
+          bankAccount <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
+          transaction <- bankAccount.transaction(transactionID) ?~ {"transaction " + transactionID + " not found in account " + account + " for bank " + bank}
           view <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found"}
-          if(bankAccount.authorisedAccess(view, OBPUser.currentUser))  
+          if(bankAccount.authorisedAccess(view, OBPUser.currentUser))
         } yield (view.moderate(transaction),view)
-        
+
       transaction match {
         case Failure(msg, _, _) => logger.info("Could not get transaction: " + msg)
         case _ => //don't log anything
@@ -179,35 +180,35 @@ class Boot extends Loggable{
       }
       else
         Empty
-    }       
+    }
     // Build SiteMap
     val sitemap = List(
           Menu.i("Home") / "index",
           Menu.i("Privilege Admin") / "admin" / "privilege"  >> TestAccess(() => {
             check(OBPUser.loggedIn_?)
-          }) >> LocGroup("admin") 
+          }) >> LocGroup("admin")
           	submenus(Privilege.menus : _*),
           Menu.i("Consumer Admin") / "admin" / "consumers" >> LocGroup("admin")
           	submenus(Consumer.menus : _*),
           Menu("Consumer Registration", "Developers") / "consumer-registration",
           Menu.i("Metrics") / "metrics",
           Menu.i("OAuth") / "oauth" / "authorize", //OAuth authorization page
-          Menu.i("Connect") / "connect", 
+          Menu.i("Connect") / "connect",
 
           Menu.i("Banks") / "banks", //no test => list of open banks
           //list of open banks (banks with a least a bank account with an open account)
           Menu.param[Bank]("Bank", "bank", LocalStorage.getBank _ ,  bank => bank.id ) / "banks" / * ,
           //list of open accounts in a specific bank
-          Menu.param[Bank]("Accounts", "accounts", LocalStorage.getBank _ ,  bank => bank.id ) / "banks" / * / "accounts", 
-          
+          Menu.param[Bank]("Accounts", "accounts", LocalStorage.getBank _ ,  bank => bank.id ) / "banks" / * / "accounts",
+
           //test if the bank exists and if the user have access to management page
           Menu.params[Account]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
-          
-          Menu.params[(List[ModeratedTransaction], View)]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") ) 
+
+          Menu.params[(List[ModeratedTransaction], View)]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
 
-          Menu.params[(ModeratedTransaction,View)]("transaction", "transaction", getTransaction _ ,  t => List("") ) 
-          / "banks" / * / "accounts" / * / "transactions" / * / *           
+          Menu.params[(ModeratedTransaction,View)]("transaction", "transaction", getTransaction _ ,  t => List("") )
+          / "banks" / * / "accounts" / * / "transactions" / * / *
     )
 
     def sitemapMutators = OBPUser.sitemapMutator
@@ -221,7 +222,7 @@ class Boot extends Loggable{
     //Show the spinny image when an Ajax call starts
     LiftRules.ajaxStart =
       Full(() => LiftRules.jsArtifacts.show("ajax-loader").cmd)
-    
+
     // Make the spinny image go away when it ends
     LiftRules.ajaxEnd =
       Full(() => LiftRules.jsArtifacts.hide("ajax-loader").cmd)
@@ -234,31 +235,31 @@ class Boot extends Loggable{
 
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
-      new Html5Properties(r.userAgent))    
+      new Html5Properties(r.userAgent))
 
     // Make a transaction span the whole HTTP request
     S.addAround(DB.buildLoanWrapper)
-    
+
     TableSorter.init
     /**
      * A temporary measure to make sure there is an owner for the account, so that someone can set permissions
      */
     Account.find(("holder", "Music Pictures Limited")) match{
-      case Full(a) => 
+      case Full(a) =>
         HostedAccount.find(By(HostedAccount.accountID,a.id.toString)) match {
-          case Empty => { 
-            val hostedAccount = HostedAccount.create.accountID(a.id.toString).saveMe  
+          case Empty => {
+            val hostedAccount = HostedAccount.create.accountID(a.id.toString).saveMe
             logger.debug("Creating tesobe account user and granting it owner permissions")
             //create one
             // val randomPassword = StringHelpers.randomString(12)
             // println ("The admin password is :"+randomPassword )
             val userEmail = "tesobe@tesobe.com"
             val firstName = "tesobe first name"
-            val lastName = "tesobe last name"            
+            val lastName = "tesobe last name"
             val theUserOwner = OBPUser.find(By(OBPUser.email, userEmail)).getOrElse(OBPUser.create.email(userEmail).password("123tesobe456").validated(true).firstName(firstName).lastName(lastName).saveMe)
-            Privilege.create.account(hostedAccount).ownerPermission(true).user(theUserOwner).saveMe              
-          }  
-          case Full(hostedAccount) => 
+            Privilege.create.account(hostedAccount).ownerPermission(true).user(theUserOwner).saveMe
+          }
+          case Full(hostedAccount) =>
             Privilege.find(By(Privilege.account,hostedAccount), By(Privilege.ownerPermission, true)) match{
               case Empty => {
                 //create one
@@ -270,14 +271,14 @@ class Boot extends Loggable{
                 val theUserOwner = OBPUser.find(By(OBPUser.email, userEmail)).getOrElse(OBPUser.create.email(userEmail).password("123tesobe456").validated(true).firstName(firstName).lastName(lastName).saveMe)
                 Privilege.create.account(hostedAccount).ownerPermission(true)
                   .mangementPermission(true).authoritiesPermission(true).boardPermission(true)
-                  .teamPermission(true).ourNetworkPermission(true).user(theUserOwner).saveMe 
+                  .teamPermission(true).ourNetworkPermission(true).user(theUserOwner).saveMe
               }
               case _ => logger.debug("Owner privilege already exists")
             }
           case _ => None
-        }  
+        }
       case _ => logger.debug("No account found")
     }
-    
+
   }
 }
