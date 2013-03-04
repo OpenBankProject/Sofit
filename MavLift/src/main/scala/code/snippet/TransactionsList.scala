@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -60,7 +60,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
     case Nil => ""
     case x :: xs => x.bankAccount match {
       case Some(bankAccount) => bankAccount.currency match {
-                case Some(currencyISOCode) =>{ 
+                case Some(currencyISOCode) =>{
                   tryo{
                     Currency.getInstance(currencyISOCode)
                   } match {
@@ -72,9 +72,9 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
               }
       case _ => ""
     }
-  }  
+  }
   def individualTransaction(transaction: ModeratedTransaction): CssSel = {
-    
+
     def otherPartyInfo: CssSel = {
       //The extra information about the other party in the transaction
         def moreInfoBlank =
@@ -102,9 +102,9 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
 
         def openCorporatesNotBlank =
           ".open_corporates_link [href]" #> transaction.otherBankAccount.get.metadata.get.openCorporatesUrl.get
-        
+
         transaction.otherBankAccount match {
-          case Some(otherAccount) => 
+          case Some(otherAccount) =>
           {
             ".the_name *" #> otherAccount.label.display &
             {otherAccount.label.aliasType match{
@@ -115,25 +115,25 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
                   ".alias_indicator [class+]" #> "alias_indicator_private" &
                     ".alias_indicator *" #> "(Alias)"
                 case _ => NOOP_SELECTOR
-            }}& 
+            }}&
             {otherAccount.metadata match {
-                case Some(metadata) => 
+                case Some(metadata) =>
                 {
                   {metadata.moreInfo match{
                             case Some(m) => if(m.isEmpty) moreInfoBlank else moreInfoNotBlank
                             case _ => moreInfoBlank
-                  }}&  
+                  }}&
                   {metadata.imageUrl match{
                           case Some(i) => if(i.isEmpty) logoBlank else logoNotBlank
                           case _ => logoBlank
-                  }}& 
+                  }}&
                   {metadata.url match{
                     case Some(m) => if(m.isEmpty) websiteBlank else websiteNotBlank
                     case _ => websiteBlank
                   }}&
                   {metadata.openCorporatesUrl match{
                     case Some(m) => if(m.isEmpty) openCorporatesBlank else openCorporatesNotBlank
-                    case _ => openCorporatesBlank       
+                    case _ => openCorporatesBlank
                   }}
                 }
                 case _ => ".extra *" #> NodeSeq.Empty
@@ -143,14 +143,14 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
         }
     }
     def transactionInformations = {
-      ".amount *" #>  {currencySymbol + { transaction.amount match { 
+      ".amount *" #>  {currencySymbol + { transaction.amount match {
 								      					 case Some(o) => o.toString().stripPrefix("-")
 								      					 case _ => ""
-								      				   }}} &  
+								      				   }}} &
       ".narrative *" #> {transaction.metadata match{
           case Some(metadata) => displayNarrative(transaction,view)
           case _ => NodeSeq.Empty
-        }} &     
+        }} &
     	".symbol *" #>  {transaction.amount match {
 		        				  	case Some(a) => if (a < 0) "-" else "+"
 		        				  	case _ => ""
@@ -163,27 +163,27 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
         case Some(metadata) => metadata.comments match{
             case Some(comments) => ".comments_ext [href]" #> { "transactions/" + transaction.id +"/"+view.permalink } &
                                    ".comment *" #> comments.length.toString()
-            case _ =>  ".comments *" #> NodeSeq.Empty 
+            case _ =>  ".comments *" #> NodeSeq.Empty
           }
-        case _ =>  ".comments *" #> NodeSeq.Empty 
+        case _ =>  ".comments *" #> NodeSeq.Empty
       }}
     }
-   transactionInformations & 
-   otherPartyInfo 
+   transactionInformations &
+   otherPartyInfo
   }
-  
+
   def displayAll = {
     def orderByDateDescending = (t1: ModeratedTransaction, t2: ModeratedTransaction) => {
       val date1 = t1.finishDate getOrElse new Date()
       val date2 = t2.finishDate getOrElse new Date()
       date1.after(date2)
     }
-    
+
     val sortedTransactions = groupByDate(filteredTransactions.toList.sortWith(orderByDateDescending))
-    
+
     "* *" #> sortedTransactions.map( transactionsForDay => {daySummary(transactionsForDay)})
   }
-  
+
   def editableNarrative(transaction : ModeratedTransaction) = {
     var narrative = transaction.metadata.get.ownerComment.getOrElse("").toString
     CustomEditable.editable(narrative, SHtml.text(narrative, narrative = _), () => {
@@ -195,7 +195,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
 
   def displayNarrative(transaction : ModeratedTransaction, currentView : View): NodeSeq = {
     if(currentView.canEditOwnerComment)
-    	editableNarrative(transaction)	
+    	editableNarrative(transaction)
     else Text(transaction.metadata.get.ownerComment.getOrElse("").toString)
   }
 
@@ -203,12 +203,12 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
 
     val date1 = t1.finishDate getOrElse new Date()
     val date2 = t2.finishDate getOrElse new Date()
-    
+
     val cal1 = Calendar.getInstance();
     val cal2 = Calendar.getInstance();
     cal1.setTime(date1);
     cal2.setTime(date2);
-    
+
     //True if the two dates fall on the same day of the same year
     cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
                   cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
@@ -241,7 +241,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
         case _ => ""
       }
     ".date *" #> date &
-      ".balance_number *" #> {currencySymbol + " " + aTransaction.balance } & 
+      ".balance_number *" #> {currencySymbol + " " + aTransaction.balance } &
       ".transaction_row *" #> transactionsForDay.map(t => individualTransaction(t))
   }
 
@@ -252,7 +252,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
         x.bankAccount match {
           case Some(bankAccount) => {
             val url = S.uri.split("/",0)
-            var accountLastUpdate = 
+            var accountLastUpdate =
               if(url.size>4)
               {
                 import code.model.dataAccess.LocalStorage
@@ -287,4 +287,3 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
     else NOOP_SELECTOR
   }
 }
-
