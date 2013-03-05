@@ -60,6 +60,9 @@ case class ApplicationInformation(
   callbackURL : String
 )
 
+case class Verifier(
+  value : String
+)
 /**
 * this object provides the API call required for the Bank mock,
 * They are required during the User authentication / Application Authorization steps
@@ -70,6 +73,7 @@ object BankMockAPI extends RestHelper with Loggable {
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
   implicit def TokenValidityToJson(msg: TokenValidity): JValue = Extraction.decompose(msg)
   implicit def applicationInfoToJson(info: ApplicationInformation): JValue = Extraction.decompose(info)
+  implicit def verifierToJson(verifier: Verifier): JValue = Extraction.decompose(verifier)
 
   //extract and compare the sent key with the local one (shared secret)
   def isValidKey : Boolean = {
@@ -130,5 +134,20 @@ object BankMockAPI extends RestHelper with Loggable {
       else
         JsonResponse(ErrorMessage("No key found or wrong key"), Nil, Nil, 401)
     }
+    case "verifiers" :: Nil JsonPost json -> _ => {
+      if(isValidKey)
+        S.param("oauth_token") match {
+          case Full(token) => {
+            JsonResponse(Verifier("123"), Nil, Nil, 200)
+            // Token.gernerateVerifier(token) match {
+            //   case Full(verifier) => JsonResponse(Verifier(verifier), Nil, Nil, 200)
+            //   case _ => JsonResponse(ErrorMessage("wrong token"), Nil, Nil, 400)
+            // }
+          }
+          case _ => JsonResponse(ErrorMessage("No OAuth token"), Nil, Nil, 401)
+        }
+      else
+        JsonResponse(ErrorMessage("No key found or wrong key"), Nil, Nil, 401)
+  }
   })
 }
