@@ -47,6 +47,7 @@ import code.model.TokenType._
 import scala.compat.Platform
 import scala.xml.NodeSeq
 import net.liftweb.util.Helpers._
+import net.liftweb.util.Props
 
 /**
 * This object provides the API calls necessary to third party applications
@@ -230,7 +231,7 @@ object OAuthHandshake extends RestHelper with Loggable {
 
 
 			//prepare the base string
-	    var baseString = httpMethod+"&"+URLEncoder.encode(S.hostAndPath + S.uri,"UTF-8")+"&"
+	    var baseString = httpMethod+"&"+URLEncoder.encode(Props.get("hostname").openOr(S.hostAndPath)  + S.uri,"UTF-8")+"&"
 	    baseString+= generateOAuthParametersString(OAuthparameters)
 
       val encodeBaseString = URLEncoder.encode(baseString,"UTF-8")
