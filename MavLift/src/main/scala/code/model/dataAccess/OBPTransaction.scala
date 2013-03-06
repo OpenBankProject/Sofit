@@ -392,7 +392,7 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
   override def fromJValue(jval: JValue) = {
     val created = super.fromJValue(jval)
     created match {
-      case Full(c) => createAliases
+      case Full(c) => c.createAliases
       case _ => //don't create anything
     }
     created
