@@ -33,7 +33,7 @@ import net.liftweb.http.PostRequest
 import net.liftweb.http.LiftResponse
 import net.liftweb.common.Box
 import net.liftweb.http.InMemoryResponse
-import net.liftweb.common.{Full,Empty}
+import net.liftweb.common.{Full,Empty,Loggable}
 import net.liftweb.http.S
 import code.model.{Nonce, Consumer, Token}
 import net.liftweb.mapper.By
@@ -53,8 +53,7 @@ import net.liftweb.util.Helpers._
 * so they could authenticate their users.
 */
 
-object OAuthHandshake extends RestHelper
-{
+object OAuthHandshake extends RestHelper with Loggable {
 	serve
 	{
 		//Handling get request for a "request token"
@@ -245,7 +244,7 @@ object OAuthHandshake extends RestHelper
 	        }
 	      case _ => secret+= "&"
 	    }
-
+      logger.info("base string : " + baseString)
 	    //signing process
 	    var m = Mac.getInstance("HmacSHA256");
 	    m.init(new SecretKeySpec(secret.getBytes("UTF-8"),"HmacSHA256"))
