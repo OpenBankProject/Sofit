@@ -127,7 +127,7 @@ object OAuthHandshake extends RestHelper with Loggable {
 
 			    if (input contains "=") {
 			    	val split = input.split("=",2)
-		      	val parameterValue = URLDecoder.decode(split(1),"UTF-8").replace("\"","")
+		      	val parameterValue = split(1).replace("\"","")
 		      	//add only OAuth parameters and not empty
 		      	if(oauthPossibleParameters.contains(split(0)) && ! parameterValue.isEmpty)
 		       		Some(split(0),parameterValue)  // return key , value
@@ -222,15 +222,18 @@ object OAuthHandshake extends RestHelper with Loggable {
 	     		t =>
 	      		if(t._1 != "oauth_signature")
 			     		parameters += URLEncoder.encode(t._1,"UTF-8")+"%3D"+ URLEncoder.encode(t._2,"UTF-8")+"%26"
+
 	     	)
 		   	parameters = parameters.dropRight(3) //remove the "&" encoded sign
 		   	parameters
 	    }
 
+
 			//prepare the base string
 	    var baseString = httpMethod+"&"+URLEncoder.encode(S.hostAndPath + S.uri,"UTF-8")+"&"
 	    baseString+= generateOAuthParametersString(OAuthparameters)
 
+      val encodeBaseString = URLEncoder.encode(baseString,"UTF-8")
 	    //get the key to sign
 	    val comsumer = Consumer.find(
 		    	By(Consumer.key,OAuthparameters.get("oauth_consumer_key").get)
@@ -250,7 +253,7 @@ object OAuthHandshake extends RestHelper with Loggable {
 	    m.init(new SecretKeySpec(secret.getBytes("UTF-8"),"HmacSHA256"))
 	    val calculatedSignature = Helpers.base64Encode(m.doFinal(baseString.getBytes))
 
-	    calculatedSignature==OAuthparameters.get("oauth_signature").get
+	    calculatedSignature== URLDecoder.decode(OAuthparameters.get("oauth_signature").get,"UTF-8")
 	  }
 
 	  //check if the token exists and is still valid
