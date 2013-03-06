@@ -71,6 +71,9 @@ import code.api.OAuthHandshake._
 import code.model.traits.ModeratedBankAccount
 import code.model.dataAccess.APIMetric
 import code.model.traits.AccountOwner
+import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
+import code.model.dataAccess.OBPUser
+import code.model.traits.ModeratedOtherBankAccount
 
 object OBPAPI1_1 extends RestHelper with Loggable {
 
@@ -140,6 +143,114 @@ object OBPAPI1_1 extends RestHelper with Loggable {
     }  
   })
 
+  serve("obp" / "v1.1" prefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: Nil JsonGet json => {
+      //log the API call 
+      logAPICall
+
+      import code.api.OAuthHandshake._
+      val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
+      val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
+
+      def asInt(s: Box[String], default: Int): Int = {
+        s match {
+          case Full(str) => tryo { str.toInt } getOrElse default
+          case _ => default
+        }
+      }
+      val limit = asInt(json.header("obp_limit"), 50)
+      val offset = asInt(json.header("obp_offset"), 0)
+      /**
+       * sortBy is currently disabled as it would open up a security hole:
+       * 
+       * sortBy as currently implemented will take in a parameter that searches on the mongo field names. The issue here
+       * is that it will sort on the true value, and not the moderated output. So if a view is supposed to return an alias name
+       * rather than the true value, but someone uses sortBy on the other bank account name/holder, not only will the returned data
+       * have the wrong order, but information about the true account holder name will be exposed due to its position in the sorted order
+       * 
+       * This applies to all fields that can have their data concealed... which in theory will eventually be most/all
+       * 
+       */
+      //val sortBy = json.header("obp_sort_by")
+      val sortBy = None
+      val sortDirection = OBPOrder(json.header("obp_sort_by"))
+      val fromDate = tryo{dateFormat.parse(json.header("obp_from_date") getOrElse "")}.map(OBPFromDate(_))
+      val toDate = tryo{dateFormat.parse(json.header("obp_to_date") getOrElse "")}.map(OBPToDate(_))
+
+      def getTransactions(bankAccount: BankAccount, view: View, user: Option[User]) = {
+        if(bankAccount.authorisedAccess(view, user)) {
+          val basicParams = List(OBPLimit(limit), 
+                          OBPOffset(offset), 
+                          OBPOrdering(sortBy, sortDirection))
+              
+          val params : List[OBPQueryParam] = fromDate.toList ::: toDate.toList ::: basicParams
+          bankAccount.getModeratedTransactions(params: _*)(view.moderate)
+        } else Nil
+      }
+      
+      def transactionsJson(transactions : List[ModeratedTransaction], v : View) = {
+        ("transactions" -> transactions.map(transactionJson(_, v)))
+      }
+      
+      def transactionJson(t : ModeratedTransaction, v : View) : JObject = {
+        ("transaction" -> 
+          ("view" -> v.permalink) ~
+          ("uuid" -> t.id) ~
+          ("bank_id" -> "") ~
+          ("this_account" -> t.bankAccount.map(thisAccountJson)) ~
+          ("other_account" -> t.otherBankAccount.map(otherAccountJson)) ~
+          ("details" -> 
+            ("type" -> t.transactionType.getOrElse("")) ~
+            ("label" -> t.label.getOrElse("")) ~
+            ("posted" -> t.dateOption2JString(t.startDate)) ~
+            ("completed" -> t.dateOption2JString(t.finishDate)) ~
+            ("new_balance" ->
+              ("currency" -> t.currency.getOrElse("")) ~ 
+              ("amount" -> t.balance)) ~
+            ("value" ->
+              ("currency" -> t.currency.getOrElse("")) ~
+              ("amount" -> t.amount))))
+      }
+      
+      def thisAccountJson(thisAccount : ModeratedBankAccount) : JObject = {
+        ("holder" -> thisAccount.owners.flatten.map(ownerJson)) ~
+        ("number" -> thisAccount.number.getOrElse("")) ~
+        ("kind" -> thisAccount.accountType.getOrElse("")) ~
+        ("bank" -> 
+          ("IBAN" -> thisAccount.iban.getOrElse(Some(""))) ~ //TODO: Why is it Option[Option[String]]?
+          ("national_identifier" -> thisAccount.nationalIdentifier.getOrElse("")) ~
+          ("name" -> thisAccount.label.getOrElse("")))
+      }      
+      
+      def ownerJson(owner : AccountOwner) : JObject = {
+        ("name" -> owner.name) ~
+        ("is_alias" -> false)
+      }
+      
+      def otherAccountJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
+        ("holder" -> 
+          ("name" -> otherAccount.label.display) ~
+          ("is_alias" -> otherAccount.isAlias)) ~
+        ("number" -> otherAccount.number.getOrElse("")) ~
+        ("type" -> "") ~
+        ("bank" -> 
+          ("IBAN" -> "") ~
+          ("national_identifier" -> "") ~
+          ("name" -> ""))
+      }
+      
+      val response = for {
+        bankAccount <- BankAccount(bankId, accountId)
+        view <- View.fromUrl(viewId) //TODO: This will have to change if we implement custom view names for different accounts
+      } yield {
+        val ts = getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
+        JsonResponse(transactionsJson(ts, view))
+      }
+      
+      response getOrElse InMemoryResponse(data, headers, Nil, 401) : LiftResponse
+    }
+  })
+  
   serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
       logAPICall
