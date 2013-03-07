@@ -37,9 +37,10 @@ import code.model.traits.User
 import net.liftweb.http.SHtml
 import net.liftweb.util.FieldError
 import net.liftweb.util.FieldIdentifier
-import net.liftweb.common.Full
+import net.liftweb.common.{Full,Failure,Box,Empty}
 import code.model.dataAccess.Admin
-import net.liftweb.util.Helpers.now
+import net.liftweb.util.Helpers
+import Helpers.now
 
 object AppType extends Enumeration("web", "mobile")
 {
@@ -143,5 +144,25 @@ class Token extends LongKeyedMapper[Token]{
 	object insertDate extends MappedDateTime(this)
 	def user = User.findById(userId.get)
 	def isValid : Boolean = expirationDate before now
+	private def fiveRandomNumbers() : String = {
+	  def r() = Helpers.randomInt(9).toString //from zero to 9
+	  (1 to 5).map(x => r()).foldLeft("")(_ + _)
+	}
+	def gernerateVerifier : String =
+		if (verifier.isEmpty)
+		{
+			val generatedVerifier = fiveRandomNumbers()
+			verifier(generatedVerifier).save
+			generatedVerifier
+		}
+		else
+			verifier.is
 }
-object Token extends Token with LongKeyedMetaMapper[Token]
+object Token extends Token with LongKeyedMetaMapper[Token]{
+	def gernerateVerifier(key : String) : Box[String] = {
+		Token.find(key) match {
+			case Full(tkn) => Full(tkn.gernerateVerifier)
+			case _ => Failure("Token not found",Empty, Empty)
+		}
+	}
+}
