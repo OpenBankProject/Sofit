@@ -205,14 +205,14 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
        * for the account in question
        */
       def newPublicAliasName(account: Account): String = {
-        val newAlias = "ALIAS_" + Random.nextLong().toString.take(6)
+        val firstAliasAttempt = "ALIAS_" + Random.nextLong().toString.take(6)
 
         /**
          * Returns true if @publicAlias is already the name of a public alias within @account
          */
         def isDuplicate(publicAlias: String, account: Account) = {
           account.otherAccounts.objs.find(oAcc => {
-            oAcc.publicAlias.get == newAlias
+            oAcc.publicAlias.get == publicAlias
           }).isDefined
         }
 
@@ -225,8 +225,8 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
           else newAlias
         }
 
-        if (isDuplicate(newAlias, account)) appendUntilUnique(newAlias, account)
-        else newAlias
+        if (isDuplicate(firstAliasAttempt, account)) appendUntilUnique(firstAliasAttempt, account)
+        else firstAliasAttempt
       }
 
       this.theAccount match {
