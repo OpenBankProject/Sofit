@@ -59,11 +59,11 @@ object OAuthAuthorisation {
       	Token.find(By(Token.key,Helpers.urlDecode(token.toString))) match {
 	        case Full(appToken) =>
           	//check if the token is still valid
-          	if(appToken.expirationDate.compareTo(new Date(Platform.currentTime)) == 1)
+          	if(appToken.isValid)
         	  	if(OBPUser.loggedIn_?)
             	{
 						    var verifier =""
-						    // if the user is logged in and non verifier have been generated
+						    // if the user is logged in and no verifier have been generated
 						    if(appToken.verifier.isEmpty)
 						    {
 						    	def fiveRandomNumbers() : String = {
