@@ -198,18 +198,6 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
       }
     }
 
-    def privateAliasExists(realValue: String): Boolean = {
-      this.theAccount match {
-        case Full(a) => {
-          val otherAccs = a.otherAccounts.objs
-          val aliasInQuestion = otherAccs.find(o =>
-            o.holder.get.equals(realValue))
-          aliasInQuestion.isDefined
-        }
-        case _ => false
-      }
-    }
-
     def createPublicAlias(realOtherAccHolder : String) = {
 
       /**
@@ -256,29 +244,8 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
       }
     }
 
-    def createPlaceholderPrivateAlias(realOtherAccHolder : String) = {
-      this.theAccount match {
-        case Full(a) => {
-          a.otherAccounts.objs.find(acc => acc.holder.equals(realOtherAccHolder)) match {
-            case Some(o) =>
-              //update the "otherAccount"
-              val newOtherAcc = o.privateAlias("").save
-            case _ => {
-              //create a new "otherAccount"
-              val otherAccount = OtherAccount.createRecord.holder(realOtherAccHolder).privateAlias("").save
-              a.otherAccounts(otherAccount.id.is :: a.otherAccounts.get).save
-            }
-          }
-          Full("")
-        }
-        case _ => Empty
-      }
-    }
-
     if (!publicAliasExists(realOtherAccHolder))
       createPublicAlias(realOtherAccHolder)
-    if (!privateAliasExists(realOtherAccHolder))
-      createPlaceholderPrivateAlias(realOtherAccHolder)
   }
   /**
    * @return the id of the newly added image
