@@ -43,7 +43,8 @@ import javax.crypto.spec.SecretKeySpec
 import javax.crypto.Mac
 import net.liftweb.util.Helpers
 import code.model.AppType._
-import code.model.TokenType._
+import code.model.TokenType
+import TokenType._
 import scala.compat.Platform
 import code.model.dataAccess.OBPUser
 import scala.xml.NodeSeq
@@ -56,7 +57,7 @@ object OAuthAuthorisation {
  	def tokenCheck =
   	S.param("oauth_token") match {
 	    case Full(token) =>
-      	Token.find(By(Token.key,Helpers.urlDecode(token.toString))) match {
+      	Token.find(By(Token.key,Helpers.urlDecode(token.toString)),By(Token.tokenType,TokenType.Request)) match {
 	        case Full(appToken) =>
           	//check if the token is still valid
           	if(appToken.isValid)
