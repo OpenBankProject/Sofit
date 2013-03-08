@@ -143,7 +143,7 @@ class Token extends LongKeyedMapper[Token]{
 	object expirationDate extends MappedDateTime(this)
 	object insertDate extends MappedDateTime(this)
 	def user = User.findById(userId.get)
-	def isValid : Boolean = expirationDate before now
+	def isValid : Boolean = expirationDate.is after now
 	private def fiveRandomNumbers() : String = {
 	  def r() = Helpers.randomInt(9).toString //from zero to 9
 	  (1 to 5).map(x => r()).foldLeft("")(_ + _)
