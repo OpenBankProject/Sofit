@@ -61,7 +61,7 @@ object OAuthHandshake extends RestHelper with Loggable {
   	case Req("oauth" :: "initiate" :: Nil,_ ,PostRequest) =>
   	{
   		//Extract the OAuth parameters from the header and test if the request is valid
-	  	var (httpCode, data, oAuthParameters) = validator("requestToken", "POST")
+	  	var (httpCode, message, oAuthParameters) = validator("requestToken", "POST")
 	  	//Test if the request is valid
 	  	if(httpCode==200)
 	  	{
@@ -69,18 +69,18 @@ object OAuthHandshake extends RestHelper with Loggable {
 	    	val (token,secret) = generateTokenAndSecret()
 	    	//Save the token that we have generated
 	    	if(saveRequestToken(oAuthParameters,token, secret))
-	    		data=("oauth_token="+token+"&oauth_token_secret="+
-	    			secret+"&oauth_callback_confirmed=true").getBytes()
+	    		message="oauth_token="+token+"&oauth_token_secret="+
+	    			secret+"&oauth_callback_confirmed=true"
 			}
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
       	//return an HTTP response
-      Full(InMemoryResponse(data,headers,Nil,httpCode))
+      Full(InMemoryResponse(message.getBytes,headers,Nil,httpCode))
   	}
 
   	case Req("oauth" :: "token" :: Nil,_, PostRequest) =>
   	{
   		//Extract the OAuth parameters from the header and test if the request is valid
-			var (httpCode, data, oAuthParameters) = validator("authorizationToken", "POST")
+			var (httpCode, message, oAuthParameters) = validator("authorizationToken", "POST")
 	  	//Test if the request is valid
 	  	if(httpCode==200)
 	  	{
@@ -95,18 +95,18 @@ object OAuthHandshake extends RestHelper with Loggable {
 	      		case _ => None
 	      	}
 
-		    data=("oauth_token="+token+"&oauth_token_secret="+secret).getBytes()
+		    message="oauth_token="+token+"&oauth_token_secret="+secret
 	  	}
 	  	val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
 	  	//return an HTTP response
-      Full(InMemoryResponse(data,headers,Nil,httpCode))
+      Full(InMemoryResponse(message.getBytes,headers,Nil,httpCode))
   	}
 	}
 
 	//Check if the request (access toke or request token) is valid and return a tuple
-	def validator(requestType : String, httpMethod : String) = {
+	def validator(requestType : String, httpMethod : String) : (Int, String, Map[String,String]) = {
 		//return a Map containing the OAuth parameters : oauth_prameter -> value
-    def getAllParameters = {
+    def getAllParameters : Map[String,String]= {
 
 			//Convert the string containing the list of OAuth parameters to a Map
 			def toMap(parametersList : String) = {
@@ -297,7 +297,7 @@ object OAuthHandshake extends RestHelper with Loggable {
 	  		false
 	  }
 
-	  var data =""
+	  var message =""
 	  var httpCode : Int = 500
 
 	  var parameters = getAllParameters
@@ -305,49 +305,49 @@ object OAuthHandshake extends RestHelper with Loggable {
 	  //does all the OAuth parameters are presents?
 	  if(! enoughtOauthParameters(parameters,requestType))
 	  {
-	    data = "One or several parameters are missing"
+	    message = "One or several oauth parameters are missing"
 	  	httpCode = 400
 	  }
 	  //no parameter exists more than one times
 	  else if (duplicatedParameters)
 	  {
-    	data = "Duplicated protocol parameters"
+    	message = "Duplicated oauth protocol parameters"
     	httpCode = 400
 	  }
 	  //valid OAuth
 	  else if(!suportedOAuthVersion(parameters.get("oauth_version")))
 	  {
-    	data = "OAuth version not supported"
+    	message = "OAuth version not supported"
     	httpCode = 400
 	  }
 	  //supported signature method
 	  else if (parameters.get("oauth_signature_method").get.toLowerCase()!="hmac-sha256")
 	  {
-    	data = "Unsupported signature method"
+    	message = "Unsupported signature method, please use hmac-sha256"
     	httpCode = 400
 	  }
 	  //check if the application is registered and active
 	  else if(! registeredApplication(parameters.get("oauth_consumer_key").get))
 	  {
-    	data = "Invalid client credentials"
+    	message = "Invalid consumer credentials"
     	httpCode = 401
 	  }
 	  //valid timestamp
 	  else if(wrongTimestamp(new Date(parameters.get("oauth_timestamp").get.toLong)))
 	  {
-    	data = "wrong timestamps"
+    	message = "wrong timestamps"
     	httpCode = 400
 	  }
 	  //unused nonce
 	  else if (alReadyUsedNonce(parameters))
 	  {
-    	data = "Nonce already used"
+    	message = "Nonce already used"
     	httpCode = 401
 	  }
 	  //In the case OAuth authorization token request, check if the token is still valid and the verifier is correct
 	  else if(requestType=="authorizationToken" && !validToken(parameters.get("oauth_token").get, parameters.get("oauth_verifier").get))
 	  {
-    	data = "Invalid or expired token"
+    	message = "Invalid or expired token"
     	httpCode = 401
 	  }
 	  //In the case protected resource access request, check if the token is still valid
@@ -356,27 +356,27 @@ object OAuthHandshake extends RestHelper with Loggable {
 	  	! validToken2(parameters.get("oauth_token").get)
 	  )
 	  {
-			data = "Invalid or expired token"
+			message = "Invalid or expired token"
 	    httpCode = 401
 	  }
 	  //checking if the signature is correct
 	  else if(! correctSignature(parameters, httpMethod))
 	  {
-    	data = "Invalid signature"
+    	message = "Invalid signature"
     	httpCode = 401
 	  }
 	  else
 	  	httpCode = 200
 
-	  (httpCode, data.getBytes(), parameters)
+	  (httpCode, message, parameters)
 	}
     private def generateTokenAndSecret() =
     {
       // generate some random strings
-      val token_data = Helpers.randomString(40)
-      val secret_data = Helpers.randomString(40)
+      val token_message = Helpers.randomString(40)
+      val secret_message = Helpers.randomString(40)
 
-      (token_data, secret_data)
+      (token_message, secret_message)
     }
 	private def saveRequestToken(oAuthParameters : Map[String, String], tokenKey : String, tokenSecret : String) =
 	{

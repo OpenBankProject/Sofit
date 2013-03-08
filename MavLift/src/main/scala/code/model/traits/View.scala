@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -48,23 +48,24 @@ object NoAlias extends AliasType
 case class AccountName(display: String, aliasType: AliasType)
 
 trait View {
-	  
+
   //e.g. "Public", "Authorities", "Our Network", etc.
   def id: Long
   def name: String
   def description : String
   def permalink : String
-  
-  //the view settings 
+  def isPublic : Boolean
+
+  //the view settings
   def usePrivateAliasIfOneExists: Boolean
   def usePublicAliasIfOneExists: Boolean
-  
+
   //reading access
 
   //transaction fields
   def canSeeTransactionThisBankAccount : Boolean
   def canSeeTransactionOtherBankAccount : Boolean
-  def canSeeTransactionMetadata : Boolean 
+  def canSeeTransactionMetadata : Boolean
   def canSeeTransactionLabel: Boolean
   def canSeeTransactionAmount: Boolean
   def canSeeTransactionType: Boolean
@@ -72,7 +73,7 @@ trait View {
   def canSeeTransactionStartDate: Boolean
   def canSeeTransactionFinishDate: Boolean
   def canSeeTransactionBalance: Boolean
-  
+
   //transaction metadata
   def canSeeComments: Boolean
   def canSeeOwnerComment: Boolean
@@ -92,8 +93,8 @@ trait View {
   def canSeeBankAccountNumber : Boolean
   def canSeeBankAccountName : Boolean
 
-  //other bank account fields 
-  def canSeeOtherAccountNationalIdentifier : Boolean 
+  //other bank account fields
+  def canSeeOtherAccountNationalIdentifier : Boolean
   def canSeeSWIFT_BIC : Boolean
   def canSeeOtherAccountIBAN : Boolean
   def canSeeOtherAccountBankName : Boolean
@@ -115,12 +116,12 @@ trait View {
   def canDeleteImage : Boolean
 
   // In the future we can add a method here to allow someone to show only transactions over a certain limit
-  
+
   def moderate(transaction: Transaction): ModeratedTransaction = {
     //transaction data
     val transactionId = transaction.id
-    
-    val thisBankAccount = 
+
+    val thisBankAccount =
     if(canSeeTransactionThisBankAccount)
     {
       val owners = if(canSeeBankAccountOwners) Some(transaction.thisAccount.owners) else None
@@ -129,24 +130,24 @@ trait View {
       } else if (canSeeBankAccountBalancePositiveOrNegative) {
         if(transaction.thisAccount.balance.toString.startsWith("-")) "-" else "+"
       } else ""
-      val currency = if(canSeeBankAccountCurrency) Some(transaction.thisAccount.currency) else None  
+      val currency = if(canSeeBankAccountCurrency) Some(transaction.thisAccount.currency) else None
       val label = if(canSeeBankAccountLabel) Some(transaction.thisAccount.label) else None
       val number = if(canSeeBankAccountNumber) Some(transaction.thisAccount.number) else None
       val bankName = if(canSeeBankAccountName) Some(transaction.thisAccount.bankName) else None
-      val nationalIdentifier = 
-        if(canSeeBankAccountNationalIdentifier) 
-          Some(transaction.thisAccount.nationalIdentifier) 
-        else 
+      val nationalIdentifier =
+        if(canSeeBankAccountNationalIdentifier)
+          Some(transaction.thisAccount.nationalIdentifier)
+        else
           None
-      val swift_bic = 
-        if(canSeeBankAccountSwift_bic) 
-          Some(transaction.thisAccount.swift_bic) 
-        else 
+      val swift_bic =
+        if(canSeeBankAccountSwift_bic)
+          Some(transaction.thisAccount.swift_bic)
+        else
           None
-      val iban = 
-        if(canSeeBankAccountIban) 
-          Some(transaction.thisAccount.iban) 
-        else 
+      val iban =
+        if(canSeeBankAccountIban)
+          Some(transaction.thisAccount.iban)
+        else
           None
       Some(new ModeratedBankAccount(transaction.thisAccount.id, owners, accountType, balance, currency, label,
       nationalIdentifier, swift_bic, iban, number, bankName))
@@ -154,12 +155,12 @@ trait View {
     else
       None
 
-    val otherBankAccount = 
-    if (canSeeTransactionOtherBankAccount) 
+    val otherBankAccount =
+    if (canSeeTransactionOtherBankAccount)
     {
-      //other account data 
+      //other account data
       var otherAccountId = transaction.otherAccount.id
-      val otherAccountLabel: AccountName = 
+      val otherAccountLabel: AccountName =
       {
         val realName = transaction.otherAccount.label
         if (usePublicAliasIfOneExists) {
@@ -175,79 +176,79 @@ trait View {
 
           if (! privateAlias.isEmpty) AccountName(privateAlias, PrivateAlias)
           else AccountName(realName, PrivateAlias)
-        } else 
+        } else
           AccountName(realName, NoAlias)
       }
       val otherAccountNationalIdentifier = if (canSeeOtherAccountNationalIdentifier) Some(transaction.otherAccount.nationalIdentifier) else None
       val otherAccountSWIFT_BIC = if (canSeeSWIFT_BIC) Some(transaction.otherAccount.swift_bic) else None
-      val otherAccountIBAN = if(canSeeOtherAccountIBAN) Some(transaction.otherAccount.iban) else None 
+      val otherAccountIBAN = if(canSeeOtherAccountIBAN) Some(transaction.otherAccount.iban) else None
       val otherAccountBankName = if(canSeeOtherAccountBankName) Some(transaction.otherAccount.bankName) else None
       val otherAccountNumber = if(canSeeOtherAccountNumber) Some(transaction.otherAccount.number) else None
-      val otherAccountMetadata = 
-        if(canSeeOtherAccountMetadata) 
+      val otherAccountMetadata =
+        if(canSeeOtherAccountMetadata)
         {
-          //other bank account metadata 
-          val moreInfo = 
+          //other bank account metadata
+          val moreInfo =
             if (canSeeMoreInfo) Some(transaction.otherAccount.metadata.moreInfo)
             else None
-          val url = 
+          val url =
             if (canSeeUrl) Some(transaction.otherAccount.metadata.url)
             else None
-          val imageUrl = 
+          val imageUrl =
             if (canSeeImageUrl) Some(transaction.otherAccount.metadata.imageUrl)
             else None
-          val openCorporatesUrl = 
+          val openCorporatesUrl =
             if (canSeeOpenCorporatesUrl) Some(transaction.otherAccount.metadata.openCorporatesUrl)
             else None
-          
+
           Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
         }
         else
             None
 
-      Some(new ModeratedOtherBankAccount(otherAccountId,otherAccountLabel, otherAccountNationalIdentifier, 
+      Some(new ModeratedOtherBankAccount(otherAccountId,otherAccountLabel, otherAccountNationalIdentifier,
         otherAccountSWIFT_BIC, otherAccountIBAN, otherAccountBankName, otherAccountNumber, otherAccountMetadata))
     }
-    else  
+    else
       None
-      
+
     //transation metadata
-    val transactionMetadata = 
+    val transactionMetadata =
       if(canSeeTransactionMetadata)
       {
         val ownerComment = if (canSeeOwnerComment) transaction.metadata.ownerComment else None
-        val comments = 
+        val comments =
           if (canSeeComments)
             Some(transaction.metadata.comments.filter(comment => comment.viewId==id))
           else None
         val addCommentFunc= if(canAddComments) Some(transaction.metadata.addComment _) else None
         val addOwnerCommentFunc:Option[String=> Unit] = if (canEditOwnerComment) Some(transaction.metadata.ownerComment _) else None
-        val tags = 
+        val tags =
           if(canSeeTags)
-            Some(transaction.metadata.tags.filter(_.viewId==id)) 
+            Some(transaction.metadata.tags.filter(_.viewId==id))
           else None
-        val addTagFunc = 
-          if(canAddTag) 
+        val addTagFunc =
+          if(canAddTag)
             Some(transaction.metadata.addTag _)
           else
             None
-        val deleteTagFunc = 
+        val deleteTagFunc =
             if(canDeleteTag)
               Some(transaction.metadata.deleteTag _)
             else
               None
-        val images = 
+        val images =
           if(canSeeImages) Some(transaction.metadata.images.filter(_.viewId == id))
           else None
-          
-        val addImageFunc = 
+
+        val addImageFunc =
           if(canAddImage) Some(transaction.metadata.addImage _)
           else None
-          
-        val deleteImageFunc = 
+
+        val deleteImageFunc =
           if(canDeleteImage) Some(transaction.metadata.deleteImage _)
           else None
-          
+
         new Some(
           new ModeratedTransactionMetadata(
             ownerComment,
@@ -265,31 +266,31 @@ trait View {
       else
         None
 
-    val transactionType = 
+    val transactionType =
       if (canSeeTransactionType) Some(transaction.transactionType)
       else None
 
-    val transactionAmount = 
+    val transactionAmount =
       if (canSeeTransactionAmount) Some(transaction.amount)
       else None
 
-    val transactionCurrency = 
+    val transactionCurrency =
       if (canSeeTransactionCurrency) Some(transaction.currency)
       else None
 
-    val transactionLabel = 
+    val transactionLabel =
       if (canSeeTransactionLabel) transaction.label
       else None
-    
-    val transactionStartDate = 
+
+    val transactionStartDate =
       if (canSeeTransactionStartDate) Some(transaction.startDate)
       else None
-    
-    val transactionFinishDate = 
+
+    val transactionFinishDate =
       if (canSeeTransactionFinishDate) Some(transaction.finishDate)
       else None
 
-    val transactionBalance = 
+    val transactionBalance =
       if (canSeeTransactionBalance) transaction.balance.toString()
       else ""
 
@@ -297,7 +298,7 @@ trait View {
      transactionType, transactionAmount, transactionCurrency, transactionLabel, transactionStartDate,
       transactionFinishDate, transactionBalance)
   }
-  
+
   def moderate(bankAccount: BankAccount) : Box[ModeratedBankAccount] = {
     if(bankAccount.allowPublicAccess) {
       val owners : Set[AccountOwner] = if(canSeeBankAccountOwners) bankAccount.owners else Set()
@@ -314,7 +315,7 @@ trait View {
       val iban = if(canSeeBankAccountIban) Some(bankAccount.iban) else None
       val number = if(canSeeBankAccountNumber) Some(bankAccount.number) else None
       val bankName = if(canSeeBankAccountName) Some(bankAccount.bankName) else None
-      
+
       Full(new ModeratedBankAccount(filteredId = bankAccount.id,
           							filteredOwners = Some(owners),
           							filteredAccountType = accountType,
@@ -330,12 +331,12 @@ trait View {
     }
     else Empty
   }
-  
+
   def toJson : JObject = {
     ("name" -> name) ~
     ("description" -> description)
   }
-  
+
 }
 
 //An implementation that has the least amount of permissions possible
@@ -344,17 +345,18 @@ class BaseView extends View {
   def name = "Restricted"
   def permalink = "restricted"
   def description = ""
-  
-  //the view settings 
+  def isPublic = false
+
+  //the view settings
   def usePrivateAliasIfOneExists = true
   def usePublicAliasIfOneExists = true
-  
+
   //reading access
 
   //transaction fields
   def canSeeTransactionThisBankAccount = false
   def canSeeTransactionOtherBankAccount = false
-  def canSeeTransactionMetadata = false 
+  def canSeeTransactionMetadata = false
   def canSeeTransactionLabel = false
   def canSeeTransactionAmount = false
   def canSeeTransactionType = false
@@ -362,7 +364,7 @@ class BaseView extends View {
   def canSeeTransactionStartDate = false
   def canSeeTransactionFinishDate = false
   def canSeeTransactionBalance = false
-  
+
   //transaction metadata
   def canSeeComments = false
   def canSeeOwnerComment = false
@@ -382,8 +384,8 @@ class BaseView extends View {
   def canSeeBankAccountNumber = false
   def canSeeBankAccountName = false
 
-  //other bank account fields 
-  def canSeeOtherAccountNationalIdentifier = false 
+  //other bank account fields
+  def canSeeOtherAccountNationalIdentifier = false
   def canSeeSWIFT_BIC = false
   def canSeeOtherAccountIBAN = false
   def canSeeOtherAccountBankName = false
@@ -399,8 +401,8 @@ class BaseView extends View {
   //writing access
   def canEditOwnerComment = false
   def canAddComments = false
-  def canAddTag = false 
-  def canDeleteTag = false  
+  def canAddTag = false
+  def canDeleteTag = false
   def canAddImage = false
   def canDeleteImage = false
 
@@ -411,17 +413,18 @@ class FullView extends View {
   def name = "Full"
   def permalink ="full"
   def description = ""
+  def isPublic = false
 
-  //the view settings 
+  //the view settings
   def usePrivateAliasIfOneExists = false
   def usePublicAliasIfOneExists = false
-  
+
   //reading access
 
   //transaction fields
   def canSeeTransactionThisBankAccount = true
   def canSeeTransactionOtherBankAccount = true
-  def canSeeTransactionMetadata = true 
+  def canSeeTransactionMetadata = true
   def canSeeTransactionLabel = true
   def canSeeTransactionAmount = true
   def canSeeTransactionType = true
@@ -429,7 +432,7 @@ class FullView extends View {
   def canSeeTransactionStartDate = true
   def canSeeTransactionFinishDate = true
   def canSeeTransactionBalance = true
-  
+
   //transaction metadata
   def canSeeComments = true
   def canSeeOwnerComment = true
@@ -449,8 +452,8 @@ class FullView extends View {
   def canSeeBankAccountNumber = true
   def canSeeBankAccountName = true
 
-  //other bank account fields 
-  def canSeeOtherAccountNationalIdentifier = true 
+  //other bank account fields
+  def canSeeOtherAccountNationalIdentifier = true
   def canSeeSWIFT_BIC = true
   def canSeeOtherAccountIBAN = true
   def canSeeOtherAccountMetadata = true
@@ -467,7 +470,7 @@ class FullView extends View {
   def canEditOwnerComment = true
   def canAddComments = true
   def canAddTag = true
-  def canDeleteTag = true  
+  def canDeleteTag = true
   def canAddImage = true
   def canDeleteImage = true
 

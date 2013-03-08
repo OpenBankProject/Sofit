@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -38,7 +38,7 @@ import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST.JObject
 
 object View {
-  //transforme the url into a view 
+  //transforme the url into a view
   //TODO : load the view from the Data base
   def fromUrl(viewNameURL: String): Box[View] =
     viewNameURL match {
@@ -68,39 +68,42 @@ object Team extends FullView {
   override def permalink = "team"
   override def description = "A view for team members related to the account. E.g. for a company bank account -> employees/contractors"
   override def canEditOwnerComment= false
+
 }
 object Board extends FullView {
   override def id = 4
   override def name = "Board"
   override def permalink = "board"
   override def description = "A view for board members of a company to view that company's account data."
-  override def canEditOwnerComment= false    
+  override def canEditOwnerComment= false
 }
 object Authorities extends FullView {
   override def id = 5
   override def name = "Authorities"
   override def permalink = "authorities"
   override def description = "A view for authorities such as tax officials to view an account's data"
-  override def canEditOwnerComment= false    
+  override def canEditOwnerComment= false
 }
 
-object Public extends BaseView { 
-  //the actual class extends the BaseView but in fact it does not matters be cause we don't care about the values 
+object Public extends BaseView {
+  //the actual class extends the BaseView but in fact it does not matters be cause we don't care about the values
   //of the canSeeMoreInfo, canSeeUrl,etc  attributes and we implement a specific moderate method
-  
+
     /**
-   * Current rules: 
-   * 
+   * Current rules:
+   *
    * If Public, and a public alias exists : Show the public alias
    * If Public, and no public alias exists : Show the real account holder
    * If our network, and a private alias exists : Show the private alias
    * If our network, and no private alias exists : Show the real account holder
    */
-  override def id = 6  
+  override def id = 6
   override def name = "Public"
-  override def permalink = "public" 
+  override def permalink = "public"
   override def description = "A view of the account accessible by anyone."
-    
+  override def isPublic = true
+
+
   //Bank account fields
   override def canSeeBankAccountOwners = true
   override def canSeeBankAccountType = true
@@ -112,16 +115,16 @@ object Public extends BaseView {
   override def canSeeBankAccountIban = true
   override def canSeeBankAccountNumber = true
   override def canSeeBankAccountName = true
-    
+
   override def moderate(transaction: Transaction): ModeratedTransaction = {
-    
+
     val transactionId = transaction.id //toString().startsWith("-")) "-" else "+"
     val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
       //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
       // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
-    val thisBankAccount = Some(new ModeratedBankAccount(transaction.thisAccount.id, 
-      Some(transaction.thisAccount.owners), Some(transaction.thisAccount.accountType), 
-      accountBalance, Some(transaction.thisAccount.currency), 
+    val thisBankAccount = Some(new ModeratedBankAccount(transaction.thisAccount.id,
+      Some(transaction.thisAccount.owners), Some(transaction.thisAccount.accountType),
+      accountBalance, Some(transaction.thisAccount.currency),
       Some(transaction.thisAccount.label),None, None, None, Some(transaction.thisAccount.number),
       Some(transaction.thisAccount.bankName)))
     val otherBankAccount = {
@@ -143,12 +146,12 @@ object Public extends BaseView {
         val openCorporatesUrl = if (isPublicAlias) None else Some(transaction.otherAccount.metadata.openCorporatesUrl)
 
         Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
-      } 
+      }
 
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,
           None, None, None, otherAccountMetadata))
     }
-    val transactionMetadata = 
+    val transactionMetadata =
       Some(
         new ModeratedTransactionMetadata(
           transaction.metadata.ownerComment,
@@ -169,25 +172,25 @@ object Public extends BaseView {
     val transactionStartDate = Some(transaction.startDate)
     val transactionFinishDate = Some(transaction.finishDate)
     val transactionBalance =  if (transaction.balance.toString().startsWith("-")) "-" else "+"
-    
+
     new ModeratedTransaction(
-      transactionId, 
-      thisBankAccount, 
-      otherBankAccount, 
+      transactionId,
+      thisBankAccount,
+      otherBankAccount,
       transactionMetadata,
-      transactionType, 
-      transactionAmount, 
-      transactionCurrency, 
-      transactionLabel, 
+      transactionType,
+      transactionAmount,
+      transactionCurrency,
+      transactionLabel,
       transactionStartDate,
-      transactionFinishDate, 
+      transactionFinishDate,
       transactionBalance
     )
   }
-  
+
 }
 
-  object OurNetwork extends BaseView 
+  object OurNetwork extends BaseView
   {
     override def id = 7
     override def name = "Our Network"
@@ -199,8 +202,8 @@ object Public extends BaseView {
     val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
       //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
       // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
-    val thisBankAccount = Some(new ModeratedBankAccount(transaction.thisAccount.id, None, None, 
-      accountBalance, Some(transaction.thisAccount.currency), 
+    val thisBankAccount = Some(new ModeratedBankAccount(transaction.thisAccount.id, None, None,
+      accountBalance, Some(transaction.thisAccount.currency),
       Some(transaction.thisAccount.label),None, None, None, Some(transaction.thisAccount.number),
       Some(transaction.thisAccount.bankName)))
     val otherBankAccount = {
@@ -211,15 +214,15 @@ object Public extends BaseView {
         else
           AccountName(privateAlias, PrivateAlias)
       }
-      val otherAccountMetadata = 
-        Some(new ModeratedOtherBankAccountMetadata(Some(transaction.otherAccount.metadata.moreInfo), 
-          Some(transaction.otherAccount.metadata.url), Some(transaction.otherAccount.metadata.imageUrl), 
+      val otherAccountMetadata =
+        Some(new ModeratedOtherBankAccountMetadata(Some(transaction.otherAccount.metadata.moreInfo),
+          Some(transaction.otherAccount.metadata.url), Some(transaction.otherAccount.metadata.imageUrl),
           Some(transaction.otherAccount.metadata.openCorporatesUrl)))
 
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,None,
           None, None, otherAccountMetadata))
-    }      
-    val transactionMetadata = 
+    }
+    val transactionMetadata =
       Some(
         new ModeratedTransactionMetadata(
           transaction.metadata.ownerComment,
@@ -231,7 +234,7 @@ object Public extends BaseView {
           Some(transaction.metadata.deleteTag),
           Some(transaction.metadata.images.filter(_.viewId==id)), //TODO: Better if image takes a view as a parameter?
           Some(transaction.metadata.addImage),
-          Some(transaction.metadata.deleteImage)	
+          Some(transaction.metadata.deleteImage)
       ))
 
     val transactionType = Some(transaction.transactionType)
@@ -241,7 +244,7 @@ object Public extends BaseView {
     val transactionStartDate = Some(transaction.startDate)
     val transactionFinishDate = Some(transaction.finishDate)
     val transactionBalance =  transaction.balance.toString()
-    
+
     new ModeratedTransaction(transactionId, thisBankAccount, otherBankAccount, transactionMetadata,
      transactionType, transactionAmount, transactionCurrency, transactionLabel, transactionStartDate,
       transactionFinishDate, transactionBalance)
@@ -249,7 +252,7 @@ object Public extends BaseView {
   }
 
 object Owner extends FullView {
-  override def id = 8  
+  override def id = 8
   override def name="Owner"
   override def permalink = "owner"
 }
