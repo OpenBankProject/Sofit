@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -74,33 +74,36 @@ import code.model.traits.AccountOwner
 import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
 import code.model.dataAccess.OBPUser
 import code.model.traits.ModeratedOtherBankAccount
+import net.liftweb.json.Extraction
 
 object OBPAPI1_1 extends RestHelper with Loggable {
 
+  implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
+
   val dateFormat = ModeratedTransaction.dateFormat
-  private def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] = 
+  private def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] =
   if(httpCode==200)
   {
     import code.model.Token
     Token.find(By(Token.key, tokenID.get)) match {
       case Full(token) => User.findById(token.userId.get)
-      case _ => Empty   
-    }         
+      case _ => Empty
+    }
   }
-  else 
-    Empty 
-  
-  private def logAPICall = 
+  else
+    Empty
+
+  private def logAPICall =
     APIMetric.createRecord.
       url(S.uriAndQueryString.getOrElse("")).
       date((now: TimeSpan)).
-      save  
-    
+      save
+
   serve("obp" / "v1.1" prefix {
-    
+
     case Nil JsonGet json => {
       logAPICall
-      
+
       def gitCommit : String = {
         val commit = tryo{
           val properties = new java.util.Properties()
@@ -109,48 +112,48 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         }
         commit getOrElse ""
       }
-      
+
       val apiDetails = {
         ("api" ->
           ("version" -> "1.1") ~
           ("git_commit" -> gitCommit) ~
-          ("hosted_by" -> 
+          ("hosted_by" ->
             ("organisation" -> "TESOBE") ~
             ("email" -> "contact@tesobe.com") ~
             ("phone" -> "+49 (0)30 8145 3994"))) ~
-        ("links" -> 
+        ("links" ->
           ("rel" -> "banks") ~
           ("href" -> "/banks") ~
           ("method" -> "GET") ~
           ("title" -> "Returns a list of banks supported on this server"))
       }
-      
+
       JsonResponse(apiDetails)
     }
-    
+
     case "banks" :: Nil JsonGet json => {
       logAPICall
       def bankToJson( b : Bank) = {
-        ("bank" -> 
+        ("bank" ->
           ("id" -> b.permalink) ~
           ("short_name" -> b.shortName) ~
           ("full_name" -> b.fullName) ~
-          ("logo" -> b.logoURL) 
+          ("logo" -> b.logoURL)
         )
       }
 
       JsonResponse("banks" -> Bank.all.map(bankToJson _ ))
-    }  
+    }
   })
 
   serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: Nil JsonGet json => {
-      //log the API call 
+      //log the API call
       logAPICall
 
       import code.api.OAuthHandshake._
-      val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET") 
-      val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil 
+      val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
+      val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
 
       def asInt(s: Box[String], default: Int): Int = {
         s match {
@@ -162,14 +165,14 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       val offset = asInt(json.header("obp_offset"), 0)
       /**
        * sortBy is currently disabled as it would open up a security hole:
-       * 
+       *
        * sortBy as currently implemented will take in a parameter that searches on the mongo field names. The issue here
        * is that it will sort on the true value, and not the moderated output. So if a view is supposed to return an alias name
        * rather than the true value, but someone uses sortBy on the other bank account name/holder, not only will the returned data
        * have the wrong order, but information about the true account holder name will be exposed due to its position in the sorted order
-       * 
+       *
        * This applies to all fields that can have their data concealed... which in theory will eventually be most/all
-       * 
+       *
        */
       //val sortBy = json.header("obp_sort_by")
       val sortBy = None
@@ -179,82 +182,130 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       def getTransactions(bankAccount: BankAccount, view: View, user: Option[User]) = {
         if(bankAccount.authorisedAccess(view, user)) {
-          val basicParams = List(OBPLimit(limit), 
-                          OBPOffset(offset), 
+          val basicParams = List(OBPLimit(limit),
+                          OBPOffset(offset),
                           OBPOrdering(sortBy, sortDirection))
-              
+
           val params : List[OBPQueryParam] = fromDate.toList ::: toDate.toList ::: basicParams
           bankAccount.getModeratedTransactions(params: _*)(view.moderate)
         } else Nil
       }
-      
-      def transactionsJson(transactions : List[ModeratedTransaction], v : View) = {
+
+      def transactionsJson(transactions : List[ModeratedTransaction], v : View) : JObject = {
         ("transactions" -> transactions.map(transactionJson(_, v)))
       }
-      
+
       def transactionJson(t : ModeratedTransaction, v : View) : JObject = {
-        ("transaction" -> 
+        ("transaction" ->
           ("view" -> v.permalink) ~
           ("uuid" -> t.id) ~
           ("bank_id" -> "") ~
           ("this_account" -> t.bankAccount.map(thisAccountJson)) ~
           ("other_account" -> t.otherBankAccount.map(otherAccountJson)) ~
-          ("details" -> 
+          ("details" ->
             ("type" -> t.transactionType.getOrElse("")) ~
             ("label" -> t.label.getOrElse("")) ~
             ("posted" -> t.dateOption2JString(t.startDate)) ~
             ("completed" -> t.dateOption2JString(t.finishDate)) ~
             ("new_balance" ->
-              ("currency" -> t.currency.getOrElse("")) ~ 
+              ("currency" -> t.currency.getOrElse("")) ~
               ("amount" -> t.balance)) ~
             ("value" ->
               ("currency" -> t.currency.getOrElse("")) ~
               ("amount" -> t.amount))))
       }
-      
+
       def thisAccountJson(thisAccount : ModeratedBankAccount) : JObject = {
         ("holder" -> thisAccount.owners.flatten.map(ownerJson)) ~
         ("number" -> thisAccount.number.getOrElse("")) ~
         ("kind" -> thisAccount.accountType.getOrElse("")) ~
-        ("bank" -> 
+        ("bank" ->
           ("IBAN" -> thisAccount.iban.getOrElse(Some(""))) ~ //TODO: Why is it Option[Option[String]]?
           ("national_identifier" -> thisAccount.nationalIdentifier.getOrElse("")) ~
           ("name" -> thisAccount.label.getOrElse("")))
-      }      
-      
+      }
+
       def ownerJson(owner : AccountOwner) : JObject = {
         ("name" -> owner.name) ~
         ("is_alias" -> false)
       }
-      
+
       def otherAccountJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
-        ("holder" -> 
+        ("holder" ->
           ("name" -> otherAccount.label.display) ~
           ("is_alias" -> otherAccount.isAlias)) ~
         ("number" -> otherAccount.number.getOrElse("")) ~
         ("type" -> "") ~
-        ("bank" -> 
+        ("bank" ->
           ("IBAN" -> "") ~
           ("national_identifier" -> "") ~
           ("name" -> ""))
       }
-      
-      val response = for {
+
+      val response : Box[JsonResponse] = for {
         bankAccount <- BankAccount(bankId, accountId)
         view <- View.fromUrl(viewId) //TODO: This will have to change if we implement custom view names for different accounts
       } yield {
         val ts = getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
-        JsonResponse(transactionsJson(ts, view))
+        JsonResponse(transactionsJson(ts, view),Nil, Nil, 200)
       }
-      
-      response getOrElse InMemoryResponse(data, headers, Nil, 401) : LiftResponse
+
+      response getOrElse (JsonResponse(ErrorMessage(message), Nil, Nil, 401)) : LiftResponse
     }
   })
-  
+
   serve("obp" / "v1.1" prefix {
+
+    case "banks" :: bankId :: "accounts" :: Nil JsonGet json => {
+
+      //log the API call
+      logAPICall
+
+      val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
+      val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
+      val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+
+      def viewToJson(v : View) : JObject = {
+        ("view" -> (
+
+            ("id" -> v.permalink) ~
+            ("short_name" -> v.name) ~
+            ("description" -> v.description) ~
+            ("is_public" -> v.isPublic)
+        ))
+      }
+
+      def accountToJson(acc : BankAccount, user : Box[User]) : JObject = {
+        val views = acc permittedViews user
+        ("account" -> (
+          ("id" -> acc.permalink) ~
+          ("views_available" -> views.map(viewToJson(_)))
+        ))
+      }
+      def bankAccountSet2JsonResponse(bankAccounts: Set[BankAccount]): LiftResponse = {
+        val accJson = bankAccounts.map(accountToJson(_,user))
+        JsonResponse(("accounts" -> accJson))
+      }
+
+      Bank(bankId) match {
+        case Full(bank) =>
+        {
+          val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
+          if(availableAccounts.size!=0)
+            bankAccountSet2JsonResponse(availableAccounts)
+          else
+            JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+        }
+        case _ =>  {
+          val error = "bank " + bankId + " not found"
+          JsonResponse(ErrorMessage(error), Nil, Nil, httpCode)
+        }
+      }
+    }
+
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
       logAPICall
-      val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")
+      val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
       val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
 
@@ -269,7 +320,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       } yield ModeratedAccountAndViews(moderatedAccount, availableViews)
 
       val bankName = moderatedAccountAndViews.flatMap(_.account.bankName) getOrElse ""
-      
+
       def viewJson(view: View): JObject = {
 
         val isPublic: Boolean =
