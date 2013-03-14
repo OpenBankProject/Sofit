@@ -100,6 +100,16 @@ object OBPAPI1_1 extends RestHelper with Loggable {
   else
     Empty
 
+  private def isThereOauthHeader : Boolean = {
+    S.request match {
+      case Full(a) =>  a.header("Authorization") match {
+        case Full(parameters) => parameters.contains("OAuth")
+        case _ => false
+      }
+      case _ => false
+    }
+  }
+
   private def logAPICall =
     APIMetric.createRecord.
       url(S.uriAndQueryString.getOrElse("")).
@@ -303,11 +313,21 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       Bank(bankId) match {
         case Full(bank) =>
         {
-          val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
-          if(availableAccounts.size!=0)
-            bankAccountSet2JsonResponse(availableAccounts)
+          if(isThereOauthHeader)
+          {
+            if(httpCode == 200)
+            {
+              val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
+              bankAccountSet2JsonResponse(availableAccounts)
+            }
+            else
+              JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+          }
           else
-            JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+          {
+            val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
+            bankAccountSet2JsonResponse(availableAccounts)
+          }
         }
         case _ =>  {
           val error = "bank " + bankId + " not found"
