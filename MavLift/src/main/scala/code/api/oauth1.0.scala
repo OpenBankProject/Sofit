@@ -46,8 +46,9 @@ import code.model.AppType._
 import code.model.TokenType._
 import scala.compat.Platform
 import scala.xml.NodeSeq
-import net.liftweb.util.Helpers._
+import Helpers._
 import net.liftweb.util.Props
+import code.model.TokenType
 
 /**
 * This object provides the API calls necessary to third party applications
@@ -181,10 +182,10 @@ object OAuthHandshake extends RestHelper with Loggable {
 	      case _ => true
 	    }
 	  }
-	  def wrongTimestamp(requestTimestamp : Date) = {
+	  def wrongTimestamp(requestTimestamp : Date) : Boolean= {
 	  	val currentTime = Platform.currentTime / 1000
 
-	  	val timeRange : Long = 180000 //3 minutes
+	  	val timeRange : Long = Helpers.minutes(3)
 	  	//check if the timestamp is positive and in the time range
 	  	requestTimestamp.getTime < 0 || requestTimestamp.before(new Date(currentTime - timeRange)) ||  requestTimestamp.after(new Date(currentTime + timeRange))
 	  }
@@ -259,17 +260,16 @@ object OAuthHandshake extends RestHelper with Loggable {
 
 	  //check if the token exists and is still valid
 	  def validToken(tokenKey : String, verifier : String) ={
-	  	Token.find(By(Token.key, tokenKey)) match {
+	  	Token.find(By(Token.key, tokenKey),By(Token.tokenType,TokenType.Request)) match {
 	      case Full(token) =>
-	      	token.expirationDate.compareTo(new Date(Platform.currentTime)) == 1 && token.verifier == verifier
+	      	token.isValid && token.verifier == verifier
 	      case _ => false
 	  	}
 	  }
 
 	  def validToken2(tokenKey : String) = {
-	  	Token.find(By(Token.key, tokenKey)) match {
-	      case Full(token) =>
-	      token.expirationDate.compareTo(new Date(Platform.currentTime)) == 1
+	  	Token.find(By(Token.key, tokenKey),By(Token.tokenType,TokenType.Access)) match {
+	      case Full(token) => token.isValid
 	        case _ => false
 	    }
 	  }
@@ -347,7 +347,7 @@ object OAuthHandshake extends RestHelper with Loggable {
 	  //In the case OAuth authorization token request, check if the token is still valid and the verifier is correct
 	  else if(requestType=="authorizationToken" && !validToken(parameters.get("oauth_token").get, parameters.get("oauth_verifier").get))
 	  {
-    	message = "Invalid or expired token"
+    	message = "Invalid or expired request token: " + parameters.get("oauth_token").get
     	httpCode = 401
 	  }
 	  //In the case protected resource access request, check if the token is still valid
@@ -356,7 +356,7 @@ object OAuthHandshake extends RestHelper with Loggable {
 	  	! validToken2(parameters.get("oauth_token").get)
 	  )
 	  {
-			message = "Invalid or expired token"
+			message = "Invalid or expired access token: " + parameters.get("oauth_token").get
 	    httpCode = 401
 	  }
 	  //checking if the signature is correct
@@ -401,7 +401,7 @@ object OAuthHandshake extends RestHelper with Loggable {
     else
       token.callbackURL("oob")
     val currentTime = Platform.currentTime
-    val tokenDuration : Long = 1800000  //the duration is 30 minutes TODO: 300000 in production mode
+    val tokenDuration : Long = Helpers.minutes(30)
     token.duration(tokenDuration)
     token.expirationDate(new Date(currentTime+tokenDuration))
     token.insertDate(new Date(currentTime))
@@ -433,7 +433,7 @@ object OAuthHandshake extends RestHelper with Loggable {
     token.key(tokenKey)
     token.secret(tokenSecret)
     val currentTime = Platform.currentTime
-    val tokenDuration : Long = 86400000 //the duration is 1 day
+    val tokenDuration : Long = Helpers.weeks(4)
     token.duration(tokenDuration)
     token.expirationDate(new Date(currentTime+tokenDuration))
     token.insertDate(new Date(currentTime))
