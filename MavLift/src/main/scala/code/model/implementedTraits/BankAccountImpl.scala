@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -35,14 +35,13 @@ import scala.math.BigDecimal
 import java.util.Date
 import scala.collection.immutable.Set
 import net.liftweb.json.JsonDSL._
-import net.liftweb.common.Full
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import code.model.traits.{BankAccount,AccountOwner, Transaction}
 import code.model.dataAccess.{Account,OBPEnvelope}
 import code.model.traits.Transaction
 import code.model.traits.ModeratedTransaction
 import code.model.dataAccess.OBPEnvelope.OBPQueryParam
-import net.liftweb.common.Box
+import net.liftweb.common.{Box,Loggable, Full}
 import code.model.dataAccess.LocalStorage
 import code.model.dataAccess.OBPEnvelope._
 import code.model.traits.User
@@ -50,7 +49,7 @@ import code.model.traits.User
 class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType_ : String, currentBalance_ : BigDecimal,
   currency_ : String, label_ : String, nationalIdentifier_ : String, swift_bic_ : Option[String],
   iban_ : Option[String], allowAnnoymousAccess_ : Boolean,
-  number_ : String, bankName_ : String, bankPermalink_ : String, permalink_ : String) extends BankAccount {
+  number_ : String, bankName_ : String, bankPermalink_ : String, permalink_ : String) extends BankAccount with Loggable{
 
   def id = id_
   def owners = _owners
@@ -66,19 +65,22 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
   def iban = iban_
   def number = number_
   def bankName = bankName_
-  
+
   def permittedViews(user: Box[User]) : Set[code.model.traits.View] = {
     user match {
       case Full(u) => u.permittedViews(this)
-      case _ => if(this.allowPublicAccess) Set(Public) else Set()
+      case _ =>{
+        logger.info("no user was found in the permittedViews")
+       if(this.allowPublicAccess) Set(Public) else Set()
+      }
     }
   }
-  
-  def transactions(from: Date, to: Date): Set[Transaction] = { 
+
+  def transactions(from: Date, to: Date): Set[Transaction] = {
     throw new NotImplementedException
   }
-  def transaction(id: String): Box[Transaction] = { 
-    LocalStorage.getTransaction(id, bankPermalink, permalink)    
+  def transaction(id: String): Box[Transaction] = {
+    LocalStorage.getTransaction(id, bankPermalink, permalink)
   }
   def allowPublicAccess = allowAnnoymousAccess_
 
@@ -89,7 +91,7 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
   def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction] = {
     LocalStorage.getModeratedTransactions(permalink, bankPermalink, queryParams: _*)(moderate)
   }
-  
+
   def getTransactions(queryParams: OBPQueryParam*) : Box[List[Transaction]] = {
     LocalStorage.getTransactions(permalink, bankPermalink, queryParams: _*)
   }
