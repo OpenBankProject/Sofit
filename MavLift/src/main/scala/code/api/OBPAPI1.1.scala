@@ -85,9 +85,16 @@ object OBPAPI1_1 extends RestHelper with Loggable {
   if(httpCode==200)
   {
     import code.model.Token
+    logger.info("OAuth header correct ")
     Token.find(By(Token.key, tokenID.get)) match {
-      case Full(token) => User.findById(token.userId.get)
-      case _ => Empty
+      case Full(token) => {
+        logger.info("access token found")
+        User.findById(token.userId.get)
+      }
+      case _ =>{
+        logger.warn("no token " + tokenID.get + " found")
+        Empty
+      }
     }
   }
   else
@@ -276,6 +283,12 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
 
       def accountToJson(acc : BankAccount, user : Box[User]) : JObject = {
+        //just a log
+        user match {
+          case Full(u) => logger.info("user " + u.emailAddress + " was found")
+          case _ => logger.info("no user was found")
+        }
+
         val views = acc permittedViews user
         ("account" -> (
           ("id" -> acc.permalink) ~

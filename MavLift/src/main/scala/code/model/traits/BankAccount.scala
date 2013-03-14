@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -47,58 +47,58 @@ import code.model.implementedTraits.View
 trait BankAccount {
 
   def id : String
-  
+
   var owners : Set[AccountOwner]
-  
+
   //e.g. chequing, savings
   def accountType : String
-  
+
   //TODO: Check if BigDecimal is an appropriate data type
   def balance : Option[BigDecimal]
-  
+
   //ISO 4217, e.g. EUR, GBP, USD, etc.
   def currency: String
-  
+
   //Name to display, e.g. TESOBE Postbank Account
   def label : String
-  
+
   def bankName : String
-  
+
   def bankPermalink : String
-  
+
   def permalink : String
-  
+
   def number: String
-  
+
   def nationalIdentifier : String
-  
+
   def swift_bic : Option[String]
-  
+
   def iban : Option[String]
-  
+
   def transaction(id: String) : Box[Transaction]
-  
+
   def moderatedTransaction(id: String, view: View, user: Box[User]) : Box[ModeratedTransaction] = {
     if(permittedViews(user).contains(view)) {
       transaction(id).map(view.moderate)
     } else Empty
   }
-  
+
   def moderatedBankAccount(view: View, user: Box[User]) : Box[ModeratedBankAccount] = {
     if(permittedViews(user).contains(view)){
       view.moderate(this)
     } else Empty
   }
-  
+
   //Is a public view is available for this bank account
   def allowPublicAccess : Boolean
-  
+
   def permittedViews(user: Box[User]) : Set[View]
-  
+
   def getModeratedTransactions(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
-  
+
   def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
-  
+
   def authorisedAccess(view: View, user: Option[User]) : Boolean
 
   def overviewJson(user: Box[User]): JObject = {
@@ -118,13 +118,13 @@ object BankAccount {
       case _ => Empty
     }
   }
-  
+
   def all : List[BankAccount] = {
     LocalStorage.getAllAccounts() map Account.toBankAccount
   }
-  
+
   def publicAccounts : List[BankAccount] = {
     LocalStorage.getAllPublicAccounts() map Account.toBankAccount
   }
-  
+
 }
