@@ -88,8 +88,14 @@ object OBPAPI1_1 extends RestHelper with Loggable {
     logger.info("OAuth header correct ")
     Token.find(By(Token.key, tokenID.get)) match {
       case Full(token) => {
-        logger.info("access token found")
-        User.findById(token.userId.get)
+        logger.info("access token: "+ token + " found")
+        val user = User.findById(token.userId.get)
+        //just a log
+        user match {
+          case Full(u) => logger.info("user " + u.emailAddress + " was found from the oauth token")
+          case _ => logger.info("no user was found for the oauth token")
+        }
+        user
       }
       case _ =>{
         logger.warn("no token " + tokenID.get + " found")
@@ -267,7 +273,15 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         JsonResponse(transactionsJson(ts, view),Nil, Nil, 200)
       }
 
-      response getOrElse (JsonResponse(ErrorMessage(message), Nil, Nil, 401)) : LiftResponse
+      if(isThereOauthHeader)
+      {
+        if(httpCode == 200)
+          response getOrElse (JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)) : LiftResponse
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        response getOrElse (JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)) : LiftResponse
     }
   })
 
@@ -293,11 +307,6 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
 
       def accountToJson(acc : BankAccount, user : Box[User]) : JObject = {
-        //just a log
-        user match {
-          case Full(u) => logger.info("user " + u.emailAddress + " was found")
-          case _ => logger.info("no user was found")
-        }
 
         val views = acc permittedViews user
         ("account" -> (
@@ -389,7 +398,15 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         ("views_available" -> views.map(viewJson)))
       }
 
-      moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
+      if(isThereOauthHeader)
+      {
+        if(httpCode == 200)
+          moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
     }
 
   })
