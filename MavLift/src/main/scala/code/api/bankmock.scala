@@ -42,6 +42,7 @@ import net.liftweb.json.Extraction
 import net.liftweb.json.JsonAST.JValue
 import code.model.Token
 import code.model.TokenType
+import net.liftweb.util.Helpers.tryo
 
 case class ErrorMessage(
   error : String
@@ -62,6 +63,10 @@ case class ApplicationInformation(
 
 case class Verifier(
   value : String
+)
+
+case class UserData(
+  id : String
 )
 /**
 * this object provides the API call required for the Bank mock,
@@ -85,18 +90,21 @@ object BankMockAPI extends RestHelper with Loggable {
     val localKey : Box[String] = Props.get("BankMockKey")
     localKey == sentKey
   }
+
+  def requestToken(token : String) : Box[Token] =
+    Token.find(By(Token.key,token), By(Token.tokenType,TokenType.Request))
+
   serve("obp" / "v1.0" prefix {
     case "request-token-verification" :: Nil JsonGet _ => {
       if(isValidKey)
         S.param("oauth_token") match {
           case Full(token) => {
-            JsonResponse(TokenValidity(true), Nil, Nil, 200)
-            // Token.find(By(Token.key,token), By(Token.tokenType,TokenType.Request)) match {
-            //   case Full(tkn) => JsonResponse(TokenValidity(tkn.isValid), Nil, Nil, 200)
-            //   case _ => JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
-            // }
+            requestToken(token) match {
+              case Full(tkn) => JsonResponse(TokenValidity(tkn.isValid), Nil, Nil, 200)
+              case _ => JsonResponse(ErrorMessage("invalid or expired request token"), Nil, Nil, 401)
+            }
           }
-          case _ => JsonResponse(ErrorMessage("No OAuth token"), Nil, Nil, 401)
+          case _ => JsonResponse(ErrorMessage("No request token"), Nil, Nil, 401)
         }
       else
         JsonResponse(ErrorMessage("No key found or wrong key"), Nil, Nil, 401)
@@ -106,30 +114,25 @@ object BankMockAPI extends RestHelper with Loggable {
       if(isValidKey)
         S.param("oauth_token") match {
           case Full(token) => {
-            val applicationInfo = ApplicationInformation(
-              name  = "hello world app",
-              callbackURL = "oob"
-            )
-            JsonResponse(applicationInfo, Nil, Nil, 200)
-            // Token.find(By(Token.key,token), By(Token.tokenType,TokenType.Request)) match {
-            //   case Full(tkn) =>
-            //     if(tkn.isValid)
-            //       tkn.consumerId.foreign match {
-            //         case Full(app) => {
-            //           val applicationInfo = ApplicationInformation(
-            //             name  = app.name,
-            //             callbackURL = tkn.callbackURL.get
-            //           )
-            //           JsonResponse(applicationInfo, Nil, Nil, 200)
-            //         }
-            //         case _ => JsonResponse(ErrorMessage("Application not found"), Nil, Nil, 400)
-            //       }
-            //     else
-            //       JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
-            //   case _ => JsonResponse(ErrorMessage("invalid or expired OAuth token"), Nil, Nil, 401)
-            // }
+            requestToken(token) match {
+              case Full(tkn) =>
+                if(tkn.isValid)
+                  tkn.consumerId.foreign match {
+                    case Full(app) => {
+                      val applicationInfo = ApplicationInformation(
+                        name  = app.name,
+                        callbackURL = tkn.callbackURL.get
+                      )
+                      JsonResponse(applicationInfo, Nil, Nil, 200)
+                    }
+                    case _ => JsonResponse(ErrorMessage("Application not found"), Nil, Nil, 400)
+                  }
+                else
+                  JsonResponse(ErrorMessage("Expired request token"), Nil, Nil, 401)
+              case _ => JsonResponse(ErrorMessage("Request token not found"), Nil, Nil, 401)
+            }
           }
-          case _ => JsonResponse(ErrorMessage("No OAuth token"), Nil, Nil, 401)
+          case _ => JsonResponse(ErrorMessage("No request token"), Nil, Nil, 401)
         }
       else
         JsonResponse(ErrorMessage("No key found or wrong key"), Nil, Nil, 401)
@@ -138,16 +141,28 @@ object BankMockAPI extends RestHelper with Loggable {
       if(isValidKey)
         S.param("oauth_token") match {
           case Full(token) => {
-            JsonResponse(Verifier("123"), Nil, Nil, 200)
-            // Token.gernerateVerifier(token) match {
-            //   case Full(verifier) => JsonResponse(Verifier(verifier), Nil, Nil, 200)
-            //   case _ => JsonResponse(ErrorMessage("wrong token"), Nil, Nil, 400)
-            // }
+            tryo{
+              json.extract[UserData]
+            } match {
+              case Full(userData) => {
+                requestToken(token) match {
+                  case Full(tkn) =>{
+                    //associate the token with the user
+                    tkn.userId(userData.id)
+                    val verifier = tkn.gernerateVerifier
+                    tkn.save
+                    JsonResponse(Verifier(verifier), Nil, Nil, 200)
+                  }
+                  case _ => JsonResponse(ErrorMessage("Request token not found"), Nil, Nil, 401)
+                }
+              }
+              case _ => JsonResponse(ErrorMessage("Wrong JSON format"), Nil, Nil, 401)
+            }
           }
           case _ => JsonResponse(ErrorMessage("No OAuth token"), Nil, Nil, 401)
         }
       else
         JsonResponse(ErrorMessage("No key found or wrong key"), Nil, Nil, 401)
-  }
+    }
   })
 }
