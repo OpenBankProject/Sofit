@@ -251,7 +251,12 @@ object OAuthHandshake extends RestHelper with Loggable {
 	    }
       logger.info("base string : " + baseString)
 	    //signing process
-	    var m = Mac.getInstance("HmacSHA256");
+	    var m =
+        if(OAuthparameters.get("oauth_signature_method").get.toLowerCase == "hmac-sha256")
+          Mac.getInstance("HmacSHA256");
+        else
+          Mac.getInstance("HmacSHA128");
+
 	    m.init(new SecretKeySpec(secret.getBytes("UTF-8"),"HmacSHA256"))
 	    val calculatedSignature = Helpers.base64Encode(m.doFinal(baseString.getBytes))
 
@@ -296,6 +301,11 @@ object OAuthHandshake extends RestHelper with Loggable {
 	  	else
 	  		false
 	  }
+    def supportedSignatureMethod(oauthSignatureMethod : String ) : Boolean =
+    {
+      oauthSignatureMethod.toLowerCase == "hmac-sha256" ||
+      oauthSignatureMethod.toLowerCase == "hmac-sha128"
+    }
 
 	  var message =""
 	  var httpCode : Int = 500
@@ -321,9 +331,9 @@ object OAuthHandshake extends RestHelper with Loggable {
     	httpCode = 400
 	  }
 	  //supported signature method
-	  else if (parameters.get("oauth_signature_method").get.toLowerCase()!="hmac-sha256")
+	  else if (! supportedSignatureMethod(parameters.get("oauth_signature_method").get))
 	  {
-    	message = "Unsupported signature method, please use hmac-sha256"
+    	message = "Unsupported signature method, please use hmac-sha128 or hmac-sha256"
     	httpCode = 400
 	  }
 	  //check if the application is registered and active
