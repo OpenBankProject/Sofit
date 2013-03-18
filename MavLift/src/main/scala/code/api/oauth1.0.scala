@@ -255,7 +255,7 @@ object OAuthHandshake extends RestHelper with Loggable {
         if(OAuthparameters.get("oauth_signature_method").get.toLowerCase == "hmac-sha256")
           Mac.getInstance("HmacSHA256");
         else
-          Mac.getInstance("HmacSHA128");
+          Mac.getInstance("HmacSHA1");
 
 	    m.init(new SecretKeySpec(secret.getBytes("UTF-8"),"HmacSHA256"))
 	    val calculatedSignature = Helpers.base64Encode(m.doFinal(baseString.getBytes))
