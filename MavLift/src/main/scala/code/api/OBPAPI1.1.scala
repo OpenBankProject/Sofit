@@ -408,6 +408,5 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
     }
-
   })
 }
