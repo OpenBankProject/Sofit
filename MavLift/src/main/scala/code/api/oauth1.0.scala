@@ -251,13 +251,16 @@ object OAuthHandshake extends RestHelper with Loggable {
 	    }
       logger.info("base string : " + baseString)
 	    //signing process
-	    var m =
-        if(OAuthparameters.get("oauth_signature_method").get.toLowerCase == "hmac-sha256")
-          Mac.getInstance("HmacSHA256");
+        val signingAlgorithm : String = if(OAuthparameters.get("oauth_signature_method").get.toLowerCase == "hmac-sha256")
+          "HmacSHA256"
         else
-          Mac.getInstance("HmacSHA1");
+          "HmacSHA1"
 
-	    m.init(new SecretKeySpec(secret.getBytes("UTF-8"),"HmacSHA256"))
+      logger.info("signing key: " + secret)
+      logger.info("signing key in bytes: " + secret.getBytes("UTF-8"))
+
+	    var m = Mac.getInstance(signingAlgorithm);
+	    m.init(new SecretKeySpec(secret.getBytes("UTF-8"),signingAlgorithm))
 	    val calculatedSignature = Helpers.base64Encode(m.doFinal(baseString.getBytes))
 
       logger.info("calculatedSignature:" + calculatedSignature)
