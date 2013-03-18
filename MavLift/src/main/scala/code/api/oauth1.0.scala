@@ -347,6 +347,7 @@ object OAuthHandshake extends RestHelper with Loggable {
 	  //check if the application is registered and active
 	  else if(! registeredApplication(parameters.get("oauth_consumer_key").get))
 	  {
+      logger.error("application: " + parameters.get("oauth_consumer_key").get + " not found")
     	message = "Invalid consumer credentials"
     	httpCode = 401
 	  }
