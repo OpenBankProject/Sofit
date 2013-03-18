@@ -87,6 +87,16 @@ class Boot extends Loggable{
         new PasswordAuthentication(user,pass)
     }
 
+    val runningMode = Props.mode match {
+      case Props.RunModes.Production => "Production mode"
+      case Props.RunModes.Staging => "Staging mode"
+      case Props.RunModes.Development => "Development mode"
+      case Props.RunModes.Test => "test mode"
+      case _ => "other mode"
+    }
+
+    logger.info("running mode: " + runningMode)
+
     // Use Lift's Mapper ORM to populate the database
     // you don't need to use Mapper to use Lift... use
     // any ORM you want
