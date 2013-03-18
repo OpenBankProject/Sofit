@@ -260,6 +260,10 @@ object OAuthHandshake extends RestHelper with Loggable {
 	    m.init(new SecretKeySpec(secret.getBytes("UTF-8"),"HmacSHA256"))
 	    val calculatedSignature = Helpers.base64Encode(m.doFinal(baseString.getBytes))
 
+      logger.info("calculatedSignature:" + calculatedSignature)
+      logger.info("received signature:" + OAuthparameters.get("oauth_signature").get)
+      logger.info("received signature after decoding:" + URLDecoder.decode(OAuthparameters.get("oauth_signature").get))
+
 	    calculatedSignature== URLDecoder.decode(OAuthparameters.get("oauth_signature").get,"UTF-8")
 	  }
 
