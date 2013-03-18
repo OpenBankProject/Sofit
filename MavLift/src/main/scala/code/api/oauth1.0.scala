@@ -304,7 +304,7 @@ object OAuthHandshake extends RestHelper with Loggable {
     def supportedSignatureMethod(oauthSignatureMethod : String ) : Boolean =
     {
       oauthSignatureMethod.toLowerCase == "hmac-sha256" ||
-      oauthSignatureMethod.toLowerCase == "hmac-sha128"
+      oauthSignatureMethod.toLowerCase == "hmac-sha1"
     }
 
 	  var message =""
