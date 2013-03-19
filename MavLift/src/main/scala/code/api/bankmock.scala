@@ -68,6 +68,11 @@ case class Verifier(
 case class UserData(
   id : String
 )
+
+object JSONImplicits {
+  implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
+  implicit def errorToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
+}
 /**
 * this object provides the API call required for the Bank mock,
 * They are required during the User authentication / Application Authorization steps
@@ -75,7 +80,6 @@ case class UserData(
 */
 object BankMockAPI extends RestHelper with Loggable {
 
-  implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
   implicit def TokenValidityToJson(msg: TokenValidity): JValue = Extraction.decompose(msg)
   implicit def applicationInfoToJson(info: ApplicationInformation): JValue = Extraction.decompose(info)
   implicit def verifierToJson(verifier: Verifier): JValue = Extraction.decompose(verifier)

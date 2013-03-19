@@ -85,12 +85,13 @@ trait LocalStorage extends Loggable {
 
   def getAccount(bankpermalink: String, account: String): Box[Account]
   def getTransaction(id : String, bankPermalink : String, accountPermalink : String) : Box[Transaction]
+
   def getModeratedTransaction(id : String, bankPermalink : String, accountPermalink : String, viewID : String)
   (moderate: Transaction => ModeratedTransaction) : Box[ModeratedTransaction] = {
-    getTransaction(id,bankpermalink,accountPermalink) match {
+    getTransaction(id,bankPermalink,accountPermalink) match {
       case Full(transaction) => moderate(transaction)
       case _ => {
-        val errorMessage = "transaction id: " + id " with bankID: " + bankpermalink + " and accountID: " + accountPermalink + " not found"
+        val errorMessage = {"transaction id: " + id + " with bankID: " + bankpermalink + " and accountID: " + accountPermalink + " not found" }
         Failure(errorMessage,Empty,Empty)
       }
     }
