@@ -167,6 +167,23 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       JsonResponse("banks" -> Bank.all.map(bankToJson _ ))
     }
+    
+    case "banks" :: bankId :: Nil JsonGet json => {
+      logAPICall
+      
+      def bankToJson( b : Bank) = {
+        ("bank" ->
+          ("id" -> b.permalink) ~
+          ("short_name" -> b.shortName) ~
+          ("full_name" -> b.fullName) ~
+          ("logo" -> b.logoURL)
+        )
+      }
+      
+      for {
+        b <- Bank(bankId)
+      } yield JsonResponse(bankToJson(b))
+    }
   })
 
   serve("obp" / "v1.1" prefix {
