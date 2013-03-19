@@ -43,6 +43,8 @@ import net.liftweb.json.JsonAST.JValue
 import code.model.Token
 import code.model.TokenType
 import net.liftweb.util.Helpers.tryo
+import net.liftweb.json.Serialization
+import net.liftweb.json.NoTypeHints
 
 case class ErrorMessage(
   error : String
@@ -68,6 +70,7 @@ case class Verifier(
 case class UserData(
   id : String
 )
+
 /**
 * this object provides the API call required for the Bank mock,
 * They are required during the User authentication / Application Authorization steps
@@ -76,6 +79,7 @@ case class UserData(
 object BankMockAPI extends RestHelper with Loggable {
 
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
+  implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
   implicit def TokenValidityToJson(msg: TokenValidity): JValue = Extraction.decompose(msg)
   implicit def applicationInfoToJson(info: ApplicationInformation): JValue = Extraction.decompose(info)
   implicit def verifierToJson(verifier: Verifier): JValue = Extraction.decompose(verifier)

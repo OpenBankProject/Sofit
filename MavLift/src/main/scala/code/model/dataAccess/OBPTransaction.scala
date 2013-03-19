@@ -54,6 +54,7 @@ import code.model.traits.TransactionImage
 import net.liftweb.util.Helpers._
 import net.liftweb.http.S
 import java.net.URL
+import net.liftweb.record.field.DecimalField
 
 /**
  * "Current Account View"
@@ -161,6 +162,11 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
       date(datePosted).
       viewID(viewId).save
     obp_comments(comment.id.is :: obp_comments.get ).save
+  }
+
+  def addWhereTag(longitude : BigDecimal, latitude : BigDecimal)  = {
+    val tag = WhereTag.createRecord.longitude(longitude).latitude(latitude)
+    whereTag(tag).save
   }
 
   def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : String = {
@@ -302,6 +308,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
 
   // This creates a json attribute called "obp_transaction"
   object obp_transaction extends BsonRecordField(this, OBPTransaction)
+  object whereTag extends BsonRecordField(this, WhereTag)
 
   //not named comments as "comments" was used in an older mongo document version
   object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
@@ -467,8 +474,8 @@ object OBPDetails extends OBPDetails with BsonMetaRecord[OBPDetails]
 class OBPBalance private() extends BsonRecord[OBPBalance]{
   def meta = OBPBalance
 
-  object currency extends net.liftweb.record.field.StringField(this, 5)
-  object amount extends net.liftweb.record.field.DecimalField(this, 0) // ok to use decimal?
+  object currency extends StringField(this, 5)
+  object amount extends DecimalField(this, 0) // ok to use decimal?
 
   def whenAddedJson : JObject = {
     JObject(List( JField("currency", JString(currency.get)),
@@ -531,3 +538,11 @@ class OBPTransactionImage private() extends MongoRecord[OBPTransactionImage]
 object OBPTransactionImage extends OBPTransactionImage with MongoMetaRecord[OBPTransactionImage] {
   val notFoundUrl = new URL(S.hostAndPath + "/notfound.png") //TODO: Make this image exist?
 }
+
+
+class WhereTag private() extends BsonRecord[WhereTag]{
+  def meta = WhereTag
+  object longitude extends DecimalField(this,0)
+  object latitude extends DecimalField(this,0)
+}
+object WhereTag extends WhereTag with BsonMetaRecord[WhereTag]
