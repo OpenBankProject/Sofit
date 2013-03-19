@@ -31,35 +31,10 @@ Berlin 13359, Germany
  */
 
 package code.model.traits
+import scala.math.BigDecimal
 import java.util.Date
-import java.net.URL
 
-trait TransactionMetadata {
-
-  // Owner provided comment, done in OBP
-  def ownerComment : Option[String]
-  def ownerComment(comment : String) : Unit
-  def comments : List[Comment]
-  def addComment(userId : String, viewId : Long, text : String, postedDate : Date) : Unit
-  def tags : List[Tag]
-  def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String
-  def deleteTag(id : String) : Unit
-  def images : List[TransactionImage]
-  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
-  def deleteImage(id : String) : Unit
-  def addWhereTag(longitude : BigDecimal, latitude : BigDecimal) : Unit
-
-  /**
-   * @param userId : The user id of the user trying to delete the image with id "id"
-   *//*
-  def deleteImage(id : String, userId: Long) : Unit*/
-}
-trait OtherBankAccountMetadata
-{
-	def publicAlias : String
-  def privateAlias : String
-  def moreInfo : String
-	def url : String
-	def imageUrl : String
-	def openCorporatesUrl : String
+trait GeographicCoordinate {
+  def longitude : BigDecimal
+  def latitude : BigDecimal
 }

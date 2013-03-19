@@ -83,6 +83,13 @@ case class TagResponce (
   id : String
 )
 
+case class WhereTag(
+  where : GeoCord
+)
+case class GeoCord(
+  logitude : BigDecimal,
+  latitude : BigDecimal
+)
 object OBPAPI1_1 extends RestHelper with Loggable {
 
   implicit def tagReponceToJson(tag: TagResponce ): JValue = Extraction.decompose(tag)
@@ -170,10 +177,10 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       JsonResponse("banks" -> Bank.all.map(bankToJson _ ))
     }
-    
+
     case "banks" :: bankId :: Nil JsonGet json => {
       logAPICall
-      
+
       def bankToJson( b : Bank) = {
         ("bank" ->
           ("id" -> b.permalink) ~
@@ -182,7 +189,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
           ("logo" -> b.logoURL)
         )
       }
-      
+
       for {
         b <- Bank(bankId)
       } yield JsonResponse(bankToJson(b))
@@ -294,6 +301,46 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
 
       response getOrElse (JsonResponse(ErrorMessage(message), Nil, Nil, 401)) : LiftResponse
+    }
+  })
+
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankID :: "accounts" :: accountID :: "public" :: "transactions" :: transactionID :: "metadata" :: "where" :: Nil JsonPut json -> _ => {
+      logAPICall
+      tryo{
+        json.extract[WhereTag]
+      } match {
+        case Full(whereTag) =>{
+          View.fromUrl("public") match {
+            case Full(view) => {
+              //get the moderated transaction
+              LocalStorage.getModeratedTransaction(transactionID,bankID,accountID)(view.moderate _ ) match {
+                case Full(transaction) =>
+                  (for{
+                    metadata <- Box(transaction.metadata) ?~! {"public view does not allow transaction metadata access"}
+                    addWhereTag <- Box(metadata.addWhereTag) ?~! {"public view does not allow adding where tags to a transaction"}
+                  } yield addWhereTag) match {
+                    case Full(addWhereTag) => {
+                      //use the method to save the location
+                      addWhereTag(whereTag.where.logitude, whereTag.where.latitude)
+                      JsonResponse("", Nil, Nil, 201)
+                    }
+                    case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                    case _ => JsonResponse(ErrorMessage({"oublic view does not allow transaction taggin or metadata access"}), Nil, Nil, 400)
+                  }
+                case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ =>{
+                  val msg = "transaction id: " + transactionID + " with bankID: " + bankID + " and accountID: " + accountID + " not found"
+                  JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                }
+              }
+            }
+            case _ =>
+              JsonResponse(ErrorMessage("public view not found"), Nil, Nil, 400)
+          }
+        }
+        case _ => JsonResponse(ErrorMessage("wrong json format"), Nil, Nil, 400)
+      }
     }
   })
 

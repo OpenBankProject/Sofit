@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -42,10 +42,10 @@ import net.liftweb.http.LiftResponse
 import java.text.SimpleDateFormat
 import java.net.URL
 
-class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountName, 
-  filteredNationalIdentifier : Option[String], filteredSWIFT_BIC : Option[Option[String]], 
+class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountName,
+  filteredNationalIdentifier : Option[String], filteredSWIFT_BIC : Option[Option[String]],
   filteredIBAN : Option[Option[String]], filteredBankName: Option[String],
-  filteredNumber: Option[String], filteredMetadata : Option[ModeratedOtherBankAccountMetadata]) 
+  filteredNumber: Option[String], filteredMetadata : Option[ModeratedOtherBankAccountMetadata])
 {
     def id = filteredId
     def label = filteredLabel
@@ -54,7 +54,7 @@ class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountNam
     def iban = filteredIBAN
     def bankName = filteredBankName
     def number = filteredNumber
-    def metadata = filteredMetadata 
+    def metadata = filteredMetadata
     def isAlias = filteredLabel.aliasType match{
     case PublicAlias | PrivateAlias => true
     case _ => false
@@ -77,9 +77,9 @@ object ModeratedOtherBankAccount {
   }
 }
 
-class ModeratedOtherBankAccountMetadata(filteredMoreInfo : Option[String], 
+class ModeratedOtherBankAccountMetadata(filteredMoreInfo : Option[String],
   filteredUrl : Option[String], filteredImageUrl : Option[String], filteredOpenCorporatesUrl : Option[String]) {
-  def moreInfo = filteredMoreInfo 
+  def moreInfo = filteredMoreInfo
   def url = filteredUrl
   def imageUrl = filteredImageUrl
   def openCorporatesUrl = filteredOpenCorporatesUrl
@@ -93,27 +93,27 @@ object ModeratedOtherBankAccountMetadata {
 
 
 class ModeratedTransaction(
-  filteredId: String, 
-  filteredBankAccount: Option[ModeratedBankAccount], 
-  filteredOtherBankAccount: Option[ModeratedOtherBankAccount], 
-  filteredMetaData : Option[ModeratedTransactionMetadata], 
-  filteredTransactionType: Option[String], 
-  filteredAmount: Option[BigDecimal], 
-  filteredCurrency: Option[String], 
+  filteredId: String,
+  filteredBankAccount: Option[ModeratedBankAccount],
+  filteredOtherBankAccount: Option[ModeratedOtherBankAccount],
+  filteredMetaData : Option[ModeratedTransactionMetadata],
+  filteredTransactionType: Option[String],
+  filteredAmount: Option[BigDecimal],
+  filteredCurrency: Option[String],
   filteredLabel: Option[String],
-  filteredStartDate: Option[Date], 
+  filteredStartDate: Option[Date],
   filteredFinishDate: Option[Date],
   filteredBalance : String
 ) {
-  
+
   //the filteredBlance type in this class is a string rather than Big decimal like in Transaction trait for snippet (display) reasons.
-  //the view should be able to return a sign (- or +) or the real value. casting signs into bigdecimal is not possible  
-  def id = filteredId 
+  //the view should be able to return a sign (- or +) or the real value. casting signs into bigdecimal is not possible
+  def id = filteredId
   def bankAccount = filteredBankAccount
   def otherBankAccount = filteredOtherBankAccount
   def metadata = filteredMetaData
   def transactionType = filteredTransactionType
-  def amount = filteredAmount 
+  def amount = filteredAmount
   def currency = filteredCurrency
   def label = filteredLabel
   def startDate = filteredStartDate
@@ -123,7 +123,7 @@ class ModeratedTransaction(
   def dateOption2JString(date: Option[Date]) : JString = {
     JString(date.map(d => ModeratedTransaction.dateFormat.format(d)) getOrElse "")
   }
-  
+
   def toJson(view: View): JObject = {
     ("view" -> view.permalink) ~
     ("uuid" -> id) ~
@@ -135,7 +135,7 @@ class ModeratedTransaction(
         ("posted" -> dateOption2JString(startDate)) ~
         ("completed" -> dateOption2JString(finishDate)) ~
         ("new_balance" ->
-          ("currency" -> currency.getOrElse("")) ~ 
+          ("currency" -> currency.getOrElse("")) ~
           ("amount" -> balance)) ~
           ("value" ->
             ("currency" -> currency.getOrElse("")) ~
@@ -148,8 +148,8 @@ object ModeratedTransaction {
 }
 
 class ModeratedTransactionMetadata(
-  filteredOwnerComment : Option[String], 
-  filteredComments : Option[List[Comment]], 
+  filteredOwnerComment : Option[String],
+  filteredComments : Option[List[Comment]],
   addOwnerComment : Option[(String => Unit)],
   addCommentFunc: Option[(String, Long, String, Date) => Unit],
   tags_ : Option[List[Tag]],
@@ -157,7 +157,8 @@ class ModeratedTransactionMetadata(
   deleteTagFunc : Option[(String) => Unit],
   images_ : Option[List[TransactionImage]],
   addImageFunc : Option[(String, Long, String, Date, URL) => String],
-  deleteImageFunc  : Option[String => Unit]
+  deleteImageFunc  : Option[String => Unit],
+  addWhereTagFunc : Option[(BigDecimal, BigDecimal) => Unit]
   //deleteImageFunc  : Option[(String, Long) => Unit]
 )
 {
@@ -174,6 +175,7 @@ class ModeratedTransactionMetadata(
   def images = images_
   def addImage  = addImageFunc
   def deleteImage = deleteImageFunc
+  def addWhereTag = addWhereTagFunc
 }
 
 object ModeratedTransactionMetadata {
@@ -182,9 +184,9 @@ object ModeratedTransactionMetadata {
   }
 }
 
-class ModeratedBankAccount(filteredId : String, 
-  filteredOwners : Option[Set[AccountOwner]], filteredAccountType : Option[String], 
-  filteredBalance: String, filteredCurrency : Option[String], 
+class ModeratedBankAccount(filteredId : String,
+  filteredOwners : Option[Set[AccountOwner]], filteredAccountType : Option[String],
+  filteredBalance: String, filteredCurrency : Option[String],
   filteredLabel : Option[String], filteredNationalIdentifier : Option[String],
   filteredSwift_bic : Option[Option[String]], filteredIban : Option[Option[String]],
   filteredNumber: Option[String], filteredBankName: Option[String])
@@ -192,7 +194,7 @@ class ModeratedBankAccount(filteredId : String,
   def id = filteredId
   def owners = filteredOwners
   def accountType = filteredAccountType
-  def balance = filteredBalance 
+  def balance = filteredBalance
   def currency = filteredCurrency
   def label = filteredLabel
   def nationalIdentifier = filteredNationalIdentifier
@@ -200,17 +202,17 @@ class ModeratedBankAccount(filteredId : String,
   def iban = filteredIban
   def number = filteredNumber
   def bankName = filteredBankName
-  
+
   def toJson = {
     //TODO: Decide if unauthorised info (I guess that is represented by a 'none' option'? I can't really remember)
-    // should just disappear from the json or if an empty string should be used. 
-    //I think we decided to use empty strings. What was the point of all the options again? 
+    // should just disappear from the json or if an empty string should be used.
+    //I think we decided to use empty strings. What was the point of all the options again?
     ("number" -> number.getOrElse("")) ~
-    ("owners" -> owners.flatten.map(owner => 
-      ("id" ->owner.id) ~ 
+    ("owners" -> owners.flatten.map(owner =>
+      ("id" ->owner.id) ~
       ("name" -> owner.name))) ~
     ("type" -> accountType.getOrElse("")) ~
-    ("balance" -> 
+    ("balance" ->
     	("currency" -> currency.getOrElse("")) ~
     	("amount" -> balance)) ~
     ("IBAN" -> iban.getOrElse(Some(""))) ~
@@ -219,14 +221,14 @@ class ModeratedBankAccount(filteredId : String,
 }
 
 object ModeratedBankAccount {
-  
+
   def bankJson(holderName: String, isAlias : String, number: String,
       	kind: String, bankIBAN: String, bankNatIdent: String,
       	bankName: String) : JObject = {
-    ("holder" -> 
+    ("holder" ->
       (
     	 ("name" -> holderName) ~
-    	 ("alias"-> isAlias) 
+    	 ("alias"-> isAlias)
       ))~
     ("number" -> number) ~
     ("kind" -> kind) ~
@@ -235,7 +237,7 @@ object ModeratedBankAccount {
     	("national_identifier" -> bankNatIdent) ~
     	("name" -> bankName))
   }
-  
+
   implicit def moderatedBankAccount2Json(mBankAccount: ModeratedBankAccount) : JObject = {
     val holderName = mBankAccount.owners match{
         case Some(ownersSet) => if(ownersSet.size!=0)
@@ -243,7 +245,7 @@ object ModeratedBankAccount {
                                 else
                                   ""
         case _ => ""
-      } 
+      }
     val isAlias = "no"
     val number = mBankAccount.number getOrElse ""
     val kind = mBankAccount.accountType getOrElse ""
