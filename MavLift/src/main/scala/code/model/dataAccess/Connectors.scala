@@ -86,7 +86,7 @@ trait LocalStorage extends Loggable {
   def getAccount(bankpermalink: String, account: String): Box[Account]
   def getTransaction(id : String, bankPermalink : String, accountPermalink : String) : Box[Transaction]
 
-  def getModeratedTransaction(id : String, bankPermalink : String, accountPermalink : String, viewID : String)
+  def getModeratedTransaction(id : String, bankPermalink : String, accountPermalink : String)
   (moderate: Transaction => ModeratedTransaction) : Box[ModeratedTransaction] = {
     getTransaction(id,bankPermalink,accountPermalink) match {
       case Full(transaction) => Full(moderate(transaction))
