@@ -36,11 +36,10 @@ import net.liftweb.http._
 import net.liftweb.http.rest._
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Printer._
-import net.liftweb.json.Extraction._
+import net.liftweb.json.Extraction
 import net.liftweb.json.JsonAST._
 import net.liftweb.common.{Failure,Full,Empty, Box, Loggable}
 import net.liftweb.mongodb._
-import net.liftweb.json.JsonAST.JString
 import com.mongodb.casbah.Imports._
 import _root_.java.math.MathContext
 import org.bson.types._
@@ -74,11 +73,21 @@ import code.model.traits.AccountOwner
 import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
 import code.model.dataAccess.OBPUser
 import code.model.traits.ModeratedOtherBankAccount
-import net.liftweb.json.Extraction
+
+case class TagInformation(
+  value : String,
+  posted_date : Date
+)
+
+case class TagResponce (
+  id : String
+)
 
 object OBPAPI1_1 extends RestHelper with Loggable {
 
+  implicit def tagReponceToJson(tag: TagResponce ): JValue = Extraction.decompose(tag)
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
+  implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
 
   val dateFormat = ModeratedTransaction.dateFormat
   private def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] =
@@ -407,6 +416,68 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
 
       moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
+    }
+
+
+    //post a tag
+    case "banks" :: bankID :: "accounts" :: accountID :: viewID :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
+      logAPICall
+      if(isThereOauthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
+        if(httpCode == 200)
+        {
+          getUser(httpCode, oAuthParameters.get("oauth_token")) match {
+            case Full(user) => {
+              tryo{
+                json.extract[TagInformation]
+              } match {
+                case Full(tag) =>{
+                  //load the view
+                  View.fromUrl(viewID) match {
+                    case Full(view) => {
+                      //does it allow taging
+                      if(view.canAddTag)
+                      {
+                        //get the moderated transaction
+                        LocalStorage.getModeratedTransaction(transactionID,bankID,accountID)(view.moderate _ ) match {
+                          case Full(transaction) =>
+                            (for{
+                              metadata <- Box(transaction.metadata) ?~! {"viewID: " + viewID + " does not allow transaction metadata access"}
+                              addTag <- Box(metadata.addTag) ?~! {"viewID: " + viewID + " does not allow adding tags to a transaction"}
+                            } yield addTag) match {
+                              case Full(addTag) => {
+                                val tagID : String = addTag(user.id_, view.id, tag.value, tag.posted_date)
+                                JsonResponse(TagResponce(tagID), Nil, Nil, 201)
+                              }
+                              case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                              case _ => JsonResponse(ErrorMessage({"viewID: " + viewID + " does not allow transaction taggin or metadata access"}), Nil, Nil, 400)
+                            }
+                          case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                          case _ =>{
+                            val msg = "transaction id: " + transactionID + " with bankID: " + bankID + " and accountID: " + accountID + " not found"
+                            JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                          }
+                        }
+                      }
+                      else
+                        JsonResponse(ErrorMessage("viewID: " + viewID + " does not allow adding tags to a transaction"), Nil, Nil, 400)
+                    }
+                    case _ =>
+                      JsonResponse(ErrorMessage("viewID: " + viewID + " not found"), Nil, Nil, 400)
+                  }
+                }
+                case _ => JsonResponse(ErrorMessage("wrong data format"), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(ErrorMessage("No user referenced with the token"), Nil, Nil, 400)
+          }
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("an OAuth header with valid parameters is required"), Nil, Nil, 400)
     }
   })
 }
