@@ -33,7 +33,7 @@ package code.model.dataAccess
 
 import code.model.traits._
 import code.model.implementedTraits._
-import net.liftweb.common.{ Box, Empty, Full }
+import net.liftweb.common.{ Box, Empty, Full, Failure }
 import net.liftweb.mongodb.BsonDSL._
 import net.liftweb.json.JsonDSL._
 import net.liftweb.common.Loggable
@@ -89,9 +89,9 @@ trait LocalStorage extends Loggable {
   def getModeratedTransaction(id : String, bankPermalink : String, accountPermalink : String, viewID : String)
   (moderate: Transaction => ModeratedTransaction) : Box[ModeratedTransaction] = {
     getTransaction(id,bankPermalink,accountPermalink) match {
-      case Full(transaction) => moderate(transaction)
+      case Full(transaction) => Full(moderate(transaction))
       case _ => {
-        val errorMessage = {"transaction id: " + id + " with bankID: " + bankpermalink + " and accountID: " + accountPermalink + " not found" }
+        val errorMessage = {"transaction id: " + id + " with bankID: " + bankPermalink + " and accountID: " + accountPermalink + " not found" }
         Failure(errorMessage,Empty,Empty)
       }
     }

@@ -404,7 +404,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
 
     //post a tag
-    case "banks" :: BANK_ID :: "accounts" :: ACCOUNT_ID :: VIEW_ID :: "transactions" :: TRANSACTION_ID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
+    case "banks" :: bankID :: "accounts" :: accountID :: viewID :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
       logAPICall
       if(isThereOauthHeader)
       {
@@ -424,32 +424,32 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                       if(view.canAddTag)
                       {
                         //get the moderated transaction
-                        LocalStorage.getModeratedTransaction(TRANSACTION_ID,BANK_ID,ACCOUNT_ID)(view.moderate _ ) match {
+                        LocalStorage.getModeratedTransaction(transactionID,bankID,accountID)(view.moderate _ ) match {
                           case Full(transaction) =>
                           for{
-                            metadata <- transaction.metadata ?~! {"viewID: " + VIEW_ID + " does not allow transaction metadata access"}
-                            addTag <- metadata.addTag ?~! {"viewID: " + VIEW_ID + " does not allow adding tags to a transaction"}
+                            metadata <- transaction.metadata ?~! {"viewID: " + viewID + " does not allow transaction metadata access"}
+                            addTag <- metadata.addTag ?~! {"viewID: " + viewID + " does not allow adding tags to a transaction"}
                           } yield addTag match {
                             case Full(addTag) => {
                               val tagID : String = addTag(user.id_, view.id, tag.value, tag.posted_date)
                               JsonResponse(TagResponce(tagID), Nil, Nil, 201)
                             }
                             case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                            case _ => JsonResponse(ErrorMessage({"viewID: " + VIEW_ID + " does not allow transaction taggin or metadata access"}), Nil, Nil, 400)
+                            case _ => JsonResponse(ErrorMessage({"viewID: " + viewID + " does not allow transaction taggin or metadata access"}), Nil, Nil, 400)
                           }
                           case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
                           case _ =>{
-                            val msg = "transaction id: " + TRANSACTION_ID + " with bankID: " + BANK_ID + " and accountID: " + ACCOUNT_ID + " not found"
+                            val msg = "transaction id: " + TRANSACTION_ID + " with bankID: " + bankId + " and accountID: " + accountID + " not found"
                             JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
                           }
                         }
                         //add the tag
                       }
                       else
-                        JsonResponse(ErrorMessage("viewID: " + VIEW_ID + " does not allow adding tags to a transaction"), Nil, Nil, 400)
+                        JsonResponse(ErrorMessage("viewID: " + viewID + " does not allow adding tags to a transaction"), Nil, Nil, 400)
                     }
                     case _ =>
-                      JsonResponse(ErrorMessage("viewID: " + VIEW_ID + " not found"), Nil, Nil, 400)
+                      JsonResponse(ErrorMessage("viewID: " + viewID + " not found"), Nil, Nil, 400)
                   }
                 }
                 case _ =>

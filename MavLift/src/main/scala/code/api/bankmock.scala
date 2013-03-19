@@ -43,6 +43,8 @@ import net.liftweb.json.JsonAST.JValue
 import code.model.Token
 import code.model.TokenType
 import net.liftweb.util.Helpers.tryo
+import net.liftweb.json.Serialization
+import net.liftweb.json.NoTypeHints
 
 case class ErrorMessage(
   error : String
@@ -70,8 +72,10 @@ case class UserData(
 )
 
 object JSONImplicits {
+  implicit val _formats = Serialization.formats(NoTypeHints)
+
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
-  implicit def errorToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
+  implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
 }
 /**
 * this object provides the API call required for the Bank mock,
