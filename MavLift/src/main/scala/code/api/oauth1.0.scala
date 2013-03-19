@@ -286,28 +286,26 @@ object OAuthHandshake extends RestHelper with Loggable {
 	    }
 	  }
 
-	  //check if the all the necessary OAuth parameters are present regarding
-	  //the request type
-	  def enoughtOauthParameters(parameters : Map[String, String], requestType : String) : Boolean = {
-	 		val parametersBase =
-	 			List(
-	 				"oauth_consumer_key",
-	 				"oauth_nonce",
-	 				"oauth_signature_method",
-	 				"oauth_timestamp",
-	 				"oauth_signature"
-	 			)
-			if (parameters.size < 6)
-	  		false
-	  	else if(requestType == "requestToken")
-	  		("oauth_callback" :: parametersBase).toSet.subsetOf(parameters.keySet)
-	  	else if(requestType=="authorizationToken")
-		    ("oauth_token" :: "oauth_verifier" :: parametersBase).toSet.subsetOf(parameters.keySet)
-	  	else if(requestType=="protectedResource")
-		    ("oauth_token" :: parametersBase).toSet.subsetOf(parameters.keySet)
-	  	else
-	  		false
-	  }
+	  //@return the missing parameters depending of the request type
+    def missingOauthParameters(parameters : Map[String, String], requestType : String) : Set[String] = {
+      val parametersBase =
+        List(
+          "oauth_consumer_key",
+          "oauth_nonce",
+          "oauth_signature_method",
+          "oauth_timestamp",
+          "oauth_signature"
+        )
+      if(requestType == "requestToken")
+        ("oauth_callback" :: parametersBase).toSet diff parameters.keySet
+      else if(requestType=="authorizationToken")
+        ("oauth_token" :: "oauth_verifier" :: parametersBase).toSet diff parameters.keySet
+      else if(requestType=="protectedResource")
+        ("oauth_token" :: parametersBase).toSet diff parameters.keySet
+      else
+        parameters.keySet
+    }
+
     def supportedSignatureMethod(oauthSignatureMethod : String ) : Boolean =
     {
       oauthSignatureMethod.toLowerCase == "hmac-sha256" ||
@@ -320,9 +318,10 @@ object OAuthHandshake extends RestHelper with Loggable {
 	  var parameters = getAllParameters
 
 	  //does all the OAuth parameters are presents?
-	  if(! enoughtOauthParameters(parameters,requestType))
+    val missingParams = missingOauthParameters(parameters,requestType)
+	  if( missingParams.size != 0 )
 	  {
-	    message = "One or several oauth parameters are missing"
+	    message = "the following parameters are missing : " + missingParams.mkString(", ")
 	  	httpCode = 400
 	  }
 	  //no parameter exists more than one times
