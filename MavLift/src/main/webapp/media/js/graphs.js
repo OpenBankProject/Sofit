@@ -1,10 +1,12 @@
 var draw_bar_graph = function(data) {
-    data = data.stats;
+    sorted  = data.stats.sort(function(a,b){return a.amount - b.amount;});
+    sorted = sorted.reverse();
+    data = $(sorted).slice(0, 20);
     //maximum of data you want to use
     var content = d3.select("#content"),
         data_max = d3.max(data).amount,
         //number of tickmarks to use
-        num_ticks = 20,
+        num_ticks = 10,
         //margins
         left_margin = 330,
         right_margin = 330,
@@ -12,7 +14,7 @@ var draw_bar_graph = function(data) {
         bottom_margin = 0;
 
     content.insert("h2", ".bar-chart").text("Bar Graph");
-    content.insert("h3", ".bar-chart").text("Daily API Request");
+    content.insert("h3", ".bar-chart").text("Top 20 API Request");
 
     var w = 1050,                        //width
         h = 600,                        //height
@@ -28,8 +30,8 @@ var draw_bar_graph = function(data) {
 
     var chart_top = h - y.rangeBand()/2 - top_margin;
     var chart_bottom = bottom_margin + y.rangeBand()/2;
-    var chart_left = left_margin;
-    var chart_right = w - right_margin;
+    var chart_left = left_margin + 100;
+    var chart_right = w - 100;
 
     /*
      *  Setup the SVG element and position it
@@ -82,7 +84,7 @@ var draw_bar_graph = function(data) {
             });
 
     bars.append("svg:rect")
-        .attr("x", right_margin)
+        .attr("x", chart_left)
         .attr("width", function(d) {
                 return (x(d.amount));
                 })
@@ -112,7 +114,7 @@ var draw_bar_graph = function(data) {
         .append("svg:text")
             .attr("class", "value")
             .attr("x", function(d) {
-                return x(d.amount) + right_margin + 10;
+                return x(d.amount) + chart_left + 10;
             })
             .attr("text-anchor", "left")
             .text(function(d) {
@@ -159,11 +161,15 @@ d3.json("obp/v1.0/metrics/demo-line",function(data) {
   var minDate = getDate(data.stats[0]),
       maxDate = getDate(data.stats[data.stats.length-1]);
 
+ var height_cord = Math.max.apply(Math, data.stats.map(function(v) {
+                    return v.amount;
+                }));
+
   var w = 990,
   h = 450,
   p = 30,
   margin = 20,
-  y = d3.scale.linear().domain([20, 0]).range([0 + margin, h - margin]),
+  y = d3.scale.linear().domain([height_cord, 0]).range([0 + margin, h - margin]),
   x = d3.time.scale().domain([minDate, maxDate]).range([0 + margin, w - margin]);
 
   var vis = d3.select("#content")
@@ -226,7 +232,7 @@ d3.json("obp/v1.0/metrics/demo-line",function(data) {
               // Add the y-axis to the left
               vis.append("svg:g")
                     .attr("class", "y axis")
-                    .attr("transform", "translate(0,0)")
+                    .attr("transform", "translate(10,0)")
                     .call(yAxisLeft);
 
     var content = d3.select("#content");
