@@ -87,8 +87,8 @@ case class WhereTag(
   where : GeoCord
 )
 case class GeoCord(
-  logitude : BigDecimal,
-  latitude : BigDecimal
+  longitude : Double,
+  latitude : Double
 )
 object OBPAPI1_1 extends RestHelper with Loggable {
 
@@ -336,7 +336,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                   } yield addWhereTag) match {
                     case Full(addWhereTag) => {
                       //use the method to save the location
-                      addWhereTag(whereTag.where.logitude, whereTag.where.latitude)
+                      addWhereTag(BigDecimal(whereTag.where.longitude), BigDecimal(whereTag.where.latitude))
                       JsonResponse("", Nil, Nil, 201)
                     }
                     case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
