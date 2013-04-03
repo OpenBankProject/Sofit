@@ -36,6 +36,10 @@ import java.util.Date
 
 trait Transaction {
 
+  //A universally unique id
+  def uuid : String
+
+  //The bank's id for the transaction
   def id : String
 
   var thisAccount : BankAccount

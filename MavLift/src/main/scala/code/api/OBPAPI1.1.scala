@@ -177,7 +177,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
           ("id" -> b.permalink) ~
           ("short_name" -> b.shortName) ~
           ("full_name" -> b.fullName) ~
-          ("logo" -> b.logoURL)
+          ("logo" -> b.logoURL) ~
+          ("website" -> b.website)
         )
       }
 
@@ -192,7 +193,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
           ("id" -> b.permalink) ~
           ("short_name" -> b.shortName) ~
           ("full_name" -> b.fullName) ~
-          ("logo" -> b.logoURL)
+          ("logo" -> b.logoURL) ~
+          ("website" -> b.website)
         )
       }
 
@@ -253,9 +255,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       def transactionJson(t : ModeratedTransaction, v : View) : JObject = {
         ("transaction" ->
-          ("view" -> v.permalink) ~
-          ("uuid" -> t.id) ~
-          ("bank_id" -> "") ~
+          ("uuid" -> t.uuid) ~
+          ("id" -> t.id) ~
           ("this_account" -> t.bankAccount.map(thisAccountJson)) ~
           ("other_account" -> t.otherBankAccount.map(otherAccountJson)) ~
           ("details" ->
@@ -276,9 +277,10 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         ("number" -> thisAccount.number.getOrElse("")) ~
         ("kind" -> thisAccount.accountType.getOrElse("")) ~
         ("bank" ->
-          ("IBAN" -> thisAccount.iban.getOrElse(Some(""))) ~ //TODO: Why is it Option[Option[String]]?
+          ("IBAN" -> thisAccount.iban.getOrElse("")) ~
           ("national_identifier" -> thisAccount.nationalIdentifier.getOrElse("")) ~
-          ("name" -> thisAccount.label.getOrElse("")))
+          ("name" -> thisAccount.bankName.getOrElse(""))
+        )
       }
 
       def ownerJson(owner : AccountOwner) : JObject = {
@@ -289,13 +291,15 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       def otherAccountJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
         ("holder" ->
           ("name" -> otherAccount.label.display) ~
-          ("is_alias" -> otherAccount.isAlias)) ~
+          ("is_alias" -> otherAccount.isAlias)
+        ) ~
         ("number" -> otherAccount.number.getOrElse("")) ~
         ("type" -> "") ~
         ("bank" ->
-          ("IBAN" -> "") ~
-          ("national_identifier" -> "") ~
-          ("name" -> ""))
+          ("IBAN" -> otherAccount.iban.getOrElse("")) ~
+          ("national_identifier" -> otherAccount.nationalIdentifier.getOrElse("")) ~
+          ("name" -> otherAccount.bankName.getOrElse(""))
+        )
       }
 
       val response : Box[JsonResponse] = for {
@@ -356,6 +360,44 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         case _ => JsonResponse(ErrorMessage("wrong json format"), Nil, Nil, 400)
       }
     }
+
+    case "banks" :: bankID :: "accounts" :: accountID :: "public" :: "transactions" :: transactionID :: "metadata" :: "where" :: Nil JsonGer _ => {
+      logAPICall
+      tryo{
+        json.extract[WhereTag]
+      } match {
+        case Full(whereTag) =>{
+          View.fromUrl("public") match {
+            case Full(view) => {
+              //get the moderated transaction
+              LocalStorage.getModeratedTransaction(transactionID,bankID,accountID)(view.moderate _ ) match {
+                case Full(transaction) =>
+                  (for{
+                    metadata <- Box(transaction.metadata) ?~! {"public view does not allow transaction metadata access"}
+                    addWhereTag <- Box(metadata.addWhereTag) ?~! {"public view does not allow adding where tags to a transaction"}
+                  } yield addWhereTag) match {
+                    case Full(addWhereTag) => {
+                      //use the method to save the location
+                      addWhereTag(whereTag.where.logitude, whereTag.where.latitude)
+                      JsonResponse("", Nil, Nil, 201)
+                    }
+                    case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                    case _ => JsonResponse(ErrorMessage({"oublic view does not allow transaction taggin or metadata access"}), Nil, Nil, 400)
+                  }
+                case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ =>{
+                  val msg = "transaction id: " + transactionID + " with bankID: " + bankID + " and accountID: " + accountID + " not found"
+                  JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                }
+              }
+            }
+            case _ =>
+              JsonResponse(ErrorMessage("public view not found"), Nil, Nil, 400)
+          }
+        }
+        case _ => JsonResponse(ErrorMessage("wrong json format"), Nil, Nil, 400)
+      }
+    }
   })
 
   serve("obp" / "v1.1" prefix {
@@ -371,7 +413,6 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       def viewToJson(v : View) : JObject = {
         ("view" -> (
-
             ("id" -> v.permalink) ~
             ("short_name" -> v.name) ~
             ("description" -> v.description) ~
@@ -457,18 +498,19 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
 
       def balanceJson(account: ModeratedBankAccount): JObject = {
-        ("currency" -> account.currency) ~
+        ("currency" -> account.currency.getOrElse("")) ~
         ("amount" -> account.balance)
       }
 
       def json(account: ModeratedBankAccount, views: Set[View]): JObject = {
         ("account" ->
-        ("number" -> account.number) ~
-        ("owners" -> account.owners.flatten.map(ownerJson)) ~
-        ("type" -> account.accountType) ~
-        ("balance" -> balanceJson(account)) ~
-        ("IBAN" -> account.iban) ~
-        ("views_available" -> views.map(viewJson)))
+          ("number" -> account.number.getOrElse("")) ~
+          ("owners" -> account.owners.flatten.map(ownerJson)) ~
+          ("type" -> account.accountType.getOrElse("")) ~
+          ("balance" -> balanceJson(account)) ~
+          ("IBAN" -> account.iban.getOrElse("")) ~
+          ("views_available" -> views.map(viewJson))
+        )
       }
 
       if(isThereOauthHeader)
