@@ -121,7 +121,7 @@ trait View {
   def moderate(transaction: Transaction): ModeratedTransaction = {
     //transaction data
     val transactionId = transaction.id
-
+    val transactionUUID = transaction.uuid
     val thisBankAccount =
     if(canSeeTransactionThisBankAccount)
     {
@@ -142,12 +142,12 @@ trait View {
           None
       val swift_bic =
         if(canSeeBankAccountSwift_bic)
-          Some(transaction.thisAccount.swift_bic)
+          transaction.thisAccount.swift_bic
         else
           None
       val iban =
         if(canSeeBankAccountIban)
-          Some(transaction.thisAccount.iban)
+          transaction.thisAccount.iban
         else
           None
       Some(new ModeratedBankAccount(transaction.thisAccount.id, owners, accountType, balance, currency, label,
@@ -181,8 +181,8 @@ trait View {
           AccountName(realName, NoAlias)
       }
       val otherAccountNationalIdentifier = if (canSeeOtherAccountNationalIdentifier) Some(transaction.otherAccount.nationalIdentifier) else None
-      val otherAccountSWIFT_BIC = if (canSeeSWIFT_BIC) Some(transaction.otherAccount.swift_bic) else None
-      val otherAccountIBAN = if(canSeeOtherAccountIBAN) Some(transaction.otherAccount.iban) else None
+      val otherAccountSWIFT_BIC = if (canSeeSWIFT_BIC) transaction.otherAccount.swift_bic else None
+      val otherAccountIBAN = if(canSeeOtherAccountIBAN) transaction.otherAccount.iban else None
       val otherAccountBankName = if(canSeeOtherAccountBankName) Some(transaction.otherAccount.bankName) else None
       val otherAccountNumber = if(canSeeOtherAccountNumber) Some(transaction.otherAccount.number) else None
       val otherAccountMetadata =
@@ -302,7 +302,7 @@ trait View {
       if (canSeeTransactionBalance) transaction.balance.toString()
       else ""
 
-    new ModeratedTransaction(transactionId, thisBankAccount, otherBankAccount, transactionMetadata,
+    new ModeratedTransaction(transactionUUID, transactionId, thisBankAccount, otherBankAccount, transactionMetadata,
      transactionType, transactionAmount, transactionCurrency, transactionLabel, transactionStartDate,
       transactionFinishDate, transactionBalance)
   }
@@ -319,8 +319,8 @@ trait View {
       val currency = if(canSeeBankAccountCurrency) Some(bankAccount.currency) else None
       val label = if(canSeeBankAccountLabel) Some(bankAccount.label) else None
       val nationalIdentifier = if(canSeeBankAccountNationalIdentifier) Some(bankAccount.label) else None
-      val swiftBic = if(canSeeBankAccountSwift_bic) Some(bankAccount.swift_bic) else None
-      val iban = if(canSeeBankAccountIban) Some(bankAccount.iban) else None
+      val swiftBic = if(canSeeBankAccountSwift_bic) bankAccount.swift_bic else None
+      val iban = if(canSeeBankAccountIban) bankAccount.iban else None
       val number = if(canSeeBankAccountNumber) Some(bankAccount.number) else None
       val bankName = if(canSeeBankAccountName) Some(bankAccount.bankName) else None
 
