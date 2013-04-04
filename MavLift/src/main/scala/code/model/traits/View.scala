@@ -99,7 +99,8 @@ trait View {
   def canSeeOtherAccountIBAN : Boolean
   def canSeeOtherAccountBankName : Boolean
   def canSeeOtherAccountNumber : Boolean
-  def canSeeOtherAccountMetadata :Boolean
+  def canSeeOtherAccountMetadata : Boolean
+  def canSeeOtherAccountKind : Boolean
 
   //other bank account meta data
   def canSeeMoreInfo: Boolean
@@ -185,6 +186,7 @@ trait View {
       val otherAccountIBAN = if(canSeeOtherAccountIBAN) transaction.otherAccount.iban else None
       val otherAccountBankName = if(canSeeOtherAccountBankName) Some(transaction.otherAccount.bankName) else None
       val otherAccountNumber = if(canSeeOtherAccountNumber) Some(transaction.otherAccount.number) else None
+      val otherAccountKind = if(canSeeOtherAccountKind) Some(transaction.otherAccount.kind) else None
       val otherAccountMetadata =
         if(canSeeOtherAccountMetadata)
         {
@@ -208,7 +210,7 @@ trait View {
             None
 
       Some(new ModeratedOtherBankAccount(otherAccountId,otherAccountLabel, otherAccountNationalIdentifier,
-        otherAccountSWIFT_BIC, otherAccountIBAN, otherAccountBankName, otherAccountNumber, otherAccountMetadata))
+        otherAccountSWIFT_BIC, otherAccountIBAN, otherAccountBankName, otherAccountNumber, otherAccountMetadata, otherAccountKind))
     }
     else
       None
@@ -399,6 +401,7 @@ class BaseView extends View {
   def canSeeOtherAccountBankName = false
   def canSeeOtherAccountNumber = false
   def canSeeOtherAccountMetadata = false
+  def canSeeOtherAccountKind = false
 
   //other bank account meta data
   def canSeeMoreInfo = false
@@ -467,6 +470,7 @@ class FullView extends View {
   def canSeeOtherAccountMetadata = true
   def canSeeOtherAccountBankName = true
   def canSeeOtherAccountNumber = true
+  def canSeeOtherAccountKind = true
 
   //other bank account meta data
   def canSeeMoreInfo = true

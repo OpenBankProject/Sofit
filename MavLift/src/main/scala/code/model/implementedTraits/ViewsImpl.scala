@@ -150,7 +150,7 @@ object Public extends BaseView {
       }
 
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,
-          None, None, None, otherAccountMetadata))
+          None, None, None, otherAccountMetadata, None))
     }
     val transactionMetadata =
       Some(
@@ -224,7 +224,7 @@ object Public extends BaseView {
           Some(transaction.otherAccount.metadata.openCorporatesUrl)))
 
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,None,
-          None, None, otherAccountMetadata))
+          None, None, otherAccountMetadata, None))
     }
     val transactionMetadata =
       Some(

@@ -42,10 +42,17 @@ import net.liftweb.http.LiftResponse
 import java.text.SimpleDateFormat
 import java.net.URL
 
-class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountName,
-  filteredNationalIdentifier : Option[String], filteredSWIFT_BIC : Option[String],
-  filteredIBAN : Option[String], filteredBankName: Option[String],
-  filteredNumber: Option[String], filteredMetadata : Option[ModeratedOtherBankAccountMetadata])
+class ModeratedOtherBankAccount(
+  filteredId : String,
+  filteredLabel : AccountName,
+  filteredNationalIdentifier : Option[String],
+  filteredSWIFT_BIC : Option[String],
+  filteredIBAN : Option[String],
+  filteredBankName: Option[String],
+  filteredNumber: Option[String],
+  filteredMetadata : Option[ModeratedOtherBankAccountMetadata],
+  filteredKind : Option[String]
+)
 {
     def id = filteredId
     def label = filteredLabel
@@ -55,10 +62,11 @@ class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountNam
     def bankName = filteredBankName
     def number = filteredNumber
     def metadata = filteredMetadata
-    def isAlias = filteredLabel.aliasType match{
-    case PublicAlias | PrivateAlias => true
-    case _ => false
-  }
+    def isAlias : Boolean = filteredLabel.aliasType match{
+      case PublicAlias | PrivateAlias => true
+      case _ => false
+    }
+    def kind = filteredKind
 }
 
 object ModeratedOtherBankAccount {

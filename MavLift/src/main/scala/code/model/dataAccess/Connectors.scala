@@ -130,7 +130,9 @@ class MongoDBLocalStorage extends LocalStorage {
         number_ = otherAccount_.number.get,
         bankName_ = "", //TODO: need to add this to the json/model
         metadata_ = new OtherBankAccountMetadataImpl(oAcc.publicAlias.get, oAcc.privateAlias.get, oAcc.moreInfo.get,
-        oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get))
+        oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get),
+        kind_ = ""
+      )
     val metadata = new TransactionMetadataImpl(
       env.narrative.get,
       env.obp_comments.objs,
