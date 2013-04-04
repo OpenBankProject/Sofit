@@ -120,6 +120,7 @@ class MongoDBLocalStorage extends LocalStorage {
     }
 
     val id = env.id.is.toString()
+    val uuid = id
     val otherAccount = new OtherBankAccountImpl(
         id_ = oAcc.id.is.toString,
         label_ = otherAccount_.holder.get,
@@ -129,7 +130,9 @@ class MongoDBLocalStorage extends LocalStorage {
         number_ = otherAccount_.number.get,
         bankName_ = "", //TODO: need to add this to the json/model
         metadata_ = new OtherBankAccountMetadataImpl(oAcc.publicAlias.get, oAcc.privateAlias.get, oAcc.moreInfo.get,
-        oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get))
+        oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get),
+        kind_ = ""
+      )
     val metadata = new TransactionMetadataImpl(
       env.narrative.get,
       env.obp_comments.objs,
@@ -150,7 +153,7 @@ class MongoDBLocalStorage extends LocalStorage {
     val startDate = transaction.details.get.posted.get
     val finishDate = transaction.details.get.completed.get
     val balance = transaction.details.get.new_balance.get.amount.get
-    new TransactionImpl(id, thisBankAccount, otherAccount, metadata, transactionType, amount, currency,
+    new TransactionImpl(uuid, id, thisBankAccount, otherAccount, metadata, transactionType, amount, currency,
       label, startDate, finishDate, balance)
   }
 
@@ -178,7 +181,8 @@ class MongoDBLocalStorage extends LocalStorage {
           bank.alias.is,
           bank.name.is,
           bank.permalink.is,
-          bank.logoURL.is
+          bank.logoURL.is,
+          bank.website.is
         )
       )
 
@@ -192,7 +196,8 @@ class MongoDBLocalStorage extends LocalStorage {
           bank.alias.is,
           bank.name.is,
           bank.permalink.is,
-          bank.logoURL.is
+          bank.logoURL.is,
+          bank.website.is
         )
       )
 

@@ -118,7 +118,8 @@ object Public extends BaseView {
 
   override def moderate(transaction: Transaction): ModeratedTransaction = {
 
-    val transactionId = transaction.id //toString().startsWith("-")) "-" else "+"
+    val transactionId = transaction.id
+    val transactionUUID = transaction.uuid
     val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
       //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
       // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
@@ -149,7 +150,7 @@ object Public extends BaseView {
       }
 
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,
-          None, None, None, otherAccountMetadata))
+          None, None, None, otherAccountMetadata, None))
     }
     val transactionMetadata =
       Some(
@@ -175,6 +176,7 @@ object Public extends BaseView {
     val transactionBalance =  if (transaction.balance.toString().startsWith("-")) "-" else "+"
 
     new ModeratedTransaction(
+      transactionUUID,
       transactionId,
       thisBankAccount,
       otherBankAccount,
@@ -200,6 +202,7 @@ object Public extends BaseView {
     	" or current/potential clients"
     override def moderate(transaction: Transaction): ModeratedTransaction = {
     val transactionId = transaction.id
+    val transactionUUID = transaction.uuid
     val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
       //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
       // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
@@ -221,7 +224,7 @@ object Public extends BaseView {
           Some(transaction.otherAccount.metadata.openCorporatesUrl)))
 
       Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,None,
-          None, None, otherAccountMetadata))
+          None, None, otherAccountMetadata, None))
     }
     val transactionMetadata =
       Some(
@@ -247,7 +250,7 @@ object Public extends BaseView {
     val transactionFinishDate = Some(transaction.finishDate)
     val transactionBalance =  transaction.balance.toString()
 
-    new ModeratedTransaction(transactionId, thisBankAccount, otherBankAccount, transactionMetadata,
+    new ModeratedTransaction(transactionUUID, transactionId, thisBankAccount, otherBankAccount, transactionMetadata,
      transactionType, transactionAmount, transactionCurrency, transactionLabel, transactionStartDate,
       transactionFinishDate, transactionBalance)
   	}

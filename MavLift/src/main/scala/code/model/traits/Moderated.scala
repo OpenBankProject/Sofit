@@ -42,10 +42,17 @@ import net.liftweb.http.LiftResponse
 import java.text.SimpleDateFormat
 import java.net.URL
 
-class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountName,
-  filteredNationalIdentifier : Option[String], filteredSWIFT_BIC : Option[Option[String]],
-  filteredIBAN : Option[Option[String]], filteredBankName: Option[String],
-  filteredNumber: Option[String], filteredMetadata : Option[ModeratedOtherBankAccountMetadata])
+class ModeratedOtherBankAccount(
+  filteredId : String,
+  filteredLabel : AccountName,
+  filteredNationalIdentifier : Option[String],
+  filteredSWIFT_BIC : Option[String],
+  filteredIBAN : Option[String],
+  filteredBankName: Option[String],
+  filteredNumber: Option[String],
+  filteredMetadata : Option[ModeratedOtherBankAccountMetadata],
+  filteredKind : Option[String]
+)
 {
     def id = filteredId
     def label = filteredLabel
@@ -55,10 +62,11 @@ class ModeratedOtherBankAccount (filteredId : String, filteredLabel : AccountNam
     def bankName = filteredBankName
     def number = filteredNumber
     def metadata = filteredMetadata
-    def isAlias = filteredLabel.aliasType match{
-    case PublicAlias | PrivateAlias => true
-    case _ => false
-  }
+    def isAlias : Boolean = filteredLabel.aliasType match{
+      case PublicAlias | PrivateAlias => true
+      case _ => false
+    }
+    def kind = filteredKind
 }
 
 object ModeratedOtherBankAccount {
@@ -67,10 +75,7 @@ object ModeratedOtherBankAccount {
     val isAlias = if(mOtherBank.isAlias) "yes" else "no"
     val number = mOtherBank.number getOrElse ""
     val kind = ""
-    val bankIBAN = (for { //TODO: This should be handled a bit better... might want to revisit the Option stuff in ModeratedOtherAccount etc.
-      i <- mOtherBank.iban
-      iString <- i
-    } yield iString).getOrElse("")
+    val bankIBAN = mOtherBank.iban.getOrElse("")
     val bankNatIdent = mOtherBank.nationalIdentifier getOrElse ""
     val bankName = mOtherBank.bankName getOrElse ""
     ModeratedBankAccount.bankJson(holderName, isAlias, number, kind, bankIBAN, bankNatIdent, bankName)
@@ -93,6 +98,7 @@ object ModeratedOtherBankAccountMetadata {
 
 
 class ModeratedTransaction(
+  filteredUUID : String,
   filteredId: String,
   filteredBankAccount: Option[ModeratedBankAccount],
   filteredOtherBankAccount: Option[ModeratedOtherBankAccount],
@@ -108,6 +114,7 @@ class ModeratedTransaction(
 
   //the filteredBlance type in this class is a string rather than Big decimal like in Transaction trait for snippet (display) reasons.
   //the view should be able to return a sign (- or +) or the real value. casting signs into bigdecimal is not possible
+  def uuid = filteredUUID
   def id = filteredId
   def bankAccount = filteredBankAccount
   def otherBankAccount = filteredOtherBankAccount
@@ -188,7 +195,7 @@ class ModeratedBankAccount(filteredId : String,
   filteredOwners : Option[Set[AccountOwner]], filteredAccountType : Option[String],
   filteredBalance: String, filteredCurrency : Option[String],
   filteredLabel : Option[String], filteredNationalIdentifier : Option[String],
-  filteredSwift_bic : Option[Option[String]], filteredIban : Option[Option[String]],
+  filteredSwift_bic : Option[String], filteredIban : Option[String],
   filteredNumber: Option[String], filteredBankName: Option[String])
 {
   def id = filteredId
@@ -215,7 +222,7 @@ class ModeratedBankAccount(filteredId : String,
     ("balance" ->
     	("currency" -> currency.getOrElse("")) ~
     	("amount" -> balance)) ~
-    ("IBAN" -> iban.getOrElse(Some(""))) ~
+    ("IBAN" -> iban.getOrElse("")) ~
     ("date_opened" -> "")
   }
 }
@@ -249,10 +256,7 @@ object ModeratedBankAccount {
     val isAlias = "no"
     val number = mBankAccount.number getOrElse ""
     val kind = mBankAccount.accountType getOrElse ""
-    val bankIBAN = (for { //TODO: This should be handled a bit better... might want to revisit the Option stuff in ModeratedOtherAccount etc.
-      i <- mBankAccount.iban
-      iString <- i
-    } yield iString).getOrElse("")
+    val bankIBAN = mBankAccount.iban.getOrElse("")
     val bankNatIdent = mBankAccount.nationalIdentifier getOrElse ""
     val bankName = mBankAccount.bankName getOrElse ""
     bankJson(holderName, isAlias, number, kind, bankIBAN, bankNatIdent, bankName)

@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -37,7 +37,7 @@ import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST.JArray
 
-trait Bank 
+trait Bank
 {
 	def id : String
 	def shortName : String
@@ -45,20 +45,21 @@ trait Bank
 	def permalink : String
   def logoURL : String
 	def accounts : Set[BankAccount]
-	
+  def website : String
+
 	def detailedJson : JObject = {
 	  ("name" -> shortName) ~
 	  ("website" -> "") ~
 	  ("email" -> "")
 	}
-	
+
 	def toJson : JObject = {
 	  ("alias" -> permalink) ~
       ("name" -> shortName) ~
       ("logo" -> "") ~
       ("links" -> linkJson)
 	}
-	
+
 	def linkJson : JObject = {
       ("rel" -> "bank") ~
       ("href" -> {"/" + permalink + "/bank"}) ~
@@ -69,10 +70,10 @@ trait Bank
 
 object Bank {
   def apply(bankPermalink: String) : Box[Bank] = LocalStorage.getBank(bankPermalink)
-  
+
   def all : List[Bank] = LocalStorage.allBanks
-  
-  def toJson(banks: Seq[Bank]) : JArray = 
+
+  def toJson(banks: Seq[Bank]) : JArray =
     banks.map(bank => bank.toJson)
-  
+
 }
