@@ -597,7 +597,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                   //load the view
                   View.fromUrl(viewID) match {
                     case Full(view) => {
-                      //does it allow taging
+                      //does it allow tagging
                       if(view.canAddTag)
                       {
                         //get the moderated transaction
