@@ -144,7 +144,8 @@ class MongoDBLocalStorage extends LocalStorage {
       env.images.objs,
       env.addImage _,
       env.deleteImage _,
-      env.addWhereTag _
+      env.addWhereTag _,
+      (env.whereTag.get.longitude.get,env.whereTag.get.latitude.get)
     )
     val transactionType = transaction.details.get.type_en.get
     val amount = transaction.details.get.value.get.amount.get

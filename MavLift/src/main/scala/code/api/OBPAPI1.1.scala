@@ -492,11 +492,11 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                   } yield addWhereTag) match {
                     case Full(addWhereTag) => {
                       //use the method to save the location
-                      addWhereTag(BigDecimal(whereTag.where.longitude), BigDecimal(whereTag.where.latitude))
+                      addWhereTag(whereTag.where.longitude, whereTag.where.latitude)
                       JsonResponse("", Nil, Nil, 201)
                     }
                     case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                    case _ => JsonResponse(ErrorMessage({"oublic view does not allow transaction taggin or metadata access"}), Nil, Nil, 400)
+                    case _ => JsonResponse(ErrorMessage({"public view does not allow transaction tagging or metadata access"}), Nil, Nil, 400)
                   }
                 case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
                 case _ =>{
@@ -531,10 +531,10 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                     case Full(addWhereTag) => {
                       //use the method to save the location
                       addWhereTag(whereTag.where.longitude, whereTag.where.latitude)
-                      JsonResponse("", Nil, Nil, 201)
+                      JsonResponse("geo tag added successfully", Nil, Nil, 201)
                     }
                     case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                    case _ => JsonResponse(ErrorMessage({"oublic view does not allow transaction taggin or metadata access"}), Nil, Nil, 400)
+                    case _ => JsonResponse(ErrorMessage({"public view does not allow transaction tagging or metadata access"}), Nil, Nil, 400)
                   }
                 case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
                 case _ =>{

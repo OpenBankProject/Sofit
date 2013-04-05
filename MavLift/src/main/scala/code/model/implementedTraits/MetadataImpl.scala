@@ -65,11 +65,13 @@ class TransactionMetadataImpl(
   images_ : List[TransactionImage],
   addImageFunc : (String, Long, String, Date, URL) => String,
   deleteImageFunc : String => Unit,
-  addWhereTagFunc : (BigDecimal, BigDecimal) => Unit
+  addWhereTagFunc : (Double, Double) => Unit,
+  whereTag_ : (Double, Double)
 )
   extends TransactionMetadata with Loggable
 {
-  def addWhereTag(longitude : BigDecimal, latitude : BigDecimal) = addWhereTagFunc(longitude,latitude)
+  def addWhereTag(longitude : Double, latitude : Double) = addWhereTagFunc(longitude,latitude)
+  def whereTag = whereTag_
   def ownerComment = if(! narative.isEmpty) Some(narative) else None
   def ownerComment(comment : String) = saveOwnerComment(comment)
   def comments : List[Comment] = comments_
