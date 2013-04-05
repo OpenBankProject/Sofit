@@ -157,7 +157,7 @@ object ModeratedTransaction {
 class ModeratedTransactionMetadata(
   filteredOwnerComment : Option[String],
   filteredComments : Option[List[Comment]],
-  addOwnerComment : Option[(String => Unit)],
+  addOwnerCommentFunc : Option[(String => Unit)],
   addCommentFunc: Option[(String, Long, String, Date) => Unit],
   tags_ : Option[List[Tag]],
   addTagFunc : Option[(String, Long, String, Date) => String],
@@ -171,10 +171,7 @@ class ModeratedTransactionMetadata(
 {
   def ownerComment = filteredOwnerComment
   def comments = filteredComments
-  def ownerComment(text : String) = addOwnerComment match {
-    case None => None
-    case Some(o) => o.apply(text)
-  }
+  def saveOwnerComment = addOwnerCommentFunc
   def addComment= addCommentFunc
   def tags = tags_
   def addTag = addTagFunc
