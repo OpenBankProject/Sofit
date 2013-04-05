@@ -99,7 +99,7 @@ trait BankAccount {
 
   def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
 
-  def authorisedAccess(view: View, user: Option[User]) : Boolean
+  def authorizedAccess(view: View, user: Option[User]) : Boolean
 
   def overviewJson(user: Box[User]): JObject = {
     val views = permittedViews(user)
