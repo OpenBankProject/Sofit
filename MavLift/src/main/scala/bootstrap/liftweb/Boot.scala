@@ -141,7 +141,7 @@ class Boot extends Loggable{
       val transactionsAndView : Box[(List[ModeratedTransaction], View)] = for {
         b <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
         v <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found for account " + account + " and bank " + bank}
-        if(b.authorisedAccess(v, OBPUser.currentUser))
+        if(b.authorizedAccess(v, OBPUser.currentUser))
       } yield (b.getModeratedTransactions(v.moderate), v)
 
       transactionsAndView match {
@@ -180,7 +180,7 @@ class Boot extends Loggable{
           bankAccount <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
           transaction <- bankAccount.transaction(transactionID) ?~ {"transaction " + transactionID + " not found in account " + account + " for bank " + bank}
           view <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found"}
-          if(bankAccount.authorisedAccess(view, OBPUser.currentUser))
+          if(bankAccount.authorizedAccess(view, OBPUser.currentUser))
         } yield (view.moderate(transaction),view)
 
       transaction match {

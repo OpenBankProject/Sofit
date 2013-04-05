@@ -196,7 +196,7 @@ object OBPAPI1_0 extends RestHelper with Loggable {
       val toDate = tryo{dateFormat.parse(json.header("obp_to_date") getOrElse "")}.map(OBPToDate(_))
 
       def getTransactions(bankAccount: BankAccount, view: View, user: Option[OBPUser]) = {
-        if(bankAccount.authorisedAccess(view, user)) {
+        if(bankAccount.authorizedAccess(view, user)) {
           val basicParams = List(OBPLimit(limit),
                           OBPOffset(offset),
                           OBPOrdering(sortBy, sortDirection))
