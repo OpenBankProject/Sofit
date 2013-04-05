@@ -100,7 +100,7 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
    LocalStorage.getTransactions(permalink, bankPermalink)
   }
 
-  def authorisedAccess(view: code.model.traits.View, user: Option[User]) = {
+  def authorizedAccess(view: code.model.traits.View, user: Option[User]) = {
     view match {
       case Public => allowPublicAccess
       case _ => user match {
