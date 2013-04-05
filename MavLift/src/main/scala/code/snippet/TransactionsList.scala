@@ -188,7 +188,11 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
     var narrative = transaction.metadata.get.ownerComment.getOrElse("").toString
     CustomEditable.editable(narrative, SHtml.text(narrative, narrative = _), () => {
       //save the narrative
-      transaction.metadata.get.ownerComment(narrative)
+      transaction.metadata.get.saveOwnerComment match {
+        case Some(f) => f.apply(narrative)
+        case _ =>
+      }
+
       Noop
     }, "Narrative")
   }

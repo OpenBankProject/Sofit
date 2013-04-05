@@ -75,9 +75,13 @@ import code.model.dataAccess.OBPUser
 import code.model.traits.ModeratedOtherBankAccount
 import code.api.OAuthHandshake._
 
-case class TagInformation(
+case class TagJSON(
   value : String,
   posted_date : Date
+)
+
+case class NarrativeJSON(
+  narrative : String
 )
 
 case class TagResponce (
@@ -498,6 +502,71 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         narrativeInJson(bankId, accountId, viewId, transactionID, None)
     }
 
+
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "narrative" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def narrativeInJson(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
+        val narrative = for {
+            account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
+            view <- View.fromUrl(viewId) ?~ { "view "  + viewId + " not found"}
+            moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
+            metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+            narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
+          } yield narrative
+
+          narrative match {
+            case Full(narrative) => JsonResponse(oneFieldJson("narrative", narrative), Nil, Nil, 200)
+            case Failure(msg,_,_) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+          }
+      }
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", "POST")
+        if(httpCode == 200)
+          tryo{
+            json.extract[NarrativeJSON]
+          } match {
+            case Full(narrativeJson) => {
+
+              val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+
+              def isNarrativeAlreadySet(narrative : String) =
+                if(!narrative.isEmpty)
+                 Full(narrative)
+                else
+                  Failure("narrative already set, use PUT method to update it")
+
+              val addNarrativeFunc = for {
+                  account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
+                  view <- View.fromUrl(viewId) ?~ {"view "  + viewId + " not found"}
+                  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
+                  metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+                  narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
+                  narrativeSetted <- isNarrativeAlreadySet(narrative)
+                  addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
+                } yield addNarrativeFunc
+
+              addNarrativeFunc match {
+                case Full(addNarrative) => {
+                  addNarrative(narrativeJson.narrative)
+                  JsonResponse(SuccessMessage("narrative successfully saved"), Nil, Nil, 201)
+                }
+                case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
+          }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
   })
 
   serve("obp" / "v1.1" prefix{
@@ -591,7 +660,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
           getUser(httpCode, oAuthParameters.get("oauth_token")) match {
             case Full(user) => {
               tryo{
-                json.extract[TagInformation]
+                json.extract[TagJSON]
               } match {
                 case Full(tag) =>{
                   //load the view
@@ -612,7 +681,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                                 JsonResponse(TagResponce(tagID), Nil, Nil, 201)
                               }
                               case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                              case _ => JsonResponse(ErrorMessage({"viewID: " + viewID + " does not allow transaction taggin or metadata access"}), Nil, Nil, 400)
+                              case _ => JsonResponse(ErrorMessage({"viewID: " + viewID + " does not allow transaction tagging or metadata access"}), Nil, Nil, 400)
                             }
                           case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
                           case _ =>{
