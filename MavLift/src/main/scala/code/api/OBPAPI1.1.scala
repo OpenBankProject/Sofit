@@ -507,22 +507,6 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       //log the API call
       logAPICall
 
-      def narrativeInJson(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
-        val narrative = for {
-            account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
-            view <- View.fromUrl(viewId) ?~ { "view "  + viewId + " not found"}
-            moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
-            metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
-            narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
-          } yield narrative
-
-          narrative match {
-            case Full(narrative) => JsonResponse(oneFieldJson("narrative", narrative), Nil, Nil, 200)
-            case Failure(msg,_,_) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
-            case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
-          }
-      }
-
       if(isThereAnOAuthHeader)
       {
         val (httpCode, message, oAuthParameters) = validator("protectedResource", "POST")
