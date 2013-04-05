@@ -54,7 +54,7 @@ import code.model.traits.TransactionImage
 import net.liftweb.util.Helpers._
 import net.liftweb.http.S
 import java.net.URL
-import net.liftweb.record.field.DecimalField
+import net.liftweb.record.field.{DoubleField,DecimalField}
 
 /**
  * "Current Account View"
@@ -164,7 +164,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     obp_comments(comment.id.is :: obp_comments.get ).save
   }
 
-  def addWhereTag(longitude : BigDecimal, latitude : BigDecimal)  = {
+  def addWhereTag(longitude : Double, latitude : Double)  = {
     val tag = WhereTag.createRecord.longitude(longitude).latitude(latitude)
     whereTag(tag).save
   }
@@ -542,7 +542,7 @@ object OBPTransactionImage extends OBPTransactionImage with MongoMetaRecord[OBPT
 
 class WhereTag private() extends BsonRecord[WhereTag]{
   def meta = WhereTag
-  object longitude extends DecimalField(this,0)
-  object latitude extends DecimalField(this,0)
+  object longitude extends DoubleField(this,0)
+  object latitude extends DoubleField(this,0)
 }
 object WhereTag extends WhereTag with BsonMetaRecord[WhereTag]

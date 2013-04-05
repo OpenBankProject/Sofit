@@ -116,6 +116,7 @@ trait View {
   def canAddImage : Boolean
   def canDeleteImage : Boolean
   def canAddWhereTag : Boolean
+  def canSeeWhereTag : Boolean
 
   // In the future we can add a method here to allow someone to show only transactions over a certain limit
 
@@ -252,11 +253,17 @@ trait View {
           if(canDeleteImage) Some(transaction.metadata.deleteImage _)
           else None
 
-        val addWhereTagFunc : Option[(BigDecimal, BigDecimal) => Unit] =
+        val addWhereTagFunc : Option[(Double, Double) => Unit] =
           if(canAddWhereTag)
             Some(transaction.metadata.addWhereTag _)
           else
             Empty
+
+        val whereTag : Option[(Double, Double)] =
+          if(canSeeWhereTag)
+            Some(transaction.metadata.whereTag)
+          else
+            None
 
         new Some(
           new ModeratedTransactionMetadata(
@@ -270,7 +277,8 @@ trait View {
             images,
             addImageFunc,
             deleteImageFunc,
-            addWhereTagFunc
+            addWhereTagFunc,
+            whereTag
         ))
       }
       else
@@ -417,6 +425,7 @@ class BaseView extends View {
   def canAddImage = false
   def canDeleteImage = false
   def canAddWhereTag = false
+  def canSeeWhereTag = false
 }
 
 class FullView extends View {
@@ -486,6 +495,7 @@ class FullView extends View {
   def canAddImage = true
   def canDeleteImage = true
   def canAddWhereTag = true
+  def canSeeWhereTag = true
 }
 
 

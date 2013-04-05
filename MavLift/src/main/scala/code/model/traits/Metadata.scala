@@ -47,12 +47,9 @@ trait TransactionMetadata {
   def images : List[TransactionImage]
   def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
   def deleteImage(id : String) : Unit
-  def addWhereTag(longitude : BigDecimal, latitude : BigDecimal) : Unit
-
-  /**
-   * @param userId : The user id of the user trying to delete the image with id "id"
-   *//*
-  def deleteImage(id : String, userId: Long) : Unit*/
+  def addWhereTag(longitude : Double, latitude : Double) : Unit
+  //@return longitude and latitude
+  def whereTag : (Double, Double)
 }
 trait OtherBankAccountMetadata
 {

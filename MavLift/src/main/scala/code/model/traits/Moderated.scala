@@ -165,8 +165,8 @@ class ModeratedTransactionMetadata(
   images_ : Option[List[TransactionImage]],
   addImageFunc : Option[(String, Long, String, Date, URL) => String],
   deleteImageFunc  : Option[String => Unit],
-  addWhereTagFunc : Option[(BigDecimal, BigDecimal) => Unit]
-  //deleteImageFunc  : Option[(String, Long) => Unit]
+  addWhereTagFunc : Option[(Double, Double) => Unit],
+  whereTag_ : Option[(Double, Double)]
 )
 {
   def ownerComment = filteredOwnerComment
@@ -183,6 +183,7 @@ class ModeratedTransactionMetadata(
   def addImage  = addImageFunc
   def deleteImage = deleteImageFunc
   def addWhereTag = addWhereTagFunc
+  def whereTag = whereTag_
 }
 
 object ModeratedTransactionMetadata {
