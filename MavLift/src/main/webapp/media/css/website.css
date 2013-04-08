@@ -549,22 +549,22 @@ li.comment
 }
 #feedBack {
     display: block;
-    position: fixed;
+    position: absolute;
     left: -195px;
-    top: 50%;
+    top: 40%;
     width: 215px;
-    height: 250px;
+    height: 120px;
     cursor: pointer;
     background-color: #0c5276;
     border-radius: 0 5px 5px 0;
     padding: 20px 10px;
-    background-repeat: no-repeat;
-    background-position: 200px 260px;
-    background-size: 30px;
 }
 
 .feedback-bg {
 	background-image: url(../images/polarize-logo.png);
+    background-repeat: no-repeat;
+    background-position: 200px 130px;
+    background-size: 30px;
 }
 
 #feedBack form {
@@ -690,7 +690,7 @@ span#accountsMsg
 #addTagInput{
 	height: 25px;
 }
-#submitTag, 
+#submitTag,
 #addImageBlock .addImageSubmit,
 #addImageBlock .chooseFile{
 	height: 30px;
@@ -784,7 +784,7 @@ span#accountsMsg
 }
 
 .success .success-message {
-	margin-bottom: 10px;	
+	margin-bottom: 10px;
 }
 
 .success .user-generated {

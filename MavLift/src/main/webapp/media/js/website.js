@@ -23,11 +23,11 @@ $(document).ready(function() {
           $feedback.find('.polarize-input').show();
           $feedback.find('input[type="text"], textarea').val("");
           $feedback.find('.thanks').hide();
-          $feedback.animate({left:"0px"});
+          $feedback.animate({left:"0px", height:"250px"});
           return false;
       },
       function(){
-          $("#feedBack").addClass("feedback-bg").animate({left:"-195px"});
+          $("#feedBack").addClass("feedback-bg").animate({left:"-195px", height:"120px"});
           return false;
       }
   );
