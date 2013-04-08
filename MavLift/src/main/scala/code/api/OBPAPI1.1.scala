@@ -551,7 +551,54 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
+
   })
+
+  serve("obp" / "v1.1" prefix{
+
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "narrative" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", "POST")
+        if(httpCode == 200)
+          tryo{
+            json.extract[NarrativeJSON]
+          } match {
+            case Full(narrativeJson) => {
+
+              val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+
+              val addNarrativeFunc = for {
+                  account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
+                  view <- View.fromUrl(viewId) ?~ {"view "  + viewId + " not found"}
+                  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
+                  metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+                  narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
+                  addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
+                } yield addNarrativeFunc
+
+              addNarrativeFunc match {
+                case Full(addNarrative) => {
+                  addNarrative(narrativeJson.narrative)
+                  JsonResponse(SuccessMessage("narrative successfully saved"), Nil, Nil, 201)
+                }
+                case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
+          }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
+  })
+
 
   serve("obp" / "v1.1" prefix{
     case "banks" :: bankID :: "accounts" :: accountID :: "public" :: "transactions" :: transactionID :: "metadata" :: "where" :: Nil JsonPut json -> _ => {
