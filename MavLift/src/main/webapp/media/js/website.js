@@ -38,7 +38,7 @@ $(document).ready(function() {
           url: $(this).attr("action"),
           data: $(this).serialize(),
           success: function() {
-              $('#feedback-angel').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be an angel!</p>");
+              $('#feedback-angel').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for being positive!</p>");
           }
       });
     }
@@ -52,7 +52,7 @@ $(document).ready(function() {
           url: $(this).attr("action"),
           data: $(this).serialize(),
           success: function() {
-              $this.find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you to be a demon!</p>");
+              $this.find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for being negative!</p>");
           }
       });
     }
@@ -66,7 +66,7 @@ $(document).ready(function() {
           url: $(this).attr("action"),
           data: $(this).serialize(),
           success: function() {
-              $this.find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for you Ideas!</p>");
+              $this.find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for your ideas!</p>");
           }
       });
     }
