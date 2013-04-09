@@ -144,6 +144,7 @@
         var $this = $(this);
         if ($.trim($("#feedback-angel input[type=text]").val()).length !== 0) {
           $.ajax({
+              type: "POST"
               url: $(this).attr("action"),
               data: $(this).serialize(),
               success: function() {
@@ -158,6 +159,7 @@
         var $this = $(this);
         if ($.trim($this.find("input[type=text]").val()).length !== 0) {
           $.ajax({
+              type: "POST"
               url: $(this).attr("action"),
               data: $(this).serialize(),
               success: function() {
@@ -172,6 +174,7 @@
         var $this = $(this);
         if ($.trim($this.find("textarea").val()).length !== 0) {
           $.ajax({
+              type: "POST"
               url: $(this).attr("action"),
               data: $(this).serialize(),
               success: function() {
