@@ -2,7 +2,6 @@
 
     var methods = {
         init : function( options ) {
-
             this.each(function() {
                 var settings = $.extend( {
                     "location": "left",
@@ -132,7 +131,7 @@
               $feedback.find('.polarize-input').show();
               $feedback.find('input[type="text"], textarea').val("");
               $feedback.find('.thanks').hide();
-              $feedback.animate({left:"0px", height:"250px"});
+              $feedback.animate({left:"0", height:"250px"});
               return false;
           },
           function(){
