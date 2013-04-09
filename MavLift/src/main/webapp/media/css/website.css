@@ -733,12 +733,12 @@ span#accountsMsg
 
 /* Feedback button css*/
 
-#feedBack {
+#feedback {
     display: block;
     position: absolute;
     left: -195px;
     top: 40%;
-    width: 215px;
+    width: 220px;
     height: 120px;
     cursor: pointer;
     background-color: #0c5276;
@@ -746,37 +746,39 @@ span#accountsMsg
     padding: 20px 10px;
 }
 
-.feedback-bg {
+#feedback.feedback-bg {
     background-image: url(../images/polarize-logo.png);
     background-repeat: no-repeat;
     background-position: 200px 130px;
     background-size: 30px;
 }
 
-#feedBack form {
+#feedback form {
     width: 180px;
     margin-bottom: 8px;
+    display:inline-block;
 }
 
-#feedBack p {
+#feedback p {
     color: #ffffff;
     margin:10px 0;
 }
 
-#feedBack img {
+#feedback img {
     height:50px;
 }
 
-#feedBack input, #feedBack textarea {
+#feedback input, #feedBack textarea {
     border-radius: 3px;
     width:176px;
 }
 
-#feedBack textarea {
+#feedback textarea {
     border:none;
+    max-width:100%;
 }
 
-#feedBack input[type="submit"] {
+#feedback input[type="submit"] {
     background: #C1E7E1;
     border: 1px solid #22A890;
     padding: 2px 5px;
@@ -787,16 +789,24 @@ span#accountsMsg
     margin-top:4px;
 }
 
-.feedback-slider {
-    width: 40px;
+#feedback #feedback-content {
+    width:180px;
+}
+
+#feedback .polarize-anchor {
+    display:block;
+    width:180px;
+}
+
+#feedback .feedback-slider {
+    display:block;
+    width: 30px;
     height: 100%;
     background-image: url(../images/feedback-button.gif);
     background-repeat: no-repeat;
     background-size: 30px;
     background-position: 50%;
-    position: absolute;
-    right:0;
-    top:0;
+    float:right;
 }
 
 /* Feedbackbuttonc css end*/

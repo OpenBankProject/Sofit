@@ -5,7 +5,15 @@
             this.each(function() {
                 var settings = $.extend( {
                     "location": "left",
-                    "polarize_url": ""
+                    "polarize_url": "",
+                    "directions": {
+                        "left": {
+                            "left": "-195px"
+                        },
+                        "right": {
+                            "right": "-195px"
+                        }
+                    }
                 }, options);
                 createUI(options);
                 createEvents();
@@ -16,21 +24,25 @@
     function createUI(options) {
         // Create root element
         $( "<div></div>", {
-            "id": "feedBack",
+            "id": "feedback",
             "class": "feedback-bg"
         }).prependTo("body");
 
         // Create slider
         $( "<div></div>", {
             "class": "feedback-slider"
-        }).appendTo("#feedBack");
+        }).appendTo("#feedback");
+
+        $( "<div></div>", {
+            "id": "feedback-content"
+        }).appendTo("#feedback");
 
         // Create ad anchor to polarize with an image
         $( "<a></a>", {
             "class": "polarize-anchor",
             "target": "_blank",
             "href": "http://polarize.it"
-        }).appendTo("#feedBack");
+        }).appendTo("#feedback-content");
         $( "<img></img>", {
             "alt": "Polarize Logo",
             "src": "/media/images/polarize-logo.png"
@@ -42,7 +54,7 @@
             "action": options.polarize_url,
             "method": "post",
             "id": "feedback-angel"
-        }).appendTo("#feedBack");
+        }).appendTo("#feedback-content");
         $( "<input></input>", {
             "type": "hidden",
             "name": "redirect",
@@ -71,7 +83,7 @@
             "action": options.polarize_url,
             "method": "post",
             "id": "feedback-demon"
-        }).appendTo("#feedBack");
+        }).appendTo("#feedback-content");
         $( "<input></input>", {
             "type": "hidden",
             "name": "redirect",
@@ -100,7 +112,7 @@
             "action": options.polarize_url,
             "method": "post",
             "id": "feedback-idea"
-        }).appendTo("#feedBack");
+        }).appendTo("#feedback-content");
         $( "<input></input>", {
             "type": "hidden",
             "name": "redirect",
@@ -127,7 +139,7 @@
     function createEvents() {
       $(".feedback-slider").toggle(
           function(){
-              var $feedback = $("#feedBack").removeClass("feedback-bg");
+              var $feedback = $("#feedback").removeClass("feedback-bg");
               $feedback.find('.polarize-input').show();
               $feedback.find('input[type="text"], textarea').val("");
               $feedback.find('.thanks').hide();
@@ -135,7 +147,7 @@
               return false;
           },
           function(){
-              $("#feedBack").addClass("feedback-bg").animate({left:"-195px", height:"120px"});
+              $("#feedback").addClass("feedback-bg").animate({left:"-195px", height:"120px"});
               return false;
           }
       );
