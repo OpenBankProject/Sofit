@@ -17,62 +17,7 @@ $(document).ready(function() {
       type: "POST"
     });
 
-  $(".feedback-slider").toggle(
-      function(){
-          var $feedback = $("#feedBack").removeClass("feedback-bg");
-          $feedback.find('.polarize-input').show();
-          $feedback.find('input[type="text"], textarea').val("");
-          $feedback.find('.thanks').hide();
-          $feedback.animate({left:"0px", height:"250px"});
-          return false;
-      },
-      function(){
-          $("#feedBack").addClass("feedback-bg").animate({left:"-195px", height:"120px"});
-          return false;
-      }
-  );
-  $('#feedback-angel').submit(function() {
-    var $this = $(this);
-    if ($.trim($("#feedback-angel input[type=text]").val()).length !== 0) {
-      $.ajax({
-          url: $(this).attr("action"),
-          data: $(this).serialize(),
-          success: function() {
-              $('#feedback-angel').find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for being positive!</p>");
-          }
-      });
-    }
-    return false;
-  });
-
-  $('#feedback-demon').submit(function() {
-    var $this = $(this);
-    if ($.trim($this.find("input[type=text]").val()).length !== 0) {
-      $.ajax({
-          url: $(this).attr("action"),
-          data: $(this).serialize(),
-          success: function() {
-              $this.find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for being negative!</p>");
-          }
-      });
-    }
-    return false;
-  });
-
-  $('#feedback-idea').submit(function() {
-    var $this = $(this);
-    if ($.trim($this.find("textarea").val()).length !== 0) {
-      $.ajax({
-          url: $(this).attr("action"),
-          data: $(this).serialize(),
-          success: function() {
-              $this.find(".polarize-input").hide().parent().append("<p class='thanks'>Thank you for your ideas!</p>");
-          }
-      });
-    }
-    return false;
-  });
-
+    $("body").polarize({"polarize_url": "http://polarize.it/polarize/socialfinanceapp_55868373368"});
 });
 
 
