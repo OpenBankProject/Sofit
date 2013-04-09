@@ -4,44 +4,66 @@
         init : function( options ) {
             this.each(function() {
                 var settings = $.extend( {
-                    "location": "left",
+                    "direction": "left",
                     "polarize_url": "",
                     "directions": {
                         "left": {
-                            "left": "-195px"
+                            "container-style": "left: -195px;background-position: 200px 130px;",
+                            "slider-style": "float:right;",
+                            "content-style":"float:left;",
+                            "link-style": "text-align:left;",
+                            "animation": {
+                                "show": '{"left":"0", "height": "250px"}',
+                                "hide": '{"left":"-195px", "height": "120px"}'
+                            }
                         },
                         "right": {
-                            "right": "-195px"
+                            "container-style": "right: -195px;background-position: 10px 130px;",
+                            "slider-style": "float:left;",
+                            "content-style":"float:right;",
+                            "link-style": "text-align:right;",
+                            "animation": {
+                                "show": '{"right":"0", "height": "250px"}',
+                                "hide": '{"right":"-195px", "height": "120px"}'
+                            }
                         }
                     }
                 }, options);
-                createUI(options);
-                createEvents();
+                createUI(settings);
+                createEvents(settings);
             });
         }
     };
 
-    function createUI(options) {
+    function add_direction_style(settings) {
+        return settings.directions[settings.direction];
+    }
+
+    function createUI(settings) {
         // Create root element
         $( "<div></div>", {
             "id": "feedback",
-            "class": "feedback-bg"
-        }).prependTo("body");
+            "class": "feedback-bg",
+            "style": add_direction_style(settings)["container-style"]
+        }).prependTo("body").parent().css("overflow", "hidden");
 
         // Create slider
         $( "<div></div>", {
-            "class": "feedback-slider"
+            "class": "feedback-slider",
+            "style": add_direction_style(settings)["slider-style"]
         }).appendTo("#feedback");
 
         $( "<div></div>", {
-            "id": "feedback-content"
+            "id": "feedback-content",
+            "style": add_direction_style(settings)["content-style"]
         }).appendTo("#feedback");
 
         // Create ad anchor to polarize with an image
         $( "<a></a>", {
             "class": "polarize-anchor",
             "target": "_blank",
-            "href": "http://polarize.it"
+            "href": "http://polarize.it",
+            "style": add_direction_style(settings)["link-style"]
         }).appendTo("#feedback-content");
         $( "<img></img>", {
             "alt": "Polarize Logo",
@@ -51,7 +73,7 @@
         // Create forms
         // Angel form
         $( "<form></form>", {
-            "action": options.polarize_url,
+            "action": settings.polarize_url,
             "method": "post",
             "id": "feedback-angel"
         }).appendTo("#feedback-content");
@@ -80,7 +102,7 @@
 
         // Demon form
         $( "<form></form>", {
-            "action": options.polarize_url,
+            "action": settings.polarize_url,
             "method": "post",
             "id": "feedback-demon"
         }).appendTo("#feedback-content");
@@ -109,7 +131,7 @@
 
         // Idea form
         $( "<form></form>", {
-            "action": options.polarize_url,
+            "action": settings.polarize_url,
             "method": "post",
             "id": "feedback-idea"
         }).appendTo("#feedback-content");
@@ -136,18 +158,18 @@
         }).appendTo("#feedback-idea");
     }
 
-    function createEvents() {
+    function createEvents(settings) {
       $(".feedback-slider").toggle(
           function(){
               var $feedback = $("#feedback").removeClass("feedback-bg");
               $feedback.find('.polarize-input').show();
               $feedback.find('input[type="text"], textarea').val("");
               $feedback.find('.thanks').hide();
-              $feedback.animate({left:"0", height:"250px"});
+              $feedback.animate(JSON.parse(add_direction_style(settings)["animation"]["show"]));
               return false;
           },
           function(){
-              $("#feedback").addClass("feedback-bg").animate({left:"-195px", height:"120px"});
+              $("#feedback").addClass("feedback-bg").animate(JSON.parse(add_direction_style(settings)["animation"]["hide"]));
               return false;
           }
       );
