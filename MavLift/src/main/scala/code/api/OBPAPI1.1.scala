@@ -82,10 +82,6 @@ case class CommentJSON(
   posted_date : Date
 )
 
-case class TagResponce (
-  id : String
-)
-
 case class WhereTag(
   where : GeoCord
 )
@@ -95,7 +91,6 @@ case class GeoCord(
 )
 object OBPAPI1_1 extends RestHelper with Loggable {
 
-  implicit def tagReponceToJson(tag: TagResponce ): JValue = Extraction.decompose(tag)
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
   implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
 
@@ -836,64 +831,50 @@ object OBPAPI1_1 extends RestHelper with Loggable {
     }
 
     //post a tag
-    case "banks" :: bankID :: "accounts" :: accountID :: viewID :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tag" :: Nil JsonPost json -> _ => {
+      //log the API call
       logAPICall
+
       if(isThereAnOAuthHeader)
       {
         val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
         if(httpCode == 200)
-        {
-          getUser(httpCode, oAuthParameters.get("oauth_token")) match {
-            case Full(user) => {
-              tryo{
-                json.extract[TagJSON]
-              } match {
-                case Full(tag) =>{
-                  //load the view
-                  View.fromUrl(viewID) match {
-                    case Full(view) => {
-                      //does it allow tagging
-                      if(view.canAddTag)
-                      {
-                        //get the moderated transaction
-                        LocalStorage.getModeratedTransaction(transactionID,bankID,accountID)(view.moderate _ ) match {
-                          case Full(transaction) =>
-                            (for{
-                              metadata <- Box(transaction.metadata) ?~! {"viewID: " + viewID + " does not allow transaction metadata access"}
-                              addTag <- Box(metadata.addTag) ?~! {"viewID: " + viewID + " does not allow adding tags to a transaction"}
-                            } yield addTag) match {
-                              case Full(addTag) => {
-                                val tagID : String = addTag(user.id_, view.id, tag.value, tag.posted_date)
-                                JsonResponse(TagResponce(tagID), Nil, Nil, 201)
-                              }
-                              case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                              case _ => JsonResponse(ErrorMessage({"viewID: " + viewID + " does not allow transaction tagging or metadata access"}), Nil, Nil, 400)
-                            }
-                          case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                          case _ =>{
-                            val msg = "transaction id: " + transactionID + " with bankID: " + bankID + " and accountID: " + accountID + " not found"
-                            JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                          }
-                        }
-                      }
-                      else
-                        JsonResponse(ErrorMessage("viewID: " + viewID + " does not allow adding tags to a transaction"), Nil, Nil, 400)
-                    }
-                    case _ =>
-                      JsonResponse(ErrorMessage("viewID: " + viewID + " not found"), Nil, Nil, 400)
+          tryo{
+            json.extract[TagJSON]
+          } match {
+            case Full(tagJson) => {
+              def addTag(user : User, viewID : Long, tag: String, datePosted : Date) = {
+                val addTag = for {
+                  metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,Full(user))
+                  addTagFunc <- Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding comment"}
+                } yield addTagFunc
+
+                addTag.map(
+                  func =>{
+                    Full(func(user.id_, viewID, tag, datePosted))
                   }
-                }
-                case _ => JsonResponse(ErrorMessage("wrong data format"), Nil, Nil, 400)
+                )
+              }
+
+              val tag = for{
+                  user <- getUser(httpCode,oAuthParameters.get("oauth_token")) ?~ "User not found. Authentication via OAuth is required"
+                  view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                  postedTagID <- addTag(user, view.id, tagJson.value, tagJson.posted_date)
+                } yield postedTagID
+
+              tag match {
+                case Full(postedTagID) => JsonResponse(SuccessMessage("tag : " + postedTagID + "successfully saved"), Nil, Nil, 201)
+                case Failure(msg, _, _) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
               }
             }
-            case _ => JsonResponse(ErrorMessage("No user referenced with the token"), Nil, Nil, 400)
+            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
           }
-        }
         else
           JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
       }
       else
-        JsonResponse(ErrorMessage("an OAuth header with valid parameters is required"), Nil, Nil, 400)
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
   })
 }
