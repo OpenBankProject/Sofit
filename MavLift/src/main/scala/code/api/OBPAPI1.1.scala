@@ -883,5 +883,52 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
+
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "images" :: Nil JsonGet json => {
+      //log the API call
+      logAPICall
+
+      def imageToJson(image : TransactionImage) : JValue = {
+        ("image" ->
+          ("id" -> image.id_) ~
+          ("label" -> image.description) ~
+          ("URL" -> image.imageUrl.toString) ~
+          ("date" -> image.datePosted.toString) ~
+          ("user" -> userToJson(image.postedBy))
+        )
+      }
+
+      def imagesToJson(images : List[TransactionImage]) : JValue = {
+        ("tags" -> images.map(imageToJson))
+      }
+
+      def imagesResponce(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
+        val images = for {
+            metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
+            images <- Box(metadata.images) ?~ {"view " + viewId + " does not authorize tags access"}
+          } yield images
+
+          images match {
+            case Full(imagesList) => JsonResponse(imagesToJson(imagesList), Nil, Nil, 200)
+            case Failure(msg,_,_) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+          }
+      }
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+          imagesResponce(bankId, accountId, viewId, transactionID, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+      }
+      else
+        imagesResponce(bankId, accountId, viewId, transactionID, None)
+    }
+
   })
 }
