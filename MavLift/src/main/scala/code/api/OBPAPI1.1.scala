@@ -77,6 +77,11 @@ case class NarrativeJSON(
   narrative : String
 )
 
+case class CommentJSON(
+  value : String,
+  posted_date : Date
+)
+
 case class TagResponce (
   id : String
 )
@@ -561,7 +566,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
             case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
           }
         else
-          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
       }
       else
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
@@ -623,6 +628,53 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
       else
         commentsResponce(bankId, accountId, viewId, transactionID, None)
+    }
+
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+          tryo{
+            json.extract[CommentJSON]
+          } match {
+            case Full(commentJson) => {
+              def addComment(user : User, viewID : Long, text: String, datePosted : Date) = {
+                val addComment = for {
+                  metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,Full(user))
+                  addCommentFunc <- Box(metadata.addComment) ?~ {"view " + viewId + " does not authorize adding comment"}
+                } yield addCommentFunc
+
+                addComment.map(
+                  func =>{
+                    func(user.id_, viewID, text, datePosted)
+                    Full(text)
+                  }
+                )
+              }
+
+              val comment = for{
+                  user <- getUser(httpCode,oAuthParameters.get("oauth_token")) ?~ "User not found. Authentication via OAuth is required"
+                  view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                  postedComment <- addComment(user, view.id, commentJson.value, commentJson.posted_date)
+                } yield postedComment
+
+              comment match {
+                case Full(text) => JsonResponse(SuccessMessage("comment : " + text + "successfully saved"), Nil, Nil, 201)
+                case Failure(msg, _, _) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
+          }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
 
   })
