@@ -58,21 +58,14 @@ import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.mapper.view._
 import com.mongodb._
 import code.model.dataAccess.LocalStorage
-import code.model.traits.ModeratedTransaction
-import code.model.traits.View
+import code.model.traits._
 import code.model.implementedTraits.View
-import code.model.traits.BankAccount
 import code.model.implementedTraits.Public
-import code.model.traits.Bank
-import code.model.traits.User
 import java.util.Date
 import code.api.OAuthHandshake._
-import code.model.traits.ModeratedBankAccount
 import code.model.dataAccess.APIMetric
-import code.model.traits.AccountOwner
 import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
 import code.model.dataAccess.OBPUser
-import code.model.traits.ModeratedOtherBankAccount
 import code.api.OAuthHandshake._
 
 case class TagJSON(
@@ -102,6 +95,14 @@ object OBPAPI1_1 extends RestHelper with Loggable {
   implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
 
   val dateFormat = ModeratedTransaction.dateFormat
+
+  private def httpMethod : String =
+    S.request match {
+      case Full(r) => r.request.method
+      case _ => "GET"
+    }
+
+
   private def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] =
   if(httpCode==200)
   {
@@ -189,6 +190,14 @@ object OBPAPI1_1 extends RestHelper with Loggable {
   private def oneFieldJson(key : String, value : String) : JObject =
     (key -> value)
 
+  private def moderatedTransactionMetadata(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : Box[ModeratedTransactionMetadata] =
+    for {
+      account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
+      view <- View.fromUrl(viewId) ?~ { "view "  + viewId + " not found"}
+      moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
+      metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+    } yield metadata
+
   serve("obp" / "v1.1" prefix {
 
     case Nil JsonGet json => {
@@ -258,7 +267,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       //log the API call
       logAPICall
 
-      val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
+      val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
       val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
 
@@ -317,7 +326,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
       logAPICall
-      val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
+      val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
       val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
 
@@ -380,7 +389,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       //log the API call
       logAPICall
 
-      val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
+      val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
 
       def asInt(s: Box[String], default: Int): Int = {
@@ -454,7 +463,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       if(isThereAnOAuthHeader)
       {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
         if(httpCode == 200)
         {
           val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
@@ -473,10 +482,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       def narrativeInJson(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
         val narrative = for {
-            account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
-            view <- View.fromUrl(viewId) ?~ { "view "  + viewId + " not found"}
-            moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
-            metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+            metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
             narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
           } yield narrative
 
@@ -489,7 +495,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       if(isThereAnOAuthHeader)
       {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", "GET")
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
         if(httpCode == 200)
         {
           val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
@@ -502,14 +508,13 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         narrativeInJson(bankId, accountId, viewId, transactionID, None)
     }
 
-
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "narrative" :: Nil JsonPost json -> _ => {
       //log the API call
       logAPICall
 
       if(isThereAnOAuthHeader)
       {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", "POST")
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
         if(httpCode == 200)
           tryo{
             json.extract[NarrativeJSON]
@@ -525,10 +530,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                   Failure("narrative already set, use PUT method to update it")
 
               val addNarrativeFunc = for {
-                  account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
-                  view <- View.fromUrl(viewId) ?~ {"view "  + viewId + " not found"}
-                  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
-                  metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+                  metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
                   narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
                   narrativeSetted <- isNarrativeAlreadySet(narrative)
                   addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
@@ -552,6 +554,64 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
 
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "comments" :: Nil JsonGet json => {
+      //log the API call
+      logAPICall
+
+      def userToJson(user : Box[User]) =
+        user match {
+          case Full(u) =>
+                  ("id" -> u.id_) ~
+                  ("provider" -> u.provider ) ~
+                  ("display_name" -> {u.theFirstName + " " + u.theLastName})
+
+          case _ => ("id" -> "") ~
+                    ("provider" -> "") ~
+                    ("display_name" -> "")
+        }
+
+      def commentToJson(comment : code.model.traits.Comment) : JValue = {
+        ("comment" ->
+          ("id" -> comment.id_) ~
+          ("date" -> comment.datePosted.toString) ~
+          ("value" -> comment.text) ~
+          ("user" -> userToJson(comment.postedBy)) ~
+          ("reply_to" -> comment.replyToID)
+        )
+      }
+
+      def commentsToJson(comments : List[code.model.traits.Comment]) : JValue = {
+        ("comments" -> comments.map(commentToJson))
+      }
+
+      def commentsResponce(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
+        val comments = for {
+            metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
+            comments <- Box(metadata.comments) ?~ {"view " + viewId + " does not authorize comments access"}
+          } yield comments
+
+          comments match {
+            case Full(commentsList) => JsonResponse(commentsToJson(commentsList), Nil, Nil, 200)
+            case Failure(msg,_,_) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+          }
+      }
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+          commentsResponce(bankId, accountId, viewId, transactionID, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+      }
+      else
+        commentsResponce(bankId, accountId, viewId, transactionID, None)
+    }
+
   })
 
   serve("obp" / "v1.1" prefix{
@@ -562,7 +622,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       if(isThereAnOAuthHeader)
       {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", "POST")
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
         if(httpCode == 200)
           tryo{
             json.extract[NarrativeJSON]
@@ -572,10 +632,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
               val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
 
               val addNarrativeFunc = for {
-                  account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
-                  view <- View.fromUrl(viewId) ?~ {"view "  + viewId + " not found"}
-                  moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
-                  metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+                  metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
                   narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
                   addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
                 } yield addNarrativeFunc
@@ -685,7 +742,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       logAPICall
       if(isThereAnOAuthHeader)
       {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", "POST")
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
         if(httpCode == 200)
         {
           getUser(httpCode, oAuthParameters.get("oauth_token")) match {

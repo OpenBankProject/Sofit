@@ -337,10 +337,12 @@ class OBPComment private() extends MongoRecord[OBPComment] with ObjectIdPk[OBPCo
   def text = textField.get
   def datePosted = date.get
   def id_ = id.is.toString
+  def replyToID = replyTo.get
   object userId extends StringField(this,255)
   object viewID extends LongField(this)
   object textField extends StringField(this, 255)
   object date extends DateField(this)
+  object replyTo extends StringField(this,255)
 }
 
 object OBPComment extends OBPComment with MongoMetaRecord[OBPComment]
