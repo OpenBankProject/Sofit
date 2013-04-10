@@ -843,29 +843,36 @@ object OBPAPI1_1 extends RestHelper with Loggable {
             json.extract[TagJSON]
           } match {
             case Full(tagJson) => {
-              def addTag(user : User, viewID : Long, tag: String, datePosted : Date) = {
-                val addTag = for {
-                  metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,Full(user))
-                  addTagFunc <- Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding comment"}
-                } yield addTagFunc
+              if(! tagJson.value.contains(" "))
+              {
+                def addTag(user : User, viewID : Long, tag: String, datePosted : Date) = {
+                  val addTag = for {
+                    metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,Full(user))
+                    addTagFunc <- Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding comment"}
+                  } yield addTagFunc
 
-                addTag.map(
-                  func =>{
-                    Full(func(user.id_, viewID, tag, datePosted))
-                  }
-                )
+                  addTag.map(
+                    func =>{
+                      Full(func(user.id_, viewID, tag, datePosted))
+                    }
+                  )
+                }
+
+                val tag = for{
+                    user <- getUser(httpCode,oAuthParameters.get("oauth_token")) ?~ "User not found. Authentication via OAuth is required"
+                    view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                    postedTagID <- addTag(user, view.id, tagJson.value, tagJson.posted_date)
+                  } yield postedTagID
+
+                tag match {
+                  case Full(postedTagID) => JsonResponse(SuccessMessage("tag : " + postedTagID + "successfully saved"), Nil, Nil, 201)
+                  case Failure(msg, _, _) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                  case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
+                }
               }
-
-              val tag = for{
-                  user <- getUser(httpCode,oAuthParameters.get("oauth_token")) ?~ "User not found. Authentication via OAuth is required"
-                  view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
-                  postedTagID <- addTag(user, view.id, tagJson.value, tagJson.posted_date)
-                } yield postedTagID
-
-              tag match {
-                case Full(postedTagID) => JsonResponse(SuccessMessage("tag : " + postedTagID + "successfully saved"), Nil, Nil, 201)
-                case Failure(msg, _, _) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
+              else
+              {
+                JsonResponse(ErrorMessage("tag value MUST NOT contain a white space"), Nil, Nil, 400)
               }
             }
             case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
