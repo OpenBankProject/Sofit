@@ -899,7 +899,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
 
       def imagesToJson(images : List[TransactionImage]) : JValue = {
-        ("tags" -> images.map(imageToJson))
+        ("images" -> images.map(imageToJson))
       }
 
       def imagesResponce(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
