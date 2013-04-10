@@ -184,7 +184,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
     ("is_alias" -> false)
   }
 
-  def otherAccountJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
+  private def otherAccountJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
     ("holder" ->
       ("name" -> otherAccount.label.display) ~
       ("is_alias" -> otherAccount.isAlias)
@@ -197,6 +197,18 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       ("name" -> otherAccount.bankName.getOrElse(""))
     )
   }
+
+  private def userToJson(user : Box[User]) : JValue =
+    user match {
+      case Full(u) =>
+              ("id" -> u.id_) ~
+              ("provider" -> u.provider ) ~
+              ("display_name" -> {u.theFirstName + " " + u.theLastName})
+
+      case _ => ("id" -> "") ~
+                ("provider" -> "") ~
+                ("display_name" -> "")
+    }
 
   private def oneFieldJson(key : String, value : String) : JObject =
     (key -> value)
@@ -576,18 +588,6 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       //log the API call
       logAPICall
 
-      def userToJson(user : Box[User]) =
-        user match {
-          case Full(u) =>
-                  ("id" -> u.id_) ~
-                  ("provider" -> u.provider ) ~
-                  ("display_name" -> {u.theFirstName + " " + u.theLastName})
-
-          case _ => ("id" -> "") ~
-                    ("provider" -> "") ~
-                    ("display_name" -> "")
-        }
-
       def commentToJson(comment : code.model.traits.Comment) : JValue = {
         ("comment" ->
           ("id" -> comment.id_) ~
@@ -801,6 +801,52 @@ object OBPAPI1_1 extends RestHelper with Loggable {
   })
 
   serve("obp" / "v1.1" prefix {
+
+
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonGet json => {
+      //log the API call
+      logAPICall
+
+      def tagToJson(tag : Tag) : JValue = {
+        ("tag" ->
+          ("id" -> tag.id_) ~
+          ("date" -> tag.datePosted.toString) ~
+          ("value" -> tag.value) ~
+          ("user" -> userToJson(tag.postedBy))
+        )
+      }
+
+      def tagsToJson(tags : List[Tag]) : JValue = {
+        ("tags" -> tags.map(tagToJson))
+      }
+
+      def tagsResponce(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
+        val tags = for {
+            metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
+            tags <- Box(metadata.tags) ?~ {"view " + viewId + " does not authorize tags access"}
+          } yield tags
+
+          tags match {
+            case Full(tagsList) => JsonResponse(tagsToJson(tagsList), Nil, Nil, 200)
+            case Failure(msg,_,_) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+          }
+      }
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+          tagsResponce(bankId, accountId, viewId, transactionID, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+      }
+      else
+        tagsResponce(bankId, accountId, viewId, transactionID, None)
+    }
 
     //post a tag
     case "banks" :: bankID :: "accounts" :: accountID :: viewID :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
