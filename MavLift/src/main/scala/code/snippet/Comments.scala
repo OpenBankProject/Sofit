@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -73,8 +73,8 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
   val transaction = transactionAndView._1
   val view = transactionAndView._2
   val commentDateFormat = new SimpleDateFormat("kk:mm:ss EEE MMM dd yyyy")
-  val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""  
-  
+  val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
+
   def commentPageTitle(xhtml: NodeSeq): NodeSeq = {
     val FORBIDDEN = "---"
     val dateFormat = new SimpleDateFormat("EEE MMM dd yyyy")
@@ -87,7 +87,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
     }
 
     (
-      ".amount *" #>{ 
+      ".amount *" #>{
         val amount = transaction.amount match {
           case Some(amount) => amount.toString
           case _ => FORBIDDEN
@@ -100,7 +100,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                     case _ => FORBIDDEN
                   }
           case _ => FORBIDDEN
-        } 
+        }
         {amount + " " + theCurrency}
       } &
       ".other_account_holder *" #> {
@@ -113,7 +113,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                 case PrivateAlias => ".alias_indicator [class+]" #> "alias_indicator_private" &
                     ".alias_indicator *" #> "(Alias)"
                 case _ => NOOP_SELECTOR
-            }} 
+            }}
           }
           case _ => "* *" #> FORBIDDEN
         }
@@ -121,7 +121,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       ".date_cleared *" #> {
         transaction.finishDate match {
           case Some(date) => formatDate(Full(date))
-          case _ => FORBIDDEN 
+          case _ => FORBIDDEN
         }
       } &
       ".label *" #> {
@@ -132,27 +132,27 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       }
     ).apply(xhtml)
   }
-  
+
   def images = {
     addImage andThen showImages
   }
-  
+
   def noImages = ".images_list" #> ""
-  
+
   def imageHtmlId(image: TransactionImage) : String = "trans-image-" + image.id_
-  
+
   def showImages = {
-    
+
     def deleteImage(image: TransactionImage) = {
       transaction.metadata.flatMap(_.deleteImage) match {
         case Some(delete) => delete(image.id_)
         case _ => logger.warn("No delete image function found.")
       }
-      
+
       val jqueryRemoveImage = "$('.image-holder[data-id=\"" + imageHtmlId(image) + "\"]').remove();"
       JsRaw(jqueryRemoveImage).cmd
     }
-    
+
     def imagesSelector(images : List[TransactionImage]) =
       ".noImages" #> "" &
       ".image-holder" #> images.map(image => {
@@ -162,11 +162,11 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
         ".postedBy *" #> { image.postedBy.map(_.emailAddress) getOrElse "unknown" } &
         ".postedTime *" #> commentDateFormat.format(image.datePosted) &
         //TODO: This could be optimised into calling an ajax function with image id as a parameter to avoid
-        //storing multiple closures server side (i.e. one client side function maps to on server side function 
+        //storing multiple closures server side (i.e. one client side function maps to on server side function
         //that takes a parameter)
         ".deleteImage [onclick]" #> SHtml.ajaxInvoke(() => deleteImage(image))
       })
-    
+
     val sel = for {
       metadata <- transaction.metadata
       images <- metadata.images
@@ -174,17 +174,17 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       if(images.isEmpty) noImages
       else imagesSelector(images)
     }
-    
+
     sel getOrElse {"* *" #> ""}
   }
-  
+
   def addImage = {
-    
+
     //transloadit requires its parameters to be an escaped json string
     val transloadItParams : String = {
       import net.liftweb.json.JsonDSL._
       import net.liftweb.json._
-      
+
       val authKey = Props.get("transloadit.authkey") getOrElse ""
       val addImageTemplate = Props.get("transloadit.addImageTemplate") getOrElse ""
       val json =
@@ -194,10 +194,10 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
           )
         ) ~
         ("template_id" -> addImageTemplate)
-      
+
       Utility.escape(compact(render(json)), new StringBuilder).toString
     }
-    
+
     if(S.post_?) {
       val description = S.param("description") getOrElse ""
       val viewId = view.id
@@ -213,7 +213,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
       } yield {
         () => addImage(userId, viewId, description, datePosted, url)
       }
-      
+
       addFunction match {
         case Full(add) => {
           add()
@@ -223,8 +223,8 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
         case Failure(msg, _ , _) => logger.warn("Problem adding new image: " + msg)
         case _ => logger.warn("Problem adding new image")
       }
-    } 
-    
+    }
+
     val addImageSelector = for {
       user <- User.currentUser ?~ "You need to long before you can add an image"
       metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
@@ -235,33 +235,33 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
         "name=params [value]" #> transloadItParams
       }
     }
-    
+
     addImageSelector match {
       case Full(s) => s
       case Failure(msg, _, _) => ".add *" #> msg
       case _ => ".add *" #> ""
     }
   }
-  
+
   def noTags = ".tag" #> ""
-  
-  def showTags = 
+
+  def showTags =
     transaction.metadata match {
       case Some(metadata) => metadata.tags match {
-        case Some(tags) => 
+        case Some(tags) =>
           if(tags.isEmpty)
             noTags
           else
             ".tagsContainer" #>
-            { 
+            {
               def orderByDateDescending = (tag1 : Tag, tag2 : Tag) =>
                 tag1.datePosted.before(tag2.datePosted)
               "#noTags" #> "" &
               ".tag" #>
                 tags.sortWith(orderByDateDescending).map(tag => {
                   ".tagID [id]" #> tag.id_ &
-                  ".tagValue" #> tag.value & 
-                  ".deleteTag" #> 
+                  ".tagValue" #> tag.value &
+                  ".deleteTag" #>
                     SHtml.a(
                       () => {
                         metadata.deleteTag.map(t => t(tag.id_))
@@ -269,16 +269,16 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                       },
                       Text("x"),
                       ("title","Remove the tag")
-                    )                  
+                    )
                 })
             }
         case _ => noTags
       }
       case _ => noTags
     }
-  def addTag(xhtml: NodeSeq) : NodeSeq = 
+  def addTag(xhtml: NodeSeq) : NodeSeq =
     User.currentUser match {
-      case Full(user) =>     
+      case Full(user) =>
         transaction.metadata match {
           case Some(metadata) =>
             metadata.addTag match {
@@ -297,17 +297,17 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                     },
                     ("placeholder","Add tags seperated by spaces"),
                     ("id","addTagInput"),
-                    ("size","30") 
+                    ("size","30")
                   ) ++
                   SHtml.ajaxSubmit(
                     "Tag",
                     () => {
-                      val tagXml = Templates(List("templates-hidden","_tag")).map({ 
+                      val tagXml = Templates(List("templates-hidden","_tag")).map({
                         ".tag" #> {
                           tagValues.zipWithIndex.map(t => {
                             ".tagID [id]" #> tagIds(t._2) &
                             ".tagValue" #> t._1 &
-                            ".deleteTag" #> 
+                            ".deleteTag" #>
                               SHtml.a(
                                 () => {
                                   metadata.deleteTag match {
@@ -320,7 +320,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                                 },
                                 Text("x"),
                                 ("title","Remove the tag")
-                              )  
+                              )
                           })
                         }
 
@@ -338,19 +338,19 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
             }
           case _ => (".add" #> "You cannot add tags to transactions on this view").apply(xhtml)
         }
-      case _ => (".add" #> "You need to login before you can add tags").apply(xhtml) 
-    }   
+      case _ => (".add" #> "You need to login before you can add tags").apply(xhtml)
+    }
 
-  def showComments = 
+  def showComments =
     transaction.metadata match {
-      case Some(metadata)  => 
+      case Some(metadata)  =>
         metadata.comments match {
-          case Some(comments) => 
+          case Some(comments) =>
             if(comments.size==0)
               ".comment" #> ""
             else
             ".commentsContainer" #>
-            { 
+            {
               def orderByDateDescending = (comment1 : Comment, comment2 : Comment) =>
                 comment1.datePosted.before(comment2.datePosted)
               "#noComments" #> "" &
@@ -358,34 +358,34 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                 comments.sortWith(orderByDateDescending).zipWithIndex.map(comment => {
                   val commentId="comment_"+{comment._2 + 1 }
                   ".commentLink * " #>{"#"+ {comment._2 + 1}} &
-                  ".commentLink [id]"#>commentId &                  
-                  ".commentLink [href]" #>{"#"+ commentId} & 
+                  ".commentLink [id]"#>commentId &
+                  ".commentLink [href]" #>{"#"+ commentId} &
                   ".text *" #> {comment._1.text} &
                   ".commentDate *" #> {commentDateFormat.format(comment._1.datePosted)} &
                   ".userInfo *" #> {
                       comment._1.postedBy match {
-                        case Full(user) => {" -- " + user.theFistName + " "+ user.theLastName}
-                        case _ => "-- user not found" 
+                        case Full(user) => {" -- " + user.theFirstName + " "+ user.theLastName}
+                        case _ => "-- user not found"
                       }
                   }
                 })
             }
-          case _ => ".comment" #> "" 
+          case _ => ".comment" #> ""
         }
       case _ => ".comment" #> ""
     }
-  
+
   var commentsListSize = transaction.metadata match {
     case Some(metadata) => metadata.comments match {
       case Some(comments) => comments.size
       case _ =>  0
     }
-    case _ => 0 
+    case _ => 0
   }
-  
+
   def addComment(xhtml: NodeSeq) : NodeSeq = {
     User.currentUser match {
-      case Full(user) =>     
+      case Full(user) =>
         transaction.metadata match {
           case Some(metadata) =>
             metadata.addComment match {
@@ -402,18 +402,18 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                     },
                     ("rows","4"),("cols","50"),
                     ("id","addCommentTextArea"),
-                    ("placeholder","add a comment here") 
+                    ("placeholder","add a comment here")
                   ) ++
                   SHtml.ajaxSubmit("add a comment",() => {
-                    val commentXml = Templates(List("templates-hidden","_comment")).map({ 
+                    val commentXml = Templates(List("templates-hidden","_comment")).map({
                       commentsListSize = commentsListSize + 1
                       val commentId="comment_"+commentsListSize.toString
                       ".commentLink * " #>{"#"+ commentsListSize} &
-                      ".commentLink [id]"#>commentId &                  
-                      ".commentLink [href]" #>{"#"+ commentId} & 
+                      ".commentLink [id]"#>commentId &
+                      ".commentLink [href]" #>{"#"+ commentId} &
                       ".text *" #> {commentText} &
                       ".commentDate *" #> {commentDateFormat.format(commentDate)} &
-                      ".userInfo *" #> { " -- " + user.theFistName + " "+ user.theLastName}
+                      ".userInfo *" #> { " -- " + user.theFirstName + " "+ user.theLastName}
                     })
                     val content = Str("")
                     SetValById("addCommentTextArea",content)&
@@ -426,7 +426,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
             }
           case _ => (".add" #> "You Cannot comment transactions on this view").apply(xhtml)
         }
-      case _ => (".add" #> "You need to login before you can submit a comment").apply(xhtml) 
+      case _ => (".add" #> "You need to login before you can submit a comment").apply(xhtml)
     }
   }
 }
