@@ -46,39 +46,46 @@ import oauth.signpost.basic.DefaultOAuthProvider
 import code.lib.SofiAPITransition
 import code.lib.SofiAPITransition
 import oauth.signpost.basic.DefaultOAuthConsumer
+import code.lib.OAuthClient
+import net.liftweb.http.js.JsCmds.Noop
 
 class Login {
 
   def loggedIn = {
-    if(!OBPUser.loggedIn_?){
-      "*" #> NodeSeq.Empty
-    }else{
-      ".logout [href]" #> {
-        OBPUser.logoutPath.foldLeft("")(_ + "/" + _)
-      } &
-      ".username *" #> OBPUser.currentUser.get.email.get 
-    }
+    val providers = OAuthClient.loggedInAt
+    
+    ".logged-out *" #> "" &
+    ".providers" #> {
+      ".provider" #> providers.map(provider => {
+        "* *" #> provider.name
+      }) 
+    } &
+    ".logout [onclick]" #> SHtml.onEvent(s => {
+      OAuthClient.logoutAll()
+      S.redirectTo("/")
+      Noop
+    })
   }
   
   def loggedOut = {
     
-    val provider = new DefaultOAuthProvider("http://127.0.0.1:8080/oauth/initiate",
-    								 "http://127.0.0.1:8080/oauth/token",
-    								 "http://127.0.0.1:8080/oauth/authorize")
+    val provider = OAuthClient.defaultProvider
     
-    val appKey = SofiAPITransition.sofiConsumer.key.get
-    val appSecret = SofiAPITransition.sofiConsumer.secret.get
-    
-    val consumer = new DefaultOAuthConsumer(appKey, appSecret)
-    
+    ".logged-in *" #> "" &
     ".start-login [onclick]" #> SHtml.onEvent(s => {
-      val bankAuthUrl = OAuthClient.getAuthUrl(OAuthClient.defaultProvider)
+      val bankAuthUrl = OAuthClient.getAuthUrl(provider)
       val guestAuthUrl = bankAuthUrl
-      
+      JsRaw("jQuery('.provider-name').text('" + provider.name + "')").cmd &
       JsRaw("jQuery('.bank-login').attr('href', '" + bankAuthUrl + "')").cmd &
       JsRaw("jQuery('.guest-login').attr('href', '" + guestAuthUrl + "')").cmd &
       Show("choose-login-link")
     })
+  }
+  
+  def login = {
+    println("logged in at any:" + OAuthClient.loggedInAtAny)
+    if(OAuthClient.loggedInAtAny) loggedIn
+    else loggedOut
   }
 
 }

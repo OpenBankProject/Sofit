@@ -45,21 +45,21 @@ Berlin 13359, Germany
         <div id="header">
             <h1 id="logo" onclick="javascript:window.location='/';">Open Bank Project</h1>
             <div id="account">
-                <!-- LOGGED OUT -->
-				<div class="lift:Login.loggedOut">
-	                <a class="start-login" href="#">LOGIN</a>
-	                <div id="choose-login-link" style="display: none;">
-	                	<p>Do you have a bank account at <span class="bank-name">Bank</span>?</p>
-	                	<div>
-	                		<a class="bank-login" href="#">YES</a> <a class="guest-login" href="#">NO</a>
-	                	</div>
+                <div class="lift:Login.login">
+					<div class="logged-out">
+		                <a class="start-login" href="#">LOGIN</a>
+		                <div id="choose-login-link" style="display: none;">
+		                	<p>Do you have an account at <span class="provider-name">Provider</span>?</p>
+		                	<div>
+		                		<a class="bank-login" href="#">YES</a> <a class="guest-login" href="#">NO</a>
+		                	</div>
+		                </div>
 	                </div>
-                </div>
-                <!-- LOGGED IN -->
-				<div class="lift:Login.loggedIn">
-	                <div class="profile-info">
-                        Logged in as <span class="username">username@domain.com</span>
-                        <a href="" class="logout">Logout</a>
+					<div class="logged-in">
+		                <div class="profile-info">
+	                        Logged in at <ul class="providers"><li class="provider">Provider</li></ul>
+	                        <a href="" class="logout">Logout</a>
+		                </div>
 	                </div>
                 </div>
                 <form class="lift:Nav.listAccounts" method="POST" action="." >
