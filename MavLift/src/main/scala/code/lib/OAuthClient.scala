@@ -126,7 +126,7 @@ object OAuthClient {
 		  						 
   def getAuthUrl(provider : Provider) : String = {
     val credential = getOrCreateCredential(provider)
-    provider.oAuthProvider.retrieveRequestToken(credential.consumer, "oob")
+    provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName))
   }
   
 }
