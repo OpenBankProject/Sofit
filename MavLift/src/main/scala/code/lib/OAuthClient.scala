@@ -63,7 +63,7 @@ sealed trait Provider {
 }
 
 object OBPDemo extends Provider {
-  val name = "OBP-Demo"
+  val name = "The Open Bank Project Demo"
     
   val baseUrl = Props.get("hostname", S.hostName)
   val requestTokenUrl = baseUrl + "/oauth/initiate"
@@ -129,4 +129,7 @@ object OAuthClient {
     provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName))
   }
   
+  def loggedInAt : List[Provider] = credentials.map(_.provider)
+  def loggedInAtAny : Boolean = loggedInAt.size > 0
+  def logoutAll() = credentials.set(Nil)
 }
