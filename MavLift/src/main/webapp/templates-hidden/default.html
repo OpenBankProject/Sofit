@@ -47,21 +47,13 @@ Berlin 13359, Germany
             <div id="account">
                 <!-- LOGGED OUT -->
 				<div class="lift:Login.loggedOut">
-                    <form class="login" action="." method="post">
-	                    <div class="field username">
-	                        <label>Username</label>
-	                        <input class="username" type="text" name="username" tabindex=1/>
-	                    </div>
-	                    <div class="field password">
-	                        <label>Password</label>
-	                        <a href="#" class="forgot" tabindex=5>Forgotten?</a>
-	                        <a href="#" class="signup" tabindex=4>Sign up</a>
-	                        <input class="password" type="password" name="password" tabindex=2 />
-	                    </div>
-	                    <div class="button submit">
-	                        <input class="submit" type="submit" value="Login" tabindex=3/>
-	                    </div>
-	                </form>
+	                <a class="start-login" href="#">LOGIN</a>
+	                <div id="choose-login-link" style="display: none;">
+	                	<p>Do you have a bank account at <span class="bank-name">Bank</span>?</p>
+	                	<div>
+	                		<a class="bank-login" href="#">YES</a> <a class="guest-login" href="#">NO</a>
+	                	</div>
+	                </div>
                 </div>
                 <!-- LOGGED IN -->
 				<div class="lift:Login.loggedIn">

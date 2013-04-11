@@ -33,12 +33,19 @@ Berlin 13359, Germany
 package code.snippet
 
 import code.model.dataAccess.{OBPUser,Account}
-
 import scala.xml.NodeSeq
 import net.liftweb.util.Helpers
 import net.liftweb.util.Helpers._
 import net.liftweb.util.CssSel
 import net.liftweb.http.S
+import net.liftweb.http.SHtml
+import net.liftweb.http.js.jquery.JqJsCmds.Show
+import net.liftweb.http.js.JE.JsRaw
+import code.lib.OAuthClient
+import oauth.signpost.basic.DefaultOAuthProvider
+import code.lib.SofiAPITransition
+import code.lib.SofiAPITransition
+import oauth.signpost.basic.DefaultOAuthConsumer
 
 class Login {
 
@@ -54,21 +61,24 @@ class Login {
   }
   
   def loggedOut = {
-    if(OBPUser.loggedIn_?){
-      "*" #> NodeSeq.Empty
-    } else {
-      ".login [action]" #> OBPUser.loginPageURL &
-      ".forgot [href]" #> {
-        val href = for {
-          menu <- OBPUser.lostPasswordMenuLoc
-        } yield menu.loc.calcDefaultHref
-        href getOrElse "#"
-      } & {
-        ".signup [href]" #> {
-         OBPUser.signUpPath.foldLeft("")(_ + "/" + _)
-        }
-      }
-    }
+    
+    val provider = new DefaultOAuthProvider("http://127.0.0.1:8080/oauth/initiate",
+    								 "http://127.0.0.1:8080/oauth/token",
+    								 "http://127.0.0.1:8080/oauth/authorize")
+    
+    val appKey = SofiAPITransition.sofiConsumer.key.get
+    val appSecret = SofiAPITransition.sofiConsumer.secret.get
+    
+    val consumer = new DefaultOAuthConsumer(appKey, appSecret)
+    
+    ".start-login [onclick]" #> SHtml.onEvent(s => {
+      val bankAuthUrl = OAuthClient.getAuthUrl(OAuthClient.defaultProvider)
+      val guestAuthUrl = bankAuthUrl
+      
+      JsRaw("jQuery('.bank-login').attr('href', '" + bankAuthUrl + "')").cmd &
+      JsRaw("jQuery('.guest-login').attr('href', '" + guestAuthUrl + "')").cmd &
+      Show("choose-login-link")
+    })
   }
 
 }
