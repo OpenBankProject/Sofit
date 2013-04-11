@@ -47,10 +47,9 @@ import net.liftweb.mongodb.record.field.{MongoJsonObjectListField, MongoRefField
 import scala.util.Random
 import com.mongodb.QueryBuilder
 import com.mongodb.BasicDBObject
-import code.model.traits.{Comment,Tag}
+import code.model.traits.{Comment,Tag,GeoTag,TransactionImage}
 import net.liftweb.common.Loggable
 import org.bson.types.ObjectId
-import code.model.traits.TransactionImage
 import net.liftweb.util.Helpers._
 import net.liftweb.http.S
 import java.net.URL
@@ -164,9 +163,16 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     obp_comments(comment.id.is :: obp_comments.get ).save
   }
 
-  def addWhereTag(longitude : Double, latitude : Double)  = {
-    val tag = WhereTag.createRecord.longitude(longitude).latitude(latitude)
+  def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
+    val tag = OBPGeoTag.createRecord.
+                userId(userId).
+                viewID(viewId).
+                date(datePosted).
+                geoLongitude(longitude).
+                geoLatitude(latitude)
+
     whereTag(tag).save
+    true
   }
 
   def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : String = {
@@ -308,7 +314,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
 
   // This creates a json attribute called "obp_transaction"
   object obp_transaction extends BsonRecordField(this, OBPTransaction)
-  object whereTag extends BsonRecordField(this, WhereTag)
+  object whereTag extends BsonRecordField(this, OBPGeoTag)
 
   //not named comments as "comments" was used in an older mongo document version
   object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
@@ -542,9 +548,21 @@ object OBPTransactionImage extends OBPTransactionImage with MongoMetaRecord[OBPT
 }
 
 
-class WhereTag private() extends BsonRecord[WhereTag]{
-  def meta = WhereTag
-  object longitude extends DoubleField(this,0)
-  object latitude extends DoubleField(this,0)
+class OBPGeoTag private() extends BsonRecord[OBPGeoTag] with GeoTag {
+  def meta = OBPGeoTag
+
+  object userId extends StringField(this,255)
+  object viewID extends LongField(this)
+  object date extends DateField(this)
+
+  object geoLongitude extends DoubleField(this,0)
+  object geoLatitude extends DoubleField(this,0)
+
+  def datePosted = date.get
+  def postedBy = OBPUser.find(userId)
+  def viewId = viewID.get
+  def longitude = geoLongitude.get
+  def latitude = geoLatitude.get
+
 }
-object WhereTag extends WhereTag with BsonMetaRecord[WhereTag]
+object OBPGeoTag extends OBPGeoTag with BsonMetaRecord[OBPGeoTag]

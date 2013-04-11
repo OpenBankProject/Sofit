@@ -31,31 +31,15 @@ Berlin 13359, Germany
  */
 
 package code.model.traits
+import net.liftweb.common.Box
 import java.util.Date
-import java.net.URL
 
-trait TransactionMetadata {
+trait GeoTag {
 
-  // Owner provided comment, done in OBP
-  def ownerComment : Option[String]
-  def ownerComment(comment : String) : Unit
-  def comments : List[Comment]
-  def addComment(userId : String, viewId : Long, text : String, postedDate : Date) : Unit
-  def tags : List[Tag]
-  def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String
-  def deleteTag(id : String) : Unit
-  def images : List[TransactionImage]
-  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
-  def deleteImage(id : String) : Unit
-  def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
-  def whereTag : GeoTag
-}
-trait OtherBankAccountMetadata
-{
-	def publicAlias : String
-  def privateAlias : String
-  def moreInfo : String
-	def url : String
-	def imageUrl : String
-	def openCorporatesUrl : String
+  def datePosted : Date
+  def postedBy : Box[User]
+  def viewId : Long
+  def longitude : Double
+  def latitude : Double
+
 }

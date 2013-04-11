@@ -31,7 +31,6 @@ Berlin 13359, Germany
  */
 package code.api
 
-import code.actors.EnvelopeInserter
 import net.liftweb.http._
 import net.liftweb.http.rest._
 import net.liftweb.json.JsonDSL._
@@ -57,7 +56,6 @@ import net.liftweb.mongodb.{ Skip, Limit }
 import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.mapper.view._
 import com.mongodb._
-import code.model.dataAccess.LocalStorage
 import code.model.traits._
 import code.model.implementedTraits.View
 import code.model.implementedTraits.Public
@@ -65,8 +63,6 @@ import java.util.Date
 import code.api.OAuthHandshake._
 import code.model.dataAccess.APIMetric
 import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
-import code.model.dataAccess.OBPUser
-import code.api.OAuthHandshake._
 import java.net.URL
 
 case class TagJSON(
@@ -87,7 +83,7 @@ case class ImageJSON(
   URL : String,
   label : String
 )
-case class WhereTag(
+case class WhereTagJSON(
   where : GeoCord
 )
 case class GeoCord(
@@ -262,6 +258,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       JsonResponse("banks" -> Bank.all.map(bankToJson _ ))
     }
 
+  })
+  serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: Nil JsonGet json => {
       logAPICall
 
@@ -279,7 +277,9 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         b <- Bank(bankId)
       } yield JsonResponse(bankToJson(b))
     }
+  })
 
+  serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: Nil JsonGet json => {
       //log the API call
       logAPICall
@@ -340,7 +340,9 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         }
       }
     }
+  })
 
+  serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
       logAPICall
       val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
@@ -397,10 +399,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
     }
-
-
   })
-
   serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: Nil JsonGet json => {
       //log the API call
@@ -459,7 +458,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
       response getOrElse (JsonResponse(ErrorMessage(message), Nil, Nil, 401)) : LiftResponse
     }
-
+  })
+  serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "transaction" :: Nil JsonGet json => {
       //log the API call
       logAPICall
@@ -492,7 +492,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         transactionInJson(bankId, accountId, viewId, transactionID, None)
     }
-
+  })
+  serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "narrative" :: Nil JsonGet json => {
       //log the API call
       logAPICall
@@ -524,7 +525,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         narrativeInJson(bankId, accountId, viewId, transactionID, None)
     }
-
+  })
+  serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "narrative" :: Nil JsonPost json -> _ => {
       //log the API call
       logAPICall
@@ -570,7 +572,48 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "narrative" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
 
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+          tryo{
+            json.extract[NarrativeJSON]
+          } match {
+            case Full(narrativeJson) => {
+
+              val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+
+              val addNarrativeFunc = for {
+                  metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
+                  narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
+                  addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
+                } yield addNarrativeFunc
+
+              addNarrativeFunc match {
+                case Full(addNarrative) => {
+                  addNarrative(narrativeJson.narrative)
+                  JsonResponse(SuccessMessage("narrative successfully saved"), Nil, Nil, 201)
+                }
+                case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
+          }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "comments" :: Nil JsonGet json => {
       //log the API call
       logAPICall
@@ -616,7 +659,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         commentsResponce(bankId, accountId, viewId, transactionID, None)
     }
-
+  })
+  serve("obp" / "v1.1" prefix{
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
       //log the API call
       logAPICall
@@ -663,133 +707,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
-
   })
-
-  serve("obp" / "v1.1" prefix{
-
-    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "narrative" :: Nil JsonPut json -> _ => {
-      //log the API call
-      logAPICall
-
-      if(isThereAnOAuthHeader)
-      {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-        if(httpCode == 200)
-          tryo{
-            json.extract[NarrativeJSON]
-          } match {
-            case Full(narrativeJson) => {
-
-              val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
-
-              val addNarrativeFunc = for {
-                  metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
-                  narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
-                  addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
-                } yield addNarrativeFunc
-
-              addNarrativeFunc match {
-                case Full(addNarrative) => {
-                  addNarrative(narrativeJson.narrative)
-                  JsonResponse(SuccessMessage("narrative successfully saved"), Nil, Nil, 201)
-                }
-                case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
-              }
-            }
-            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
-          }
-        else
-          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
-      }
-      else
-        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
-    }
-  })
-
-
-  serve("obp" / "v1.1" prefix{
-    case "banks" :: bankID :: "accounts" :: accountID :: "public" :: "transactions" :: transactionID :: "metadata" :: "where" :: Nil JsonPut json -> _ => {
-      logAPICall
-      tryo{
-        json.extract[WhereTag]
-      } match {
-        case Full(whereTag) =>{
-          View.fromUrl("public") match {
-            case Full(view) => {
-              //get the moderated transaction
-              LocalStorage.getModeratedTransaction(transactionID,bankID,accountID)(view.moderate _ ) match {
-                case Full(transaction) =>
-                  (for{
-                    metadata <- Box(transaction.metadata) ?~! {"public view does not allow transaction metadata access"}
-                    addWhereTag <- Box(metadata.addWhereTag) ?~! {"public view does not allow adding where tags to a transaction"}
-                  } yield addWhereTag) match {
-                    case Full(addWhereTag) => {
-                      //use the method to save the location
-                      addWhereTag(whereTag.where.longitude, whereTag.where.latitude)
-                      JsonResponse("", Nil, Nil, 201)
-                    }
-                    case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                    case _ => JsonResponse(ErrorMessage({"public view does not allow transaction tagging or metadata access"}), Nil, Nil, 400)
-                  }
-                case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                case _ =>{
-                  val msg = "transaction id: " + transactionID + " with bankID: " + bankID + " and accountID: " + accountID + " not found"
-                  JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                }
-              }
-            }
-            case _ =>
-              JsonResponse(ErrorMessage("public view not found"), Nil, Nil, 400)
-          }
-        }
-        case _ => JsonResponse(ErrorMessage("wrong json format"), Nil, Nil, 400)
-      }
-    }
-
-    case "banks" :: bankID :: "accounts" :: accountID :: "public" :: "transactions" :: transactionID :: "metadata" :: "where" :: Nil JsonPost json -> _ => {
-      logAPICall
-      tryo{
-        json.extract[WhereTag]
-      } match {
-        case Full(whereTag) =>{
-          View.fromUrl("public") match {
-            case Full(view) => {
-              //get the moderated transaction
-              LocalStorage.getModeratedTransaction(transactionID,bankID,accountID)(view.moderate _ ) match {
-                case Full(transaction) =>
-                  (for{
-                    metadata <- Box(transaction.metadata) ?~! {"public view does not allow transaction metadata access"}
-                    addWhereTag <- Box(metadata.addWhereTag) ?~! {"public view does not allow adding where tags to a transaction"}
-                  } yield addWhereTag) match {
-                    case Full(addWhereTag) => {
-                      //use the method to save the location
-                      addWhereTag(whereTag.where.longitude, whereTag.where.latitude)
-                      JsonResponse("geo tag added successfully", Nil, Nil, 201)
-                    }
-                    case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                    case _ => JsonResponse(ErrorMessage({"public view does not allow transaction tagging or metadata access"}), Nil, Nil, 400)
-                  }
-                case Failure(msg,_,_) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                case _ =>{
-                  val msg = "transaction id: " + transactionID + " with bankID: " + bankID + " and accountID: " + accountID + " not found"
-                  JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                }
-              }
-            }
-            case _ =>
-              JsonResponse(ErrorMessage("public view not found"), Nil, Nil, 400)
-          }
-        }
-        case _ => JsonResponse(ErrorMessage("wrong json format"), Nil, Nil, 400)
-      }
-    }
-  })
-
   serve("obp" / "v1.1" prefix {
-
-
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonGet json => {
       //log the API call
       logAPICall
@@ -834,7 +753,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         tagsResponce(bankId, accountId, viewId, transactionID, None)
     }
-
+  })
+  serve("obp" / "v1.1" prefix {
     //post a tag
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tag" :: Nil JsonPost json -> _ => {
       //log the API call
@@ -888,7 +808,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
-
+  })
+  serve("obp" / "v1.1" prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "images" :: Nil JsonGet json => {
       //log the API call
       logAPICall
@@ -934,7 +855,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         imagesResponce(bankId, accountId, viewId, transactionID, None)
     }
-
+  })
+  serve("obp" / "v1.1" prefix {
     //post an image
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "image" :: Nil JsonPost json -> _ => {
       //log the API call
@@ -983,6 +905,57 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       else
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankID :: "accounts" :: accountID :: viewId :: "transactions" :: transactionID :: "metadata" :: "where" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
 
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+          tryo{
+            json.extract[WhereTagJSON]
+          } match {
+            case Full(whereTagJson) => {
+              def addWhereTag(user : User, viewID : Long, longitude: Double, latitude : Double) : Box[Boolean] = {
+                val addWhereTag = for {
+                  metadata <- moderatedTransactionMetadata(bankID,accountID,viewId,transactionID,Full(user))
+                  addWhereTagFunc <- Box(metadata.addWhereTag) ?~ {"view " + viewId + " does not authorize adding where tag"}
+                } yield addWhereTagFunc
+
+                addWhereTag.map(
+                  func =>{
+                    val datePosted = (now: TimeSpan)
+                    func(user.id_, viewID, datePosted, longitude, latitude)
+                  }
+                )
+              }
+
+              val postedGeoTag = for{
+                  user <- getUser(httpCode,oAuthParameters.get("oauth_token")) ?~ "User not found. Authentication via OAuth is required"
+                  view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                  posterWheteTag <- addWhereTag(user, view.id, whereTagJson.where.longitude, whereTagJson.where.latitude)
+                } yield posterWheteTag
+
+              postedGeoTag match {
+                case Full(postedWhereTag) =>
+                  if(postedWhereTag)
+                    JsonResponse(SuccessMessage("Geo tag successfully saved"), Nil, Nil, 201)
+                  else
+                    JsonResponse(ErrorMessage("Geo tag could not be saved"), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
+          }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
   })
 }

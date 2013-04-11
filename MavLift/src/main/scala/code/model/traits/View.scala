@@ -39,6 +39,7 @@ import net.liftweb.json.JsonAST.JObject
 import net.liftweb.common.Box
 import net.liftweb.common.Empty
 import net.liftweb.common.Full
+import java.util.Date
 
 class AliasType
 class Alias extends AliasType
@@ -253,13 +254,13 @@ trait View {
           if(canDeleteImage) Some(transaction.metadata.deleteImage _)
           else None
 
-        val addWhereTagFunc : Option[(Double, Double) => Unit] =
+        val addWhereTagFunc : Option[(String, Long, Date, Double, Double) => Boolean] =
           if(canAddWhereTag)
             Some(transaction.metadata.addWhereTag _)
           else
             Empty
 
-        val whereTag : Option[(Double, Double)] =
+        val whereTag =
           if(canSeeWhereTag)
             Some(transaction.metadata.whereTag)
           else
