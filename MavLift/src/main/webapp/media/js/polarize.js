@@ -4,14 +4,15 @@
         init : function( options ) {
             this.each(function() {
                 var settings = $.extend( {
-                    "direction": "left",
-                    "polarize_url": "",
-                    "directions": {
+                    "position": "left",
+                    "default_topic_url": "",
+                    "images_dir": "",
+                    "topic_list_url": "",
+                    "positions": {
                         "left": {
                             "container-style": "left: -195px;background-position: 200px 130px;",
                             "slider-style": "float:right;",
                             "content-style":"float:left;",
-                            "link-style": "text-align:left;",
                             "animation": {
                                 "show": '{"left":"0", "height": "250px"}',
                                 "hide": '{"left":"-195px", "height": "120px"}'
@@ -21,7 +22,6 @@
                             "container-style": "right: -195px;background-position: 10px 130px;",
                             "slider-style": "float:left;",
                             "content-style":"float:right;",
-                            "link-style": "text-align:right;",
                             "animation": {
                                 "show": '{"right":"0", "height": "250px"}',
                                 "hide": '{"right":"-195px", "height": "120px"}'
@@ -29,147 +29,185 @@
                         }
                     }
                 }, options);
-                createUI(settings);
-                createEvents(settings);
+                if (settings.topic_list_url !== "") {
+                    jQuery.getJSON("http://polarize.it/api/v0.1/poll/" + settings.topic_list_url, function(data) {
+                        var title = $("title").text();
+                        jQuery.each(data, function() {
+                            if (title === this.body) {
+                                settings.default_topic_url = "http://polarize.it/polarize/" + this.topic_permalink;
+                            }
+                        });
+                        createUI(settings);
+                        createEvents(settings);
+                    });
+                }
+                else {
+                    createUI(settings);
+                    createEvents(settings);
+                }
+
             });
         }
     };
 
-    function add_direction_style(settings) {
-        return settings.directions[settings.direction];
+    function add_position_style(settings) {
+        return settings.positions[settings.position];
+    }
+
+    function elemCreate(type, content, attrs) {
+       /* type: string tag name
+        * content: string element content
+        * attrs: associative array of attrs and values
+        */
+        elem = '<' + type + '></' + type + '>';
+        e = $(elem).attr(attrs);
+        e.append(content);
+        return e[0];
     }
 
     function createUI(settings) {
-        // Create root element
-        $( "<div></div>", {
-            "id": "feedback",
-            "class": "feedback-bg",
-            "style": add_direction_style(settings)["container-style"]
-        }).prependTo("body").parent().css("overflow", "hidden");
+        var html_container = [],
+            html_inner = [],
+            html_inner_content = [],
+            html_form_content =  [];
 
-        // Create slider
-        $( "<div></div>", {
-            "class": "feedback-slider",
-            "style": add_direction_style(settings)["slider-style"]
-        }).appendTo("#feedback");
 
-        $( "<div></div>", {
-            "id": "feedback-content",
-            "style": add_direction_style(settings)["content-style"]
-        }).appendTo("#feedback");
-
-        // Create ad anchor to polarize with an image
-        $( "<a></a>", {
+        // Anchor
+        html_inner_content.push(elemCreate("a", "", {
             "class": "polarize-anchor",
             "target": "_blank",
             "href": "http://polarize.it",
-            "style": add_direction_style(settings)["link-style"]
-        }).appendTo("#feedback-content");
-        $( "<img></img>", {
-            "alt": "Polarize Logo",
-            "src": "/media/images/polarize-logo.png"
-        }).appendTo(".polarize-anchor");
+            "style": "background-image: url(" + settings.images_dir + "polarize-logo.png);background-position:" + settings.position + ";"
+        }));
 
         // Create forms
         // Angel form
-        $( "<form></form>", {
-            "action": settings.polarize_url,
-            "method": "post",
-            "id": "feedback-angel"
-        }).appendTo("#feedback-content");
-        $( "<input></input>", {
+        html_form_content.push("input", "", {
             "type": "hidden",
             "name": "redirect",
             "value": "NO"
-        }).appendTo("#feedback-angel");
-        $( "<input></input>", {
+        });
+        html_form_content.push("input", "", {
             "type": "hidden",
             "name": "who",
             "value": "ANGEL"
-        }).appendTo("#feedback-angel");
-        $( "<input></input>", {
+        });
+        html_form_content.push("input", "", {
             "type": "text",
             "name": "opinion_text",
             "required": "required",
             "class": "polarize-input",
             "placeholder": "Things you like"
-        }).appendTo("#feedback-angel");
-        $( "<input></input>", {
+        });
+        html_form_content.push("input", "", {
             "type": "submit",
             "class": "polarize-input",
             "value": "Praise it!"
-        }).appendTo("#feedback-angel");
+        });
+        html_inner_content.push(elemCreate("form"), html_form_content, {
+            "action": settings.default_topic_url,
+            "method": "post",
+            "id": "feedback-angel"
+        });
+
+        html_form_content.length = 0;
 
         // Demon form
-        $( "<form></form>", {
-            "action": settings.polarize_url,
-            "method": "post",
-            "id": "feedback-demon"
-        }).appendTo("#feedback-content");
-        $( "<input></input>", {
+        html_form_content.push("input", "", {
             "type": "hidden",
             "name": "redirect",
             "value": "NO"
-        }).appendTo("#feedback-demon");
-        $( "<input></input>", {
+        });
+        html_form_content.push("input", "", {
             "type": "hidden",
             "name": "who",
             "value": "DEMON"
-        }).appendTo("#feedback-demon");
-        $( "<input></input>", {
+        });
+        html_form_content.push("input", "", {
             "type": "text",
             "name": "opinion_text",
             "required": "required",
             "class": "polarize-input",
             "placeholder": "Things you don't like"
-        }).appendTo("#feedback-demon");
-        $( "<input></input>", {
+        });
+        html_form_content.push("input", "", {
             "type": "submit",
             "class": "polarize-input",
             "value": "Badmouth it!"
-        }).appendTo("#feedback-demon");
+        });
+        html_inner_content.push(elemCreate("form"), html_form_content, {
+            "action": settings.default_topic_url,
+            "method": "post",
+            "id": "feedback-demon"
+        });
+
+        html_form_content.length = 0;
 
         // Idea form
-        $( "<form></form>", {
-            "action": settings.polarize_url,
-            "method": "post",
-            "id": "feedback-idea"
-        }).appendTo("#feedback-content");
-        $( "<input></input>", {
+        html_form_content.push("input", "", {
             "type": "hidden",
             "name": "redirect",
             "value": "NO"
-        }).appendTo("#feedback-idea");
-        $( "<input></input>", {
+        });
+        html_form_content.push("input", "", {
             "type": "hidden",
             "name": "who",
             "value": "THINKER"
-        }).appendTo("#feedback-idea");
-        $( "<textarea></textarea>", {
+        });
+        html_form_content.push("input", "", {
             "name": "opinion_text",
             "required": "required",
             "class": "polarize-input",
             "placeholder": "Ideas you have!"
-        }).appendTo("#feedback-idea");
-        $( "<input></input>", {
+        });
+        html_form_content.push("input", "", {
             "type": "submit",
             "class": "polarize-input",
             "value": "Send your ideas!"
-        }).appendTo("#feedback-idea");
+        });
+        html_inner_content.push(elemCreate("form"), html_form_content, {
+            "action": settings.default_topic_url,
+            "method": "post",
+            "id": "feedback-idea"
+        });
+
+        // Create slider and inner container
+        html_inner.push(elemCreate("div", "", {
+            "class": "feedback-slider",
+            "style": add_position_style(settings)["slider-style"] + "background-image: url(" + settings.images_dir + "feedback-button.gif);"
+        }));
+        html_inner.push(elemCreate("div", html_inner_content, {
+            "id": "feedback-content",
+            "style": add_position_style(settings)["content-style"]
+        }));
+
+        // Create root element
+        html_container.push(elemCreate("div", html_inner, {
+            "id": "feedback",
+            "class": "feedback-bg",
+            "style": add_position_style(settings)["container-style"] + "background-image: url(" + settings.images_dir + "polarize-logo.png);"
+        }));
+
+        // Append the string to the body
+        $(html_container).prependTo("body");
     }
 
     function createEvents(settings) {
       $(".feedback-slider").toggle(
           function(){
               var $feedback = $("#feedback").removeClass("feedback-bg");
+              $feedback.css({"background-image":"none"});
               $feedback.find('.polarize-input').show();
               $feedback.find('input[type="text"], textarea').val("");
               $feedback.find('.thanks').hide();
-              $feedback.animate(JSON.parse(add_direction_style(settings)["animation"]["show"]));
+              $feedback.animate(JSON.parse(add_position_style(settings)["animation"]["show"]));
               return false;
           },
           function(){
-              $("#feedback").addClass("feedback-bg").animate(JSON.parse(add_direction_style(settings)["animation"]["hide"]));
+              var $feedback = $("#feedback").addClass("feedback-bg");
+              console.log("url(" + settings.images_dir + "polarize-logo.png);");
+              $feedback.animate(JSON.parse(add_position_style(settings)["animation"]["hide"]));
+              $feedback.css({"background-image": "url(" + settings.images_dir + "polarize-logo.png)"});
               return false;
           }
       );
