@@ -82,94 +82,94 @@
 
         // Create forms
         // Angel form
-        html_form_content.push("input", "", {
+        html_form_content.push(elemCreate("input", "", {
             "type": "hidden",
             "name": "redirect",
             "value": "NO"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "type": "hidden",
             "name": "who",
             "value": "ANGEL"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "type": "text",
             "name": "opinion_text",
             "required": "required",
             "class": "polarize-input",
             "placeholder": "Things you like"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "type": "submit",
             "class": "polarize-input",
             "value": "Praise it!"
-        });
-        html_inner_content.push(elemCreate("form"), html_form_content, {
+        }));
+        html_inner_content.push(elemCreate("form", html_form_content, {
             "action": settings.default_topic_url,
             "method": "post",
             "id": "feedback-angel"
-        });
+        }));
 
         html_form_content.length = 0;
 
         // Demon form
-        html_form_content.push("input", "", {
+        html_form_content.push(elemCreate("input", "", {
             "type": "hidden",
             "name": "redirect",
             "value": "NO"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "type": "hidden",
             "name": "who",
             "value": "DEMON"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "type": "text",
             "name": "opinion_text",
             "required": "required",
             "class": "polarize-input",
             "placeholder": "Things you don't like"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "type": "submit",
             "class": "polarize-input",
             "value": "Badmouth it!"
-        });
-        html_inner_content.push(elemCreate("form"), html_form_content, {
+        }));
+        html_inner_content.push(elemCreate("form", html_form_content, {
             "action": settings.default_topic_url,
             "method": "post",
             "id": "feedback-demon"
-        });
+        }));
 
         html_form_content.length = 0;
 
         // Idea form
-        html_form_content.push("input", "", {
+        html_form_content.push(elemCreate("input", "", {
             "type": "hidden",
             "name": "redirect",
             "value": "NO"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "type": "hidden",
             "name": "who",
             "value": "THINKER"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "name": "opinion_text",
             "required": "required",
             "class": "polarize-input",
             "placeholder": "Ideas you have!"
-        });
-        html_form_content.push("input", "", {
+        }));
+        html_form_content.push(elemCreate("input", "", {
             "type": "submit",
             "class": "polarize-input",
             "value": "Send your ideas!"
-        });
-        html_inner_content.push(elemCreate("form"), html_form_content, {
+        }));
+        html_inner_content.push(elemCreate("form", html_form_content, {
             "action": settings.default_topic_url,
             "method": "post",
             "id": "feedback-idea"
-        });
+        }));
 
         // Create slider and inner container
         html_inner.push(elemCreate("div", "", {
