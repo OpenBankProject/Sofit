@@ -68,7 +68,7 @@ class TransactionMetadataImpl(
 )
   extends TransactionMetadata with Loggable
 {
-  def ownerComment = if(! narative.isEmpty) Some(narative) else None
+  def ownerComment = Some(narative)
   def ownerComment(comment : String) = saveOwnerComment(comment)
   def comments : List[Comment] = comments_
   def addComment(userId: String, viewId : Long, text: String, datePosted : Date) : Unit =
