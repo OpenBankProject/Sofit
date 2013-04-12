@@ -1,7 +1,8 @@
 $(function() {
     $("body").polarize({
-        "direction": "right",
-        "polarize_url": "http://polarize.it/polarize/socialfinanceapp_55868373368"
+        "position": "right",
+        "images_dir": "/media/images/",
+        "default_topic_url": "http://polarize.it/polarize/socialfinanceapp_55868373368"
     });
 });
 

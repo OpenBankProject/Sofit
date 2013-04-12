@@ -742,11 +742,11 @@ span#accountsMsg
     cursor: pointer;
     background-color: #0c5276;
     border-radius: 5px;
-    padding: 20px 10px;
+    padding: 10px 10px 20px;
+    z-index: 9000;
 }
 
 #feedback.feedback-bg {
-    background-image: url(../images/polarize-logo.png);
     background-repeat: no-repeat;
     background-size: 30px;
 }
@@ -766,14 +766,24 @@ span#accountsMsg
     height:50px;
 }
 
-#feedback input, #feedBack textarea {
+#feedback input[type="text"] {
+    height:19px;
+}
+
+#feedback input, #feedback textarea {
     border-radius: 3px;
     width:176px;
+    box-shadow: none;
+    border: 1px solid #22A890;
 }
 
 #feedback textarea {
     border:none;
-    max-width:100%;
+    width:100%;
+}
+
+#feedback input:required, #feedback textarea:required {
+    box-shadow:none;
 }
 
 #feedback input[type="submit"] {
@@ -794,17 +804,20 @@ span#accountsMsg
 #feedback .polarize-anchor {
     display:block;
     width:180px;
+    height:50px;
+    background-repeat: no-repeat;
+    background-size: 50%;
+    margin: 10px 0;
 }
 
 #feedback .feedback-slider {
     display:block;
     width: 20px;
     height: 100%;
-    background-image: url(../images/feedback-button.gif);
     background-repeat: no-repeat;
     background-size: 30px;
     background-position: 50%;
-    margin: 0 5px;
+    padding: 0 5px;
 }
 
 /* Feedbackbuttonc css end*/
