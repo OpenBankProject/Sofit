@@ -48,6 +48,7 @@ import net.liftweb.util.Helpers._
 import org.bson.types.ObjectId
 import com.mongodb.DBObject
 import net.liftweb.json.JsonAST.JObject
+import code.lib.OAuthClient
 
 
 /**
@@ -183,6 +184,34 @@ object OBPUser extends OBPUser with MetaMegaProtoUser[OBPUser]{
     var ret = loginReferer.is
     loginReferer.remove()
     ret
+  }
+  
+  /**
+   * Overriden to go through the oauth authentication after a user signs up and gets logged in. This is a temporary
+   * thing until the Social Finance app is split from the API.
+   */
+  override def signup = {
+    val theUser: TheUserType = mutateUserOnSignup(createNewUserInstance())
+    val theName = signUpPath.mkString("")
+
+    def testSignup() {
+      validateSignup(theUser) match {
+        case Nil =>
+          actionsAfterSignup(theUser, () => {
+            //Redirect to oauth. This will need to be revisited when the Social Finance is unlinked from the API.
+            val provider = OAuthClient.defaultProvider
+            S.redirectTo(OAuthClient.getAuthUrl(provider))
+          })
+
+        case xs => S.error(xs) ; signupFunc(Full(innerSignup _))
+      }
+    }
+
+    def innerSignup = bind("user",
+                           signupXhtml(theUser),
+                           "submit" -> SHtml.submit(S.??("sign.up"), testSignup _))
+
+    innerSignup
   }
   
   override def loginXhtml = {
