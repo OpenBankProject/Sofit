@@ -256,6 +256,7 @@ object OAuthHandshake extends RestHelper with Loggable {
         else
           "HmacSHA1"
 
+      logger.info("signing method:" + signingAlgorithm)
       logger.info("signing key: " + secret)
       logger.info("signing key in bytes: " + secret.getBytes("UTF-8"))
 

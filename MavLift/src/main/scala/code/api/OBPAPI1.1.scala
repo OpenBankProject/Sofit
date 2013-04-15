@@ -115,8 +115,14 @@ object OBPAPI1_1 extends RestHelper with Loggable {
     logger.info("OAuth header correct ")
     Token.find(By(Token.key, tokenID.get)) match {
       case Full(token) => {
-        logger.info("access token found")
-        User.findById(token.userId.get)
+        logger.info("access token: "+ token + " found")
+        val user = User.findById(token.userId.get)
+        //just a log
+        user match {
+          case Full(u) => logger.info("user " + u.emailAddress + " was found from the oauth token")
+          case _ => logger.info("no user was found for the oauth token")
+        }
+        user
       }
       case _ =>{
         logger.warn("no token " + tokenID.get + " found")
@@ -394,8 +400,15 @@ object OBPAPI1_1 extends RestHelper with Loggable {
           ("views_available" -> views.map(viewJson))
         )
       }
-
-      moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
+      if(isThereAnOAuthHeader)
+      {
+        if(httpCode == 200)
+          moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+      	moderatedAccountAndViews.map(mv => JsonResponse(json(mv.account, mv.views)))
     }
 
 
