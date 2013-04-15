@@ -72,9 +72,15 @@ class Login {
     "#start-login [onclick+]" #> SHtml.onEvent(s => {
       val provider = OAuthClient.defaultProvider
       val authUrl = OAuthClient.getAuthUrl(provider)
+      /**
+       * For now this is just a link to the signup for the API (which is currently the same as the Social Finance app). 
+       * Eventually it will end up as different url on the same provider's oauth server. How this will work in practice is
+       * yet to be seen... the implementation details in OauthClient may get tricky. 
+       */
+      val guestLogin = OBPUser.signUpPath.mkString("/")
       JsRaw("jQuery('.provider-name').text('" + provider.name + "')").cmd &
       JsRaw("jQuery('.bank-login').attr('href', '" + authUrl + "')").cmd &
-      JsRaw("jQuery('.guest-login').attr('href', '" + authUrl + "')").cmd &
+      JsRaw("jQuery('.guest-login').attr('href', '" + guestLogin + "')").cmd &
       Show("choose-login-link")
     })
   }
