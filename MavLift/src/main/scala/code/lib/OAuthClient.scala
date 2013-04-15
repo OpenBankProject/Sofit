@@ -42,8 +42,11 @@ import net.liftweb.http.S
 import oauth.signpost.OAuthConsumer
 import oauth.signpost.basic.DefaultOAuthConsumer
 import net.liftweb.mapper.By
-import net.liftweb.common.Full
+import net.liftweb.common.{Full, Failure}
 import net.liftweb.util.Helpers
+import net.liftweb.http.LiftResponse
+import net.liftweb.common.Loggable
+import code.model.dataAccess.OBPUser
 
 sealed trait Provider {
   val name : String
@@ -80,9 +83,10 @@ case class Consumer(consumerKey : String, consumerSecret : String) {
   val oAuthConsumer : OAuthConsumer = new DefaultOAuthConsumer(consumerKey, consumerSecret)
 }
 
-case class Credential(provider : Provider, consumer : OAuthConsumer)
+case class Credential(provider : Provider, consumer : OAuthConsumer, readyToSign : Boolean)
 
 object credentials extends SessionVar[List[Credential]](Nil)
+object mostRecentLoginAttemptProvider extends SessionVar[Box[Provider]](Empty)
 
 /**
  * Until the Social Finance app and the API are fully split, the Social Finance app will in fact call
@@ -105,10 +109,15 @@ object SofiAPITransition {
     }
   }
   
+  //Once Sofi splits from the api we won't need to logout the obpuser anymore as it won't exist
+  def logoutOBPUserToo() = {
+    OBPUser.logoutCurrentUser
+  }
+  
   val sofiConsumer = getOrCreateSofiConsumer
 }
 
-object OAuthClient {
+object OAuthClient extends Loggable {
 
   val defaultProvider = OBPDemo
   
@@ -117,19 +126,52 @@ object OAuthClient {
       case Some(c) => c
       case None => {
         val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
-        val credential = Credential(provider, consumer)
+        val credential = Credential(provider, consumer, false)
         credentials.set(credential :: credentials.get)
         credential
       }
     }
   }
+
+  def handleCallback(): Box[LiftResponse] = {
+
+    val success = for {
+      verifier <- S.param("oauth_verifier") ?~ "No oauth verifier found"
+      provider <- mostRecentLoginAttemptProvider.get ?~ "No provider found for callback"
+      consumer <- Box(credentials.find(_.provider == provider).map(_.consumer)) ?~ "No consumer found for callback"
+    } yield {
+      //after this, consumer is ready to sign requests
+      provider.oAuthProvider.retrieveAccessToken(consumer, verifier)
+      //update the session credentials
+      val newCredential = Credential(provider, consumer, true)
+      val newCredentials = newCredential :: credentials.filterNot(_.provider == provider)
+      credentials.set(newCredentials)
+    }
+
+    success match {
+      case Full(_) => S.redirectTo("/") //TODO: Allow this redirect to be customised
+      case Failure(msg, _, _) => logger.warn(msg)
+      case _ => logger.warn("Something went wrong in an oauth callback and there was no error message set for it")
+    }
+    Empty
+  }
 		  						 
   def getAuthUrl(provider : Provider) : String = {
+    mostRecentLoginAttemptProvider.set(Full(provider))
+    
     val credential = getOrCreateCredential(provider)
-    provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName))
+    provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
   }
   
-  def loggedInAt : List[Provider] = credentials.map(_.provider)
+  def loggedInAt : List[Provider] = {
+    val loggedin = credentials.filter(_.readyToSign).map(_.provider)
+    println("logged in at: " + loggedin)
+    credentials.filter(_.readyToSign).map(_.provider)
+  }
   def loggedInAtAny : Boolean = loggedInAt.size > 0
-  def logoutAll() = credentials.set(Nil)
+  def logoutAll() = {
+    println("logoutall called")
+    SofiAPITransition.logoutOBPUserToo()
+    S.session.open_!.destroySessionAndContinueInNewSession(S.redirectTo("/"))
+  }
 }

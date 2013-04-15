@@ -60,24 +60,21 @@ class Login {
         "* *" #> provider.name
       }) 
     } &
-    ".logout [onclick]" #> SHtml.onEvent(s => {
+    ".logout [onclick+]" #> SHtml.onEvent(s => {
       OAuthClient.logoutAll()
-      S.redirectTo("/")
       Noop
     })
   }
   
   def loggedOut = {
     
-    val provider = OAuthClient.defaultProvider
-    
     ".logged-in *" #> "" &
-    ".start-login [onclick]" #> SHtml.onEvent(s => {
-      val bankAuthUrl = OAuthClient.getAuthUrl(provider)
-      val guestAuthUrl = bankAuthUrl
+    "#start-login [onclick+]" #> SHtml.onEvent(s => {
+      val provider = OAuthClient.defaultProvider
+      val authUrl = OAuthClient.getAuthUrl(provider)
       JsRaw("jQuery('.provider-name').text('" + provider.name + "')").cmd &
-      JsRaw("jQuery('.bank-login').attr('href', '" + bankAuthUrl + "')").cmd &
-      JsRaw("jQuery('.guest-login').attr('href', '" + guestAuthUrl + "')").cmd &
+      JsRaw("jQuery('.bank-login').attr('href', '" + authUrl + "')").cmd &
+      JsRaw("jQuery('.guest-login').attr('href', '" + authUrl + "')").cmd &
       Show("choose-login-link")
     })
   }
