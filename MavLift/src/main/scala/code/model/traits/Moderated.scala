@@ -180,7 +180,7 @@ class ModeratedTransactionMetadata(
   def addImage  = addImageFunc
   def deleteImage = deleteImageFunc
   def addWhereTag = addWhereTagFunc
-  def whereTag = whereTag_
+  def whereTag : Option[GeoTag] = whereTag_
 }
 
 object ModeratedTransactionMetadata {

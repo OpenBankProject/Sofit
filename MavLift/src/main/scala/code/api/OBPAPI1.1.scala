@@ -144,7 +144,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       ("uuid" -> t.uuid) ~
       ("id" -> t.id) ~
       ("this_account" -> t.bankAccount.map(thisAccountJson)) ~
-      ("other_account" -> t.otherBankAccount.map(otherAccountJson)) ~
+      ("other_account" -> t.otherBankAccount.map(otherAccountToJson)) ~
       ("details" ->
         ("type" -> t.transactionType.getOrElse("")) ~
         ("label" -> t.label.getOrElse("")) ~
@@ -174,7 +174,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
     ("is_alias" -> false)
   }
 
-  private def otherAccountJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
+  private def otherAccountToJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
     ("holder" ->
       ("name" -> otherAccount.label.display) ~
       ("is_alias" -> otherAccount.isAlias)
@@ -211,6 +211,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       ("user" -> userToJson(geoTag.postedBy))
     )
   }
+
   private def moderatedTransactionMetadata(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : Box[ModeratedTransactionMetadata] =
     for {
       account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
@@ -218,6 +219,14 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
       metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
     } yield metadata
+
+  private def moderatedTransactionOtherAccount(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : Box[ModeratedOtherBankAccount] =
+    for {
+      account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
+      view <- View.fromUrl(viewId) ?~ { "view "  + viewId + " not found"}
+      moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
+      otherAccount <- Box(moderatedTransaction.otherBankAccount) ?~ {"view " + viewId + " does not authorize other account access"}
+    } yield otherAccount
 
   serve("obp" / "v1.1" prefix {
 
@@ -999,4 +1008,85 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
   })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankID :: "accounts" :: accountID :: viewId :: "transactions" :: transactionID :: "metadata" :: "where" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+          tryo{
+            json.extract[WhereTagJSON]
+          } match {
+            case Full(whereTagJson) => {
+              def addWhereTag(user : User, viewID : Long, longitude: Double, latitude : Double) : Box[Boolean] = {
+                val addWhereTag = for {
+                  metadata <- moderatedTransactionMetadata(bankID,accountID,viewId,transactionID,Full(user))
+                  addWhereTagFunc <- Box(metadata.addWhereTag) ?~ {"view " + viewId + " does not authorize adding where tag"}
+                } yield addWhereTagFunc
+
+                addWhereTag.map(
+                  func =>{
+                    val datePosted = (now: TimeSpan)
+                    func(user.id_, viewID, datePosted, longitude, latitude)
+                  }
+                )
+              }
+
+              val postedGeoTag = for{
+                  user <- getUser(httpCode,oAuthParameters.get("oauth_token")) ?~ "User not found. Authentication via OAuth is required"
+                  view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                  posterWheteTag <- addWhereTag(user, view.id, whereTagJson.where.longitude, whereTagJson.where.latitude)
+                } yield posterWheteTag
+
+              postedGeoTag match {
+                case Full(postedWhereTag) =>
+                  if(postedWhereTag)
+                    JsonResponse(SuccessMessage("Geo tag successfully saved"), Nil, Nil, 201)
+                  else
+                    JsonResponse(ErrorMessage("Geo tag could not be saved"), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
+                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
+          }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
+  })
+  serve("obp" / "v1.1" prefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "other_account" :: Nil JsonGet json => {
+      //log the API call
+      logAPICall
+
+      def otherAccountResponce(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
+        moderatedTransactionOtherAccount(bankId,accountId,viewId,transactionID,user) match {
+            case Full(otherAccount) => JsonResponse(otherAccountToJson(otherAccount), Nil, Nil, 200)
+            case Failure(msg,_,_) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+          }
+      }
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          otherAccountResponce(bankId, accountId, viewId, transactionID, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+      }
+      else
+        otherAccountResponce(bankId, accountId, viewId, transactionID, None)
+    }
+  })
+
 }
