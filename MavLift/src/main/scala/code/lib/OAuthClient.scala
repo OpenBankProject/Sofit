@@ -165,12 +165,10 @@ object OAuthClient extends Loggable {
   
   def loggedInAt : List[Provider] = {
     val loggedin = credentials.filter(_.readyToSign).map(_.provider)
-    println("logged in at: " + loggedin)
     credentials.filter(_.readyToSign).map(_.provider)
   }
   def loggedInAtAny : Boolean = loggedInAt.size > 0
   def logoutAll() = {
-    println("logoutall called")
     SofiAPITransition.logoutOBPUserToo()
     S.session.open_!.destroySessionAndContinueInNewSession(S.redirectTo("/"))
   }
