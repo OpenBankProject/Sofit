@@ -5,12 +5,20 @@ body {
 	font-weight: 300;
 }
 
+#start-login,
+.logout,
 a {
 	color: #1C8B77;
 }
 
 a:hover {
 	color: #156759;
+}
+
+#start-login:hover,
+.logout:hover {
+	color: #156759;
+	text-decoration: underline;
 }
 
 a.sort {

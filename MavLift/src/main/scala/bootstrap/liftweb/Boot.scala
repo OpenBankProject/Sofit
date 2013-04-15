@@ -54,8 +54,10 @@ import code.model.dataAccess.LocalStorage
 import code.model.traits.BankAccount
 import net.liftweb.http.js.jquery.JqJsCmds
 import code.snippet.OAuthAuthorisation
-
 import javax.mail.{ Authenticator, PasswordAuthentication }
+import net.liftweb.sitemap.Loc.EarlyResponse
+import code.lib.OAuthClient
+
 /**
  * A class that's instantiated early and run.  It allows the application
  * to modify lift's environment
@@ -195,6 +197,9 @@ class Boot extends Loggable{
     // Build SiteMap
     val sitemap = List(
           Menu.i("Home") / "index",
+          Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
+            OAuthClient.handleCallback()
+          }),
           Menu.i("Privilege Admin") / "admin" / "privilege"  >> TestAccess(() => {
             check(OBPUser.loggedIn_?)
           }) >> LocGroup("admin")

@@ -5,5 +5,3 @@ $(function() {
         "default_topic_url": "http://polarize.it/polarize/socialfinanceapp_55868373368"
     });
 });
-
-

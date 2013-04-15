@@ -159,7 +159,14 @@ class OBPUser extends MegaProtoUser[OBPUser] with User{
  * The singleton that has methods for accessing the database
  */
 object OBPUser extends OBPUser with MetaMegaProtoUser[OBPUser]{
-
+  
+  /**
+   * This is disabled as we are transitioning from OBPUser to OAuth in the Social Finance app. We store
+   * oauth info in the session and also log in as OBPUser. So we don't want the OBPUser login to destroy the session
+   * that contains oauth stuff.
+   */
+  override def destroySessionOnLogin = false
+  
   override def dbTableName = "users" // define the DB table name
 
   override def screenWrap = Full(<lift:surround with="default" at="content">
