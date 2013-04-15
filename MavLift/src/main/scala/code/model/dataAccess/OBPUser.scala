@@ -236,7 +236,7 @@ object OBPUser extends OBPUser with MetaMegaProtoUser[OBPUser]{
 
   //Set the login referer
   override def login = {
-    for(r <- S.referer if loginReferer.is.equals("/")) loginReferer.set(r)
+    for(r <- S.referer) loginReferer.set(r)
     super.login
   }
   

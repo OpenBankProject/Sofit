@@ -101,7 +101,6 @@ object Admin extends Admin with MetaMegaProtoUser[Admin]{
   override def login = {
     for(
       r <- S.referer 
-      if loginReferer.is.equals("/")
     ) loginReferer.set(r)
     super.login
   }  
