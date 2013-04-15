@@ -86,7 +86,6 @@ class Login {
   }
   
   def login = {
-    println("logged in at any:" + OAuthClient.loggedInAtAny)
     if(OAuthClient.loggedInAtAny) loggedIn
     else loggedOut
   }
