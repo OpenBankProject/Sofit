@@ -1065,6 +1065,19 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       //log the API call
       logAPICall
 
+    def otherAccountToJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
+      ("id" -> otherAccount.id) ~
+      ("number" -> otherAccount.number.getOrElse("")) ~
+      ("holder" ->
+        ("name" -> otherAccount.label.display) ~
+        ("is_alias" -> otherAccount.isAlias)
+      ) ~
+      ("national_identifier" -> otherAccount.nationalIdentifier.getOrElse("")) ~
+      ("IBAN" -> otherAccount.iban.getOrElse("")) ~
+      ("bank_name" -> otherAccount.bankName.getOrElse("")) ~
+      ("swift_bic" -> otherAccount.swift_bic.getOrElse(""))
+    }
+
       def otherAccountResponce(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
         moderatedTransactionOtherAccount(bankId,accountId,viewId,transactionID,user) match {
             case Full(otherAccount) => JsonResponse(otherAccountToJson(otherAccount), Nil, Nil, 200)
