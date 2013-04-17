@@ -85,8 +85,13 @@ trait BankAccount {
 
   def moderatedBankAccount(view: View, user: Box[User]) : Box[ModeratedBankAccount] = {
     if(permittedViews(user).contains(view)){
-      view.moderate(this)
-    } else Empty
+      view.moderate(this) match {
+        case Some(thisBankAccount) => Full(thisBankAccount)
+        case _ => Failure("could not moderate this bank account id " + id, Empty, Empty)
+      }
+    }
+    else
+      Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
   }
 
   //Is a public view is available for this bank account

@@ -198,7 +198,7 @@ class ModeratedBankAccount(
   filteredId : String,
   filteredOwners : Option[Set[AccountOwner]],
   filteredAccountType : Option[String],
-  filteredBalance: String,
+  filteredBalance: String = "",
   filteredCurrency : Option[String],
   filteredLabel : Option[String],
   filteredNationalIdentifier : Option[String],

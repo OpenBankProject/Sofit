@@ -125,52 +125,7 @@ trait View {
     //transaction data
     val transactionId = transaction.id
     val transactionUUID = transaction.uuid
-    val thisBankAccount =
-    if(canSeeTransactionThisBankAccount)
-    {
-      val owners = if(canSeeBankAccountOwners) Some(transaction.thisAccount.owners) else None
-      val accountType = if(canSeeBankAccountType) Some(transaction.thisAccount.accountType) else None
-      val balance = if(canSeeBankAccountBalance) { transaction.thisAccount.balance.toString
-      } else if (canSeeBankAccountBalancePositiveOrNegative) {
-        if(transaction.thisAccount.balance.toString.startsWith("-")) "-" else "+"
-      } else ""
-      val currency = if(canSeeBankAccountCurrency) Some(transaction.thisAccount.currency) else None
-      val label = if(canSeeBankAccountLabel) Some(transaction.thisAccount.label) else None
-      val number = if(canSeeBankAccountNumber) Some(transaction.thisAccount.number) else None
-      val bankName = if(canSeeBankAccountName) Some(transaction.thisAccount.bankName) else None
-      val nationalIdentifier =
-        if(canSeeBankAccountNationalIdentifier)
-          Some(transaction.thisAccount.nationalIdentifier)
-        else
-          None
-      val swift_bic =
-        if(canSeeBankAccountSwift_bic)
-          transaction.thisAccount.swift_bic
-        else
-          None
-      val iban =
-        if(canSeeBankAccountIban)
-          transaction.thisAccount.iban
-        else
-          None
-      Some(
-        new ModeratedBankAccount(
-          transaction.thisAccount.id,
-          owners,
-          accountType,
-          balance,
-          currency,
-          label,
-          nationalIdentifier,
-          swift_bic,
-          iban,
-          number,
-          bankName
-        ))
-    }
-    else
-      None
-
+    val thisBankAccount = moderate(transaction.thisAccount)
     val otherBankAccount = moderate(transaction.otherAccount)
 
     //transation metadata
@@ -274,14 +229,16 @@ trait View {
       transactionFinishDate, transactionBalance)
   }
 
-  def moderate(bankAccount: BankAccount) : Box[ModeratedBankAccount] = {
-    if(bankAccount.allowPublicAccess) {
+  def moderate(bankAccount: BankAccount) : Option[ModeratedBankAccount] = {
+    if(canSeeTransactionThisBankAccount)
+    {
       val owners : Set[AccountOwner] = if(canSeeBankAccountOwners) bankAccount.owners else Set()
-      val balance = if(canSeeBankAccountBalance){
-        bankAccount.balance.getOrElse(0).toString
-      } else if(canSeeBankAccountBalancePositiveOrNegative) {
-        if(bankAccount.balance.getOrElse(0).toString.startsWith("-")) "-" else "+"
-      } else ""
+      val balance =
+        if(canSeeBankAccountBalance){
+          bankAccount.balance.getOrElse(0).toString
+        } else if(canSeeBankAccountBalancePositiveOrNegative) {
+          if(bankAccount.balance.getOrElse(0).toString.startsWith("-")) "-" else "+"
+        } else ""
       val accountType = if(canSeeBankAccountType) Some(bankAccount.accountType) else None
       val currency = if(canSeeBankAccountCurrency) Some(bankAccount.currency) else None
       val label = if(canSeeBankAccountLabel) Some(bankAccount.label) else None
@@ -291,7 +248,7 @@ trait View {
       val number = if(canSeeBankAccountNumber) Some(bankAccount.number) else None
       val bankName = if(canSeeBankAccountName) Some(bankAccount.bankName) else None
 
-      Full(
+      Some(
         new ModeratedBankAccount(
           filteredId = bankAccount.id,
           filteredOwners = Some(owners),
@@ -306,7 +263,8 @@ trait View {
           filteredBankName = bankName
         ))
     }
-    else Empty
+    else
+      None
   }
 
   def moderate(otherBankAccount : OtherBankAccount) : Option[ModeratedOtherBankAccount] = {
