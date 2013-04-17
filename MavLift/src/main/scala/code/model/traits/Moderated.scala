@@ -82,8 +82,13 @@ object ModeratedOtherBankAccount {
   }
 }
 
-class ModeratedOtherBankAccountMetadata(filteredMoreInfo : Option[String],
-  filteredUrl : Option[String], filteredImageUrl : Option[String], filteredOpenCorporatesUrl : Option[String]) {
+class ModeratedOtherBankAccountMetadata(
+  filteredMoreInfo : Option[String],
+  filteredUrl : Option[String],
+  filteredImageUrl : Option[String],
+  filteredOpenCorporatesUrl : Option[String]
+
+) {
   def moreInfo = filteredMoreInfo
   def url = filteredUrl
   def imageUrl = filteredImageUrl
@@ -165,8 +170,8 @@ class ModeratedTransactionMetadata(
   images_ : Option[List[TransactionImage]],
   addImageFunc : Option[(String, Long, String, Date, URL) => String],
   deleteImageFunc  : Option[String => Unit],
-  addWhereTagFunc : Option[(Double, Double) => Unit],
-  whereTag_ : Option[(Double, Double)]
+  addWhereTagFunc : Option[(String, Long, Date, Double, Double) => Boolean],
+  whereTag_ : Option[GeoTag]
 )
 {
   def ownerComment = filteredOwnerComment
@@ -180,7 +185,7 @@ class ModeratedTransactionMetadata(
   def addImage  = addImageFunc
   def deleteImage = deleteImageFunc
   def addWhereTag = addWhereTagFunc
-  def whereTag = whereTag_
+  def whereTag : Option[GeoTag] = whereTag_
 }
 
 object ModeratedTransactionMetadata {
@@ -189,13 +194,19 @@ object ModeratedTransactionMetadata {
   }
 }
 
-class ModeratedBankAccount(filteredId : String,
-  filteredOwners : Option[Set[AccountOwner]], filteredAccountType : Option[String],
-  filteredBalance: String, filteredCurrency : Option[String],
-  filteredLabel : Option[String], filteredNationalIdentifier : Option[String],
-  filteredSwift_bic : Option[String], filteredIban : Option[String],
-  filteredNumber: Option[String], filteredBankName: Option[String])
-{
+class ModeratedBankAccount(
+  filteredId : String,
+  filteredOwners : Option[Set[AccountOwner]],
+  filteredAccountType : Option[String],
+  filteredBalance: String,
+  filteredCurrency : Option[String],
+  filteredLabel : Option[String],
+  filteredNationalIdentifier : Option[String],
+  filteredSwift_bic : Option[String],
+  filteredIban : Option[String],
+  filteredNumber: Option[String],
+  filteredBankName: Option[String]
+){
   def id = filteredId
   def owners = filteredOwners
   def accountType = filteredAccountType

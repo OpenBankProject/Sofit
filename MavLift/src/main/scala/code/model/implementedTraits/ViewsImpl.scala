@@ -123,35 +123,21 @@ object Public extends BaseView {
     val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
       //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
       // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
-    val thisBankAccount = Some(new ModeratedBankAccount(transaction.thisAccount.id,
-      Some(transaction.thisAccount.owners), Some(transaction.thisAccount.accountType),
-      accountBalance, Some(transaction.thisAccount.currency),
-      Some(transaction.thisAccount.label),None, None, None, Some(transaction.thisAccount.number),
-      Some(transaction.thisAccount.bankName)))
-    val otherBankAccount = {
-      val otherAccountLabel = {
-        val publicAlias = transaction.otherAccount.metadata.publicAlias
-        if(publicAlias.isEmpty)
-          AccountName(transaction.otherAccount.label, NoAlias)
-        else
-          AccountName(publicAlias, PublicAlias)
-      }
-      val otherAccountMetadata = {
-        def isPublicAlias = otherAccountLabel.aliasType match {
-          case PublicAlias => true
-          case _ => false
-        }
-        val moreInfo = if (isPublicAlias) None else Some(transaction.otherAccount.metadata.moreInfo)
-        val url = if (isPublicAlias) None else Some(transaction.otherAccount.metadata.url)
-        val imageUrl = if (isPublicAlias) None else Some(transaction.otherAccount.metadata.imageUrl)
-        val openCorporatesUrl = if (isPublicAlias) None else Some(transaction.otherAccount.metadata.openCorporatesUrl)
-
-        Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
-      }
-
-      Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,
-          None, None, None, otherAccountMetadata, None))
-    }
+    val thisBankAccount = Some(
+        new ModeratedBankAccount(
+          transaction.thisAccount.id,
+          Some(transaction.thisAccount.owners),
+          Some(transaction.thisAccount.accountType),
+          accountBalance,
+          Some(transaction.thisAccount.currency),
+          Some(transaction.thisAccount.label),
+          None,
+          None,
+          None,
+          Some(transaction.thisAccount.number),
+          Some(transaction.thisAccount.bankName))
+      )
+    val otherBankAccount = moderate(transaction.otherAccount)
     val transactionMetadata =
       Some(
         new ModeratedTransactionMetadata(
@@ -191,7 +177,39 @@ object Public extends BaseView {
       transactionBalance
     )
   }
+  override def moderate(otherAccount : OtherBankAccount) : Option[ModeratedOtherBankAccount] = {
+      val otherAccountLabel = {
+        val publicAlias = otherAccount.metadata.publicAlias
+        if(publicAlias.isEmpty)
+          AccountName(otherAccount.label, NoAlias)
+        else
+          AccountName(publicAlias, PublicAlias)
+      }
+      val otherAccountMetadata = {
+        def isPublicAlias = otherAccountLabel.aliasType match {
+          case PublicAlias => true
+          case _ => false
+        }
+        val moreInfo = if (isPublicAlias) None else Some(otherAccount.metadata.moreInfo)
+        val url = if (isPublicAlias) None else Some(otherAccount.metadata.url)
+        val imageUrl = if (isPublicAlias) None else Some(otherAccount.metadata.imageUrl)
+        val openCorporatesUrl = if (isPublicAlias) None else Some(otherAccount.metadata.openCorporatesUrl)
 
+        Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
+      }
+
+      Some(
+        new ModeratedOtherBankAccount(
+          otherAccount.id,
+          otherAccountLabel,
+          None,
+          None,
+          None,
+          None,
+          None,
+          otherAccountMetadata,
+          None))
+  }
 }
 
   object OurNetwork extends BaseView
@@ -207,10 +225,21 @@ object Public extends BaseView {
     val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
       //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
       // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
-    val thisBankAccount = Some(new ModeratedBankAccount(transaction.thisAccount.id, None, None,
-      accountBalance, Some(transaction.thisAccount.currency),
-      Some(transaction.thisAccount.label),None, None, None, Some(transaction.thisAccount.number),
-      Some(transaction.thisAccount.bankName)))
+    val thisBankAccount = Some(
+        new ModeratedBankAccount(
+          transaction.thisAccount.id,
+          None,
+          None,
+          accountBalance,
+          Some(transaction.thisAccount.currency),
+          Some(transaction.thisAccount.label),
+          None,
+          None,
+          None,
+          Some(transaction.thisAccount.number),
+          Some(transaction.thisAccount.bankName)
+        )
+      )
     val otherBankAccount = {
       val otherAccountLabel = {
         val privateAlias = transaction.otherAccount.metadata.privateAlias

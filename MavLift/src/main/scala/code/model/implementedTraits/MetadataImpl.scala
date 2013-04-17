@@ -32,10 +32,8 @@ Berlin 13359, Germany
 package code.model.implementedTraits
 
 import code.model.traits._
-import code.model.dataAccess.{OtherAccount, OBPComment}
 import net.liftweb.common.Loggable
 import java.util.Date
-import code.model.traits.TransactionImage
 import java.net.URL
 
 class OtherBankAccountMetadataImpl(
@@ -65,14 +63,12 @@ class TransactionMetadataImpl(
   images_ : List[TransactionImage],
   addImageFunc : (String, Long, String, Date, URL) => String,
   deleteImageFunc : String => Unit,
-  addWhereTagFunc : (Double, Double) => Unit,
-  whereTag_ : (Double, Double)
+  addWhereTagFunc : (String, Long, Date, Double, Double) => Boolean,
+  whereTag_ : GeoTag
 )
   extends TransactionMetadata with Loggable
 {
-  def addWhereTag(longitude : Double, latitude : Double) = addWhereTagFunc(longitude,latitude)
-  def whereTag = whereTag_
-  def ownerComment = if(! narative.isEmpty) Some(narative) else None
+  def ownerComment = Some(narative)
   def ownerComment(comment : String) = saveOwnerComment(comment)
   def comments : List[Comment] = comments_
   def addComment(userId: String, viewId : Long, text: String, datePosted : Date) : Unit =
@@ -86,5 +82,7 @@ class TransactionMetadataImpl(
   def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) =
     addImageFunc(userId, viewId, description, datePosted, imageUrl)
   def deleteImage(id : String) = deleteImageFunc(id)
+  def addWhereTag(userId : String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) =
+    addWhereTagFunc(userId, viewId, datePosted, longitude, latitude)
+  def whereTag = whereTag_
 }
-
