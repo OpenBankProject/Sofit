@@ -82,8 +82,13 @@ object ModeratedOtherBankAccount {
   }
 }
 
-class ModeratedOtherBankAccountMetadata(filteredMoreInfo : Option[String],
-  filteredUrl : Option[String], filteredImageUrl : Option[String], filteredOpenCorporatesUrl : Option[String]) {
+class ModeratedOtherBankAccountMetadata(
+  filteredMoreInfo : Option[String],
+  filteredUrl : Option[String],
+  filteredImageUrl : Option[String],
+  filteredOpenCorporatesUrl : Option[String]
+
+) {
   def moreInfo = filteredMoreInfo
   def url = filteredUrl
   def imageUrl = filteredImageUrl
@@ -189,13 +194,19 @@ object ModeratedTransactionMetadata {
   }
 }
 
-class ModeratedBankAccount(filteredId : String,
-  filteredOwners : Option[Set[AccountOwner]], filteredAccountType : Option[String],
-  filteredBalance: String, filteredCurrency : Option[String],
-  filteredLabel : Option[String], filteredNationalIdentifier : Option[String],
-  filteredSwift_bic : Option[String], filteredIban : Option[String],
-  filteredNumber: Option[String], filteredBankName: Option[String])
-{
+class ModeratedBankAccount(
+  filteredId : String,
+  filteredOwners : Option[Set[AccountOwner]],
+  filteredAccountType : Option[String],
+  filteredBalance: String,
+  filteredCurrency : Option[String],
+  filteredLabel : Option[String],
+  filteredNationalIdentifier : Option[String],
+  filteredSwift_bic : Option[String],
+  filteredIban : Option[String],
+  filteredNumber: Option[String],
+  filteredBankName: Option[String]
+){
   def id = filteredId
   def owners = filteredOwners
   def accountType = filteredAccountType

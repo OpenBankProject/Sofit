@@ -153,69 +153,25 @@ trait View {
           transaction.thisAccount.iban
         else
           None
-      Some(new ModeratedBankAccount(transaction.thisAccount.id, owners, accountType, balance, currency, label,
-      nationalIdentifier, swift_bic, iban, number, bankName))
+      Some(
+        new ModeratedBankAccount(
+          transaction.thisAccount.id,
+          owners,
+          accountType,
+          balance,
+          currency,
+          label,
+          nationalIdentifier,
+          swift_bic,
+          iban,
+          number,
+          bankName
+        ))
     }
     else
       None
 
-    val otherBankAccount =
-    if (canSeeTransactionOtherBankAccount)
-    {
-      //other account data
-      var otherAccountId = transaction.otherAccount.id
-      val otherAccountLabel: AccountName =
-      {
-        val realName = transaction.otherAccount.label
-        if (usePublicAliasIfOneExists) {
-
-          val publicAlias = transaction.otherAccount.metadata.publicAlias
-
-          if (! publicAlias.isEmpty ) AccountName(publicAlias, PublicAlias)
-          else AccountName(realName, NoAlias)
-
-        } else if (usePrivateAliasIfOneExists) {
-
-          val privateAlias = transaction.otherAccount.metadata.privateAlias
-
-          if (! privateAlias.isEmpty) AccountName(privateAlias, PrivateAlias)
-          else AccountName(realName, PrivateAlias)
-        } else
-          AccountName(realName, NoAlias)
-      }
-      val otherAccountNationalIdentifier = if (canSeeOtherAccountNationalIdentifier) Some(transaction.otherAccount.nationalIdentifier) else None
-      val otherAccountSWIFT_BIC = if (canSeeSWIFT_BIC) transaction.otherAccount.swift_bic else None
-      val otherAccountIBAN = if(canSeeOtherAccountIBAN) transaction.otherAccount.iban else None
-      val otherAccountBankName = if(canSeeOtherAccountBankName) Some(transaction.otherAccount.bankName) else None
-      val otherAccountNumber = if(canSeeOtherAccountNumber) Some(transaction.otherAccount.number) else None
-      val otherAccountKind = if(canSeeOtherAccountKind) Some(transaction.otherAccount.kind) else None
-      val otherAccountMetadata =
-        if(canSeeOtherAccountMetadata)
-        {
-          //other bank account metadata
-          val moreInfo =
-            if (canSeeMoreInfo) Some(transaction.otherAccount.metadata.moreInfo)
-            else None
-          val url =
-            if (canSeeUrl) Some(transaction.otherAccount.metadata.url)
-            else None
-          val imageUrl =
-            if (canSeeImageUrl) Some(transaction.otherAccount.metadata.imageUrl)
-            else None
-          val openCorporatesUrl =
-            if (canSeeOpenCorporatesUrl) Some(transaction.otherAccount.metadata.openCorporatesUrl)
-            else None
-
-          Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
-        }
-        else
-            None
-
-      Some(new ModeratedOtherBankAccount(otherAccountId,otherAccountLabel, otherAccountNationalIdentifier,
-        otherAccountSWIFT_BIC, otherAccountIBAN, otherAccountBankName, otherAccountNumber, otherAccountMetadata, otherAccountKind))
-    }
-    else
-      None
+    val otherBankAccount = moderate(transaction.otherAccount)
 
     //transation metadata
     val transactionMetadata =
@@ -335,20 +291,89 @@ trait View {
       val number = if(canSeeBankAccountNumber) Some(bankAccount.number) else None
       val bankName = if(canSeeBankAccountName) Some(bankAccount.bankName) else None
 
-      Full(new ModeratedBankAccount(filteredId = bankAccount.id,
-          							filteredOwners = Some(owners),
-          							filteredAccountType = accountType,
-          							filteredBalance = balance,
-          							filteredCurrency = currency,
-          							filteredLabel = label,
-          							filteredNationalIdentifier = nationalIdentifier,
-          							filteredSwift_bic = swiftBic,
-          							filteredIban = iban,
-          							filteredNumber = number,
-          							filteredBankName = bankName
-          							))
+      Full(
+        new ModeratedBankAccount(
+          filteredId = bankAccount.id,
+          filteredOwners = Some(owners),
+          filteredAccountType = accountType,
+          filteredBalance = balance,
+          filteredCurrency = currency,
+          filteredLabel = label,
+          filteredNationalIdentifier = nationalIdentifier,
+          filteredSwift_bic = swiftBic,
+          filteredIban = iban,
+          filteredNumber = number,
+          filteredBankName = bankName
+        ))
     }
     else Empty
+  }
+
+  def moderate(otherBankAccount : OtherBankAccount) : Option[ModeratedOtherBankAccount] = {
+    if (canSeeTransactionOtherBankAccount)
+    {
+      //other account data
+      var otherAccountId = otherBankAccount.id
+      val otherAccountLabel: AccountName = {
+        val realName = otherBankAccount.label
+        if (usePublicAliasIfOneExists) {
+
+          val publicAlias = otherBankAccount.metadata.publicAlias
+
+          if (! publicAlias.isEmpty ) AccountName(publicAlias, PublicAlias)
+          else AccountName(realName, NoAlias)
+
+        } else if (usePrivateAliasIfOneExists) {
+
+          val privateAlias = otherBankAccount.metadata.privateAlias
+
+          if (! privateAlias.isEmpty) AccountName(privateAlias, PrivateAlias)
+          else AccountName(realName, PrivateAlias)
+        } else
+          AccountName(realName, NoAlias)
+      }
+      val otherAccountNationalIdentifier = if (canSeeOtherAccountNationalIdentifier) Some(otherBankAccount.nationalIdentifier) else None
+      val otherAccountSWIFT_BIC = if (canSeeSWIFT_BIC) otherBankAccount.swift_bic else None
+      val otherAccountIBAN = if(canSeeOtherAccountIBAN) otherBankAccount.iban else None
+      val otherAccountBankName = if(canSeeOtherAccountBankName) Some(otherBankAccount.bankName) else None
+      val otherAccountNumber = if(canSeeOtherAccountNumber) Some(otherBankAccount.number) else None
+      val otherAccountKind = if(canSeeOtherAccountKind) Some(otherBankAccount.kind) else None
+      val otherAccountMetadata =
+        if(canSeeOtherAccountMetadata)
+        {
+          //other bank account metadata
+          val moreInfo =
+            if (canSeeMoreInfo) Some(otherBankAccount.metadata.moreInfo)
+            else None
+          val url =
+            if (canSeeUrl) Some(otherBankAccount.metadata.url)
+            else None
+          val imageUrl =
+            if (canSeeImageUrl) Some(otherBankAccount.metadata.imageUrl)
+            else None
+          val openCorporatesUrl =
+            if (canSeeOpenCorporatesUrl) Some(otherBankAccount.metadata.openCorporatesUrl)
+            else None
+
+          Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
+        }
+        else
+            None
+
+      Some(
+        new ModeratedOtherBankAccount(
+          otherAccountId,
+          otherAccountLabel,
+          otherAccountNationalIdentifier,
+          otherAccountSWIFT_BIC,
+          otherAccountIBAN,
+          otherAccountBankName,
+          otherAccountNumber,
+          otherAccountMetadata,
+          otherAccountKind))
+    }
+    else
+      None
   }
 
   def toJson : JObject = {

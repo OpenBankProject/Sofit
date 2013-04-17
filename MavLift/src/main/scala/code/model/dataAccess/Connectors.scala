@@ -99,6 +99,7 @@ trait LocalStorage extends Loggable {
 
   def getUser(id : String) : Box[User]
   def getCurrentUser : Box[User]
+  def getOtherAccount(accountID : String, otherAccountID : String) : Box[OtherBankAccount]
 
 }
 
@@ -128,7 +129,7 @@ class MongoDBLocalStorage extends LocalStorage {
         swift_bic_ = None, //TODO: need to add this to the json/model
         iban_ = Some(otherAccount_.bank.get.IBAN.get),
         number_ = otherAccount_.number.get,
-        bankName_ = "", //TODO: need to add this to the json/model
+        bankName_ = otherAccount_.bank.get.name.get,
         metadata_ = new OtherBankAccountMetadataImpl(oAcc.publicAlias.get, oAcc.privateAlias.get, oAcc.moreInfo.get,
         oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get),
         kind_ = ""
@@ -237,4 +238,46 @@ class MongoDBLocalStorage extends LocalStorage {
   def getUser(id : String) : Box[User] =
     OBPUser.find(id)
   def getCurrentUser : Box[User] = OBPUser.currentUser
+
+  def getOtherAccount(accountID : String, otherAccountID : String) : Box[OtherBankAccount] = {
+    Account.find("_id",new ObjectId(accountID)) match {
+      case Full(account) =>
+        account.otherAccounts.objs.find(otherAccount => { otherAccount.id.get.equals(otherAccountID)}) match {
+          case Some(otherAccount) =>{
+            //for leagcy reasons some of the data about the "other account" are stored only on the transactions
+            //so we need first to get a transaction that match to have the rest of the data
+            val otherAccountFromTransaction : OBPAccount = OBPEnvelope.find("obp_transaction.other_account.holder",otherAccount.holder.get) match {
+                case Full(envelope) =>
+                  envelope.obp_transaction.get.other_account.get
+                case _ => OBPAccount.createRecord
+              }
+
+            val metadata =
+              new OtherBankAccountMetadataImpl(
+                otherAccount.publicAlias.get,
+                otherAccount.privateAlias.get,
+                otherAccount.moreInfo.get,
+                otherAccount.url.get,
+                otherAccount.imageUrl.get,
+                otherAccount.openCorporatesUrl.get)
+
+            val otherBankAccount =
+              new OtherBankAccountImpl(
+                id_ = otherAccount.id.is.toString,
+                label_ = otherAccount.holder.get,
+                nationalIdentifier_ = otherAccountFromTransaction.bank.get.national_identifier.get,
+                swift_bic_ = None, //TODO: need to add this to the json/model
+                iban_ = Some(otherAccountFromTransaction.bank.get.IBAN.get),
+                number_ = otherAccountFromTransaction.number.get,
+                bankName_ = otherAccountFromTransaction.bank.get.name.get,
+                metadata_ = metadata,
+                kind_ = ""
+              )
+              Full(otherBankAccount)
+          }
+          case _ => Failure("other account id " + otherAccountID + "not found", Empty, Empty)
+        }
+      case _ => Failure("Bank account id " + accountID + " not found.")
+    }
+  }
 }

@@ -103,7 +103,6 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       case _ => "GET"
     }
 
-
   private def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] =
   if(httpCode==200)
   {
@@ -227,6 +226,13 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
       otherAccount <- Box(moderatedTransaction.otherBankAccount) ?~ {"view " + viewId + " does not authorize other account access"}
     } yield otherAccount
+
+  private def moderatedOtherAccount(bankId : String, accountId : String, viewId : String, other_account_ID : String, user : Box[User]) : Box[ModeratedOtherBankAccount] =
+    for {
+      account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
+      view <- View.fromUrl(viewId) ?~ { "view "  + viewId + " not found"}
+      moderatedOtherBankAccount <- account.moderatedOtherBankAccount(other_account_ID, view, user)
+    } yield moderatedOtherBankAccount
 
   serve("obp" / "v1.1" prefix {
 
@@ -1065,18 +1071,18 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       //log the API call
       logAPICall
 
-    def otherAccountToJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
-      ("id" -> otherAccount.id) ~
-      ("number" -> otherAccount.number.getOrElse("")) ~
-      ("holder" ->
-        ("name" -> otherAccount.label.display) ~
-        ("is_alias" -> otherAccount.isAlias)
-      ) ~
-      ("national_identifier" -> otherAccount.nationalIdentifier.getOrElse("")) ~
-      ("IBAN" -> otherAccount.iban.getOrElse("")) ~
-      ("bank_name" -> otherAccount.bankName.getOrElse("")) ~
-      ("swift_bic" -> otherAccount.swift_bic.getOrElse(""))
-    }
+      def otherAccountToJson(otherAccount : ModeratedOtherBankAccount) : JObject = {
+        ("id" -> otherAccount.id) ~
+        ("number" -> otherAccount.number.getOrElse("")) ~
+        ("holder" ->
+          ("name" -> otherAccount.label.display) ~
+          ("is_alias" -> otherAccount.isAlias)
+        ) ~
+        ("national_identifier" -> otherAccount.nationalIdentifier.getOrElse("")) ~
+        ("IBAN" -> otherAccount.iban.getOrElse("")) ~
+        ("bank_name" -> otherAccount.bankName.getOrElse("")) ~
+        ("swift_bic" -> otherAccount.swift_bic.getOrElse(""))
+      }
 
       def otherAccountResponce(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : JsonResponse = {
         moderatedTransactionOtherAccount(bankId,accountId,viewId,transactionID,user) match {
@@ -1101,5 +1107,44 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         otherAccountResponce(bankId, accountId, viewId, transactionID, None)
     }
   })
+  serve("obp" / "v1.1" prefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: other_account_ID :: "metadata" :: Nil JsonGet json => {
+      //log the API call
+      logAPICall
 
+      def otherAccountMetadataToJson(metadata : ModeratedOtherBankAccountMetadata) : JObject = {
+        ("more_info" -> metadata.moreInfo.getOrElse("")) ~
+        ("URL" -> metadata.url.getOrElse("")) ~
+        ("image_URL" -> metadata.imageUrl.getOrElse("")) ~
+        ("open_corporates_URL" -> metadata.openCorporatesUrl.getOrElse(""))
+      }
+
+      def otherAccountMetadataResponce(bankId : String, accountId : String, viewId : String, other_account_ID : String, user : Box[User]) : JsonResponse = {
+        val otherAccountMetaData = for{
+          otherAccount <- moderatedOtherAccount(bankId, accountId, viewId, other_account_ID, user)
+          metaData <- Box(otherAccount.metadata) ?~! {"view " + viewId + "does not allow other account metadata access" }
+        } yield metaData
+
+        otherAccountMetaData match {
+            case Full(metadata) => JsonResponse(otherAccountMetadataToJson(metadata), Nil, Nil, 200)
+            case Failure(msg,_,_) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+          }
+      }
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          otherAccountMetadataResponce(bankId, accountId, viewId, other_account_ID, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, 400)
+      }
+      else
+        otherAccountMetadataResponce(bankId, accountId, viewId, other_account_ID, None)
+    }
+  })
 }

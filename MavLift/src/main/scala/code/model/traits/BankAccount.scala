@@ -33,9 +33,8 @@ Berlin 13359, Germany
 package code.model.traits
 import scala.math.BigDecimal
 import java.util.Date
-import net.liftweb.common.Box
 import code.model.dataAccess.LocalStorage
-import net.liftweb.common.{Full, Empty}
+import net.liftweb.common.{Full, Empty, Failure, Box}
 import code.model.dataAccess.Account
 import code.model.dataAccess.OBPEnvelope.OBPQueryParam
 import net.liftweb.json.JObject
@@ -109,6 +108,21 @@ trait BankAccount {
     ("views_available" -> views.map(view => view.toJson)) ~
     View.linksJson(views, permalink, bankPermalink)
   }
+
+  def moderatedOtherBankAccount(otherAccountID : String, view : View, user : Box[User]) : Box[ModeratedOtherBankAccount] =
+    if(permittedViews(user).contains(view)) {
+      LocalStorage.getOtherAccount(id, otherAccountID) match {
+        case Full(otherbankAccount) =>
+          view.moderate(otherbankAccount) match {
+            case Some(otherAccount) => Full(otherAccount)
+            case _ => Failure("cound not moderate the other account id " + otherAccountID)
+          }
+        case Failure(msg, _, _) => Failure(msg, Empty, Empty)
+        case _ => Empty
+      }
+    }
+    else
+      Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
 }
 
 object BankAccount {
