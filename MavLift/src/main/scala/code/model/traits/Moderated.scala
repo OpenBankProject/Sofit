@@ -43,30 +43,30 @@ import java.text.SimpleDateFormat
 import java.net.URL
 
 class ModeratedOtherBankAccount(
-  filteredId : String,
-  filteredLabel : AccountName,
-  filteredNationalIdentifier : Option[String],
-  filteredSWIFT_BIC : Option[String],
-  filteredIBAN : Option[String],
-  filteredBankName: Option[String],
-  filteredNumber: Option[String],
-  filteredMetadata : Option[ModeratedOtherBankAccountMetadata],
-  filteredKind : Option[String]
+  id_ : String,
+  label_ : AccountName,
+  nationalIdentifier_ : Option[String],
+  swift_bic_ : Option[String],
+  iban_ : Option[String],
+  bankName_ : Option[String],
+  number_ : Option[String],
+  metadata_ : Option[ModeratedOtherBankAccountMetadata],
+  kind_ : Option[String]
 )
 {
-    def id = filteredId
-    def label = filteredLabel
-    def nationalIdentifier = filteredNationalIdentifier
-    def swift_bic = filteredSWIFT_BIC
-    def iban = filteredIBAN
-    def bankName = filteredBankName
-    def number = filteredNumber
-    def metadata = filteredMetadata
-    def isAlias : Boolean = filteredLabel.aliasType match{
+    def id = id_
+    def label = label_
+    def nationalIdentifier = nationalIdentifier_
+    def swift_bic = swift_bic_
+    def iban = iban_
+    def bankName = bankName_
+    def number = number_
+    def metadata = metadata_
+    def isAlias : Boolean = label_.aliasType match{
       case PublicAlias | PrivateAlias => true
       case _ => false
     }
-    def kind = filteredKind
+    def kind = kind_
 }
 
 object ModeratedOtherBankAccount {
@@ -83,16 +83,23 @@ object ModeratedOtherBankAccount {
 }
 
 class ModeratedOtherBankAccountMetadata(
-  filteredMoreInfo : Option[String],
-  filteredUrl : Option[String],
-  filteredImageUrl : Option[String],
-  filteredOpenCorporatesUrl : Option[String]
-
+  moreInfo_ : Option[String],
+  url_ : Option[String],
+  imageURL_ : Option[String],
+  openCorporatesUrl_ : Option[String],
+  corporateLocation_ : Option[GeoTag],
+  physicalLocation_ :  Option[GeoTag],
+  addCorporateLocation_ : Option[(String, Long, Date, Double, Double) => Boolean],
+  addPhysicalLocation_ : Option[(String, Long, Date, Double, Double) => Boolean]
 ) {
-  def moreInfo = filteredMoreInfo
-  def url = filteredUrl
-  def imageUrl = filteredImageUrl
-  def openCorporatesUrl = filteredOpenCorporatesUrl
+  def moreInfo = moreInfo_
+  def url = url_
+  def imageUrl = imageURL_
+  def openCorporatesUrl = openCorporatesUrl_
+  def corporateLocation = corporateLocation_
+  def physicalLocation = physicalLocation_
+  def addCorporateLocation = addCorporateLocation_
+  def addPhysicalLocation = addPhysicalLocation_
 }
 
 object ModeratedOtherBankAccountMetadata {
@@ -198,7 +205,7 @@ class ModeratedBankAccount(
   filteredId : String,
   filteredOwners : Option[Set[AccountOwner]],
   filteredAccountType : Option[String],
-  filteredBalance: String,
+  filteredBalance: String = "",
   filteredCurrency : Option[String],
   filteredLabel : Option[String],
   filteredNationalIdentifier : Option[String],

@@ -48,8 +48,9 @@ trait TransactionMetadata {
   def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
   def deleteImage(id : String) : Unit
   def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
-  def whereTag : GeoTag
+  def whereTags : List[GeoTag]
 }
+
 trait OtherBankAccountMetadata
 {
 	def publicAlias : String
@@ -58,4 +59,8 @@ trait OtherBankAccountMetadata
 	def url : String
 	def imageUrl : String
 	def openCorporatesUrl : String
+  def corporateLocations : List[GeoTag]
+  def physicalLocations : List[GeoTag]
+  def addCorporateLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
+  def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
 }

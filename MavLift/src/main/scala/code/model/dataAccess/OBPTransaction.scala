@@ -149,6 +149,45 @@ curl -i -H "Content-Type: application/json" -X POST -d '[{
 class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBPEnvelope] with Loggable{
   def meta = OBPEnvelope
 
+  // This creates a json attribute called "obp_transaction"
+  object obp_transaction extends BsonRecordField(this, OBPTransaction)
+
+  object narrative extends StringField(this, 255)
+
+  //not named comments as "comments" was used in an older mongo document version
+  object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
+
+  object tags extends ObjectIdRefListField(this, OBPTag)
+
+  object images extends ObjectIdRefListField(this, OBPTransactionImage)
+
+  //we store a list of geo tags, one per view
+  object whereTags extends BsonRecordListField(this, OBPGeoTag)
+
+
+  object DateDescending extends Ordering[OBPEnvelope] {
+    def compare(e1: OBPEnvelope, e2: OBPEnvelope) = {
+      val date1 = e1.obp_transaction.get.details.get.completed.get
+      val date2 = e2.obp_transaction.get.details.get.completed.get
+      date1.compareTo(date2)
+    }
+  }
+
+  lazy val theAccount = {
+    val thisAcc = obp_transaction.get.this_account.get
+    val num = thisAcc.number.get
+    val accKind = thisAcc.kind.get
+    val bankName = thisAcc.bank.get.name.get
+    val accQry = QueryBuilder.start("number").is(num).
+      put("kind").is(accKind).get
+
+    for {
+      account <- Account.find(accQry)
+      bank <- HostedBank.find("name", bankName)
+      if(bank.id.get == account.bankID.get)
+    } yield account
+  }
+
   /**
    * Add a user generated comment to the transaction. Saves the db model when called.
    *
@@ -164,14 +203,26 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   }
 
   def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
-    val tag = OBPGeoTag.createRecord.
+    val newTag = OBPGeoTag.createRecord.
                 userId(userId).
                 viewID(viewId).
                 date(datePosted).
                 geoLongitude(longitude).
                 geoLatitude(latitude)
 
-    whereTag(tag).save
+
+    //before to save the geo tag we need to be sure there is only one per view
+    //so we look if there is allready a tag with the same view (viewId)
+    val tags = whereTags.get.find(geoTag => geoTag.viewID equals viewId) match {
+      case Some(tag) => {
+        //if true remplace it with the new one
+        newTag :: whereTags.get.diff(Seq(tag))
+      }
+      case _ =>
+        //else just add this one
+        newTag :: whereTags.get
+    }
+    whereTags(tags).save
     true
   }
 
@@ -195,6 +246,35 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     }
   }
 
+  /**
+   * @return the id of the newly added image
+   */
+  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
+    val image = OBPTransactionImage.createRecord.
+        userId(userId).imageComment(description).date(datePosted).viewID(viewId).url(imageURL.toString).save
+    images(image.id.is :: images.get).save
+    image.id.is.toString
+  }
+
+  def deleteImage(id : String){
+    OBPTransactionImage.find(id) match {
+      case Full(image) => {
+        //if(image.postedBy.isDefined && image.postedBy.get.id.get == userId) {
+          if (image.delete_!) {
+            logger.info("==> deleted image id : " + id)
+            images(images.get.diff(Seq(new ObjectId(id)))).save
+            //TODO: Delete the actual image file? We don't always control the url of the image so we can't always delete it
+          }
+      }
+      case _ => logger.warn("Could not find image with id " + id + " to delete.")
+    }
+  }
+
+  def orderByDateDescending = (e1: OBPEnvelope, e2: OBPEnvelope) => {
+    val date1 = e1.obp_transaction.get.details.get.completed.get
+    val date2 = e2.obp_transaction.get.details.get.completed.get
+    date1.after(date2)
+  }
   def createAliases = {
     val realOtherAccHolder = this.obp_transaction.get.other_account.get.holder.get
 
@@ -259,72 +339,6 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     if (!publicAliasExists(realOtherAccHolder))
       createPublicAlias(realOtherAccHolder)
   }
-  /**
-   * @return the id of the newly added image
-   */
-  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
-    val image = OBPTransactionImage.createRecord.
-    		userId(userId).imageComment(description).date(datePosted).viewID(viewId).url(imageURL.toString).save
-    images(image.id.is :: images.get).save
-    image.id.is.toString
-  }
-
-  def deleteImage(id : String){
-    OBPTransactionImage.find(id) match {
-      case Full(image) => {
-        //if(image.postedBy.isDefined && image.postedBy.get.id.get == userId) {
-          if (image.delete_!) {
-            logger.info("==> deleted image id : " + id)
-            images(images.get.diff(Seq(new ObjectId(id)))).save
-            //TODO: Delete the actual image file? We don't always control the url of the image so we can't always delete it
-          }
-      }
-      case _ => logger.warn("Could not find image with id " + id + " to delete.")
-    }
-  }
-
-  lazy val theAccount = {
-    val thisAcc = obp_transaction.get.this_account.get
-    val num = thisAcc.number.get
-    val accKind = thisAcc.kind.get
-    val bankName = thisAcc.bank.get.name.get
-    val accQry = QueryBuilder.start("number").is(num).
-      put("kind").is(accKind).get
-
-    for {
-      account <- Account.find(accQry)
-      bank <- HostedBank.find("name", bankName)
-      if(bank.id.get == account.bankID.get)
-    } yield account
-  }
-
-  object DateDescending extends Ordering[OBPEnvelope] {
-    def compare(e1: OBPEnvelope, e2: OBPEnvelope) = {
-      val date1 = e1.obp_transaction.get.details.get.completed.get
-      val date2 = e2.obp_transaction.get.details.get.completed.get
-      date1.compareTo(date2)
-    }
-  }
-
-  def orderByDateDescending = (e1: OBPEnvelope, e2: OBPEnvelope) => {
-    val date1 = e1.obp_transaction.get.details.get.completed.get
-    val date2 = e2.obp_transaction.get.details.get.completed.get
-    date1.after(date2)
-  }
-
-  // This creates a json attribute called "obp_transaction"
-  object obp_transaction extends BsonRecordField(this, OBPTransaction)
-  object whereTag extends BsonRecordField(this, OBPGeoTag)
-
-  //not named comments as "comments" was used in an older mongo document version
-  object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)
-
-  object tags extends ObjectIdRefListField(this, OBPTag)
-
-  object images extends ObjectIdRefListField(this, OBPTransactionImage)
-
-  object narrative extends StringField(this, 255)
-
   /**
    * A JSON representation of the transaction to be returned when successfully added via an API call
    */

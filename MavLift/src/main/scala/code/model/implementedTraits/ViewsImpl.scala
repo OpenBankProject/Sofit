@@ -123,20 +123,7 @@ object Public extends BaseView {
     val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
       //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
       // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
-    val thisBankAccount = Some(
-        new ModeratedBankAccount(
-          transaction.thisAccount.id,
-          Some(transaction.thisAccount.owners),
-          Some(transaction.thisAccount.accountType),
-          accountBalance,
-          Some(transaction.thisAccount.currency),
-          Some(transaction.thisAccount.label),
-          None,
-          None,
-          None,
-          Some(transaction.thisAccount.number),
-          Some(transaction.thisAccount.bankName))
-      )
+    val thisBankAccount = moderate(transaction.thisAccount)
     val otherBankAccount = moderate(transaction.otherAccount)
     val transactionMetadata =
       Some(
@@ -152,8 +139,9 @@ object Public extends BaseView {
           Some(transaction.metadata.addImage),
           Some(transaction.metadata.deleteImage),
           Some(transaction.metadata.addWhereTag),
-          Some(transaction.metadata.whereTag)
+          transaction.metadata.whereTags.find(tag => tag.viewId == id)
       ))
+
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
     val transactionCurrency = Some(transaction.currency)
@@ -177,85 +165,84 @@ object Public extends BaseView {
       transactionBalance
     )
   }
+  override def moderate(bankAccount: BankAccount) : Option[ModeratedBankAccount] = {
+    Some(
+        new ModeratedBankAccount(
+          filteredId = bankAccount.id,
+          filteredOwners = Some(bankAccount.owners),
+          filteredAccountType = Some(bankAccount.accountType),
+          filteredCurrency = Some(bankAccount.currency),
+          filteredLabel = Some(bankAccount.label),
+          filteredNationalIdentifier = None,
+          filteredSwift_bic = None,
+          filteredIban = None,
+          filteredNumber = Some(bankAccount.number),
+          filteredBankName = Some(bankAccount.bankName)
+        )
+      )
+  }
   override def moderate(otherAccount : OtherBankAccount) : Option[ModeratedOtherBankAccount] = {
-      val otherAccountLabel = {
-        val publicAlias = otherAccount.metadata.publicAlias
-        if(publicAlias.isEmpty)
-          AccountName(otherAccount.label, NoAlias)
-        else
-          AccountName(publicAlias, PublicAlias)
+    val otherAccountLabel = {
+      val publicAlias = otherAccount.metadata.publicAlias
+      if(publicAlias.isEmpty)
+        AccountName(otherAccount.label, NoAlias)
+      else
+        AccountName(publicAlias, PublicAlias)
+    }
+    val otherAccountMetadata = {
+      def isPublicAlias = otherAccountLabel.aliasType match {
+        case PublicAlias => true
+        case _ => false
       }
-      val otherAccountMetadata = {
-        def isPublicAlias = otherAccountLabel.aliasType match {
-          case PublicAlias => true
-          case _ => false
-        }
-        val moreInfo = if (isPublicAlias) None else Some(otherAccount.metadata.moreInfo)
-        val url = if (isPublicAlias) None else Some(otherAccount.metadata.url)
-        val imageUrl = if (isPublicAlias) None else Some(otherAccount.metadata.imageUrl)
-        val openCorporatesUrl = if (isPublicAlias) None else Some(otherAccount.metadata.openCorporatesUrl)
-
-        Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
-      }
+      val moreInfo = if (isPublicAlias) None else Some(otherAccount.metadata.moreInfo)
+      val url = if (isPublicAlias) None else Some(otherAccount.metadata.url)
+      val imageUrl = if (isPublicAlias) None else Some(otherAccount.metadata.imageUrl)
+      val openCorporatesUrl = if (isPublicAlias) None else Some(otherAccount.metadata.openCorporatesUrl)
+      val corporateLocation = if (isPublicAlias) None else otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id)
+      val physicalLocation = if (isPublicAlias) None else otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id)
 
       Some(
-        new ModeratedOtherBankAccount(
-          otherAccount.id,
-          otherAccountLabel,
-          None,
-          None,
-          None,
-          None,
-          None,
-          otherAccountMetadata,
-          None))
+        new ModeratedOtherBankAccountMetadata(
+          moreInfo,
+          url,
+          imageUrl,
+          openCorporatesUrl,
+          corporateLocation,
+          physicalLocation,
+          Some(otherAccount.metadata.addCorporateLocation _),
+          Some(otherAccount.metadata.addPhysicalLocation _)
+      ))
+    }
+
+    Some(
+      new ModeratedOtherBankAccount(
+        otherAccount.id,
+        otherAccountLabel,
+        None,
+        None,
+        None,
+        None,
+        None,
+        otherAccountMetadata,
+        None))
   }
 }
 
-  object OurNetwork extends BaseView
-  {
-    override def id = 7
-    override def name = "Our Network"
-    override def permalink ="our-network"
-    override def description = "A view for people related to the account in some way. E.g. for a company account this could include investors" +
-    	" or current/potential clients"
-    override def moderate(transaction: Transaction): ModeratedTransaction = {
+object OurNetwork extends BaseView
+{
+  override def id = 7
+  override def name = "Our Network"
+  override def permalink ="our-network"
+  override def description = "A view for people related to the account in some way. E.g. for a company account this could include investors" +
+  	" or current/potential clients"
+  override def moderate(transaction: Transaction): ModeratedTransaction = {
     val transactionId = transaction.id
     val transactionUUID = transaction.uuid
     val accountBalance = "" //not used when displaying transactions, but we might eventually need it. if so, we need a ref to
       //the bank account so we could do something like if(canSeeBankAccountBalance) bankAccount.balance else if
       // canSeeBankAccountBalancePositiveOrNegative {show + or -} else ""
-    val thisBankAccount = Some(
-        new ModeratedBankAccount(
-          transaction.thisAccount.id,
-          None,
-          None,
-          accountBalance,
-          Some(transaction.thisAccount.currency),
-          Some(transaction.thisAccount.label),
-          None,
-          None,
-          None,
-          Some(transaction.thisAccount.number),
-          Some(transaction.thisAccount.bankName)
-        )
-      )
-    val otherBankAccount = {
-      val otherAccountLabel = {
-        val privateAlias = transaction.otherAccount.metadata.privateAlias
-        if(privateAlias.isEmpty)
-          AccountName(transaction.otherAccount.label, NoAlias)
-        else
-          AccountName(privateAlias, PrivateAlias)
-      }
-      val otherAccountMetadata =
-        Some(new ModeratedOtherBankAccountMetadata(Some(transaction.otherAccount.metadata.moreInfo),
-          Some(transaction.otherAccount.metadata.url), Some(transaction.otherAccount.metadata.imageUrl),
-          Some(transaction.otherAccount.metadata.openCorporatesUrl)))
-
-      Some(new ModeratedOtherBankAccount(transaction.otherAccount.id,otherAccountLabel,None,None,None,
-          None, None, otherAccountMetadata, None))
-    }
+    val thisBankAccount = moderate(transaction.thisAccount)
+    val otherBankAccount = moderate(transaction.otherAccount)
     val transactionMetadata =
       Some(
         new ModeratedTransactionMetadata(
@@ -270,9 +257,8 @@ object Public extends BaseView {
           Some(transaction.metadata.addImage),
           Some(transaction.metadata.deleteImage),
           Some(transaction.metadata.addWhereTag),
-          Some(transaction.metadata.whereTag)
+          transaction.metadata.whereTags.find(tag => tag.viewId == id)
       ))
-
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
     val transactionCurrency = Some(transaction.currency)
@@ -284,8 +270,48 @@ object Public extends BaseView {
     new ModeratedTransaction(transactionUUID, transactionId, thisBankAccount, otherBankAccount, transactionMetadata,
      transactionType, transactionAmount, transactionCurrency, transactionLabel, transactionStartDate,
       transactionFinishDate, transactionBalance)
-  	}
+	}
+  override def moderate(bankAccount: BankAccount) : Option[ModeratedBankAccount] = {
+    Some(
+        new ModeratedBankAccount(
+          filteredId = bankAccount.id,
+          filteredOwners = Some(bankAccount.owners),
+          filteredAccountType = Some(bankAccount.accountType),
+          filteredCurrency = Some(bankAccount.currency),
+          filteredLabel = Some(bankAccount.label),
+          filteredNationalIdentifier = None,
+          filteredSwift_bic = None,
+          filteredIban = None,
+          filteredNumber = Some(bankAccount.number),
+          filteredBankName = Some(bankAccount.bankName)
+        )
+      )
   }
+  override def moderate(otherAccount : OtherBankAccount) : Option[ModeratedOtherBankAccount] = {
+    val otherAccountLabel = {
+      val privateAlias = otherAccount.metadata.privateAlias
+      if(privateAlias.isEmpty)
+        AccountName(otherAccount.label, NoAlias)
+      else
+        AccountName(privateAlias, PrivateAlias)
+    }
+    val otherAccountMetadata =
+      Some(
+        new ModeratedOtherBankAccountMetadata(
+        Some(otherAccount.metadata.moreInfo),
+        Some(otherAccount.metadata.url),
+        Some(otherAccount.metadata.imageUrl),
+        Some(otherAccount.metadata.openCorporatesUrl),
+        otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id),
+        otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id),
+        Some(otherAccount.metadata.addCorporateLocation _ ),
+        Some(otherAccount.metadata.addPhysicalLocation _)
+      ))
+
+    Some(new ModeratedOtherBankAccount(otherAccount.id,otherAccountLabel,None,None,None,
+        None, None, otherAccountMetadata, None))
+  }
+}
 
 object Owner extends FullView {
   override def id = 8

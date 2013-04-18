@@ -37,19 +37,30 @@ import java.util.Date
 import java.net.URL
 
 class OtherBankAccountMetadataImpl(
-  _publicAlias : String,
-  _privateAlias : String,
-  _moreInfo : String,
-  _url : String,
-  _imageUrl : String,
-  _openCorporatesUrl : String) extends OtherBankAccountMetadata {
+  publicAlias_ : String,
+  privateAlias_ : String,
+  moreInfo_ : String,
+  url_ : String,
+  imageUrl_ : String,
+  openCorporatesUrl_ : String,
+  corporateLocations_ : List[GeoTag],
+  physicalLocations_ : List[GeoTag],
+  addCorporateLocationFunc : (String, Long, Date, Double, Double) => Boolean,
+  addPhysicalLocationFunc : (String, Long, Date, Double, Double) => Boolean
+) extends OtherBankAccountMetadata {
 
-   def publicAlias : String = _publicAlias
-   def privateAlias : String = _privateAlias
-   def moreInfo : String = _moreInfo
-   def url : String = _url
-   def imageUrl : String = _imageUrl
-   def openCorporatesUrl : String = _openCorporatesUrl
+  def publicAlias : String = publicAlias_
+  def privateAlias : String = privateAlias_
+  def moreInfo : String = moreInfo_
+  def url : String = url_
+  def imageUrl : String = imageUrl_
+  def openCorporatesUrl : String = openCorporatesUrl_
+  def corporateLocations : List[GeoTag] = corporateLocations_
+  def physicalLocations : List[GeoTag] = physicalLocations_
+  def addCorporateLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean =
+    addCorporateLocationFunc(userId,viewId, datePosted, longitude, latitude)
+  def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean =
+    addPhysicalLocationFunc(userId,viewId, datePosted, longitude, latitude)
 }
 
 class TransactionMetadataImpl(
@@ -64,10 +75,9 @@ class TransactionMetadataImpl(
   addImageFunc : (String, Long, String, Date, URL) => String,
   deleteImageFunc : String => Unit,
   addWhereTagFunc : (String, Long, Date, Double, Double) => Boolean,
-  whereTag_ : GeoTag
-)
-  extends TransactionMetadata with Loggable
-{
+  whereTags_ : List[GeoTag]
+) extends TransactionMetadata with Loggable {
+
   def ownerComment = Some(narative)
   def ownerComment(comment : String) = saveOwnerComment(comment)
   def comments : List[Comment] = comments_
@@ -84,5 +94,5 @@ class TransactionMetadataImpl(
   def deleteImage(id : String) = deleteImageFunc(id)
   def addWhereTag(userId : String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) =
     addWhereTagFunc(userId, viewId, datePosted, longitude, latitude)
-  def whereTag = whereTag_
+  def whereTags = whereTags_
 }
