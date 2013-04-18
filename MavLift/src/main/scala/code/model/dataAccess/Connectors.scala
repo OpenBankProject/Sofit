@@ -122,6 +122,19 @@ class MongoDBLocalStorage extends LocalStorage {
 
     val id = env.id.is.toString()
     val uuid = id
+    val otherAccountMetadata =
+      new OtherBankAccountMetadataImpl(
+        oAcc.publicAlias.get,
+        oAcc.privateAlias.get,
+        oAcc.moreInfo.get,
+        oAcc.url.get,
+        oAcc.imageUrl.get,
+        oAcc.openCorporatesUrl.get,
+        oAcc.corporateLocation.get,
+        oAcc.physicalLocation.get,
+        oAcc.addCorporateLocation _,
+        oAcc.addPhysicalLocation _
+      )
     val otherAccount = new OtherBankAccountImpl(
         id_ = oAcc.id.is.toString,
         label_ = otherAccount_.holder.get,
@@ -130,8 +143,7 @@ class MongoDBLocalStorage extends LocalStorage {
         iban_ = Some(otherAccount_.bank.get.IBAN.get),
         number_ = otherAccount_.number.get,
         bankName_ = otherAccount_.bank.get.name.get,
-        metadata_ = new OtherBankAccountMetadataImpl(oAcc.publicAlias.get, oAcc.privateAlias.get, oAcc.moreInfo.get,
-        oAcc.url.get, oAcc.imageUrl.get, oAcc.openCorporatesUrl.get),
+        metadata_ = otherAccountMetadata,
         kind_ = ""
       )
     val metadata = new TransactionMetadataImpl(
@@ -259,7 +271,12 @@ class MongoDBLocalStorage extends LocalStorage {
                 otherAccount.moreInfo.get,
                 otherAccount.url.get,
                 otherAccount.imageUrl.get,
-                otherAccount.openCorporatesUrl.get)
+                otherAccount.openCorporatesUrl.get,
+                otherAccount.corporateLocation.get,
+                otherAccount.physicalLocation.get,
+                otherAccount.addCorporateLocation _,
+                otherAccount.addPhysicalLocation _
+              )
 
             val otherBankAccount =
               new OtherBankAccountImpl(

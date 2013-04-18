@@ -108,6 +108,10 @@ trait View {
   def canSeeUrl: Boolean
   def canSeeImageUrl: Boolean
   def canSeeOpenCorporatesUrl: Boolean
+  def canSeeCorporateLocation : Boolean
+  def canSeePhysicalLocation : Boolean
+  def canAddCorporateLocation : Boolean
+  def canAddPhysicalLocation : Boolean
 
   //writing access
   def canEditOwnerComment: Boolean
@@ -173,7 +177,7 @@ trait View {
 
         val whereTag =
           if(canSeeWhereTag)
-            transaction.metadata.whereTag.find(tag => tag.viewId == id)
+            transaction.metadata.whereTags.find(tag => tag.viewId == id)
           else
             None
 
@@ -312,8 +316,38 @@ trait View {
           val openCorporatesUrl =
             if (canSeeOpenCorporatesUrl) Some(otherBankAccount.metadata.openCorporatesUrl)
             else None
+          val corporateLocation =
+            if(canSeeCorporateLocation)
+              otherBankAccount.metadata.corporateLocations.find(tag => tag.viewId == id)
+            else
+              None
+          val physicalLocation =
+            if(canSeePhysicalLocation)
+              otherBankAccount.metadata.physicalLocations.find(tag => tag.viewId == id)
+            else
+              None
+          val addCorporateLocation =
+            if(canAddCorporateLocation)
+              Some(otherBankAccount.metadata.addCorporateLocation _)
+            else
+              None
+          val addPhysicalLocation =
+            if(canAddPhysicalLocation)
+              Some(otherBankAccount.metadata.addPhysicalLocation _)
+            else
+              None
 
-          Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
+          Some(
+            new ModeratedOtherBankAccountMetadata(
+              moreInfo,
+              url,
+              imageUrl,
+              openCorporatesUrl,
+              corporateLocation,
+              physicalLocation,
+              addCorporateLocation,
+              addPhysicalLocation
+          ))
         }
         else
             None
@@ -400,6 +434,10 @@ class BaseView extends View {
   def canSeeUrl = false
   def canSeeImageUrl = false
   def canSeeOpenCorporatesUrl = false
+  def canSeeCorporateLocation = false
+  def canSeePhysicalLocation = false
+  def canAddCorporateLocation = false
+  def canAddPhysicalLocation = false
 
   //writing access
   def canEditOwnerComment = false
@@ -470,6 +508,10 @@ class FullView extends View {
   def canSeeUrl = true
   def canSeeImageUrl = true
   def canSeeOpenCorporatesUrl = true
+  def canSeeCorporateLocation = true
+  def canSeePhysicalLocation = true
+  def canAddCorporateLocation = true
+  def canAddPhysicalLocation = true
 
   //writing access
   def canEditOwnerComment = true

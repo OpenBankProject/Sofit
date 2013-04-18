@@ -139,7 +139,7 @@ object Public extends BaseView {
           Some(transaction.metadata.addImage),
           Some(transaction.metadata.deleteImage),
           Some(transaction.metadata.addWhereTag),
-          transaction.metadata.whereTag.find(tag => tag.viewId == id)
+          transaction.metadata.whereTags.find(tag => tag.viewId == id)
       ))
 
     val transactionType = Some(transaction.transactionType)
@@ -198,8 +198,20 @@ object Public extends BaseView {
       val url = if (isPublicAlias) None else Some(otherAccount.metadata.url)
       val imageUrl = if (isPublicAlias) None else Some(otherAccount.metadata.imageUrl)
       val openCorporatesUrl = if (isPublicAlias) None else Some(otherAccount.metadata.openCorporatesUrl)
+      val corporateLocation = if (isPublicAlias) None else otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id)
+      val physicalLocation = if (isPublicAlias) None else otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id)
 
-      Some(new ModeratedOtherBankAccountMetadata(moreInfo, url, imageUrl, openCorporatesUrl))
+      Some(
+        new ModeratedOtherBankAccountMetadata(
+          moreInfo,
+          url,
+          imageUrl,
+          openCorporatesUrl,
+          corporateLocation,
+          physicalLocation,
+          Some(otherAccount.metadata.addCorporateLocation _),
+          Some(otherAccount.metadata.addPhysicalLocation _)
+      ))
     }
 
     Some(
@@ -245,7 +257,7 @@ object OurNetwork extends BaseView
           Some(transaction.metadata.addImage),
           Some(transaction.metadata.deleteImage),
           Some(transaction.metadata.addWhereTag),
-          transaction.metadata.whereTag.find(tag => tag.viewId == id)
+          transaction.metadata.whereTags.find(tag => tag.viewId == id)
       ))
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
@@ -284,9 +296,17 @@ object OurNetwork extends BaseView
         AccountName(privateAlias, PrivateAlias)
     }
     val otherAccountMetadata =
-      Some(new ModeratedOtherBankAccountMetadata(Some(otherAccount.metadata.moreInfo),
-        Some(otherAccount.metadata.url), Some(otherAccount.metadata.imageUrl),
-        Some(otherAccount.metadata.openCorporatesUrl)))
+      Some(
+        new ModeratedOtherBankAccountMetadata(
+        Some(otherAccount.metadata.moreInfo),
+        Some(otherAccount.metadata.url),
+        Some(otherAccount.metadata.imageUrl),
+        Some(otherAccount.metadata.openCorporatesUrl),
+        otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id),
+        otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id),
+        Some(otherAccount.metadata.addCorporateLocation _ ),
+        Some(otherAccount.metadata.addPhysicalLocation _)
+      ))
 
     Some(new ModeratedOtherBankAccount(otherAccount.id,otherAccountLabel,None,None,None,
         None, None, otherAccountMetadata, None))
