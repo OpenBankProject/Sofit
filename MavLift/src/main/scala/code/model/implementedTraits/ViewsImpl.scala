@@ -139,8 +139,9 @@ object Public extends BaseView {
           Some(transaction.metadata.addImage),
           Some(transaction.metadata.deleteImage),
           Some(transaction.metadata.addWhereTag),
-          Some(transaction.metadata.whereTag)
+          transaction.metadata.whereTag.find(tag => tag.viewId == id)
       ))
+
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)
     val transactionCurrency = Some(transaction.currency)
@@ -244,7 +245,7 @@ object OurNetwork extends BaseView
           Some(transaction.metadata.addImage),
           Some(transaction.metadata.deleteImage),
           Some(transaction.metadata.addWhereTag),
-          Some(transaction.metadata.whereTag)
+          transaction.metadata.whereTag.find(tag => tag.viewId == id)
       ))
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)

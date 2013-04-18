@@ -173,7 +173,7 @@ trait View {
 
         val whereTag =
           if(canSeeWhereTag)
-            Some(transaction.metadata.whereTag)
+            transaction.metadata.whereTag.find(tag => tag.viewId == id)
           else
             None
 

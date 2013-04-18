@@ -164,14 +164,26 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   }
 
   def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
-    val tag = OBPGeoTag.createRecord.
+    val newTag = OBPGeoTag.createRecord.
                 userId(userId).
                 viewID(viewId).
                 date(datePosted).
                 geoLongitude(longitude).
                 geoLatitude(latitude)
 
-    whereTag(tag).save
+
+    //before to save the geo tag we need to be sure there is only one per view
+    //so we look if there is allready a tag with the same view (viewId)
+    val tags = whereTags.get.find(geoTag => geoTag.viewID equals viewId) match {
+      case Some(tag) => {
+        //if true remplace it with the new one
+        newTag :: whereTags.get.diff(Seq(tag))
+      }
+      case _ =>
+        //else just add this one
+        newTag :: whereTags.get
+    }
+    whereTags(tags).save
     true
   }
 
@@ -314,7 +326,9 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
 
   // This creates a json attribute called "obp_transaction"
   object obp_transaction extends BsonRecordField(this, OBPTransaction)
-  object whereTag extends BsonRecordField(this, OBPGeoTag)
+
+  //we store a list of geo tags, one per view
+  object whereTags extends BsonRecordListField(this, OBPGeoTag)
 
   //not named comments as "comments" was used in an older mongo document version
   object obp_comments extends ObjectIdRefListField[OBPEnvelope, OBPComment](this, OBPComment)

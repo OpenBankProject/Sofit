@@ -64,7 +64,7 @@ class TransactionMetadataImpl(
   addImageFunc : (String, Long, String, Date, URL) => String,
   deleteImageFunc : String => Unit,
   addWhereTagFunc : (String, Long, Date, Double, Double) => Boolean,
-  whereTag_ : GeoTag
+  whereTag_ : List[GeoTag]
 )
   extends TransactionMetadata with Loggable
 {
