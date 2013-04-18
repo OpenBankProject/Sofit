@@ -10,20 +10,20 @@
                     "topic_list_url": "",
                     "positions": {
                         "left": {
-                            "container-style": "left: -195px;background-position: 200px 130px;",
+                            "container-style": "left: -195px;background-position: 200px 130px;border-radius: 0 5px 5px 0;",
                             "slider-style": "float:right;",
                             "content-style":"float:left;",
                             "animation": {
-                                "show": '{"left":"0", "height": "250px"}',
+                                "show": '{"left":"0", "height": "300px"}',
                                 "hide": '{"left":"-195px", "height": "120px"}'
                             }
                         },
                         "right": {
-                            "container-style": "right: -195px;background-position: 10px 130px;",
+                            "container-style": "right: -195px;background-position: 10px 130px;border-radius: 5px 0 0 5px;",
                             "slider-style": "float:left;",
                             "content-style":"float:right;",
                             "animation": {
-                                "show": '{"right":"0", "height": "250px"}',
+                                "show": '{"right":"0", "height": "300px"}',
                                 "hide": '{"right":"-195px", "height": "120px"}'
                             }
                         }
@@ -76,7 +76,8 @@
         html_inner_content.push(elemCreate("a", "", {
             "class": "polarize-anchor",
             "target": "_blank",
-            "href": "http://polarize.it",
+            "href": settings.default_topic_url,
+            "title": "Show Feedback on Polarize.it",
             "style": "background-image: url(" + settings.images_dir + "polarize-logo.png);background-position:" + settings.position + ";"
         }));
 
@@ -154,7 +155,7 @@
             "name": "who",
             "value": "THINKER"
         }));
-        html_form_content.push(elemCreate("input", "", {
+        html_form_content.push(elemCreate("textarea", "", {
             "name": "opinion_text",
             "required": "required",
             "class": "polarize-input",
@@ -174,7 +175,7 @@
         // Create slider and inner container
         html_inner.push(elemCreate("div", "", {
             "class": "feedback-slider",
-            "style": add_position_style(settings)["slider-style"] + "background-image: url(" + settings.images_dir + "feedback-button.gif);"
+            "style": add_position_style(settings)["slider-style"] + "background-image: url(" + settings.images_dir + "feedback-button.png);"
         }));
         html_inner.push(elemCreate("div", html_inner_content, {
             "id": "feedback-content",
