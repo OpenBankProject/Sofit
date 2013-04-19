@@ -11,6 +11,7 @@
 MavLift/.cache
 MavLift/src/main/resources/rebel.xml
 MavLift/src/main/resources/props
+MavLift/src/test/resources/props
 MavLift/src/main/resources/git.properties
 
 MavLift/src/main/webapp/WEB-INF/jetty.xml
