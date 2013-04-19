@@ -63,6 +63,11 @@
 			<artifactId>dispatch-oauth_${scala.version}</artifactId>
 			<version>0.8.6</version>
 		</dependency>
+    <dependency>
+      <groupId>net.databinder</groupId>
+      <artifactId>dispatch-lift-json_${scala.version}</artifactId>
+      <version>0.8.5</version>
+    </dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
@@ -141,9 +146,27 @@
 	</dependencies>
 
 	<build>
-		<sourceDirectory>src/main</sourceDirectory>
+		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
 			<plugins>
+			<plugin>
+				<!-- add src/main/java to source dirs -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/main/java</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 				<plugin>
 					<groupId>org.scala-tools</groupId>
 					<artifactId>maven-scala-plugin</artifactId>

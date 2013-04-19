@@ -1,4 +1,4 @@
-/*package code.api
+package code.api
 
 import org.scalatest._
 import org.scalatest.FeatureSpec
@@ -26,13 +26,13 @@ case class APIResponse(code: Int, body: JValue)
 
 
 @RunWith(classOf[JUnitRunner])
-class API1_1Tests extends FeatureSpec 
-  with BeforeAndAfter with GivenWhenThen 
+class API1_1Tests extends FeatureSpec
+  with BeforeAndAfter with GivenWhenThen
   with ShouldMatchers with BeforeAndAfterAll {
 
-  *//**
+  /**
   * test server settings
-  *//*
+  */
   val host = "localhost"
   val port = 8000
   val server = new Server
@@ -52,23 +52,23 @@ class API1_1Tests extends FeatureSpec
   val baseRequest = (:/(host, Integer.valueOf(port)))
   val v1_1Request = baseRequest / "obp" / "1.1"
 
-  *//**
+  /**
   * the methods lunched before all the tests
-  *//*
+  */
   override def beforeAll() {
     server.start()
   }
 
-  *//**
+  /**
   * the methods lunched after all the tests
-  *//*    
+  */
   override def afterAll() {
     server.stop()
   }
 
-  *//**
-  * this method do a post request given a URL, a JSON and an optional Headers Map 
-  *//*
+  /**
+   this method do a post request given a URL, a JSON and an optional Headers Map
+  */
   def makePostRequest(req: Request, json: String, headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
     val jsonReq = req << (json, "application/json") <:< headers
     val jsonHandler = jsonReq ># {json => json}
@@ -78,16 +78,16 @@ class API1_1Tests extends FeatureSpec
   }
 
   def makePutRequest(req: Request, json: String, headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
-    val jsonReq = req <<< json <:< headers 
+    val jsonReq = req <<< json <:< headers
     val jsonHandler = jsonReq ># {json => json}
     h x jsonHandler{
        case (code, _, _, json) => APIResponse(code, json())
     }
   }
 
-  *//**
-  * this method do a post request given a URL 
-  *//*
+  /**
+  * this method do a post request given a URL
+  */
   def makeGetRequest(req: Request, headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
     val jsonReq = req <:< headers
     val jsonHandler = jsonReq ># {json => json}
@@ -95,23 +95,23 @@ class API1_1Tests extends FeatureSpec
        case (code, _, _, json) => APIResponse(code, json())
     }
   }
-  
+
   def getAPIInfo = {
-    val request = v1_1Request / "azezae"
+    val request = v1_1Request
     makeGetRequest(request)
   }
 
-  *//************************ the tests ************************//*
+  /************************ the tests ************************/
   feature("base line URL works"){
-    
+
     scenario("we get the api information") {
        Given("The user is not logged in")
        When("the request is sent")
+       println("Hello !! this is a test")
        val reply = getAPIInfo
        Then("we should get a 200 created code")
        reply.code should equal (200)
 
     }
   }
-}       
-*/
+}
