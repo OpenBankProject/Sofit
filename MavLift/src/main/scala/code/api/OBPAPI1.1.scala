@@ -83,6 +83,9 @@ case class ImageJSON(
   URL : String,
   label : String
 )
+case class MoreInfoJSON(
+  more_info : String
+)
 case class WhereTagJSON(
   where : GeoCord
 )
@@ -211,6 +214,19 @@ object OBPAPI1_1 extends RestHelper with Loggable {
     )
   }
 
+  private def geoTagToJson(name : String, geoTag : Option[GeoTag]) : JValue = {
+    geoTag match {
+      case Some(tag) =>
+      (name ->
+        ("latitude" -> tag.latitude) ~
+        ("longitude" -> tag.longitude) ~
+        ("date" -> tag.datePosted.toString) ~
+        ("user" -> userToJson(tag.postedBy))
+      )
+      case _ => ""
+    }
+  }
+
   private def moderatedTransactionMetadata(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : Box[ModeratedTransactionMetadata] =
     for {
       account <- BankAccount(bankId, accountId) ?~ { "bank " + bankId + " and account "  + accountId + " not found for bank"}
@@ -233,6 +249,12 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       view <- View.fromUrl(viewId) ?~ { "view "  + viewId + " not found"}
       moderatedOtherBankAccount <- account.moderatedOtherBankAccount(other_account_ID, view, user)
     } yield moderatedOtherBankAccount
+
+  private def moderatedOtherAccountMetadata(bankId : String, accountId : String, viewId : String, other_account_ID : String, user : Box[User]) : Box[ModeratedOtherBankAccountMetadata] =
+    for {
+      moderatedOtherBankAccount <- moderatedOtherAccount(bankId, accountId, viewId, other_account_ID, user)
+      metadata <- Box(moderatedOtherBankAccount.metadata) ?~! {"view " + viewId + "does not allow other bank account metadata access"}
+    } yield metadata
 
   serve("obp" / "v1.1" prefix {
 
@@ -566,7 +588,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
               val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
 
               def isNarrativeAlreadySet(narrative : String) =
-                if(!narrative.isEmpty)
+                if(narrative.isEmpty)
                  Full(narrative)
                 else
                   Failure("narrative already set, use PUT method to update it")
@@ -1116,7 +1138,9 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         ("more_info" -> metadata.moreInfo.getOrElse("")) ~
         ("URL" -> metadata.url.getOrElse("")) ~
         ("image_URL" -> metadata.imageUrl.getOrElse("")) ~
-        ("open_corporates_URL" -> metadata.openCorporatesUrl.getOrElse(""))
+        ("open_corporates_URL" -> metadata.openCorporatesUrl.getOrElse("")) ~
+        ("corporate_location" -> geoTagToJson("corporate_location",metadata.corporateLocation)) ~
+        ("physical_location" -> geoTagToJson("physical_location",metadata.physicalLocation))
       }
 
       def otherAccountMetadataResponce(bankId : String, accountId : String, viewId : String, other_account_ID : String, user : Box[User]) : JsonResponse = {
@@ -1145,6 +1169,67 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
       else
         otherAccountMetadataResponce(bankId, accountId, viewId, other_account_ID, None)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "more_info" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postMoreInfoResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[MoreInfoJSON]
+          } match {
+            case Full(moreInfoJson) => {
+
+              def isMoreInfoAlreadySet(moreInfo : String) =
+                if(moreInfo.isEmpty)
+                 Full(moreInfo)
+                else
+                  Failure("more_info already set, use PUT method to update it")
+
+              def addMoreInfo(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], moreInfo : String): Box[Boolean] = {
+                val addMoreInfo = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  moreInfo <- Box(metadata.moreInfo) ?~! {"view " + viewId + " does not authorize access to more_info"}
+                  setMoreInfo <- isMoreInfoAlreadySet(moreInfo)
+                  addMoreInfo <- Box(metadata.addMoreInfo) ?~ {"view " + viewId + " does not authorize adding more_info"}
+                } yield addMoreInfo
+
+                addMoreInfo.map(
+                  func =>{
+                    func(moreInfo)
+                  }
+                )
+              }
+
+              addMoreInfo(bankId, accountId, viewId, otherAccountId, user, moreInfoJson.more_info) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("more info successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("more info could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postMoreInfoResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        postMoreInfoResponce(bankId, accountId, viewId, otherAccountId, Empty)
     }
   })
 }
