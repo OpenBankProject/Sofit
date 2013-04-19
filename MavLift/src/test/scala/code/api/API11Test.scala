@@ -26,7 +26,7 @@ case class APIResponse(code: Int, body: JValue)
 
 
 @RunWith(classOf[JUnitRunner])
-class API1_1Tests extends FeatureSpec
+class API1_1Test extends FeatureSpec
   with BeforeAndAfter with GivenWhenThen
   with ShouldMatchers with BeforeAndAfterAll {
 
@@ -50,7 +50,7 @@ class API1_1Tests extends FeatureSpec
 
   val h = new Http with thread.Safety
   val baseRequest = (:/(host, Integer.valueOf(port)))
-  val v1_1Request = baseRequest / "obp" / "1.1"
+  val v1_1Request = baseRequest / "obp" / "v1.1"
 
   /**
   * the methods lunched before all the tests
@@ -107,7 +107,6 @@ class API1_1Tests extends FeatureSpec
     scenario("we get the api information") {
        Given("The user is not logged in")
        When("the request is sent")
-       println("Hello !! this is a test")
        val reply = getAPIInfo
        Then("we should get a 200 created code")
        reply.code should equal (200)
