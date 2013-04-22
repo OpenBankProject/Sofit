@@ -86,13 +86,30 @@ case class ImageJSON(
 case class MoreInfoJSON(
   more_info : String
 )
+case class UrlJSON(
+  URL : String
+)
+case class ImageUrlJSON(
+  image_URL : String
+)
+case class OpenCorporatesUrlJSON(
+  open_corporates_url : String
+)
 case class WhereTagJSON(
   where : GeoCord
+)
+case class CorporateLocationJSON(
+  corporate_location : GeoCord
+)
+case class PhysicalLocationJSON(
+  physical_location : GeoCord
 )
 case class GeoCord(
   longitude : Double,
   latitude : Double
 )
+
+
 object OBPAPI1_1 extends RestHelper with Loggable {
 
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
@@ -146,6 +163,12 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       url(S.uriAndQueryString.getOrElse("")).
       date((now: TimeSpan)).
       save
+
+  private def isFieldAlreadySet(field : String) : Box[String] =
+    if(field.isEmpty)
+     Full(field)
+    else
+      Failure("field already set, use PUT method to update it")
 
   private def transactionJson(t : ModeratedTransaction) : JObject = {
     ("transaction" ->
@@ -600,16 +623,10 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
               val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
 
-              def isNarrativeAlreadySet(narrative : String) =
-                if(narrative.isEmpty)
-                 Full(narrative)
-                else
-                  Failure("narrative already set, use PUT method to update it")
-
               val addNarrativeFunc = for {
                   metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
                   narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
-                  narrativeSetted <- isNarrativeAlreadySet(narrative)
+                  narrativeSetted <- isFieldAlreadySet(narrative)
                   addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
                 } yield addNarrativeFunc
 
@@ -1195,17 +1212,11 @@ object OBPAPI1_1 extends RestHelper with Loggable {
           } match {
             case Full(moreInfoJson) => {
 
-              def isMoreInfoAlreadySet(moreInfo : String) =
-                if(moreInfo.isEmpty)
-                 Full(moreInfo)
-                else
-                  Failure("more_info already set, use PUT method to update it")
-
               def addMoreInfo(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], moreInfo : String): Box[Boolean] = {
                 val addMoreInfo = for {
                   metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
                   moreInfo <- Box(metadata.moreInfo) ?~! {"view " + viewId + " does not authorize access to more_info"}
-                  setMoreInfo <- isMoreInfoAlreadySet(moreInfo)
+                  setMoreInfo <- isFieldAlreadySet(moreInfo)
                   addMoreInfo <- Box(metadata.addMoreInfo) ?~ {"view " + viewId + " does not authorize adding more_info"}
                 } yield addMoreInfo
 
@@ -1243,6 +1254,619 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
       else
         postMoreInfoResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "more_info" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def updateMoreInfoResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[MoreInfoJSON]
+          } match {
+            case Full(moreInfoJson) => {
+
+              def addMoreInfo(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], moreInfo : String): Box[Boolean] = {
+                val addMoreInfo = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  addMoreInfo <- Box(metadata.addMoreInfo) ?~ {"view " + viewId + " does not authorize adding more_info"}
+                } yield addMoreInfo
+
+                addMoreInfo.map(
+                  func =>{
+                    func(moreInfo)
+                  }
+                )
+              }
+
+              addMoreInfo(bankId, accountId, viewId, otherAccountId, user, moreInfoJson.more_info) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("more info successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("more info could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          updateMoreInfoResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        updateMoreInfoResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "url" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postURLResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[UrlJSON]
+          } match {
+            case Full(urlJson) => {
+
+              def addUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  url <- Box(metadata.url) ?~! {"view " + viewId + " does not authorize access to URL"}
+                  setUrl <- isFieldAlreadySet(url)
+                  addUrl <- Box(metadata.addUrl) ?~ {"view " + viewId + " does not authorize adding URL"}
+                } yield addUrl
+
+                addUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addUrl(bankId, accountId, viewId, otherAccountId, user, urlJson.URL) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("URL successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("URL could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postURLResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        postURLResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "url" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def updateURLResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[UrlJSON]
+          } match {
+            case Full(urlJson) => {
+
+              def addUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  addUrl <- Box(metadata.addUrl) ?~ {"view " + viewId + " does not authorize adding URL"}
+                } yield addUrl
+
+                addUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addUrl(bankId, accountId, viewId, otherAccountId, user, urlJson.URL) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("URL successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("URL could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          updateURLResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        updateURLResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "image_url" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postImageUrlResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[ImageUrlJSON]
+          } match {
+            case Full(imageUrlJson) => {
+
+              def addImageUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addImageUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  imageUrl <- Box(metadata.imageUrl) ?~! {"view " + viewId + " does not authorize access to image URL"}
+                  setImageUrl <- isFieldAlreadySet(imageUrl)
+                  addImageUrl <- Box(metadata.addImageUrl) ?~ {"view " + viewId + " does not authorize adding image URL"}
+                } yield addImageUrl
+
+                addImageUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addImageUrl(bankId, accountId, viewId, otherAccountId, user, imageUrlJson.image_URL) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("Image URL successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("Image URL could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postImageUrlResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        postImageUrlResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "image_url" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def updateImageUrlResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[ImageUrlJSON]
+          } match {
+            case Full(imageUrlJson) => {
+
+              def addImageUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addImageUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  addImageUrl <- Box(metadata.addImageUrl) ?~ {"view " + viewId + " does not authorize adding image URL"}
+                } yield addImageUrl
+
+                addImageUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addImageUrl(bankId, accountId, viewId, otherAccountId, user, imageUrlJson.image_URL) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("Image URL successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("Image URL could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          updateImageUrlResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        updateImageUrlResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "open_corporates_url" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postOpenCorporatesUrlResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[OpenCorporatesUrlJSON]
+          } match {
+            case Full(openCorporatesUrlJSON) => {
+
+              def addOpenCorporatesUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addOpenCorporatesUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  openCorporatesUrl <- Box(metadata.openCorporatesUrl) ?~! {"view " + viewId + " does not authorize access to open_corporates_url"}
+                  setImageUrl <- isFieldAlreadySet(openCorporatesUrl)
+                  addOpenCorporatesUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"view " + viewId + " does not authorize adding open_corporates_url"}
+                } yield addOpenCorporatesUrl
+
+                addOpenCorporatesUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addOpenCorporatesUrl(bankId, accountId, viewId, otherAccountId, user, openCorporatesUrlJSON.open_corporates_url) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("open_corporates_url successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("open_corporates_url could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postOpenCorporatesUrlResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        postOpenCorporatesUrlResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "open_corporates_url" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def updateOpenCorporatesURL(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[OpenCorporatesUrlJSON]
+          } match {
+            case Full(openCorporatesUrlJSON) => {
+
+              def addOpenCorporatesUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addOpenCorporatesUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  addOpenCorporatesUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"view " + viewId + " does not authorize adding open_corporates_url"}
+                } yield addOpenCorporatesUrl
+
+                addOpenCorporatesUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addOpenCorporatesUrl(bankId, accountId, viewId, otherAccountId, user, openCorporatesUrlJSON.open_corporates_url) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("open_corporates_url successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("open_corporates_url could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          updateOpenCorporatesURL(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        updateOpenCorporatesURL(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "corporate_location" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postCorporateLocation(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[CorporateLocationJSON]
+          } match {
+            case Full(corporateLocationJSON) => {
+
+              def addCorporateLocation(user : User, viewID : Long, longitude: Double, latitude : Double) : Box[Boolean] = {
+                val addCorporateLocation = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,Full(user))
+                  addCorporateLocation <- Box(metadata.addCorporateLocation) ?~ {"view " + viewId + " does not authorize adding corporate_location"}
+                } yield addCorporateLocation
+
+                addCorporateLocation.map(
+                  func =>{
+                    val datePosted = (now: TimeSpan)
+                    func(user.id_, viewID, datePosted, longitude, latitude)
+                  }
+                )
+              }
+              val postedGeoTag = for {
+                    u <- user ?~ "User not found. Authentication via OAuth is required"
+                    view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                    postedGeoTag <- addCorporateLocation(u, view.id, corporateLocationJSON.corporate_location.longitude, corporateLocationJSON.corporate_location.latitude)
+                  } yield postedGeoTag
+
+              postedGeoTag match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("corporate_location successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("corporate_location could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postCorporateLocation(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "corporate_location" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postCorporateLocation(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[CorporateLocationJSON]
+          } match {
+            case Full(corporateLocationJSON) => {
+
+              def addCorporateLocation(user : User, viewID : Long, longitude: Double, latitude : Double) : Box[Boolean] = {
+                val addCorporateLocation = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,Full(user))
+                  addCorporateLocation <- Box(metadata.addCorporateLocation) ?~ {"view " + viewId + " does not authorize adding corporate_location"}
+                } yield addCorporateLocation
+
+                addCorporateLocation.map(
+                  func =>{
+                    val datePosted = (now: TimeSpan)
+                    func(user.id_, viewID, datePosted, longitude, latitude)
+                  }
+                )
+              }
+              val postedGeoTag = for {
+                    u <- user ?~ "User not found. Authentication via OAuth is required"
+                    view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                    postedGeoTag <- addCorporateLocation(u, view.id, corporateLocationJSON.corporate_location.longitude, corporateLocationJSON.corporate_location.latitude)
+                  } yield postedGeoTag
+
+              postedGeoTag match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("corporate_location successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("corporate_location could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postCorporateLocation(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "physical_location" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postPhysicalLocation(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[PhysicalLocationJSON]
+          } match {
+            case Full(physicalLocationJSON) => {
+
+              def addPhysicalLocation(user : User, viewID : Long, longitude: Double, latitude : Double) : Box[Boolean] = {
+                val addPhysicalLocation = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,Full(user))
+                  addPhysicalLocation <- Box(metadata.addPhysicalLocation) ?~ {"view " + viewId + " does not authorize adding physical_location"}
+                } yield addPhysicalLocation
+
+                addPhysicalLocation.map(
+                  func =>{
+                    val datePosted = (now: TimeSpan)
+                    func(user.id_, viewID, datePosted, longitude, latitude)
+                  }
+                )
+              }
+              val postedGeoTag = for {
+                    u <- user ?~ "User not found. Authentication via OAuth is required"
+                    view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                    postedGeoTag <- addPhysicalLocation(u, view.id, physicalLocationJSON.physical_location.longitude, physicalLocationJSON.physical_location.latitude)
+                  } yield postedGeoTag
+
+              postedGeoTag match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("physical_location successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("physical_location could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postPhysicalLocation(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "physical_location" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postPhysicalLocation(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[PhysicalLocationJSON]
+          } match {
+            case Full(physicalLocationJSON) => {
+
+              def addPhysicalLocation(user : User, viewID : Long, longitude: Double, latitude : Double) : Box[Boolean] = {
+                val addPhysicalLocation = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,Full(user))
+                  addPhysicalLocation <- Box(metadata.addPhysicalLocation) ?~ {"view " + viewId + " does not authorize adding physical_location"}
+                } yield addPhysicalLocation
+
+                addPhysicalLocation.map(
+                  func =>{
+                    val datePosted = (now: TimeSpan)
+                    func(user.id_, viewID, datePosted, longitude, latitude)
+                  }
+                )
+              }
+              val postedGeoTag = for {
+                    u <- user ?~ "User not found. Authentication via OAuth is required"
+                    view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                    postedGeoTag <- addPhysicalLocation(u, view.id, physicalLocationJSON.physical_location.longitude, physicalLocationJSON.physical_location.latitude)
+                  } yield postedGeoTag
+
+              postedGeoTag match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("physical_location successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("physical_location could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postPhysicalLocation(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
   })
 }

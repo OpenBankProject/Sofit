@@ -111,6 +111,9 @@ trait View {
   def canSeeCorporateLocation : Boolean
   def canSeePhysicalLocation : Boolean
   def canAddMoreInfo : Boolean
+  def canAddURL : Boolean
+  def canAddImageURL : Boolean
+  def canAddOpenCorporatesUrl : Boolean
   def canAddCorporateLocation : Boolean
   def canAddPhysicalLocation : Boolean
 
@@ -332,6 +335,21 @@ trait View {
               Some(otherBankAccount.metadata.addMoreInfo _)
             else
               None
+          val addURL =
+            if(canAddURL)
+              Some(otherBankAccount.metadata.addURL _)
+            else
+              None
+          val addImageURL =
+            if(canAddImageURL)
+              Some(otherBankAccount.metadata.addImageURL _)
+            else
+              None
+          val addOpenCorporatesUrl =
+            if(canAddOpenCorporatesUrl)
+              Some(otherBankAccount.metadata.addOpenCorporatesUrl _)
+            else
+              None
           val addCorporateLocation =
             if(canAddCorporateLocation)
               Some(otherBankAccount.metadata.addCorporateLocation _)
@@ -352,6 +370,9 @@ trait View {
               corporateLocation,
               physicalLocation,
               addMoreInfo,
+              addURL,
+              addImageURL,
+              addOpenCorporatesUrl,
               addCorporateLocation,
               addPhysicalLocation
           ))
@@ -444,6 +465,9 @@ class BaseView extends View {
   def canSeeCorporateLocation = false
   def canSeePhysicalLocation = false
   def canAddMoreInfo = false
+  def canAddURL = false
+  def canAddImageURL = false
+  def canAddOpenCorporatesUrl = false
   def canAddCorporateLocation = false
   def canAddPhysicalLocation = false
 
@@ -519,6 +543,9 @@ class FullView extends View {
   def canSeeCorporateLocation = true
   def canSeePhysicalLocation = true
   def canAddMoreInfo = true
+  def canAddURL = true
+  def canAddImageURL = true
+  def canAddOpenCorporatesUrl = true
   def canAddCorporateLocation = true
   def canAddPhysicalLocation = true
 

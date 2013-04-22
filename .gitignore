@@ -2,6 +2,7 @@
 *.db
 .DS_Store
 *.scala.orig
+*.orig
 *.log
 .gitignore
 .idea

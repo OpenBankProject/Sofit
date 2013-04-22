@@ -62,6 +62,9 @@ trait OtherBankAccountMetadata
   def corporateLocations : List[GeoTag]
   def physicalLocations : List[GeoTag]
   def addMoreInfo(moreInfo : String ) : Boolean
+  def addURL(url : String) : Boolean
+  def addImageURL(url : String) : Boolean
+  def addOpenCorporatesUrl(url : String) : Boolean
   def addCorporateLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
   def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
 }
