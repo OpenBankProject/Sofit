@@ -144,6 +144,12 @@ class MongoDBLocalStorage extends LocalStorage {
           //so we a true
           true
         }),
+        (text => {
+          oAcc.imageUrl(text).save
+          //the save method does not return a Boolean to inform about the saving state,
+          //so we a true
+          true
+        }),
         oAcc.addCorporateLocation _,
         oAcc.addPhysicalLocation _
       )
@@ -293,7 +299,13 @@ class MongoDBLocalStorage extends LocalStorage {
                   true
                 }),
                 (text => {
-                  otherAccount.moreInfo(text).save
+                  otherAccount.url(text).save
+                  //the save method does not return a Boolean to inform about the saving state,
+                  //so we a true
+                  true
+                }),
+                (text => {
+                  otherAccount.imageUrl(text).save
                   //the save method does not return a Boolean to inform about the saving state,
                   //so we a true
                   true

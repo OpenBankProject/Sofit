@@ -47,6 +47,7 @@ class OtherBankAccountMetadataImpl(
   physicalLocations_ : List[GeoTag],
   addMoreInfoFunc : (String) => Boolean,
   addUrlFunc : (String) => Boolean,
+  addImageURLFunc : (String) => Boolean,
   addCorporateLocationFunc : (String, Long, Date, Double, Double) => Boolean,
   addPhysicalLocationFunc : (String, Long, Date, Double, Double) => Boolean
 ) extends OtherBankAccountMetadata {
@@ -61,6 +62,7 @@ class OtherBankAccountMetadataImpl(
   def physicalLocations : List[GeoTag] = physicalLocations_
   def addMoreInfo(moreInfo : String) = addMoreInfoFunc(moreInfo)
   def addURL(url : String) : Boolean = addUrlFunc(url)
+  def addImageURL(url : String) : Boolean = addImageURLFunc(url)
   def addCorporateLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean =
     addCorporateLocationFunc(userId,viewId, datePosted, longitude, latitude)
   def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean =
