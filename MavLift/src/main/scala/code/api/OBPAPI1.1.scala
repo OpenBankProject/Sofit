@@ -1232,4 +1232,57 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         postMoreInfoResponce(bankId, accountId, viewId, otherAccountId, Empty)
     }
   })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "more_info" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def updateMoreInfoResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[MoreInfoJSON]
+          } match {
+            case Full(moreInfoJson) => {
+
+              def addMoreInfo(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], moreInfo : String): Box[Boolean] = {
+                val addMoreInfo = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  addMoreInfo <- Box(metadata.addMoreInfo) ?~ {"view " + viewId + " does not authorize adding more_info"}
+                } yield addMoreInfo
+
+                addMoreInfo.map(
+                  func =>{
+                    func(moreInfo)
+                  }
+                )
+              }
+
+              addMoreInfo(bankId, accountId, viewId, otherAccountId, user, moreInfoJson.more_info) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("more info successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("more info could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          updateMoreInfoResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        updateMoreInfoResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
 }
