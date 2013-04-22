@@ -46,8 +46,27 @@ import code.model.implementedTraits.OurNetwork
 import net.liftweb.http.SHtml
 import scala.xml.Text
 import net.liftweb.http.js.JsCmds.Noop
+import code.lib.ObpGet
+import net.liftweb.json.JsonAST.{JInt, JArray}
+import net.liftweb.json.JsonAST.JField
+import net.liftweb.json.JsonAST.JObject
+import net.liftweb.json.JsonAST.JString
+import net.liftweb.json.JsonAST.JValue
+import net.liftweb.json.JBool
 
 class AccountsOverview {
+
+  //This is kind of dumb and ugly
+  //val bankIds = ObpGet("/banks").map(obj => (obj \ "banks" children).map(_ \ "bank" \ "id").collect{case JString(s) => s})
+  /**
+   * TODO: This returns _every_ account which we can then filter to figure out which are public accouts, and which are authorised accounts
+   * This will obviously not be efficient as the number of accounts grows...
+   */
+/*  val accounts = bankIds.flatMap(id => ObpGet("/banks/" + id + "/accounts")).map(accounts => (accounts \ "account" children).map(_ \ "account"))
+  val public = accounts.map(_.filter(account => {
+    val views = (account \ "views_available" children).map(_ \ "view")
+    views.exists(view => view \ "is_public" == JBool(true))
+  }))*/
 
   def publicAccounts = {
     //TODO: In the future once we get more bank accounts we will probably want some sort of pagination or limit on the number of accounts displayed
