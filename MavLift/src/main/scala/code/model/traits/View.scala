@@ -111,6 +111,7 @@ trait View {
   def canSeeCorporateLocation : Boolean
   def canSeePhysicalLocation : Boolean
   def canAddMoreInfo : Boolean
+  def canAddURL : Boolean
   def canAddCorporateLocation : Boolean
   def canAddPhysicalLocation : Boolean
 
@@ -332,6 +333,11 @@ trait View {
               Some(otherBankAccount.metadata.addMoreInfo _)
             else
               None
+          val addURL =
+            if(canAddURL)
+              Some(otherBankAccount.metadata.addURL _)
+            else
+              None
           val addCorporateLocation =
             if(canAddCorporateLocation)
               Some(otherBankAccount.metadata.addCorporateLocation _)
@@ -352,6 +358,7 @@ trait View {
               corporateLocation,
               physicalLocation,
               addMoreInfo,
+              addURL,
               addCorporateLocation,
               addPhysicalLocation
           ))
@@ -444,6 +451,7 @@ class BaseView extends View {
   def canSeeCorporateLocation = false
   def canSeePhysicalLocation = false
   def canAddMoreInfo = false
+  def canAddURL = false
   def canAddCorporateLocation = false
   def canAddPhysicalLocation = false
 
@@ -519,6 +527,7 @@ class FullView extends View {
   def canSeeCorporateLocation = true
   def canSeePhysicalLocation = true
   def canAddMoreInfo = true
+  def canAddURL = true
   def canAddCorporateLocation = true
   def canAddPhysicalLocation = true
 

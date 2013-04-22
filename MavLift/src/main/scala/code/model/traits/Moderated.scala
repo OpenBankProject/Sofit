@@ -90,6 +90,7 @@ class ModeratedOtherBankAccountMetadata(
   corporateLocation_ : Option[GeoTag],
   physicalLocation_ :  Option[GeoTag],
   addMoreInfo_ : Option[(String) => Boolean],
+  addURL_ : Option[(String) => Boolean],
   addCorporateLocation_ : Option[(String, Long, Date, Double, Double) => Boolean],
   addPhysicalLocation_ : Option[(String, Long, Date, Double, Double) => Boolean]
 ) {
@@ -100,6 +101,7 @@ class ModeratedOtherBankAccountMetadata(
   def corporateLocation = corporateLocation_
   def physicalLocation = physicalLocation_
   def addMoreInfo = addMoreInfo_
+  def addUrl = addURL_
   def addCorporateLocation = addCorporateLocation_
   def addPhysicalLocation = addPhysicalLocation_
 }

@@ -86,6 +86,9 @@ case class ImageJSON(
 case class MoreInfoJSON(
   more_info : String
 )
+case class UrlJSON(
+  URL : String
+)
 case class WhereTagJSON(
   where : GeoCord
 )
@@ -140,6 +143,12 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       url(S.uriAndQueryString.getOrElse("")).
       date((now: TimeSpan)).
       save
+
+  private def isFieldAlreadySet(field : String) : Box[String] =
+    if(field.isEmpty)
+     Full(field)
+    else
+      Failure("field already set, use PUT method to update it")
 
   private def transactionJson(t : ModeratedTransaction) : JObject = {
     ("transaction" ->
@@ -587,16 +596,10 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
               val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
 
-              def isNarrativeAlreadySet(narrative : String) =
-                if(narrative.isEmpty)
-                 Full(narrative)
-                else
-                  Failure("narrative already set, use PUT method to update it")
-
               val addNarrativeFunc = for {
                   metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
                   narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
-                  narrativeSetted <- isNarrativeAlreadySet(narrative)
+                  narrativeSetted <- isFieldAlreadySet(narrative)
                   addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
                 } yield addNarrativeFunc
 
@@ -1182,17 +1185,11 @@ object OBPAPI1_1 extends RestHelper with Loggable {
           } match {
             case Full(moreInfoJson) => {
 
-              def isMoreInfoAlreadySet(moreInfo : String) =
-                if(moreInfo.isEmpty)
-                 Full(moreInfo)
-                else
-                  Failure("more_info already set, use PUT method to update it")
-
               def addMoreInfo(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], moreInfo : String): Box[Boolean] = {
                 val addMoreInfo = for {
                   metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
                   moreInfo <- Box(metadata.moreInfo) ?~! {"view " + viewId + " does not authorize access to more_info"}
-                  setMoreInfo <- isMoreInfoAlreadySet(moreInfo)
+                  setMoreInfo <- isFieldAlreadySet(moreInfo)
                   addMoreInfo <- Box(metadata.addMoreInfo) ?~ {"view " + viewId + " does not authorize adding more_info"}
                 } yield addMoreInfo
 
@@ -1283,6 +1280,61 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
       else
         updateMoreInfoResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "url" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postURLResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[UrlJSON]
+          } match {
+            case Full(urlJson) => {
+
+              def addUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  url <- Box(metadata.url) ?~! {"view " + viewId + " does not authorize access to URL"}
+                  setUrl <- isFieldAlreadySet(url)
+                  addUrl <- Box(metadata.addUrl) ?~ {"view " + viewId + " does not authorize adding URL"}
+                } yield addUrl
+
+                addUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addUrl(bankId, accountId, viewId, otherAccountId, user, urlJson.URL) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("URL successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("URL could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postURLResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        postURLResponce(bankId, accountId, viewId, otherAccountId, Empty)
     }
   })
 }

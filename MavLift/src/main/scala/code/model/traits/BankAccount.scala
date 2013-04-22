@@ -120,7 +120,7 @@ trait BankAccount {
         case Full(otherbankAccount) =>
           view.moderate(otherbankAccount) match {
             case Some(otherAccount) => Full(otherAccount)
-            case _ => Failure("cound not moderate the other account id " + otherAccountID)
+            case _ => Failure("could not moderate the other account id " + otherAccountID)
           }
         case Failure(msg, _, _) => Failure(msg, Empty, Empty)
         case _ => Empty

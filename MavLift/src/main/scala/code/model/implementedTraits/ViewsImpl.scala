@@ -210,6 +210,7 @@ object Public extends BaseView {
           corporateLocation,
           physicalLocation,
           None,
+          None,
           Some(otherAccount.metadata.addCorporateLocation _),
           Some(otherAccount.metadata.addPhysicalLocation _)
       ))
@@ -305,6 +306,7 @@ object OurNetwork extends BaseView
         Some(otherAccount.metadata.openCorporatesUrl),
         otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id),
         otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id),
+        None,
         None,
         Some(otherAccount.metadata.addCorporateLocation _ ),
         Some(otherAccount.metadata.addPhysicalLocation _)
