@@ -18,8 +18,7 @@ import net.liftweb.util.Helpers._
 import java.io.InputStreamReader
 
 object ObpGet {
-  //This could use some cleaning up when there's time. I used HttpURLConnection as it's one of the things signpost supports
-  //out of the box. Integrating dispatch (0.10+) with signpost might be nicer to work with. -E.S.
+  //Ah, dispatch does have oauth support. It would be nicer to use dispatch! -E.S.
   def apply(apiPath: String): Box[JValue] = {
     tryo {
       val credentials = OAuthClient.getOrCreateCredential(OAuthClient.defaultProvider) //TODO: Support multiple providers
