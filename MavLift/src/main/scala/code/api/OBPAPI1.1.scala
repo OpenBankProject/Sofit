@@ -98,10 +98,15 @@ case class OpenCorporatesUrlJSON(
 case class WhereTagJSON(
   where : GeoCord
 )
+case class CorporateLocationJSON(
+  corporate_location : GeoCord
+)
 case class GeoCord(
   longitude : Double,
   latitude : Double
 )
+
+
 object OBPAPI1_1 extends RestHelper with Loggable {
 
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
@@ -1610,6 +1615,124 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
       else
         updateOpenCorporatesURL(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "corporate_location" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postCorporateLocation(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[CorporateLocationJSON]
+          } match {
+            case Full(corporateLocationJSON) => {
+
+              def addCorporateLocation(user : User, viewID : Long, longitude: Double, latitude : Double) : Box[Boolean] = {
+                val addCorporateLocation = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,Full(user))
+                  addCorporateLocation <- Box(metadata.addCorporateLocation) ?~ {"view " + viewId + " does not authorize adding corporate_location"}
+                } yield addCorporateLocation
+
+                addCorporateLocation.map(
+                  func =>{
+                    val datePosted = (now: TimeSpan)
+                    func(user.id_, viewID, datePosted, longitude, latitude)
+                  }
+                )
+              }
+              val postedGeoTag = for {
+                    u <- user ?~ "User not found. Authentication via OAuth is required"
+                    view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                    postedGeoTag <- addCorporateLocation(u, view.id, corporateLocationJSON.corporate_location.longitude, corporateLocationJSON.corporate_location.latitude)
+                  } yield postedGeoTag
+
+              postedGeoTag match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("corporate_location successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("corporate_location could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postCorporateLocation(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "corporate_location" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postCorporateLocation(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[CorporateLocationJSON]
+          } match {
+            case Full(corporateLocationJSON) => {
+
+              def addCorporateLocation(user : User, viewID : Long, longitude: Double, latitude : Double) : Box[Boolean] = {
+                val addCorporateLocation = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,Full(user))
+                  addCorporateLocation <- Box(metadata.addCorporateLocation) ?~ {"view " + viewId + " does not authorize adding corporate_location"}
+                } yield addCorporateLocation
+
+                addCorporateLocation.map(
+                  func =>{
+                    val datePosted = (now: TimeSpan)
+                    func(user.id_, viewID, datePosted, longitude, latitude)
+                  }
+                )
+              }
+              val postedGeoTag = for {
+                    u <- user ?~ "User not found. Authentication via OAuth is required"
+                    view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
+                    postedGeoTag <- addCorporateLocation(u, view.id, corporateLocationJSON.corporate_location.longitude, corporateLocationJSON.corporate_location.latitude)
+                  } yield postedGeoTag
+
+              postedGeoTag match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("corporate_location successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("corporate_location could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postCorporateLocation(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
   })
 }
