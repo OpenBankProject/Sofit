@@ -92,6 +92,9 @@ case class UrlJSON(
 case class ImageUrlJSON(
   image_URL : String
 )
+case class OpenCorporatesUrlJSON(
+  open_corporates_url : String
+)
 case class WhereTagJSON(
   where : GeoCord
 )
@@ -1499,6 +1502,61 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       }
       else
         updateImageUrlResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "open_corporates_url" :: Nil JsonPost json -> _ => {
+      //log the API call
+      logAPICall
+
+      def postOpenCorporatesUrlResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[OpenCorporatesUrlJSON]
+          } match {
+            case Full(openCorporatesUrlJSON) => {
+
+              def addOpenCorporatesUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addOpenCorporatesUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  openCorporatesUrl <- Box(metadata.openCorporatesUrl) ?~! {"view " + viewId + " does not authorize access to open_corporates_url"}
+                  setImageUrl <- isFieldAlreadySet(openCorporatesUrl)
+                  addOpenCorporatesUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"view " + viewId + " does not authorize adding open_corporates_url"}
+                } yield addOpenCorporatesUrl
+
+                addOpenCorporatesUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addOpenCorporatesUrl(bankId, accountId, viewId, otherAccountId, user, openCorporatesUrlJSON.open_corporates_url) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("open_corporates_url successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("open_corporates_url could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          postOpenCorporatesUrlResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        postOpenCorporatesUrlResponce(bankId, accountId, viewId, otherAccountId, Empty)
     }
   })
 }

@@ -48,6 +48,7 @@ class OtherBankAccountMetadataImpl(
   addMoreInfoFunc : (String) => Boolean,
   addUrlFunc : (String) => Boolean,
   addImageURLFunc : (String) => Boolean,
+  addOpenCorporatesUrlFunc : (String) => Boolean,
   addCorporateLocationFunc : (String, Long, Date, Double, Double) => Boolean,
   addPhysicalLocationFunc : (String, Long, Date, Double, Double) => Boolean
 ) extends OtherBankAccountMetadata {
@@ -63,6 +64,7 @@ class OtherBankAccountMetadataImpl(
   def addMoreInfo(moreInfo : String) = addMoreInfoFunc(moreInfo)
   def addURL(url : String) : Boolean = addUrlFunc(url)
   def addImageURL(url : String) : Boolean = addImageURLFunc(url)
+  def addOpenCorporatesUrl(url : String) : Boolean = addOpenCorporatesUrlFunc(url)
   def addCorporateLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean =
     addCorporateLocationFunc(userId,viewId, datePosted, longitude, latitude)
   def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean =
