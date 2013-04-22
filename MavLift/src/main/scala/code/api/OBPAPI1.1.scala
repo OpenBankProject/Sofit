@@ -1337,4 +1337,57 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         postURLResponce(bankId, accountId, viewId, otherAccountId, Empty)
     }
   })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "url" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def updateURLResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[UrlJSON]
+          } match {
+            case Full(urlJson) => {
+
+              def addUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  addUrl <- Box(metadata.addUrl) ?~ {"view " + viewId + " does not authorize adding URL"}
+                } yield addUrl
+
+                addUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addUrl(bankId, accountId, viewId, otherAccountId, user, urlJson.URL) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("URL successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("URL could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          updateURLResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        updateURLResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
 }
