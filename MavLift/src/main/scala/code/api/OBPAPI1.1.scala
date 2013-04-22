@@ -1448,4 +1448,57 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         postImageUrlResponce(bankId, accountId, viewId, otherAccountId, Empty)
     }
   })
+  serve("obp" / "v1.1" prefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: otherAccountId :: "metadata" :: "image_url" :: Nil JsonPut json -> _ => {
+      //log the API call
+      logAPICall
+
+      def updateImageUrlResponce(bankId : String, accountId : String, viewId : String, otherAccountId: String, user : Box[User]) : JsonResponse =
+        tryo{
+            json.extract[ImageUrlJSON]
+          } match {
+            case Full(imageUrlJson) => {
+
+              def addImageUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
+                val addImageUrl = for {
+                  metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
+                  addImageUrl <- Box(metadata.addImageUrl) ?~ {"view " + viewId + " does not authorize adding image URL"}
+                } yield addImageUrl
+
+                addImageUrl.map(
+                  func =>{
+                    func(url)
+                  }
+                )
+              }
+
+              addImageUrl(bankId, accountId, viewId, otherAccountId, user, imageUrlJson.image_URL) match {
+                case Full(posted) =>
+                  if(posted)
+                    JsonResponse(Extraction.decompose(SuccessMessage("Image URL successfully saved")), Nil, Nil, 201)
+                  else
+                    JsonResponse(Extraction.decompose(ErrorMessage("Image URL could not be saved")), Nil, Nil, 500)
+                case Failure(msg, _, _) => JsonResponse(Extraction.decompose(ErrorMessage(msg)), Nil, Nil, 400)
+                case _ => JsonResponse(Extraction.decompose(ErrorMessage("error")), Nil, Nil, 400)
+              }
+            }
+            case _ => JsonResponse(Extraction.decompose(ErrorMessage("wrong JSON format")), Nil, Nil, 400)
+          }
+
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode, oAuthParameters.get("oauth_token"))
+          updateImageUrlResponce(bankId, accountId, viewId, otherAccountId, user)
+        }
+        else
+          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
+      }
+      else
+        updateImageUrlResponce(bankId, accountId, viewId, otherAccountId, Empty)
+    }
+  })
 }
