@@ -56,8 +56,7 @@ import net.liftweb.json.JBool
 
 class AccountsOverview {
 
-  //This is kind of dumb and ugly
-  //val bankIds = ObpGet("/banks").map(obj => (obj \ "banks" children).map(_ \ "bank" \ "id").collect{case JString(s) => s})
+  //val bankIds = ObpGet("/banks").map(jVal => (jVal \ "banks" children).map(bank => bank \ "bank" \ "id").collect{case JString(s) => s})
   /**
    * TODO: This returns _every_ account which we can then filter to figure out which are public accouts, and which are authorised accounts
    * This will obviously not be efficient as the number of accounts grows...
