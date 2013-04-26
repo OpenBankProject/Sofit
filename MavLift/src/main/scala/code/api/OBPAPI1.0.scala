@@ -29,7 +29,7 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 
  */
-package code.api
+package code.api.v1_0
 
 import code.actors.EnvelopeInserter
 import net.liftweb.http._

@@ -29,7 +29,7 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 
  */
-package code.api
+package code.api.v1_2
 
 import net.liftweb.http._
 import net.liftweb.http.rest._
@@ -59,6 +59,39 @@ import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrde
 import java.net.URL
 import code.util.APIUtil._
 
+case class APIInfoJSON(
+  api : APIInfo
+)
+case class APIInfo(
+  version : String,
+  git_commit : String,
+  hosted_by : HostedBy
+)
+case class HostedBy(
+  organisation : String,
+  email : String,
+  phone : String
+)
+case class ErrorMessage(
+  error : String
+)
+case class SuccessMessage(
+  success : String
+)
+case class BanksJSON(
+  banks : List[BankJSON]
+)
+case class BankJSON(
+  bank : BankInfo
+)
+case class BankInfo(
+  id : String,
+  short_name : String,
+  full_name : String,
+  logo : String,
+  website : String
+)
+
 object OBPAPI1_2 extends RestHelper with Loggable {
 
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
@@ -66,24 +99,37 @@ object OBPAPI1_2 extends RestHelper with Loggable {
 
   val dateFormat = ModeratedTransaction.dateFormat
 
+  def stingOrNull(text : String) =
+    if(text.isEmpty)
+      null
+    else
+      text
+
   serve("obp" / "v1.2" prefix {
     case Nil JsonGet json => {
       logAPICall
 
       val apiDetails : JValue = {
-        ("api" ->
-          ("version" -> "1.2") ~
-          ("git_commit" -> gitCommit) ~
-          ("hosted_by" ->
-            ("organisation" -> "TESOBE") ~
-            ("email" -> "contact@tesobe.com") ~
-            ("phone" -> "+49 (0)30 8145 3994")
-          )
-        )
+        val hostedBy = new HostedBy("TESOBE", "contact@tesobe.com", "+49 (0)30 8145 3994")
+        val apiInfo = new APIInfo("1.2", gitCommit, hostedBy)
+        val APIInfoJSON = new APIInfoJSON(apiInfo)
+        Extraction.decompose(APIInfoJSON)
       }
 
       JsonResponse(apiDetails)
     }
   })
-
+  serve("obp" / "v1.2" prefix{
+    case "banks" :: Nil JsonGet json => {
+      logAPICall
+      def banksToJson(banksList : List[Bank]) : JValue = {
+        val banksJSON : List[BankJSON] = banksList.map( b => {
+            new BankJSON(new BankInfo(stingOrNull(b.permalink),stingOrNull(b.shortName),stingOrNull(b.fullName),stingOrNull(b.logoURL),stingOrNull(b.website)))
+          })
+        val banks = new BanksJSON(banksJSON)
+        Extraction.decompose(banks)
+      }
+      JsonResponse(banksToJson(Bank.all))
+    }
+  })
 }
