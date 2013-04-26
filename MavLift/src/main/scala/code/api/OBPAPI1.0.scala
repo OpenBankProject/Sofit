@@ -105,7 +105,8 @@ object OBPAPI1_0 extends RestHelper with Loggable {
   implicit val _formats = Serialization.formats(NoTypeHints)
 
   val dateFormat = ModeratedTransaction.dateFormat
-  private def getUser(httpCode : Int, tokenID : Box[String]) : Box[OBPUser] =
+
+  private def getOBPUser(httpCode : Int, tokenID : Box[String]) : Box[OBPUser] =
   if(httpCode==200)
   {
     import code.model.Token
@@ -210,7 +211,7 @@ object OBPAPI1_0 extends RestHelper with Loggable {
         bankAccount <- BankAccount(bankAlias, accountAlias)
         view <- View.fromUrl(viewName) //TODO: This will have to change if we implement custom view names for different accounts
       } yield {
-        val ts = getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
+        val ts = getTransactions(bankAccount, view, getOBPUser(httpCode,oAuthParameters.get("oauth_token")))
         JsonResponse("transactions" -> ts.map(t => t.toJson(view)))
       }
 
@@ -224,7 +225,7 @@ object OBPAPI1_0 extends RestHelper with Loggable {
       logAPICall
 
       val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")
-      val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+      val user = getOBPUser(httpCode,oAuthParameters.get("oauth_token"))
 
       val moderatedTransactionAndView = for {
         bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
@@ -248,7 +249,7 @@ object OBPAPI1_0 extends RestHelper with Loggable {
       logAPICall
 
       val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")
-      val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+      val user = getOBPUser(httpCode,oAuthParameters.get("oauth_token"))
 
       val comments = for {
         bank <- Bank(bankAlias) ?~ { "bank "  + bankAlias + " not found"} ~> 404
@@ -271,7 +272,7 @@ object OBPAPI1_0 extends RestHelper with Loggable {
 
       val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
-      val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+      val user = getOBPUser(httpCode,oAuthParameters.get("oauth_token"))
 
       def bankAccountSet2JsonResponse(bankAccounts: Set[BankAccount]): LiftResponse = {
         val accJson = bankAccounts.map(bAcc => bAcc.overviewJson(user))
@@ -301,7 +302,7 @@ object OBPAPI1_0 extends RestHelper with Loggable {
 
       val (httpCode, data, oAuthParameters) = validator("protectedResource", "GET")
       val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
-      val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+      val user = getOBPUser(httpCode,oAuthParameters.get("oauth_token"))
 
       case class ModeratedAccountAndViews(account: ModeratedBankAccount, views: Set[View])
 
