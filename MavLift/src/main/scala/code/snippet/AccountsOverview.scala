@@ -47,27 +47,58 @@ import net.liftweb.http.SHtml
 import scala.xml.Text
 import net.liftweb.http.js.JsCmds.Noop
 import code.lib.ObpGet
+import code.lib.ObpJson._
 import net.liftweb.json.JsonAST.{JInt, JArray}
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json.JsonAST.JString
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json.JBool
+import net.liftweb.common.Loggable
 
-class AccountsOverview {
+class AccountsOverview extends Loggable {
+		  		  
+  val banksJsonBox = ObpGet("/banks").flatMap(_.extractOpt[BanksJson])
+  
+  val bankIds = for {
+    banksJson <- banksJsonBox.toList
+    banks <- banksJson.banks.toList
+    bank <- banks
+    id <- bank.id
+  } yield id
+  
+  logger.info("Bank ids found: " + bankIds)
 
-  //val bankIds = ObpGet("/banks").map(jVal => (jVal \ "banks" children).map(bank => bank \ "bank" \ "id").collect{case JString(s) => s})
-  /**
-   * TODO: This returns _every_ account which we can then filter to figure out which are public accouts, and which are authorised accounts
-   * This will obviously not be efficient as the number of accounts grows...
-   */
-/*  val accounts = bankIds.flatMap(id => ObpGet("/banks/" + id + "/accounts")).map(accounts => (accounts \ "account" children).map(_ \ "account"))
-  val public = accounts.map(_.filter(account => {
-    val views = (account \ "views_available" children).map(_ \ "view")
-    views.exists(view => view \ "is_public" == JBool(true))
-  }))*/
-
+  type BankID = String
+  val publicAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
+    bankId <- bankIds
+    publicAccountsJson <- ObpGet("/banks/" + bankId + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountJson])
+  } yield (bankId, publicAccountsJson)
+  
+  logger.info("Public accounts found: " + publicAccountJsons)
+  
+  val privateAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
+    bankId <- bankIds
+    privateAccountsJson <- ObpGet("/banks/" + bankId + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountJson])
+  } yield (bankId, privateAccountsJson)
+  
+  logger.info("Private accounts found: " + privateAccountJsons)
+  
   def publicAccounts = {
+    
+    if(publicAccountJsons.size == 0) {
+      ".accountList" #> "No public accounts"
+    } else {
+      ".accountList" #> publicAccountJsons.map{case(bankId, accountJson) => {
+        //TODO: It might be nice to ensure that the same view is picked each time the page loads
+        val aPublicView = accountJson.views_available.flatMap(_.filter(view => view.is_public.getOrElse(false)).headOption)
+        val aPublicViewId = aPublicView.map(_.id).getOrElse("")
+        
+        ".accLink *" #> accountJson.label &
+        ".accLink [href]" #> { "/banks/" + bankId + "/accounts/" + accountJson.id + "/" + aPublicViewId}
+      }}
+    }
+/*    
     //TODO: In the future once we get more bank accounts we will probably want some sort of pagination or limit on the number of accounts displayed
     val publicAccounts = BankAccount.publicAccounts.sortBy(acc => acc.label)
     if(publicAccounts.size == 0)
@@ -77,11 +108,20 @@ class AccountsOverview {
         ".accLink *" #> acc.label &
         //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
         ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Public.permalink } 
-      })
+      })*/
   }
   
   def authorisedAccounts = {
     def loggedInSnippet(user: User) = {
+      
+      ".accountList" #> privateAccountJsons.map{case (bankId, accountJson) => {
+        //TODO: It might be nice to ensure that the same view is picked each time the page loads
+        val aPrivateView = accountJson.views_available.flatMap(_.filterNot(view => view.is_public.getOrElse(false)).headOption)
+        val aPrivateViewId = aPrivateView.map(_.id).getOrElse("")
+        ".accLink *" #> accountJson.label &
+        ".accLink [href]" #> { "/banks/" + bankId + "/accounts/" + accountJson.id + "/" + aPrivateViewId}
+      }}
+/*      
       val accountsWithMoreThanAnonAccess = user.accountsWithMoreThanAnonAccess.toList.sortBy(acc => acc.label)
       ".accountList" #> accountsWithMoreThanAnonAccess.map(acc => {
         ".accLink *" #> acc.label &
@@ -98,7 +138,7 @@ class AccountsOverview {
            }
           "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + highestViewPermalink
         } 
-      })
+      })*/
     }
     
     def loggedOutSnippet = {
