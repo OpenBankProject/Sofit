@@ -9,6 +9,7 @@
 .settings
 .classpath
 .project
+*.sh
 MavLift/.cache
 MavLift/src/main/resources/rebel.xml
 MavLift/src/main/resources/props

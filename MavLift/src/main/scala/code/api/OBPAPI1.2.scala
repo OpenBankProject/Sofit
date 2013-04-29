@@ -91,6 +91,61 @@ case class BankInfo(
   logo : String,
   website : String
 )
+case class ViewJSON(
+  view : ViewInfo
+)
+case class ViewInfo(
+  id : String,
+  short_name : String,
+  description : String,
+  is_public : Boolean
+)
+case class AccountsJSON(
+  accounts : Set[AccountJSON]
+)
+case class AccountJSON(
+  account : AccountInfo
+)
+case class AccountInfo(
+  id : String,
+  label : String,
+  views_available : Set[ViewJSON]
+)
+
+object JSONFactory{
+  def stringOrNull(text : String) =
+    if(text.isEmpty)
+      null
+    else
+      text
+
+  def createBankInfo(bank : Bank) : BankInfo = {
+    new BankInfo(
+      stringOrNull(bank.permalink),
+      stringOrNull(bank.shortName),
+      stringOrNull(bank.fullName),
+      stringOrNull(bank.logoURL),
+      stringOrNull(bank.website)
+    )
+  }
+
+  def createViewInfo(view : View) : ViewInfo = {
+    new ViewInfo(
+      view.permalink,
+      stringOrNull(view.name),
+      stringOrNull(view.description),
+      view.isPublic
+    )
+  }
+
+  def createAccountInfo(account : BankAccount, viewsAvailable : Set[ViewJSON] ) : AccountInfo = {
+    new AccountInfo(
+      account.permalink,
+      stringOrNull(account.label),
+      viewsAvailable
+    )
+  }
+}
 
 object OBPAPI1_2 extends RestHelper with Loggable {
 
@@ -98,12 +153,6 @@ object OBPAPI1_2 extends RestHelper with Loggable {
   implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
 
   val dateFormat = ModeratedTransaction.dateFormat
-
-  def stingOrNull(text : String) =
-    if(text.isEmpty)
-      null
-    else
-      text
 
   serve("obp" / "v1.2" prefix {
     case Nil JsonGet json => {
@@ -124,12 +173,43 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       logAPICall
       def banksToJson(banksList : List[Bank]) : JValue = {
         val banksJSON : List[BankJSON] = banksList.map( b => {
-            new BankJSON(new BankInfo(stingOrNull(b.permalink),stingOrNull(b.shortName),stingOrNull(b.fullName),stingOrNull(b.logoURL),stingOrNull(b.website)))
+            new BankJSON(JSONFactory.createBankInfo(b))
           })
         val banks = new BanksJSON(banksJSON)
         Extraction.decompose(banks)
       }
       JsonResponse(banksToJson(Bank.all))
+    }
+  })
+  serve("obp" / "v1.2" prefix {
+    case "banks" :: bankId :: "accounts" :: "public" :: Nil JsonGet json => {
+      //log the API call
+      logAPICall
+
+      def bankAccountSetToJson(bankAccounts: Set[BankAccount]): JValue = {
+        val accJson : Set[AccountJSON] = bankAccounts.map( account => {
+            val views = account permittedViews None
+            val viewsAvailable : Set[ViewJSON] =
+                views.map( v => {
+                  new ViewJSON(JSONFactory.createViewInfo(v))
+                })
+            new AccountJSON(JSONFactory.createAccountInfo(account,viewsAvailable))
+          })
+
+        val accounts = new AccountsJSON(accJson)
+        Extraction.decompose(accounts)
+      }
+
+      Bank(bankId) match {
+        case Full(bank) => {
+            val availableAccounts = bank.publicAccounts
+            JsonResponse(bankAccountSetToJson(availableAccounts))
+        }
+        case _ =>  {
+          val error = "bank " + bankId + " not found"
+          JsonResponse(ErrorMessage(error), Nil, Nil, 400)
+        }
+      }
     }
   })
 }

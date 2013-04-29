@@ -45,6 +45,7 @@ trait Bank
 	def permalink : String
   def logoURL : String
 	def accounts : Set[BankAccount]
+  def publicAccounts : Set[BankAccount]
   def website : String
 
 	def detailedJson : JObject = {

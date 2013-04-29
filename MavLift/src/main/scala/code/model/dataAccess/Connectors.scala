@@ -80,7 +80,6 @@ trait LocalStorage extends Loggable {
   def getBank(name: String): Box[Bank]
 
   def getBankAccounts(bank: Bank): Set[BankAccount]
-
   def correctBankAndAccount(bank: String, account: String): Boolean
 
   def getAccount(bankpermalink: String, account: String): Box[Account]
@@ -101,11 +100,13 @@ trait LocalStorage extends Loggable {
   def getCurrentUser : Box[User]
   def getOtherAccount(accountID : String, otherAccountID : String) : Box[OtherBankAccount]
 
+  def getAllAccounts() : List[BankAccount]
+  def getAllPublicAccounts() : List[BankAccount]
+  def getPublicBankAccounts(bank : Bank) : Set[BankAccount]
 }
 
 class MongoDBLocalStorage extends LocalStorage {
-  private def createTransaction(env: OBPEnvelope, theAccount: Account): Transaction =
-  {
+  private def createTransaction(env: OBPEnvelope, theAccount: Account): Transaction = {
     import net.liftweb.json.JsonDSL._
     val transaction: OBPTransaction = env.obp_transaction.get
     val thisAccount = transaction.this_account
@@ -194,8 +195,7 @@ class MongoDBLocalStorage extends LocalStorage {
       label, startDate, finishDate, balance)
   }
 
-  def getTransactions(permalink: String, bankPermalink: String, envelopesForAccount: Account => List[OBPEnvelope]): Box[List[Transaction]] =
-  {
+  def getTransactions(permalink: String, bankPermalink: String, envelopesForAccount: Account => List[OBPEnvelope]): Box[List[Transaction]] = {
       logger.debug("getTransactions for " + bankPermalink + "/" + permalink)
       HostedBank.find("permalink",bankPermalink) match {
         case Full (bank) => bank.getAccount(permalink) match {
@@ -223,7 +223,6 @@ class MongoDBLocalStorage extends LocalStorage {
         )
       )
 
-
   def allBanks : List[Bank] =
     HostedBank.findAll.
       map(
@@ -244,20 +243,27 @@ class MongoDBLocalStorage extends LocalStorage {
     rawAccounts.map(Account.toBankAccount)
   }
 
+  def getPublicBankAccounts(bank : Bank) : Set[BankAccount] = {
+    val bankId = new ObjectId(bank.id)
+    val rawAccounts = Account.findAll(("bankID",bankId) ~ ("anonAccess", true)).toSet
+    println("accounts:" + rawAccounts)
+    rawAccounts.map(Account.toBankAccount)
+  }
+
   //check if the bank and the accounts exist in the database
   def correctBankAndAccount(bank: String, account: String): Boolean =
     HostedBank.find("permalink",bank) match {
         case Full(bank) => bank.isAccount(account)
         case _ => false
       }
+
   def getAccount(bankpermalink: String, account: String): Box[Account] =
     HostedBank.find("permalink",bankpermalink) match {
       case Full (bank) => bank.getAccount(account)
       case _ => Empty
     }
 
-  def getTransaction(id : String, bankPermalink : String, accountPermalink : String) : Box[Transaction] =
-  {
+  def getTransaction(id : String, bankPermalink : String, accountPermalink : String) : Box[Transaction] = {
     for{
       bank <- HostedBank.find("permalink",bankPermalink)
       account  <- bank.getAccount(accountPermalink)
@@ -266,9 +272,9 @@ class MongoDBLocalStorage extends LocalStorage {
     } yield createTransaction(envelope,account)
   }
 
-  def getAllAccounts() : List[Account] = Account.findAll
+  def getAllAccounts() : List[BankAccount] = Account.findAll map Account.toBankAccount
 
-  def getAllPublicAccounts() : List[Account] = Account.findAll("anonAccess", true)
+  def getAllPublicAccounts() : List[BankAccount] = Account.findAll("anonAccess", true) map Account.toBankAccount
 
   def getUser(id : String) : Box[User] =
     OBPUser.find(id)

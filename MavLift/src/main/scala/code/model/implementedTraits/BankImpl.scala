@@ -50,5 +50,6 @@ class BankImpl(
   def logoURL = _logoURL
 	def permalink = _permalink
 	def accounts = LocalStorage.getBankAccounts(this)
+  def publicAccounts = LocalStorage.getPublicBankAccounts(this)
   def website = _website
 }
