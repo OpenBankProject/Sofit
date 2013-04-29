@@ -49,6 +49,7 @@ import scala.xml.NodeSeq
 import Helpers._
 import net.liftweb.util.Props
 import code.model.TokenType
+import code.model.traits.User
 
 /**
 * This object provides the API calls necessary to third party applications
@@ -460,4 +461,28 @@ object OAuthHandshake extends RestHelper with Loggable {
 
     nonceSaved && tokenSaved
 	}
+  def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] =
+    if(httpCode==200)
+    {
+      import code.model.Token
+      logger.info("OAuth header correct ")
+      Token.find(By(Token.key, tokenID.get)) match {
+        case Full(token) => {
+          logger.info("access token: "+ token + " found")
+          val user = User.findById(token.userId.get)
+          //just a log
+          user match {
+            case Full(u) => logger.info("user " + u.emailAddress + " was found from the oauth token")
+            case _ => logger.info("no user was found for the oauth token")
+          }
+          user
+        }
+        case _ =>{
+          logger.warn("no token " + tokenID.get + " found")
+          Empty
+        }
+      }
+    }
+    else
+      Empty
 }

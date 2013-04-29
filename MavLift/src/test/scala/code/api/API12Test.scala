@@ -1,4 +1,4 @@
-package code.api.v1_1
+package code.api.v1_2
 
 import org.scalatest._
 import org.scalatest.FeatureSpec
@@ -26,7 +26,7 @@ case class APIResponse(code: Int, body: JValue)
 
 
 @RunWith(classOf[JUnitRunner])
-class API1_1Test extends FeatureSpec
+class API1_2Test extends FeatureSpec
   with BeforeAndAfter with GivenWhenThen
   with ShouldMatchers with BeforeAndAfterAll {
 
@@ -50,7 +50,7 @@ class API1_1Test extends FeatureSpec
 
   val h = new Http with thread.Safety
   val baseRequest = (:/(host, Integer.valueOf(port)))
-  val v1_1Request = baseRequest / "obp" / "v1.1"
+  val v1_2Request = baseRequest / "obp" / "v1.2"
 
   /**
   * the methods lunched before all the tests
@@ -96,21 +96,38 @@ class API1_1Test extends FeatureSpec
     }
   }
 
+  /********************* API test methods ********************/
   def getAPIInfo = {
-    val request = v1_1Request
+    val request = v1_2Request
+    makeGetRequest(request)
+  }
+
+  def getBanksInfo = {
+    val request = v1_2Request / "banks"
     makeGetRequest(request)
   }
 
   /************************ the tests ************************/
   feature("base line URL works"){
-
     scenario("we get the api information") {
        Given("The user is not logged in")
        When("the request is sent")
        val reply = getAPIInfo
-       Then("we should get a 200 created code")
+       Then("we should get a 200 ok code")
        reply.code should equal (200)
-
+       val apiInfo = reply.body.extract[APIInfoJSON]
+       apiInfo.api.version should equal ("1.2")
     }
   }
+
+  feature("Information about the hosted banks"){
+    scenario("we get the hosted banks information") {
+       Given("The user is not logged in")
+       When("the request is sent")
+       val reply = getBanksInfo
+       Then("we should get a 200 ok code")
+       reply.code should equal (200)
+    }
+  }
+
 }

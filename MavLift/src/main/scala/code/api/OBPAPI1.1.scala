@@ -29,7 +29,7 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 
  */
-package code.api
+package code.api.v1_1
 
 import net.liftweb.http._
 import net.liftweb.http.rest._
@@ -108,7 +108,13 @@ case class GeoCord(
   longitude : Double,
   latitude : Double
 )
+case class ErrorMessage(
+  error : String
+)
 
+case class SuccessMessage(
+  success : String
+)
 
 object OBPAPI1_1 extends RestHelper with Loggable {
 
@@ -359,7 +365,6 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       logAPICall
 
       val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-      val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
       val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
 
       def viewToJson(v : View) : JObject = {
