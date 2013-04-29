@@ -57,6 +57,9 @@ import code.snippet.OAuthAuthorisation
 import javax.mail.{ Authenticator, PasswordAuthentication }
 import net.liftweb.sitemap.Loc.EarlyResponse
 import code.lib.OAuthClient
+import code.lib.ObpGet
+import code.lib.ObpJson._
+import code.snippet.CommentsURLParams
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -170,30 +173,35 @@ class Boot extends Loggable{
       }
       account
     }
-    def getTransaction(URLParameters : List[String]) =
-    {
-      if(URLParameters.length==4)
+    def getTransaction(URLParameters: List[String]) =
       {
-        val bank = URLParameters(0)
-        val account = URLParameters(1)
-        val transactionID = URLParameters(2)
-        val viewName = URLParameters(3)
-        val transaction = for{
-          bankAccount <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
-          transaction <- bankAccount.transaction(transactionID) ?~ {"transaction " + transactionID + " not found in account " + account + " for bank " + bank}
-          view <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found"}
-          if(bankAccount.authorizedAccess(view, OBPUser.currentUser))
-        } yield (view.moderate(transaction),view)
+        if (URLParameters.length == 4) {
+          val bank = URLParameters(0)
+          val account = URLParameters(1)
+          val transactionID = URLParameters(2)
+          val viewName = URLParameters(3)
 
-      transaction match {
-        case Failure(msg, _, _) => logger.info("Could not get transaction: " + msg)
-        case _ => //don't log anything
+          val transactionJson = ObpGet("/banks/" + bank + "/accounts/" + account + "/" + viewName +
+            "/transactions/" + transactionID + "/transaction").flatMap(x => x.extractOpt[TransactionJson])
+
+          //This comes from the DB and should be removed during the transition to API only access
+          // But for now Comments.scala still needs it as the transition is incomplete
+          val transaction = for {
+            bankAccount <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
+            transaction <- bankAccount.transaction(transactionID) ?~ { "transaction " + transactionID + " not found in account " + account + " for bank " + bank }
+            view <- View.fromUrl(viewName) ?~ { "view " + viewName + " not found" }
+            if (bankAccount.authorizedAccess(view, OBPUser.currentUser))
+          } yield (view.moderate(transaction), view)
+
+          val commentsURLParams = CommentsURLParams(bankId = bank, accountId = account, transactionId = transactionID, viewId = viewName)
+          
+          for {
+            t <- transaction
+            tJson <- transactionJson
+          } yield ((t, (tJson, commentsURLParams)))
+        } else
+          Empty
       }
-      transaction
-      }
-      else
-        Empty
-    }
     // Build SiteMap
     val sitemap = List(
           Menu.i("Home") / "index",
@@ -223,7 +231,7 @@ class Boot extends Loggable{
           Menu.params[(List[ModeratedTransaction], View)]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
 
-          Menu.params[(ModeratedTransaction,View)]("transaction", "transaction", getTransaction _ ,  t => List("") )
+          Menu.params[((ModeratedTransaction, View),(TransactionJson, CommentsURLParams))]("transaction", "transaction", getTransaction _ ,  t => List("") )
           / "banks" / * / "accounts" / * / "transactions" / * / *
     )
 

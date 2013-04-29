@@ -65,18 +65,39 @@ import scala.xml.Utility
 import net.liftweb.common.Failure
 import java.net.URL
 import java.net.URI
+import code.lib.ObpJson.TransactionJson
+import java.text.NumberFormat
+import net.liftweb.common.ParamFailure
+import net.liftweb.util.CssSel
+
+case class CommentsURLParams(bankId: String, accountId: String, viewId: String, transactionId: String)
 
 /**
  * This whole class is a rather hastily put together mess
  */
-class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggable{
-  val transaction = transactionAndView._1
-  val view = transactionAndView._2
+class Comments(params : ((ModeratedTransaction, View),(TransactionJson, CommentsURLParams))) extends Loggable{
+  val FORBIDDEN = "---"
+  val transaction = params._1._1
+  val view = params._1._2
+  val transactionInfo = params._2
+  val transactionJson = transactionInfo._1
+  val urlParams = transactionInfo._2
+  val details = transactionJson.details
+  val transactionMetaData = transactionJson.metadata
+  val otherHolder = transactionJson.other_account.flatMap(_.holder)
+  val transactionValue = details.flatMap(_.value)
+
+  def calcCurrencySymbol(currencyCode: Option[String]) = {
+    (for {
+      code <- currencyCode
+      currency <- tryo { Currency.getInstance(code) }
+      symbol <- tryo { currency.getSymbol(S.locale) }
+    } yield symbol) getOrElse FORBIDDEN
+  }
   val commentDateFormat = new SimpleDateFormat("kk:mm:ss EEE MMM dd yyyy")
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
 
   def commentPageTitle(xhtml: NodeSeq): NodeSeq = {
-    val FORBIDDEN = "---"
     val dateFormat = new SimpleDateFormat("EEE MMM dd yyyy")
     var theCurrency = FORBIDDEN
     def formatDate(date: Box[Date]): String = {
@@ -88,47 +109,63 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
 
     (
       ".amount *" #>{
-        val amount = transaction.amount match {
-          case Some(amount) => amount.toString
-          case _ => FORBIDDEN
-        }
-        theCurrency = transaction.currency match {
-          case Some(currencyISOCode) => tryo{
-                    Currency.getInstance(currencyISOCode)
-                  } match {
-                    case Full(currency) => currency.getSymbol(S.locale)
-                    case _ => FORBIDDEN
-                  }
-          case _ => FORBIDDEN
-        }
-        {amount + " " + theCurrency}
+        val amount : String = transactionValue.flatMap(_.amount) getOrElse FORBIDDEN
+        val transactionCurrencyCode = transactionValue.flatMap(_.currency)
+        val currencySymbol = calcCurrencySymbol(transactionCurrencyCode)
+        //TODO: Would be nice to get localise this in terms of "." vs "," and the location of the currency symbol
+        // (before or after the number)
+        amount + " " + currencySymbol
       } &
       ".other_account_holder *" #> {
-        transaction.otherBankAccount match {
-          case Some(otherBankaccount) =>{
-            ".the_name" #> otherBankaccount.label.display &
-            {otherBankaccount.label.aliasType match {
-                case PublicAlias => ".alias_indicator [class+]" #> "alias_indicator_public" &
-                    ".alias_indicator *" #> "(Alias)"
-                case PrivateAlias => ".alias_indicator [class+]" #> "alias_indicator_private" &
-                    ".alias_indicator *" #> "(Alias)"
-                case _ => NOOP_SELECTOR
-            }}
+
+        def otherHolderSelector = {
+          val holderName = otherHolder.flatMap(_.name)
+          val isAlias = otherHolder.flatMap(_.is_alias) getOrElse true
+
+          def aliasSelector = {
+
+            def indicatorClass = urlParams.viewId match {
+              case "public" => ".alias_indicator [class+]" #> "alias_indicator_public"
+              case _ => ".alias_indicator [class+]" #> "alias_indicator_private"
+            }
+            
+            if (isAlias) {
+              ".alias_indicator *" #> "(Alias)" &
+              indicatorClass
+            } else {
+              NOOP_SELECTOR
+            }
           }
-          case _ => "* *" #> FORBIDDEN
+          
+          ".the_name" #> holderName &
+          aliasSelector
         }
+        
+        if(otherHolder.isDefined) otherHolderSelector
+        else "* *" #> FORBIDDEN
       } &
       ".date_cleared *" #> {
-        transaction.finishDate match {
+        val finishDate = details.flatMap(_.completed)
+        finishDate match {
           case Some(date) => formatDate(Full(date))
           case _ => FORBIDDEN
         }
       } &
       ".label *" #> {
-            transaction.label.getOrElse(FORBIDDEN)
+        val narrative = transactionMetaData.flatMap(_.narrative)
+        narrative.getOrElse(FORBIDDEN)
       } &
       ".new_balance *" #> {
-            transaction.balance + " " + theCurrency
+        val newBalance = details.flatMap(_.new_balance)
+        newBalance match {
+          case Some(b) => {
+            val amount = b.amount getOrElse FORBIDDEN
+            val accountCurrencyCode = b.currency
+            val currencySymbol = calcCurrencySymbol(accountCurrencyCode)
+            amount + " " + currencySymbol
+          }
+          case _ => FORBIDDEN
+        }
       }
     ).apply(xhtml)
   }
