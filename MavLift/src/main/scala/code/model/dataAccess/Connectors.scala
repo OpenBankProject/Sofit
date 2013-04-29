@@ -103,6 +103,7 @@ trait LocalStorage extends Loggable {
   def getAllAccounts() : List[BankAccount]
   def getAllPublicAccounts() : List[BankAccount]
   def getPublicBankAccounts(bank : Bank) : Set[BankAccount]
+  def getPrivateBankAccounts(bank : Bank) : Set[BankAccount]
 }
 
 class MongoDBLocalStorage extends LocalStorage {
@@ -246,6 +247,12 @@ class MongoDBLocalStorage extends LocalStorage {
   def getPublicBankAccounts(bank : Bank) : Set[BankAccount] = {
     val bankId = new ObjectId(bank.id)
     val rawAccounts = Account.findAll(("bankID",bankId) ~ ("anonAccess", true)).toSet
+    println("accounts:" + rawAccounts)
+    rawAccounts.map(Account.toBankAccount)
+  }
+  def getPrivateBankAccounts(bank : Bank) : Set[BankAccount] = {
+    val bankId = new ObjectId(bank.id)
+    val rawAccounts = Account.findAll(("bankID",bankId) ~ ("anonAccess", false)).toSet
     println("accounts:" + rawAccounts)
     rawAccounts.map(Account.toBankAccount)
   }

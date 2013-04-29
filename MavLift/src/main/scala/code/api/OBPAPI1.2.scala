@@ -154,6 +154,23 @@ object OBPAPI1_2 extends RestHelper with Loggable {
 
   val dateFormat = ModeratedTransaction.dateFormat
 
+  private def bankAccountSetToJson(bankAccounts: Set[BankAccount]): JValue = {
+    val accJson : Set[AccountJSON] = bankAccounts.map( account => {
+        val views = account permittedViews None
+        val viewsAvailable : Set[ViewJSON] =
+            views.map( v => {
+              new ViewJSON(JSONFactory.createViewInfo(v))
+            })
+        new AccountJSON(JSONFactory.createAccountInfo(account,viewsAvailable))
+      })
+
+    val accounts = new AccountsJSON(accJson)
+    Extraction.decompose(accounts)
+  }
+
+
+
+
   serve("obp" / "v1.2" prefix {
     case Nil JsonGet json => {
       logAPICall
@@ -186,20 +203,6 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       //log the API call
       logAPICall
 
-      def bankAccountSetToJson(bankAccounts: Set[BankAccount]): JValue = {
-        val accJson : Set[AccountJSON] = bankAccounts.map( account => {
-            val views = account permittedViews None
-            val viewsAvailable : Set[ViewJSON] =
-                views.map( v => {
-                  new ViewJSON(JSONFactory.createViewInfo(v))
-                })
-            new AccountJSON(JSONFactory.createAccountInfo(account,viewsAvailable))
-          })
-
-        val accounts = new AccountsJSON(accJson)
-        Extraction.decompose(accounts)
-      }
-
       Bank(bankId) match {
         case Full(bank) => {
             val availableAccounts = bank.publicAccounts
@@ -212,4 +215,35 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       }
     }
   })
+  serve("obp" / "v1.2" prefix {
+    case "banks" :: bankId :: "accounts" :: "private" :: Nil JsonGet json => {
+      //log the API call
+      logAPICall
+
+      if (isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+          Bank(bankId) match {
+            case Full(bank) => {
+                val availableAccounts = bank.privateAccounts(user)
+                JsonResponse(bankAccountSetToJson(availableAccounts))
+            }
+            case _ =>  {
+              val error = "bank " + bankId + " not found"
+              JsonResponse(ErrorMessage(error), Nil, Nil, 400)
+            }
+          }
+        }
+        else
+          errorJsonResponce(message,httpCode)
+      }
+      else
+        oauthHeaderRequiredJsonResponce
+
+    }
+  })
+
 }

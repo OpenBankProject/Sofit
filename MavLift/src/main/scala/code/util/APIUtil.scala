@@ -1,11 +1,19 @@
 package code.util
 
 import code.model.dataAccess.APIMetric
+import code.api.v1_2.ErrorMessage
+
+import net.liftweb.http.JsonResponse
+import net.liftweb.json.Extraction
+import net.liftweb.json.JsonAST.JValue
 import net.liftweb.common.Full
 import net.liftweb.util.Helpers._
 import net.liftweb.http.S
 
 object APIUtil {
+
+  implicit val formats = net.liftweb.json.DefaultFormats
+  implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
 
   def httpMethod : String =
     S.request match {
@@ -37,4 +45,11 @@ object APIUtil {
     }
     commit getOrElse ""
   }
+
+  def errorJsonResponce(message : String = "error", httpCode : Int = 400) : JsonResponse =
+    JsonResponse(Extraction.decompose(ErrorMessage(message)), Nil, Nil, httpCode)
+
+  def oauthHeaderRequiredJsonResponce : JsonResponse =
+    JsonResponse(Extraction.decompose(ErrorMessage("Authentication via OAuth is required")), Nil, Nil, 400)
+
 }
