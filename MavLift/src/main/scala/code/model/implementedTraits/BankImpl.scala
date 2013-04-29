@@ -31,9 +31,11 @@ Berlin 13359, Germany
  */
 package code.model.implementedTraits
 
-import code.model.traits.{Bank, BankAccount}
+import code.model.traits.{Bank, BankAccount, User}
 import code.model.dataAccess.LocalStorage
 import code.model.dataAccess.HostedBank
+
+import net.liftweb.common.Box
 
 class BankImpl(
   _id: String,
@@ -50,5 +52,17 @@ class BankImpl(
   def logoURL = _logoURL
 	def permalink = _permalink
 	def accounts = LocalStorage.getBankAccounts(this)
+  def publicAccounts = LocalStorage.getPublicBankAccounts(this)
+  def privateAccounts(user : Box[User]) : Set[BankAccount] = {
+    //ask the localStorage for the all the private accounts
+    val accounts = LocalStorage.getPrivateBankAccounts(this)
+    //then see if for every one there is at least a view available for the user
+
+    def atLeastOneView(account : BankAccount, user : Box[User]) = {
+      ! account.permittedViews(user).isEmpty
+    }
+
+    accounts.filter(atLeastOneView(_,user))
+  }
   def website = _website
 }

@@ -139,11 +139,11 @@ object BankAccount {
   }
 
   def all : List[BankAccount] = {
-    LocalStorage.getAllAccounts() map Account.toBankAccount
+    LocalStorage.getAllAccounts()
   }
 
   def publicAccounts : List[BankAccount] = {
-    LocalStorage.getAllPublicAccounts() map Account.toBankAccount
+    LocalStorage.getAllPublicAccounts()
   }
 
 }

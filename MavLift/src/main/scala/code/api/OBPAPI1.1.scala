@@ -365,7 +365,6 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       logAPICall
 
       val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-      val headers = ("Content-type" -> "application/x-www-form-urlencoded") :: Nil
       val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
 
       def viewToJson(v : View) : JObject = {

@@ -121,7 +121,7 @@ class API1_2Test extends FeatureSpec
   }
 
   feature("Information about the hosted banks"){
-    scenario("we get the hosted banks information")
+    scenario("we get the hosted banks information") {
        Given("The user is not logged in")
        When("the request is sent")
        val reply = getBanksInfo
