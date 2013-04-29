@@ -67,7 +67,7 @@ class AccountsOverview extends Loggable {
     id <- bank.id
   } yield id
   
-  logger.info("Bank ids found: " + bankIds)
+  logger.info("Accounts Overview: Bank ids found: " + bankIds)
 
   type BankID = String
   val publicAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
@@ -75,14 +75,14 @@ class AccountsOverview extends Loggable {
     publicAccountsJson <- ObpGet("/banks/" + bankId + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountJson])
   } yield (bankId, publicAccountsJson)
   
-  logger.info("Public accounts found: " + publicAccountJsons)
+  logger.info("Accounts Overview: Public accounts found: " + publicAccountJsons)
   
   val privateAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
     bankId <- bankIds
     privateAccountsJson <- ObpGet("/banks/" + bankId + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountJson])
   } yield (bankId, privateAccountsJson)
   
-  logger.info("Private accounts found: " + privateAccountJsons)
+  logger.info("Accounts Overview: Private accounts found: " + privateAccountJsons)
   
   def publicAccounts = {
     
