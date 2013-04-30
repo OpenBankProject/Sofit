@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -54,21 +54,21 @@ class AccountsOverview {
     val publicAccounts = BankAccount.publicAccounts.sortBy(acc => acc.label)
     if(publicAccounts.size == 0)
       ".accountList" #> "No public accounts"
-    else  
+    else
       ".accountList" #> publicAccounts.map(acc => {
         ".accLink *" #> acc.label &
         //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
-        ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Public.permalink } 
+        ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Public.permalink }
       })
   }
-  
+
   def authorisedAccounts = {
     def loggedInSnippet(user: User) = {
       val accountsWithMoreThanAnonAccess = user.accountsWithMoreThanAnonAccess.toList.sortBy(acc => acc.label)
       ".accountList" #> accountsWithMoreThanAnonAccess.map(acc => {
-        ".accLink *" #> acc.label &
+        ".accLink *" #> acc.name &
         //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
-        ".accLink [href]" #> { 
+        ".accLink [href]" #> {
           val permittedViews = user.permittedViews(acc)
           val highestViewPermalink = {
             //Make sure that the link always points to the same view by giving some order instead of picking the first one
@@ -79,18 +79,18 @@ class AccountsOverview {
             else OurNetwork.permalink
            }
           "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + highestViewPermalink
-        } 
+        }
       })
     }
-    
+
     def loggedOutSnippet = {
-      ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg")) 
+      ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg"))
     }
-    
+
     OBPUser.currentUser match {
       case Full(u) => loggedInSnippet(u)
       case _ => loggedOutSnippet
     }
   }
-  
+
 }

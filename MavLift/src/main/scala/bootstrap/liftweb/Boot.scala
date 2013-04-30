@@ -67,12 +67,23 @@ class Boot extends Loggable{
     MongoConfig.init
 
     if (!DB.jndiJdbcConnAvailable_?) {
-      val driver = Props.get("db.driver") openOr "org.h2.Driver"
+      val driver =
+        Props.mode match {
+          case Props.RunModes.Production | Props.RunModes.Staging | Props.RunModes.Development =>  Props.get("db.driver") openOr "org.h2.Driver"
+          case _ => "org.h2.Driver"
+        }
       val vendor =
-	      new StandardDBVendor(driver,
-			     Props.get("db.url") openOr
-			     "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
-			     Props.get("db.user"), Props.get("db.password"))
+        Props.mode match {
+          case Props.RunModes.Production | Props.RunModes.Staging | Props.RunModes.Development =>
+            new StandardDBVendor(driver,
+               Props.get("db.url") openOr "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
+               Props.get("db.user"), Props.get("db.password"))
+          case _ =>
+            new StandardDBVendor(
+              driver,
+              "jdbc:h2:mem:OBPTest;DB_CLOSE_DELAY=-1",
+              Empty, Empty)
+        }
 
       logger.debug("Using database driver: " + driver)
       LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)

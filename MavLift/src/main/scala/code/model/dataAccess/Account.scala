@@ -124,8 +124,24 @@ class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
 object Account extends Account with MongoMetaRecord[Account] {
   def toBankAccount(account: Account): BankAccount = {
     val iban = if (account.iban.toString.isEmpty) None else Some(account.iban.toString)
-    var bankAccount = new BankAccountImpl(account.id.toString, Set(), account.kind.toString, account.balance.get, account.currency.toString, account.label.toString,
-      "", None, iban, account.anonAccess.get, account.number.get, account.bankName, account.bankPermalink, account.permalink.get)
+    var bankAccount =
+      new BankAccountImpl(
+        account.id.toString,
+        Set(),
+        account.kind.toString,
+        account.balance.get,
+        account.currency.toString,
+        account.name.get,
+        account.label.toString,
+        "",
+        None,
+        iban,
+        account.anonAccess.get,
+        account.number.get,
+        account.bankName,
+        account.bankPermalink,
+        account.permalink.get
+      )
     val owners = Set(new AccountOwnerImpl("", account.holder.toString, Set(bankAccount)))
     bankAccount.owners = Set(new AccountOwnerImpl("", account.holder.toString, Set(bankAccount)))
 

@@ -169,8 +169,6 @@ object OBPAPI1_2 extends RestHelper with Loggable {
   }
 
 
-
-
   serve("obp" / "v1.2" prefix {
     case Nil JsonGet json => {
       logAPICall
@@ -188,6 +186,7 @@ object OBPAPI1_2 extends RestHelper with Loggable {
   serve("obp" / "v1.2" prefix{
     case "banks" :: Nil JsonGet json => {
       logAPICall
+
       def banksToJson(banksList : List[Bank]) : JValue = {
         val banksJSON : List[BankJSON] = banksList.map( b => {
             new BankJSON(JSONFactory.createBankInfo(b))
@@ -200,7 +199,6 @@ object OBPAPI1_2 extends RestHelper with Loggable {
   })
   serve("obp" / "v1.2" prefix {
     case "banks" :: bankId :: "accounts" :: "public" :: Nil JsonGet json => {
-      //log the API call
       logAPICall
 
       Bank(bankId) match {
@@ -217,7 +215,6 @@ object OBPAPI1_2 extends RestHelper with Loggable {
   })
   serve("obp" / "v1.2" prefix {
     case "banks" :: bankId :: "accounts" :: "private" :: Nil JsonGet json => {
-      //log the API call
       logAPICall
 
       if (isThereAnOAuthHeader)
@@ -242,7 +239,6 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       }
       else
         oauthHeaderRequiredJsonResponce
-
     }
   })
 
