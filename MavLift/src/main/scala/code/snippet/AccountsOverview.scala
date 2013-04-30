@@ -56,7 +56,7 @@ class AccountsOverview {
       ".accountList" #> "No public accounts"
     else
       ".accountList" #> publicAccounts.map(acc => {
-        ".accLink *" #> acc.label &
+        ".accLink *" #> acc.name &
         //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
         ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Public.permalink }
       })
