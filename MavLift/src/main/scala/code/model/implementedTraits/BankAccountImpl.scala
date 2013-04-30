@@ -46,10 +46,23 @@ import code.model.dataAccess.LocalStorage
 import code.model.dataAccess.OBPEnvelope._
 import code.model.traits.User
 
-class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType_ : String, currentBalance_ : BigDecimal,
-  currency_ : String, label_ : String, nationalIdentifier_ : String, swift_bic_ : Option[String],
-  iban_ : Option[String], allowAnnoymousAccess_ : Boolean,
-  number_ : String, bankName_ : String, bankPermalink_ : String, permalink_ : String) extends BankAccount with Loggable{
+class BankAccountImpl(
+  id_ : String,
+  var _owners : Set[AccountOwner],
+  accountType_ : String,
+  currentBalance_ : BigDecimal,
+  currency_ : String,
+  name_ : String,
+  label_ : String,
+  nationalIdentifier_ : String,
+  swift_bic_ : Option[String],
+  iban_ : Option[String],
+  allowAnnoymousAccess_ : Boolean,
+  number_ : String,
+  bankName_ : String,
+  bankPermalink_ : String,
+  permalink_ : String
+) extends BankAccount with Loggable{
 
   def id = id_
   def owners = _owners
@@ -59,6 +72,7 @@ class BankAccountImpl(id_ : String, var _owners : Set[AccountOwner], accountType
   def bankPermalink = bankPermalink_
   def permalink = permalink_
   def currency = currency_
+  def name  = name_
   def label = label_
   def nationalIdentifier = nationalIdentifier_
   def swift_bic = swift_bic_
