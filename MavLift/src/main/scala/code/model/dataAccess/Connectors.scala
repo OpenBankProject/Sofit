@@ -252,7 +252,7 @@ class MongoDBLocalStorage extends LocalStorage {
   }
   def getPrivateBankAccounts(bank : Bank) : Set[BankAccount] = {
     val bankId = new ObjectId(bank.id)
-    val rawAccounts = Account.findAll(("bankID",bankId) ~ ("anonAccess", false)).toSet
+    val rawAccounts = Account.findAll(("bankID",bankId)).toSet
     println("accounts:" + rawAccounts)
     rawAccounts.map(Account.toBankAccount)
   }

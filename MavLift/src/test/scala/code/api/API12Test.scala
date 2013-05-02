@@ -93,6 +93,20 @@ class API1_2Test extends ServerSetup{
       new APIResponse(400,emptyJSON)
   }
 
+  def getPrivateAccountsWithOutToken : h.HttpPackage[APIResponse] = {
+    val reply = getBanksInfo
+    val banksInfo = reply.body.extract[BanksJSON]
+    if(! banksInfo.banks.isEmpty)
+    {
+      val bank = banksInfo.banks.head
+      val request = v1_2Request / "banks" / bank.bank.id / "accounts" / "private"
+      makeGetRequest(request)
+    }
+    else
+      new APIResponse(400,emptyJSON)
+  }
+
+
   /************************ the tests ************************/
   feature("base line URL works"){
     scenario("we get the api information") {
@@ -131,13 +145,20 @@ class API1_2Test extends ServerSetup{
 
   feature("Information about the private bank accounts"){
     scenario("we get the private bank accounts") {
-       Given("The we will use an access token")
+       Given("We will use an access token")
        When("the request is sent")
        val reply = getPrivateAccounts
        Then("we should get a 200 ok code")
        reply.code should equal (200)
        val privateAccountsInfo = reply.body.extract[AccountsJSON]
        println("private accounts : " + privateAccountsInfo)
+    }
+    scenario("we don't get the private bank accounts") {
+       Given("We will not use an access token")
+       When("the request is sent")
+       val reply = getPrivateAccountsWithOutToken
+       Then("we should get a 400 code")
+       reply.code should equal (400)
     }
   }
 
