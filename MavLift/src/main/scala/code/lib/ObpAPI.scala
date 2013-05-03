@@ -222,7 +222,11 @@ object ObpGet {
 object ObpJson {
   import net.liftweb.json._
   implicit val formats = DefaultFormats
-  case class BanksJson(banks : Option[List[BankJson]])
+  case class BanksJson(banks : Option[List[BankJson]]) {
+    def bankJsons: List[BankJson] = {
+      banks.toList.flatten
+    }
+  }
   case class BankJson(id: Option[String], 
 		  		  short_name: Option[String],
 		  		  full_name: Option[String],
@@ -249,6 +253,8 @@ object ObpJson {
 		  			 IBAN : Option[String],
 		  			 views_available: Option[List[ViewJson]])
 		  			 
+  case class BarebonesAccountsJson(accounts: Option[List[BarebonesAccountJson]])
+  
   case class BarebonesAccountJson(id: Option[String],
 		  						  label: Option[String],
 		  						  views_available: Option[List[ViewJson]])
@@ -324,5 +330,18 @@ object ObpJson {
 		  					 this_account: Option[ThisAccountJson],
 		  					 other_account: Option[OtherAccountJson],
 		  					 details: Option[TransactionDetailsJson],
-		  					 metadata: Option[TransactionMetadataJson])
+		  					 metadata: Option[TransactionMetadataJson]) {
+    
+    lazy val imageJsons : Option[List[TransactionImageJson]] = {
+      metadata.flatMap(_.images)
+    }
+    
+    lazy val tagJsons : Option[List[TransactionTagJson]] = {
+      metadata.flatMap(_.tags)
+    }
+    
+    lazy val commentJsons : Option[List[TransactionCommentJson]] = {
+      metadata.flatMap(_.comments)
+    }
+  }
 }
