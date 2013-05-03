@@ -58,57 +58,56 @@ import net.liftweb.common.Loggable
 
 class AccountsOverview extends Loggable {
 		  		  
-  val banksJsonBox = ObpGet("/banks").flatMap(_.extractOpt[BanksJson])
+  val banksJsonBox = ObpGet.allBanks
+  
+  val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
   
   val bankIds = for {
-    banksJson <- banksJsonBox.toList
-    banks <- banksJson.banks.toList
-    bank <- banks
+    bank <- bankJsons
     id <- bank.id
   } yield id
   
   logger.info("Accounts Overview: Bank ids found: " + bankIds)
-
+  
   type BankID = String
   val publicAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
     bankId <- bankIds
-    publicAccountsJson <- ObpGet("/banks/" + bankId + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountJson])
-  } yield (bankId, publicAccountsJson)
+    publicAccountsJson <- ObpGet("/banks/" + bankId + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson]).toList
+    barebonesAccountJson <- publicAccountsJson.accounts.flatten
+  } yield (bankId, barebonesAccountJson)
   
   logger.info("Accounts Overview: Public accounts found: " + publicAccountJsons)
   
   val privateAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
     bankId <- bankIds
-    privateAccountsJson <- ObpGet("/banks/" + bankId + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountJson])
-  } yield (bankId, privateAccountsJson)
+    privateAccountsJson <- ObpGet("/banks/" + bankId + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson]).toList
+    barebonesAccountJson <- privateAccountsJson.accounts.flatten
+  } yield (bankId, barebonesAccountJson)
   
   logger.info("Accounts Overview: Private accounts found: " + privateAccountJsons)
   
   def publicAccounts = {
-    
-    if(publicAccountJsons.size == 0) {
+
+    if (publicAccountJsons.size == 0) {
       ".accountList" #> "No public accounts"
     } else {
-      ".accountList" #> publicAccountJsons.map{case(bankId, accountJson) => {
-        //TODO: It might be nice to ensure that the same view is picked each time the page loads
-        val aPublicView = accountJson.views_available.flatMap(_.filter(view => view.is_public.getOrElse(false)).headOption)
-        val aPublicViewId = aPublicView.map(_.id).getOrElse("")
-        
-        ".accLink *" #> accountJson.label &
-        ".accLink [href]" #> { "/banks/" + bankId + "/accounts/" + accountJson.id + "/" + aPublicViewId}
-      }}
+      ".accountList" #> publicAccountJsons.map {
+        case (bankId, accountJson) => {
+          //TODO: It might be nice to ensure that the same view is picked each time the page loads
+          val views = accountJson.views_available.flatten
+          val aPublicViewId: String = (for {
+            aPublicView <- views.filter(view => view.is_public.getOrElse(false)).headOption
+            viewId <- aPublicView.id
+          } yield viewId).getOrElse("")
+
+          ".accLink *" #> accountJson.label &
+            ".accLink [href]" #> {
+              val accountId = accountJson.id.getOrElse("")
+              "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
+            }
+        }
+      }
     }
-/*    
-    //TODO: In the future once we get more bank accounts we will probably want some sort of pagination or limit on the number of accounts displayed
-    val publicAccounts = BankAccount.publicAccounts.sortBy(acc => acc.label)
-    if(publicAccounts.size == 0)
-      ".accountList" #> "No public accounts"
-    else  
-      ".accountList" #> publicAccounts.map(acc => {
-        ".accLink *" #> acc.label &
-        //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
-        ".accLink [href]" #> { "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + Public.permalink } 
-      })*/
   }
   
   def authorisedAccounts = {
@@ -116,29 +115,18 @@ class AccountsOverview extends Loggable {
       
       ".accountList" #> privateAccountJsons.map{case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
-        val aPrivateView = accountJson.views_available.flatMap(_.filterNot(view => view.is_public.getOrElse(false)).headOption)
-        val aPrivateViewId = aPrivateView.map(_.id).getOrElse("")
+        val views = accountJson.views_available.flatten
+        val aPrivateViewId: String = (for {
+          aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
+          viewId <- aPrivateView.id
+        } yield viewId).getOrElse("")
+        
         ".accLink *" #> accountJson.label &
-        ".accLink [href]" #> { "/banks/" + bankId + "/accounts/" + accountJson.id + "/" + aPrivateViewId}
+        ".accLink [href]" #> {
+          val accountId : String = accountJson.id.getOrElse("")
+          "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
+        }
       }}
-/*      
-      val accountsWithMoreThanAnonAccess = user.accountsWithMoreThanAnonAccess.toList.sortBy(acc => acc.label)
-      ".accountList" #> accountsWithMoreThanAnonAccess.map(acc => {
-        ".accLink *" #> acc.label &
-        //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance
-        ".accLink [href]" #> { 
-          val permittedViews = user.permittedViews(acc)
-          val highestViewPermalink = {
-            //Make sure that the link always points to the same view by giving some order instead of picking the first one
-            if(permittedViews.contains(Owner)) Owner.permalink
-            else if (permittedViews.contains(Board)) Board.permalink
-            else if (permittedViews.contains(Authorities)) Authorities.permalink
-            else if (permittedViews.contains(Team)) Team.permalink
-            else OurNetwork.permalink
-           }
-          "/banks/" + acc.bankPermalink + "/accounts/" + acc.permalink + "/" + highestViewPermalink
-        } 
-      })*/
     }
     
     def loggedOutSnippet = {
