@@ -17,8 +17,164 @@ import java.io.BufferedReader
 import net.liftweb.util.Helpers._
 import java.io.InputStreamReader
 import java.util.Date
+import net.liftweb.http.RequestVar
+import code.lib.ObpJson._
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
+
+object ObpAPI {
+  implicit val formats = DefaultFormats
+  
+  /**
+   * The request vars ensure that for one page load, the same API call isn't
+   * made multiple times
+   */
+  object allBanksVar extends RequestVar[Box[BanksJson]] (Empty)
+  
+  def allBanks : Box[BanksJson]= {
+    allBanksVar.get match {
+      case Full(a) => Full(a)
+      case _ => ObpGet("/banks").flatMap(_.extractOpt[BanksJson])
+    }
+  }
+  
+  /**
+   * @return The json for the tags that were successfully added
+   */
+  def addTags(bankId : String, accountId : String, viewId : String,
+      transactionId: String, tags: List[String]) : List[TransactionTagJson] = {
+    
+    val addTagJsons = tags.map(tag => ("to" -> "do"))
+    
+    throw new NotImplementedException()
+    addTagJsons.map(addTagJson => 
+      ObpPost("TODO", addTagJson).flatMap(_.extractOpt[TransactionTagJson])).flatten
+  }
+  
+  /**
+   * @return True if the tag was deleted
+   */
+  def deleteTag(bankId : String, accountId : String, viewId : String,
+      transactionId: String, tagId: String) : Boolean  = {
+    //TODO: Why does the API need all these parameters?
+    ObpDelete("TODO")
+    throw new NotImplementedException()
+  }
+  
+  /**
+   * @return True if the image was created
+   */
+  def addImage(bankId : String, accountId : String, viewId : String,
+      transactionId: String, imageURL: String) : Boolean  = {
+    throw new NotImplementedException()
+    //TODO: Why does the API need all these parameters?
+    val json = ("to" -> "do")
+    ObpPost("TODO", json) match {
+      case Full(j) => true
+      case _ => false
+    }
+  }
+  
+  /**
+   * @return True if the image was deleted
+   */
+  def deleteImage(bankId : String, accountId : String, viewId : String,
+      transactionId: String, imageId: String) : Boolean  = {
+    //TODO: Why does the API need all these parameters?
+    ObpDelete("TODO")
+    throw new NotImplementedException()
+  }
+}
+
+object ObpPost {
+  implicit val formats = DefaultFormats
+
+  def apply(apiPath: String, json : JValue): Box[JValue] = {
+    tryo {
+      val credentials = OAuthClient.getOrCreateCredential(OAuthClient.defaultProvider) //TODO: Support multiple providers
+      val apiUrl = credentials.provider.apiBaseUrl
+      val url = new URL(apiUrl + apiPath)
+      //bleh
+      val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
+      request.setRequestMethod("POST")
+      request.setRequestProperty("Content-Type", "application/json")
+      request.setRequestProperty("Accept", "application/json")
+
+      //Set the request body
+      val output = request.getOutputStream()
+      val body = compact(render(json)).getBytes()
+      output.write(body)
+      output.flush()
+      output.close()
+      
+      val consumer = credentials.consumer
+      consumer.sign(request)
+      request.connect()
+
+      val status = request.getResponseCode()
+
+      status match {
+        case 200 | 201 => {
+          //bleh
+          val reader = new BufferedReader(new InputStreamReader(request.getInputStream()))
+          val builder = new StringBuilder()
+          var line = ""
+          def readLines() {
+            line = reader.readLine()
+            if (line != null) {
+              builder.append(line + "\n")
+              readLines()
+            }
+          }
+          readLines()
+          reader.close();
+          val result = builder.toString();
+          parse(result)
+        }
+        case code => {
+          throw new Exception("Bad response code from server: " + code) //bleh -> converts to Failure due to the tryo
+        }
+      }
+    }
+  }
+}
+
+object ObpDelete {
+  implicit val formats = DefaultFormats
+  
+  /**
+   * @return True if the delete worked
+   */
+  def apply(apiPath: String): Boolean = {
+    val worked = tryo {
+      val credentials = OAuthClient.getOrCreateCredential(OAuthClient.defaultProvider) //TODO: Support multiple providers
+      val apiUrl = credentials.provider.apiBaseUrl
+      val url = new URL(apiUrl + apiPath)
+      //bleh
+      val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
+      request.setRequestMethod("DELETE")
+      request.setRequestProperty("Content-Type", "application/json")
+      request.setRequestProperty("Accept", "application/json")
+
+      val consumer = credentials.consumer
+      consumer.sign(request)
+      request.connect()
+
+      val status = request.getResponseCode()
+
+      status match {
+        case 200 => true
+        case _ => false
+      }
+    }
+    
+    worked.getOrElse(false)
+  }
+}
 
 object ObpGet {
+  
+  implicit val formats = DefaultFormats
+  
   //Ah, dispatch does have oauth support. It would be nicer to use dispatch! -E.S.
   def apply(apiPath: String): Box[JValue] = {
     tryo {
