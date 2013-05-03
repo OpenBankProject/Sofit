@@ -71,7 +71,7 @@ object OBPDemo extends Provider {
   val name = "The Open Bank Project Demo"
     
   val baseUrl = Props.get("hostname", S.hostName)
-  val apiBaseUrl = baseUrl + "/obp/v1.1"
+  val apiBaseUrl = baseUrl + "/obp/v1.2"
   val apiVersion = "1.1"
   val requestTokenUrl = baseUrl + "/oauth/initiate"
   val accessTokenUrl = baseUrl + "/oauth/token"
