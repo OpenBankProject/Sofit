@@ -55,10 +55,11 @@ import net.liftweb.json.JsonAST.JString
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json.JBool
 import net.liftweb.common.Loggable
+import code.lib.ObpAPI
 
 class AccountsOverview extends Loggable {
 		  		  
-  val banksJsonBox = ObpGet.allBanks
+  val banksJsonBox = ObpAPI.allBanks
   
   val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
   
