@@ -58,7 +58,9 @@ trait BankAccount {
   //ISO 4217, e.g. EUR, GBP, USD, etc.
   def currency: String
 
-  //Name to display, e.g. TESOBE Postbank Account
+  def name : String
+
+  //label to display, e.g. TESOBE Postbank Account
   def label : String
 
   def bankName : String

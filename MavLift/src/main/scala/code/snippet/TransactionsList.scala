@@ -251,7 +251,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
 
   def accountDetails = {
     filteredTransactions match {
-      case Nil => "#accountName *" #> ""
+      case Nil => "#accountShortDiscription *" #> ""
       case x :: xs => {
         x.bankAccount match {
           case Some(bankAccount) => {
