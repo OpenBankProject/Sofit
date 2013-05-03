@@ -49,6 +49,7 @@ import net.liftweb.http.js.JsCmds._Noop
 import code.model.traits.BankAccount
 import code.lib.ObpJson._
 import code.lib.ObpGet
+import code.lib.ObpAPI
 
 class Nav {
 
@@ -200,7 +201,7 @@ class Nav {
 
   def listAccounts = {
     //TODO: Get all banks, then for each bank, all accounts
-    val banksJsonBox = ObpGet.allBanks
+    val banksJsonBox = ObpAPI.allBanks
     val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
     val accountJsons : List[AccountJson] = Nil //TODO: Need to know a view to make this request...
     
