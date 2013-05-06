@@ -147,6 +147,20 @@ class API1_2Test extends ServerSetup{
       new APIResponse(400,emptyJSON)
   }
 
+  def getPrivateBankAccountDetails : h.HttpPackage[APIResponse] = {
+    val reply = getPrivateAccounts
+    val accountsInfo = reply.body.extract[AccountsJSON]
+    if(accountsInfo.accounts.nonEmpty)
+    {
+      val account = accountsInfo.accounts.head
+      val view = account.views_available.head
+      val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / view.id / "account" <@(consumer,token)
+      makeGetRequest(request)
+    }
+    else
+      new APIResponse(400,emptyJSON)
+  }
+
   /************************ the tests ************************/
   feature("base line URL works"){
     scenario("we get the api information") {
@@ -205,16 +219,16 @@ class API1_2Test extends ServerSetup{
 
   feature("Information about the public bank accounts"){
     scenario("we get the public bank accounts") {
-    Given("We will not use an access token")
-    When("the request is sent")
-    val reply = getPublicAccounts
-    Then("we should get a 200 ok code")
-    reply.code should equal (200)
-    val publicAccountsInfo = reply.body.extract[AccountsJSON]
-    publicAccountsInfo.accounts.foreach(a => {
-      a.id.nonEmpty should equal (true)
-      a.views_available.nonEmpty should equal (true)
-    })
+      Given("We will not use an access token")
+      When("the request is sent")
+      val reply = getPublicAccounts
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+      val publicAccountsInfo = reply.body.extract[AccountsJSON]
+      publicAccountsInfo.accounts.foreach(a => {
+        a.id.nonEmpty should equal (true)
+        a.views_available.nonEmpty should equal (true)
+      })
     }
   }
 
@@ -230,6 +244,7 @@ class API1_2Test extends ServerSetup{
         a.id.nonEmpty should equal (true)
         a.views_available.nonEmpty should equal (true)
       })
+      println("==> accounts: " + privateAccountsInfo.accounts)
     }
     scenario("we don't get the private bank accounts") {
       Given("We will not use an access token")
@@ -247,7 +262,22 @@ class API1_2Test extends ServerSetup{
       val reply = getPublicBankAccountDetails
       Then("we should get a 200 ok code")
       reply.code should equal (200)
-      val publicAccountsDetails = reply.body.extract[AccountJSON]
+      val publicAccountDetails = reply.body.extract[ModeratedAccountJSON]
+      publicAccountDetails.id.nonEmpty should equal (true)
+      publicAccountDetails.bank_id.nonEmpty should equal (true)
+      publicAccountDetails.views_available.nonEmpty should equal (true)
+    }
+
+    scenario("we get data by using an access token") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = getPrivateBankAccountDetails
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+      val privateAccountDetails = reply.body.extract[ModeratedAccountJSON]
+      privateAccountDetails.id.nonEmpty should equal (true)
+      privateAccountDetails.bank_id.nonEmpty should equal (true)
+      privateAccountDetails.views_available.nonEmpty should equal (true)
     }
   }
 }
