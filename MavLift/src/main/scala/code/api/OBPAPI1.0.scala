@@ -284,7 +284,7 @@ object OBPAPI1_0 extends RestHelper with Loggable {
         {
           val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
           if(availableAccounts.size!=0)
-            bankAccountSet2JsonResponse(availableAccounts)
+            bankAccountSet2JsonResponse(availableAccounts.toSet)
           else
             InMemoryResponse(data.getBytes, headers, Nil, httpCode)
         }

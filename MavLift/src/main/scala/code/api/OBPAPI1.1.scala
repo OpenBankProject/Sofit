@@ -402,7 +402,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
             if(httpCode == 200)
             {
               val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
-              bankAccountSet2JsonResponse(availableAccounts)
+              bankAccountSet2JsonResponse(availableAccounts.toSet)
             }
             else
               JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
@@ -410,7 +410,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
           else
           {
             val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
-            bankAccountSet2JsonResponse(availableAccounts)
+            bankAccountSet2JsonResponse(availableAccounts.toSet)
           }
         }
         case _ =>  {

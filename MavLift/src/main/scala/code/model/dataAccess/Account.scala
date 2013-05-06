@@ -42,7 +42,7 @@ import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.mongodb.record.field.ObjectIdRefField
 import net.liftweb.mongodb.record.field.MongoJsonObjectListField
 import net.liftweb.mongodb.record.field.DateField
-import net.liftweb.common.{ Box, Empty, Full }
+import net.liftweb.common.{ Box, Empty, Full, Failure }
 import net.liftweb.mongodb.record.field.BsonRecordListField
 import net.liftweb.mongodb.record.{ BsonRecord, BsonMetaRecord }
 import net.liftweb.record.field.{ StringField, BooleanField, DecimalField }
@@ -227,7 +227,10 @@ class HostedBank extends MongoRecord[HostedBank] with ObjectIdPk[HostedBank]{
   object national_identifier extends StringField(this, 255)
 
   def getAccount(bankAccountPermalink : String) : Box[Account] =
-    Account.find(("permalink" -> bankAccountPermalink) ~ ("bankID" -> id.is))
+    Account.find(("permalink" -> bankAccountPermalink) ~ ("bankID" -> id.is)) match {
+      case Full(account) => Full(account)
+      case _ => Failure("account " + bankAccountPermalink +" not found in bank " + permalink, Empty, Empty)
+    }
 
   def isAccount(bankAccountPermalink : String) : Boolean =
     Account.count(("permalink" -> bankAccountPermalink) ~ ("bankID" -> id.is)) == 1
