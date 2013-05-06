@@ -60,6 +60,7 @@ class BankImpl(
 
     def atLeastOneView(account : BankAccount, user : Box[User]) = {
       ! account.permittedViews(user).isEmpty
+      //add a check if the view is not public
     }
 
     accounts.filter(atLeastOneView(_,user))

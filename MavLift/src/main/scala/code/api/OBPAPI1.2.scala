@@ -203,9 +203,9 @@ object OBPAPI1_2 extends RestHelper with Loggable {
   val dateFormat = ModeratedTransaction.dateFormat
   val apiPrefix = "obp" / "v1.2"
 
-  private def bankAccountsListToJson(bankAccounts: List[BankAccount]): JValue = {
+  private def bankAccountsListToJson(bankAccounts: List[BankAccount], user : Box[User]): JValue = {
     val accJson : List[AccountJSON] = bankAccounts.map( account => {
-        val views = account permittedViews None
+        val views = account permittedViews user
         val viewsAvailable : Set[ViewJSON] =
             views.map( v => {
               JSONFactory.createViewJSON(v)
@@ -259,7 +259,7 @@ object OBPAPI1_2 extends RestHelper with Loggable {
             {
               val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
               val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
-              JsonResponse(bankAccountsListToJson(availableAccounts))
+              JsonResponse(bankAccountsListToJson(availableAccounts, user))
             }
             else
               errorJsonResponse(message,httpCode)
@@ -267,7 +267,7 @@ object OBPAPI1_2 extends RestHelper with Loggable {
           else
           {
               val availableAccounts = bank.publicAccounts
-              JsonResponse(bankAccountsListToJson(availableAccounts))
+              JsonResponse(bankAccountsListToJson(availableAccounts, None))
           }
         }
         case _ =>  {
@@ -290,7 +290,7 @@ object OBPAPI1_2 extends RestHelper with Loggable {
           Bank(bankId) match {
             case Full(bank) => {
                 val availableAccounts = bank.privateAccounts(user)
-                JsonResponse(bankAccountsListToJson(availableAccounts))
+                JsonResponse(bankAccountsListToJson(availableAccounts, user))
             }
             case _ =>  {
               val error = "bank " + bankId + " not found"
@@ -312,7 +312,7 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       Bank(bankId) match {
         case Full(bank) => {
             val availableAccounts = bank.publicAccounts
-            JsonResponse(bankAccountsListToJson(availableAccounts))
+            JsonResponse(bankAccountsListToJson(availableAccounts, None))
         }
         case _ =>  {
           val error = "bank " + bankId + " not found"
