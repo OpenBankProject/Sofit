@@ -323,7 +323,9 @@ object ObpJson {
   
   case class TransactionImageJson(id: Option[String],
 		  						  label: Option[String],
-		  						  URL: Option[String])
+		  						  date: Option[Date], //TODO: Check if the default date formatter is okay
+		  						  URL: Option[String],
+		  						  user: Option[UserJson])
   
   case class TransactionMetadataJson(narrative: Option[String],
 		  							 comments: Option[List[TransactionCommentJson]],

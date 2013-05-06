@@ -232,8 +232,8 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
           ".image-holder [data-id]" #> imageHtmlId(imageJson) &
             ".trans-image [src]" #> imageJson.URL.getOrElse("") &
             ".image-description *" #> imageJson.label.getOrElse("") &
-            ".postedBy *" #> "TODO" & //TODO: TransactionImageJson has no user data -why?
-            ".postedTime *" #> "TODO" & //TODO: TransactionImageJson is missing date posted -why?
+            ".postedBy *" #> imageJson.user.flatMap(_.display_name).getOrElse("") &
+            ".postedTime *" #> imageJson.date.map(commentDateFormat.format(_)).getOrElse("") &
             ".deleteImage [onclick]" #> deleteImage(imageJson)
         })
     }
