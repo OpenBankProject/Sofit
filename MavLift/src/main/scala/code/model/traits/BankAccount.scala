@@ -136,7 +136,7 @@ object BankAccount {
   def apply(bankpermalink: String, bankAccountPermalink: String) : Box[BankAccount] = {
     LocalStorage.getAccount(bankpermalink, bankAccountPermalink) match {
       case Full(account) => Full(Account.toBankAccount(account))
-      case _ => Empty
+      case _ => Failure("account " + bankAccountPermalink +" not found in bank " + bankpermalink, Empty, Empty)
     }
   }
 

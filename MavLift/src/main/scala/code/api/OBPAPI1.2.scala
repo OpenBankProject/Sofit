@@ -31,7 +31,7 @@ Berlin 13359, Germany
  */
 package code.api.v1_2
 
-import net.liftweb.http._
+import net.liftweb.http.JsonResponse
 import net.liftweb.http.rest._
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Printer._
@@ -60,9 +60,6 @@ import java.net.URL
 import code.util.APIUtil._
 
 case class APIInfoJSON(
-  api : APIInfo
-)
-case class APIInfo(
   version : String,
   git_commit : String,
   hosted_by : HostedBy
@@ -82,9 +79,6 @@ case class BanksJSON(
   banks : List[BankJSON]
 )
 case class BankJSON(
-  bank : BankInfo
-)
-case class BankInfo(
   id : String,
   short_name : String,
   full_name : String,
@@ -92,24 +86,39 @@ case class BankInfo(
   website : String
 )
 case class ViewJSON(
-  view : ViewInfo
-)
-case class ViewInfo(
   id : String,
   short_name : String,
   description : String,
   is_public : Boolean
 )
 case class AccountsJSON(
-  accounts : Set[AccountJSON]
+  accounts : List[AccountJSON]
 )
 case class AccountJSON(
-  account : AccountInfo
-)
-case class AccountInfo(
   id : String,
   label : String,
-  views_available : Set[ViewJSON]
+  views_available : Set[ViewJSON],
+  bank_id : String
+)
+case class ModeratedAccountJSON(
+  id : String,
+  label : String,
+  number : String,
+  owners : List[UserJson],
+  `type` : String,
+  balance : AmountOfMoneyJSON,
+  IBAN : String,
+  views_available : Set[ViewJSON],
+  bank_id : String
+)
+case class UserJson(
+  user_id : String,
+  user_provider : String,
+  display_name : String
+)
+case class AmountOfMoneyJSON(
+  currency : String,
+  amount : String
 )
 
 object JSONFactory{
@@ -119,8 +128,14 @@ object JSONFactory{
     else
       text
 
-  def createBankInfo(bank : Bank) : BankInfo = {
-    new BankInfo(
+  def stringOptionOrNull(text : Option[String]) =
+    text match {
+      case Some(t) => stringOrNull(t)
+      case _ => null
+    }
+
+  def createBankJSON(bank : Bank) : BankJSON = {
+    new BankJSON(
       stringOrNull(bank.permalink),
       stringOrNull(bank.shortName),
       stringOrNull(bank.fullName),
@@ -129,8 +144,8 @@ object JSONFactory{
     )
   }
 
-  def createViewInfo(view : View) : ViewInfo = {
-    new ViewInfo(
+  def createViewJSON(view : View) : ViewJSON = {
+    new ViewJSON(
       view.permalink,
       stringOrNull(view.name),
       stringOrNull(view.description),
@@ -138,11 +153,44 @@ object JSONFactory{
     )
   }
 
-  def createAccountInfo(account : BankAccount, viewsAvailable : Set[ViewJSON] ) : AccountInfo = {
-    new AccountInfo(
+  def createAccountJSON(account : BankAccount, viewsAvailable : Set[ViewJSON] ) : AccountJSON = {
+    new AccountJSON(
       account.permalink,
       stringOrNull(account.label),
-      viewsAvailable
+      viewsAvailable,
+      account.bankPermalink
+    )
+  }
+
+  def createModeratedAccountJSON(account : ModeratedBankAccount, viewsAvailable : Set[ViewJSON]) : ModeratedAccountJSON =  {
+    val bankName = account.bankName.getOrElse("")
+    new ModeratedAccountJSON(
+      account.id,
+      stringOptionOrNull(account.label),
+      stringOptionOrNull(account.number),
+      createOwnersJSON(account.owners.getOrElse(Set()), bankName),
+      stringOptionOrNull(account.accountType),
+      createAmountOfMoneyJSON(account.currency.getOrElse(""), account.balance),
+      stringOptionOrNull(account.iban),
+      viewsAvailable,
+      stringOptionOrNull(account.bankPermalink)
+    )
+  }
+
+  def createOwnersJSON(owners : Set[AccountOwner], bankName : String) : List[UserJson] = {
+    owners.map(o => {
+        new UserJson(
+          o.id,
+          stringOrNull(bankName),
+          stringOrNull(o.name)
+        )
+      }
+    ).toList
+  }
+  def createAmountOfMoneyJSON(currency : String, amount  : String) : AmountOfMoneyJSON = {
+    new AmountOfMoneyJSON(
+      stringOrNull(currency),
+      stringOrNull(amount)
     )
   }
 }
@@ -153,15 +201,16 @@ object OBPAPI1_2 extends RestHelper with Loggable {
   implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
 
   val dateFormat = ModeratedTransaction.dateFormat
+  val apiPrefix = "obp" / "v1.2"
 
-  private def bankAccountSetToJson(bankAccounts: Set[BankAccount]): JValue = {
-    val accJson : Set[AccountJSON] = bankAccounts.map( account => {
+  private def bankAccountsListToJson(bankAccounts: List[BankAccount]): JValue = {
+    val accJson : List[AccountJSON] = bankAccounts.map( account => {
         val views = account permittedViews None
         val viewsAvailable : Set[ViewJSON] =
             views.map( v => {
-              new ViewJSON(JSONFactory.createViewInfo(v))
+              JSONFactory.createViewJSON(v)
             })
-        new AccountJSON(JSONFactory.createAccountInfo(account,viewsAvailable))
+        JSONFactory.createAccountJSON(account,viewsAvailable)
       })
 
     val accounts = new AccountsJSON(accJson)
@@ -169,35 +218,35 @@ object OBPAPI1_2 extends RestHelper with Loggable {
   }
 
 
-  serve("obp" / "v1.2" prefix {
+  serve(apiPrefix prefix {
     case Nil JsonGet json => {
       logAPICall
 
       val apiDetails : JValue = {
         val hostedBy = new HostedBy("TESOBE", "contact@tesobe.com", "+49 (0)30 8145 3994")
-        val apiInfo = new APIInfo("1.2", gitCommit, hostedBy)
-        val APIInfoJSON = new APIInfoJSON(apiInfo)
-        Extraction.decompose(APIInfoJSON)
+        val apiInfoJSON = new APIInfoJSON("1.2", gitCommit, hostedBy)
+        Extraction.decompose(apiInfoJSON)
       }
 
       JsonResponse(apiDetails)
     }
   })
-  serve("obp" / "v1.2" prefix{
+  serve(apiPrefix prefix{
     case "banks" :: Nil JsonGet json => {
       logAPICall
 
       def banksToJson(banksList : List[Bank]) : JValue = {
         val banksJSON : List[BankJSON] = banksList.map( b => {
-            new BankJSON(JSONFactory.createBankInfo(b))
+            JSONFactory.createBankJSON(b)
           })
         val banks = new BanksJSON(banksJSON)
         Extraction.decompose(banks)
       }
+
       JsonResponse(banksToJson(Bank.all))
     }
   })
-  serve("obp" / "v1.2" prefix {
+  serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: Nil JsonGet json => {
       logAPICall
 
@@ -210,15 +259,15 @@ object OBPAPI1_2 extends RestHelper with Loggable {
             {
               val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
               val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
-              JsonResponse(bankAccountSetToJson(availableAccounts))
+              JsonResponse(bankAccountsListToJson(availableAccounts))
             }
             else
-              errorJsonResponce(message,httpCode)
+              errorJsonResponse(message,httpCode)
           }
           else
           {
               val availableAccounts = bank.publicAccounts
-              JsonResponse(bankAccountSetToJson(availableAccounts))
+              JsonResponse(bankAccountsListToJson(availableAccounts))
           }
         }
         case _ =>  {
@@ -228,7 +277,7 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       }
     }
   })
-  serve("obp" / "v1.2" prefix {
+  serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: "private" :: Nil JsonGet json => {
       logAPICall
 
@@ -241,7 +290,7 @@ object OBPAPI1_2 extends RestHelper with Loggable {
           Bank(bankId) match {
             case Full(bank) => {
                 val availableAccounts = bank.privateAccounts(user)
-                JsonResponse(bankAccountSetToJson(availableAccounts))
+                JsonResponse(bankAccountsListToJson(availableAccounts))
             }
             case _ =>  {
               val error = "bank " + bankId + " not found"
@@ -250,25 +299,80 @@ object OBPAPI1_2 extends RestHelper with Loggable {
           }
         }
         else
-          errorJsonResponce(message,httpCode)
+          errorJsonResponse(message,httpCode)
       }
       else
         oauthHeaderRequiredJsonResponce
     }
   })
-  serve("obp" / "v1.2" prefix {
+  serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: "public" :: Nil JsonGet json => {
       logAPICall
 
       Bank(bankId) match {
         case Full(bank) => {
             val availableAccounts = bank.publicAccounts
-            JsonResponse(bankAccountSetToJson(availableAccounts))
+            JsonResponse(bankAccountsListToJson(availableAccounts))
         }
         case _ =>  {
           val error = "bank " + bankId + " not found"
           JsonResponse(ErrorMessage(error), Nil, Nil, 400)
         }
+      }
+    }
+  })
+
+  serve(apiPrefix prefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
+      logAPICall
+
+      def getBankAccountDetail(bankId : String, accountId : String, viewId : String, user : Box[User]) : Box[(ModeratedBankAccount, Set[View])] = {
+        for {
+          bank <- Bank(bankId)
+          account <- BankAccount(bankId, accountId)
+          availableviews <- Full(account.permittedViews(user))
+          view <- View.fromUrl(viewId)
+          moderatedAccount <- account.moderatedBankAccount(view, user)
+        } yield (moderatedAccount, availableviews)
+      }
+
+      def accountDetailJsonResponse(accountDetails : Box[(ModeratedBankAccount, Set[View])]) : JsonResponse = {
+
+        accountDetails match {
+          case Full(details) => {
+            val views = details._2
+            val account = details._1
+
+            val viewsAvailable : Set[ViewJSON] =
+                views.map( v => {
+                  JSONFactory.createViewJSON(v)
+                })
+            val moderatedAccount = JSONFactory.createModeratedAccountJSON(account,viewsAvailable)
+
+            val accountInJson = Extraction.decompose(moderatedAccount)
+            JsonResponse(accountInJson, Nil, Nil, 200)
+          }
+          case Failure(msg, _, _) => errorJsonResponse(msg,400)
+          case _ => errorJsonResponse("error",400)
+        }
+      }
+
+      if(isThereAnOAuthHeader)
+      {
+        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
+        if(httpCode == 200)
+        {
+          val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
+          val accountDetails : Box[(ModeratedBankAccount, Set[View])] = getBankAccountDetail(bankId, accountId, viewId, user)
+          accountDetailJsonResponse(accountDetails)
+        }
+        else
+          errorJsonResponse(message,httpCode)
+      }
+      else
+      {
+        val accountDetail = getBankAccountDetail(bankId, accountId, viewId, Empty)
+        accountDetailJsonResponse(accountDetail)
       }
     }
   })
