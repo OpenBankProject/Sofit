@@ -38,16 +38,21 @@ object ObpAPI {
   }
   
   /**
-   * @return The json for the tags that were successfully added
+   * @return The jsons for the tags that were were successfully added
    */
   def addTags(bankId : String, accountId : String, viewId : String,
       transactionId: String, tags: List[String]) : List[TransactionTagJson] = {
     
-    val addTagJsons = tags.map(tag => ("to" -> "do"))
+    //TODO: Proper date format?
+    val postedDate = formats.dateFormat.format(now)
     
-    throw new NotImplementedException()
-    addTagJsons.map(addTagJson => 
-      ObpPost("TODO", addTagJson).flatMap(_.extractOpt[TransactionTagJson])).flatten
+    val addTagJsons = tags.map(tag => {
+      ("value" -> tag)
+    })
+    
+    val addTagUrl = "/banks/" + bankId + "/accounts/" + accountId + "/" + viewId + "/transactions/" + transactionId + "/metadata/tags"
+    
+    addTagJsons.map(addTagJson => ObpPost(addTagUrl, addTagJson).flatMap(_.extractOpt[TransactionTagJson])).flatten
   }
   
   /**
@@ -55,23 +60,24 @@ object ObpAPI {
    */
   def deleteTag(bankId : String, accountId : String, viewId : String,
       transactionId: String, tagId: String) : Boolean  = {
-    //TODO: Why does the API need all these parameters?
-    ObpDelete("TODO")
-    throw new NotImplementedException()
+    val deleteTagUrl = "/banks/" + bankId + "/accounts/" + accountId + "/" + viewId + "/transactions/" + transactionId + "/metadata/tags/" + tagId
+    ObpDelete(deleteTagUrl)
   }
   
   /**
-   * @return True if the image was created
+   * @return The json for the image if it was successfully added
    */
   def addImage(bankId : String, accountId : String, viewId : String,
-      transactionId: String, imageURL: String) : Boolean  = {
+      transactionId: String, imageURL: String, imageDescription: String) : Box[TransactionImageJson]  = {
     throw new NotImplementedException()
-    //TODO: Why does the API need all these parameters?
-    val json = ("to" -> "do")
-    ObpPost("TODO", json) match {
-      case Full(j) => true
-      case _ => false
-    }
+
+    val json = 
+      ("label" -> imageDescription) ~
+      ("URL" -> imageURL)
+    
+    val addImageUrl = "/banks/" + bankId + "/accounts/" + accountId + "/" + viewId + "/transactions/" + transactionId + "/metadata/images"
+      
+    ObpPost(addImageUrl, json).flatMap(_.extractOpt[TransactionImageJson])
   }
   
   /**
@@ -79,9 +85,9 @@ object ObpAPI {
    */
   def deleteImage(bankId : String, accountId : String, viewId : String,
       transactionId: String, imageId: String) : Boolean  = {
-    //TODO: Why does the API need all these parameters?
-    ObpDelete("TODO")
-    throw new NotImplementedException()
+    
+    val deleteImageUrl = "/banks/" + bankId + "/accounts/" + accountId + "/" + viewId + "/transactions/" + transactionId + "/metadata/images/" + imageId
+    ObpDelete(deleteImageUrl)
   }
 }
 

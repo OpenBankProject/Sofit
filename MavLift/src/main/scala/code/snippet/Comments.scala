@@ -288,7 +288,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
         json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"
         urlString <- tryo{val JString(a) = json \ "results" \\ "url"; a} ?~! {"Could not extract url string from json: " + compact(render(json))}
       } yield {
-        () => ObpAPI.addImage(urlParams.bankId, urlParams.accountId, urlParams.viewId, urlParams.transactionId, urlString)
+        () => ObpAPI.addImage(urlParams.bankId, urlParams.accountId, urlParams.viewId, urlParams.transactionId, urlString, description)
       }
 
       addFunction match {
