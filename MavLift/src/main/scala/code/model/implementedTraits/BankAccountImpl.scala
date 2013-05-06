@@ -85,7 +85,7 @@ class BankAccountImpl(
       case Full(u) => u.permittedViews(this)
       case _ =>{
         logger.info("no user was found in the permittedViews")
-       if(this.allowPublicAccess) Set(Public) else Set()
+        if(this.allowPublicAccess) Set(Public) else Set()
       }
     }
   }
