@@ -220,7 +220,8 @@ class ModeratedBankAccount(
   filteredSwift_bic : Option[String],
   filteredIban : Option[String],
   filteredNumber: Option[String],
-  filteredBankName: Option[String]
+  filteredBankName: Option[String],
+  filteredBankPermalink : Option[String]
 ){
   def id = filteredId
   def owners = filteredOwners
@@ -233,9 +234,10 @@ class ModeratedBankAccount(
   def iban = filteredIban
   def number = filteredNumber
   def bankName = filteredBankName
+  def bankPermalink = filteredBankPermalink
 
   def toJson = {
-    //TODO: Decide if unauthorised info (I guess that is represented by a 'none' option'? I can't really remember)
+    //TODO: Decide if unauthorized info (I guess that is represented by a 'none' option'? I can't really remember)
     // should just disappear from the json or if an empty string should be used.
     //I think we decided to use empty strings. What was the point of all the options again?
     ("number" -> number.getOrElse("")) ~

@@ -53,7 +53,7 @@ class BankImpl(
 	def permalink = _permalink
 	def accounts = LocalStorage.getBankAccounts(this)
   def publicAccounts = LocalStorage.getPublicBankAccounts(this)
-  def privateAccounts(user : Box[User]) : Set[BankAccount] = {
+  def privateAccounts(user : Box[User]) : List[BankAccount] = {
     //ask the localStorage for the all the private accounts
     val accounts = LocalStorage.getPrivateBankAccounts(this)
     //then see if for every one there is at least a view available for the user

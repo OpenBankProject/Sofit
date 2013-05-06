@@ -33,7 +33,7 @@ Berlin 13359, Germany
 package code.model.implementedTraits
 
 import code.model.traits._
-import net.liftweb.common.{Box,Empty, Full}
+import net.liftweb.common.{Box, Empty, Full, Failure}
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST.JObject
 
@@ -48,7 +48,7 @@ object View {
       case "team" => Full(Team)
       case "owner" => Full(Owner)
       case "public" | "anonymous" => Full(Public)
-      case _ => Empty
+      case _ => Failure("view " + viewNameURL + " not found", Empty, Empty)
     }
 
   def linksJson(views: Set[View], accountPermalink: String, bankPermalink: String): JObject = {
@@ -114,7 +114,7 @@ object Public extends BaseView {
   override def canSeeBankAccountSwift_bic = true
   override def canSeeBankAccountIban = true
   override def canSeeBankAccountNumber = true
-  override def canSeeBankAccountName = true
+  override def canSeeBankAccountBankName = true
 
   override def moderate(transaction: Transaction): ModeratedTransaction = {
 
@@ -177,7 +177,8 @@ object Public extends BaseView {
           filteredSwift_bic = None,
           filteredIban = None,
           filteredNumber = Some(bankAccount.number),
-          filteredBankName = Some(bankAccount.bankName)
+          filteredBankName = Some(bankAccount.bankName),
+          filteredBankPermalink = Some(bankAccount.bankPermalink)
         )
       )
   }
@@ -287,7 +288,8 @@ object OurNetwork extends BaseView
           filteredSwift_bic = None,
           filteredIban = None,
           filteredNumber = Some(bankAccount.number),
-          filteredBankName = Some(bankAccount.bankName)
+          filteredBankName = Some(bankAccount.bankName),
+          filteredBankPermalink = Some(bankAccount.bankPermalink)
         )
       )
   }

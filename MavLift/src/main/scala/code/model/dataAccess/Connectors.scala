@@ -79,7 +79,7 @@ trait LocalStorage extends Loggable {
 
   def getBank(name: String): Box[Bank]
 
-  def getBankAccounts(bank: Bank): Set[BankAccount]
+  def getBankAccounts(bank: Bank): List[BankAccount]
   def correctBankAndAccount(bank: String, account: String): Boolean
 
   def getAccount(bankpermalink: String, account: String): Box[Account]
@@ -102,8 +102,8 @@ trait LocalStorage extends Loggable {
 
   def getAllAccounts() : List[BankAccount]
   def getAllPublicAccounts() : List[BankAccount]
-  def getPublicBankAccounts(bank : Bank) : Set[BankAccount]
-  def getPrivateBankAccounts(bank : Bank) : Set[BankAccount]
+  def getPublicBankAccounts(bank : Bank) : List[BankAccount]
+  def getPrivateBankAccounts(bank : Bank) : List[BankAccount]
 }
 
 class MongoDBLocalStorage extends LocalStorage {
@@ -211,18 +211,20 @@ class MongoDBLocalStorage extends LocalStorage {
   }
 
   def getBank(permalink: String): Box[Bank] =
-    HostedBank.find("permalink", permalink).
-      map(
-        bank =>
-        new BankImpl(
-          bank.id.is.toString,
-          bank.alias.is,
-          bank.name.is,
-          bank.permalink.is,
-          bank.logoURL.is,
-          bank.website.is
+    HostedBank.find("permalink", permalink) match {
+      case Full(bank) =>
+        Full(
+          new BankImpl(
+            bank.id.is.toString,
+            bank.alias.is,
+            bank.name.is,
+            bank.permalink.is,
+            bank.logoURL.is,
+            bank.website.is
+          )
         )
-      )
+      case _ => Failure("bank " + permalink + " not found", Empty, Empty)
+    }
 
   def allBanks : List[Bank] =
     HostedBank.findAll.
@@ -238,22 +240,20 @@ class MongoDBLocalStorage extends LocalStorage {
         )
       )
 
-  def getBankAccounts(bank: Bank): Set[BankAccount] = {
+  def getBankAccounts(bank: Bank): List[BankAccount] = {
     val bankId = new ObjectId(bank.id)
-    val rawAccounts = Account.findAll(("bankID" -> bankId)).toSet
+    val rawAccounts = Account.findAll(("bankID" -> bankId))
     rawAccounts.map(Account.toBankAccount)
   }
 
-  def getPublicBankAccounts(bank : Bank) : Set[BankAccount] = {
+  def getPublicBankAccounts(bank : Bank) : List[BankAccount] = {
     val bankId = new ObjectId(bank.id)
-    val rawAccounts = Account.findAll(("bankID",bankId) ~ ("anonAccess", true)).toSet
-    println("accounts:" + rawAccounts)
+    val rawAccounts = Account.findAll(("bankID",bankId) ~ ("anonAccess", true))
     rawAccounts.map(Account.toBankAccount)
   }
-  def getPrivateBankAccounts(bank : Bank) : Set[BankAccount] = {
+  def getPrivateBankAccounts(bank : Bank) : List[BankAccount] = {
     val bankId = new ObjectId(bank.id)
-    val rawAccounts = Account.findAll(("bankID",bankId) ~ ("anonAccess", false)).toSet
-    println("accounts:" + rawAccounts)
+    val rawAccounts = Account.findAll(("bankID",bankId))
     rawAccounts.map(Account.toBankAccount)
   }
 
@@ -267,7 +267,7 @@ class MongoDBLocalStorage extends LocalStorage {
   def getAccount(bankpermalink: String, account: String): Box[Account] =
     HostedBank.find("permalink",bankpermalink) match {
       case Full (bank) => bank.getAccount(account)
-      case _ => Empty
+      case _ => Failure("Bank " + bankpermalink + "not found.", Empty, Empty)
     }
 
   def getTransaction(id : String, bankPermalink : String, accountPermalink : String) : Box[Transaction] = {

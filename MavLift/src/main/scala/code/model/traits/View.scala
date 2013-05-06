@@ -92,7 +92,8 @@ trait View {
   def canSeeBankAccountSwift_bic : Boolean
   def canSeeBankAccountIban : Boolean
   def canSeeBankAccountNumber : Boolean
-  def canSeeBankAccountName : Boolean
+  def canSeeBankAccountBankName : Boolean
+  def canSeeBankAccountBankPermalink : Boolean
 
   //other bank account fields
   def canSeeOtherAccountNationalIdentifier : Boolean
@@ -254,7 +255,8 @@ trait View {
       val swiftBic = if(canSeeBankAccountSwift_bic) bankAccount.swift_bic else None
       val iban = if(canSeeBankAccountIban) bankAccount.iban else None
       val number = if(canSeeBankAccountNumber) Some(bankAccount.number) else None
-      val bankName = if(canSeeBankAccountName) Some(bankAccount.bankName) else None
+      val bankName = if(canSeeBankAccountBankName) Some(bankAccount.bankName) else None
+      val bankPermalink = if(canSeeBankAccountBankPermalink) Some(bankAccount.bankPermalink) else None
 
       Some(
         new ModeratedBankAccount(
@@ -268,7 +270,8 @@ trait View {
           filteredSwift_bic = swiftBic,
           filteredIban = iban,
           filteredNumber = number,
-          filteredBankName = bankName
+          filteredBankName = bankName,
+          filteredBankPermalink = bankPermalink
         ))
     }
     else
@@ -446,7 +449,8 @@ class BaseView extends View {
   def canSeeBankAccountSwift_bic = false
   def canSeeBankAccountIban = false
   def canSeeBankAccountNumber = false
-  def canSeeBankAccountName = false
+  def canSeeBankAccountBankName = false
+  def canSeeBankAccountBankPermalink = false
 
   //other bank account fields
   def canSeeOtherAccountNationalIdentifier = false
@@ -524,7 +528,8 @@ class FullView extends View {
   def canSeeBankAccountSwift_bic = true
   def canSeeBankAccountIban = true
   def canSeeBankAccountNumber = true
-  def canSeeBankAccountName = true
+  def canSeeBankAccountBankName = true
+  def canSeeBankAccountBankPermalink = true
 
   //other bank account fields
   def canSeeOtherAccountNationalIdentifier = true

@@ -6,6 +6,7 @@ import code.api.v1_2.ErrorMessage
 import net.liftweb.http.JsonResponse
 import net.liftweb.json.Extraction
 import net.liftweb.json.JsonAST.JValue
+import net.liftweb.http.js.JsExp
 import net.liftweb.common.Full
 import net.liftweb.util.Helpers._
 import net.liftweb.http.S
@@ -46,7 +47,10 @@ object APIUtil {
     commit getOrElse ""
   }
 
-  def errorJsonResponce(message : String = "error", httpCode : Int = 400) : JsonResponse =
+  def successJsonResponse(json: JsExp, httpCode : Int) : JsonResponse =
+    JsonResponse(json, Nil, Nil, httpCode)
+
+  def errorJsonResponse(message : String = "error", httpCode : Int = 400) : JsonResponse =
     JsonResponse(Extraction.decompose(ErrorMessage(message)), Nil, Nil, httpCode)
 
   def oauthHeaderRequiredJsonResponce : JsonResponse =
