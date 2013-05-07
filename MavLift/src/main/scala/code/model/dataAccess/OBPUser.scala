@@ -119,40 +119,6 @@ class OBPUser extends MegaProtoUser[OBPUser] with User{
       case _ => false
     }
   }
-
-  def accountsWithMoreThanAnonAccess : Set[BankAccount] = {
-
-    val hostedAccountTable = HostedAccount._dbTableNameLC
-    val privilegeTable = Privilege._dbTableNameLC
-    val userTable = OBPUser._dbTableNameLC
-
-    val hostedId = hostedAccountTable + "." + HostedAccount.id.dbColumnName
-    val hostedAccId = hostedAccountTable + "." + HostedAccount.accountID.dbColumnName
-    val privilegeAccId = privilegeTable + "." + Privilege.account.dbColumnName
-    val privilegeUserId = privilegeTable + "." + Privilege.user.dbColumnName
-    val userId = this.id.get
-
-    val ourNetworkPrivilege = privilegeTable + "." + Privilege.ourNetworkPermission.dbColumnName
-    val teamPrivilege = privilegeTable + "." + Privilege.teamPermission.dbColumnName
-    val boardPrivilege = privilegeTable + "." + Privilege.boardPermission.dbColumnName
-    val authoritiesPrivilege = privilegeTable + "." + Privilege.authoritiesPermission.dbColumnName
-    val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
-
-    val query = "SELECT " + hostedId + ", " + hostedAccId +
-    			" FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
-    			" WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
-    				" AND " + "( " + privilegeUserId + " = " + userId + ")" +
-    				" AND " + "( " + ourNetworkPrivilege + " = true" +
-    					" OR " + teamPrivilege + " = true" +
-    					" OR " + boardPrivilege + " = true" +
-    					" OR " + authoritiesPrivilege + " = true" +
-    					" OR " + ownerPrivilege + " = true)"
-
-    val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
-    val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
-
-    Account.findAll(mongoIds).map(Account.toBankAccount).toSet
-  }
 }
 
 /**

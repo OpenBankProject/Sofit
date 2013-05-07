@@ -53,17 +53,8 @@ class BankImpl(
 	def permalink = _permalink
 	def accounts = LocalStorage.getBankAccounts(this)
   def publicAccounts = LocalStorage.getPublicBankAccounts(this)
-  def privateAccounts(user : Box[User]) : List[BankAccount] = {
-    //ask the localStorage for the all the private accounts
-    val accounts = LocalStorage.getPrivateBankAccounts(this)
-    //then see if for every one there is at least a view available for the user
-
-    def atLeastOneView(account : BankAccount, user : Box[User]) = {
-      ! account.permittedViews(user).isEmpty
-      //add a check if the view is not public
-    }
-
-    accounts.filter(atLeastOneView(_,user))
+  def nonPublicAccounts(user : User) : List[BankAccount] = {
+    LocalStorage.getNonPublicBankAccounts(user, id)
   }
   def website = _website
 }

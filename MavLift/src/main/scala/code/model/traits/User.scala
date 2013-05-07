@@ -45,7 +45,12 @@ trait User {
   def theLastName : String
   def permittedViews(bankAccount: BankAccount) : Set[View]
   def hasMangementAccess(bankAccount: BankAccount)  : Boolean
-  def accountsWithMoreThanAnonAccess : Set[BankAccount]
+
+  /**
+  * @return the bank accounts where the user has at least access to a non public view (is_public==false)
+  */
+  def nonPublicAccounts : List[BankAccount] = LocalStorage.getNonPublicBankAccounts(this)
+
   def toJson : JObject =
     ("id" -> id_) ~
     ("provider" -> "sofi.openbankproject.com") ~
