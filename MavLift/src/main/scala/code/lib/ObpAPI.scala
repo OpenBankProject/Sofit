@@ -96,8 +96,9 @@ object ObpPost {
 
   def apply(apiPath: String, json : JValue): Box[JValue] = {
     tryo {
-      val credentials = OAuthClient.getOrCreateCredential(OAuthClient.defaultProvider) //TODO: Support multiple providers
-      val apiUrl = credentials.provider.apiBaseUrl
+      val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
+      val credentials = OAuthClient.getCredential(provider)
+      val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
@@ -112,8 +113,8 @@ object ObpPost {
       output.flush()
       output.close()
       
-      val consumer = credentials.consumer
-      consumer.sign(request)
+      //sign the request if we have some credentials to sign it with
+      credentials.foreach(c => c.consumer.sign(request))
       request.connect()
 
       val status = request.getResponseCode()
@@ -152,8 +153,9 @@ object ObpDelete {
    */
   def apply(apiPath: String): Boolean = {
     val worked = tryo {
-      val credentials = OAuthClient.getOrCreateCredential(OAuthClient.defaultProvider) //TODO: Support multiple providers
-      val apiUrl = credentials.provider.apiBaseUrl
+      val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
+      val credentials = OAuthClient.getCredential(provider)
+      val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
@@ -161,8 +163,8 @@ object ObpDelete {
       request.setRequestProperty("Content-Type", "application/json")
       request.setRequestProperty("Accept", "application/json")
 
-      val consumer = credentials.consumer
-      consumer.sign(request)
+      //sign the request if we have some credentials to sign it with
+      credentials.foreach(c => c.consumer.sign(request))
       request.connect()
 
       val status = request.getResponseCode()
@@ -184,8 +186,9 @@ object ObpGet {
   //Ah, dispatch does have oauth support. It would be nicer to use dispatch! -E.S.
   def apply(apiPath: String): Box[JValue] = {
     tryo {
-      val credentials = OAuthClient.getOrCreateCredential(OAuthClient.defaultProvider) //TODO: Support multiple providers
-      val apiUrl = credentials.provider.apiBaseUrl
+      val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
+      val credentials = OAuthClient.getCredential(provider)
+      val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
@@ -193,8 +196,8 @@ object ObpGet {
       request.setRequestProperty("Content-Type", "application/json")
       request.setRequestProperty("Accept", "application/json")
 
-      val consumer = credentials.consumer
-      consumer.sign(request)
+      //sign the request if we have some credentials to sign it with
+      credentials.foreach(c => c.consumer.sign(request))
       request.connect()
 
       val status = request.getResponseCode()

@@ -125,6 +125,10 @@ object OAuthClient extends Loggable {
 
   val defaultProvider = OBPDemo
   
+  def getCredential(provider : Provider) : Option[Credential] = {
+    credentials.find(_.provider == provider)
+  }
+  
   def getOrCreateCredential(provider : Provider) : Credential = {
     credentials.find(_.provider == provider) match {
       case Some(c) => c
