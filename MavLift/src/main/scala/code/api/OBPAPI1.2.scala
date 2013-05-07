@@ -58,6 +58,7 @@ import code.api.OAuthHandshake._
 import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
 import java.net.URL
 import code.util.APIUtil._
+import code.api.OBPRestHelper
 
 case class APIInfoJSON(
   version : String,
@@ -120,6 +121,14 @@ case class AmountOfMoneyJSON(
   currency : String,
   amount : String
 )
+case class TransactionImagesJSON(
+  images : List[TransactionImageJSON])
+case class TransactionImageJSON(
+  id : String,
+  label : String,
+  URL : String,
+  date : Date,
+  user : UserJson)
 
 object JSONFactory{
   def stringOrNull(text : String) =
@@ -176,7 +185,22 @@ object JSONFactory{
       stringOptionOrNull(account.bankPermalink)
     )
   }
-
+  
+  def createUserJSON(user : User) : UserJson = {
+    new UserJson(
+          user.id_,
+          stringOrNull(user.provider),
+          stringOrNull(user.emailAddress)
+        )
+  }
+  
+  def createUserJSON(user : Box[User]) : UserJson = {
+    user match {
+      case Full(u) => createUserJSON(u)
+      case _ => null
+    }
+  }
+  
   def createOwnersJSON(owners : Set[AccountOwner], bankName : String) : List[UserJson] = {
     owners.map(o => {
         new UserJson(
@@ -193,9 +217,22 @@ object JSONFactory{
       stringOrNull(amount)
     )
   }
+  
+  def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
+    new TransactionImagesJSON(images.map(createTransactionImageJSON))
+  }
+  
+  def createTransactionImageJSON(image : TransactionImage) : TransactionImageJSON = {
+    new TransactionImageJSON(
+        id = image.id_,
+        label = image.description,
+        URL = image.imageUrl.toString,
+        date = image.datePosted,
+        user = createUserJSON(image.postedBy))
+  }
 }
 
-object OBPAPI1_2 extends RestHelper with Loggable {
+object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
   implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
@@ -378,4 +415,29 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       }
     }
   })
+
+  serve(apiPrefix prefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
+      
+      failIfBadOauth {
+        user: Box[User] =>
+          for {
+            metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, getUser)
+            images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
+          } yield {
+            val json = JSONFactory.createTransactionImagesJson(images)
+            successJsonResponse(Extraction.decompose(json), 200)
+          }
+      }
+      
+    }
+  })
+  
+    private def moderatedTransactionMetadata(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : Box[ModeratedTransactionMetadata] =
+    for {
+      account <- BankAccount(bankId, accountId)
+      view <- View.fromUrl(viewId)
+      moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
+      metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+    } yield metadata
 }
