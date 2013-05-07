@@ -254,159 +254,119 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     Extraction.decompose(accounts)
   }
 
-
   serve(apiPrefix prefix {
     case Nil JsonGet json => {
 
-      val apiDetails : JValue = {
-        val hostedBy = new HostedBy("TESOBE", "contact@tesobe.com", "+49 (0)30 8145 3994")
-        val apiInfoJSON = new APIInfoJSON("1.2", gitCommit, hostedBy)
-        Extraction.decompose(apiInfoJSON)
-      }
+      failIfBadOauth {
+        user: Box[User] =>
+          {
+            val apiDetails: JValue = {
+              val hostedBy = new HostedBy("TESOBE", "contact@tesobe.com", "+49 (0)30 8145 3994")
+              val apiInfoJSON = new APIInfoJSON("1.2", gitCommit, hostedBy)
+              Extraction.decompose(apiInfoJSON)
+            }
 
-      JsonResponse(apiDetails)
+            successJsonResponse(apiDetails, 200)
+          }
+      }
+      
     }
   })
   serve(apiPrefix prefix{
     case "banks" :: Nil JsonGet json => {
 
-      def banksToJson(banksList : List[Bank]) : JValue = {
-        val banksJSON : List[BankJSON] = banksList.map( b => {
-            JSONFactory.createBankJSON(b)
-          })
-        val banks = new BanksJSON(banksJSON)
-        Extraction.decompose(banks)
-      }
+      failIfBadOauth {
+        user: Box[User] =>
+          {
+            def banksToJson(banksList: List[Bank]): JValue = {
+              val banksJSON: List[BankJSON] = banksList.map(b => {
+                JSONFactory.createBankJSON(b)
+              })
+              val banks = new BanksJSON(banksJSON)
+              Extraction.decompose(banks)
+            }
 
-      JsonResponse(banksToJson(Bank.all))
+            successJsonResponse(banksToJson(Bank.all), 200)
+          }
+      }
+      
     }
   })
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: Nil JsonGet json => {
 
-      Bank(bankId) match {
-        case Full(bank) => {
-          if (isThereAnOAuthHeader)
-          {
-            val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-            if(httpCode == 200)
-            {
-              val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
-              val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
-              JsonResponse(bankAccountsListToJson(availableAccounts, user))
+      failIfBadOauth {
+        user: Box[User] => {
+
+          for {
+            bank <- Bank(bankId) ?~ {"bank " + bankId + " not found"}
+          } yield {
+            val availableAccounts = user match {
+              case Full(u) => bank.accounts.filter(_.permittedViews(user).size!=0)
+              case _ => bank.publicAccounts
             }
-            else
-              errorJsonResponse(message,httpCode)
+            successJsonResponse(bankAccountsListToJson(availableAccounts, user), 200)
           }
-          else
-          {
-              val availableAccounts = bank.publicAccounts
-              JsonResponse(bankAccountsListToJson(availableAccounts, None))
-          }
-        }
-        case _ =>  {
-          val error = "bank " + bankId + " not found"
-          JsonResponse(ErrorMessage(error), Nil, Nil, 400)
         }
       }
+      
     }
   })
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: "private" :: Nil JsonGet json => {
 
-      if (isThereAnOAuthHeader)
-      {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-        if(httpCode == 200)
-          getUser(httpCode,oAuthParameters.get("oauth_token")) match {
-            case Full(user) => {
-              Bank(bankId) match {
-                case Full(bank) => {
-                    val availableAccounts = bank.nonPublicAccounts(user)
-                    JsonResponse(bankAccountsListToJson(availableAccounts, Full(user)))
-                }
-                case _ =>  {
-                  val error = "bank " + bankId + " not found"
-                  errorJsonResponse("error", 400)
-                }
-              }
+      failIfBadOauth {
+        user: Box[User] =>
+          {
+            for {
+              u <- user ?~ "user not found"
+              bank <- Bank(bankId)
+            } yield {
+              val availableAccounts = bank.nonPublicAccounts(u)
+              successJsonResponse(bankAccountsListToJson(availableAccounts, Full(u)), 200)
             }
-            case _ => errorJsonResponse("user not found", 400)
           }
-        else
-          errorJsonResponse(message,httpCode)
       }
-      else
-        oauthHeaderRequiredJsonResponce
+
     }
   })
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: "public" :: Nil JsonGet json => {
 
-      Bank(bankId) match {
-        case Full(bank) => {
+      failIfBadOauth {
+        user: Box[User] => {
+          for {
+            bank <- Bank(bankId)
+          } yield {
             val availableAccounts = bank.publicAccounts
-            JsonResponse(bankAccountsListToJson(availableAccounts, None))
-        }
-        case _ =>  {
-          val error = "bank " + bankId + " not found"
-          errorJsonResponse("error", 400)
+            val publicAccountsJson = bankAccountsListToJson(availableAccounts, user)
+            successJsonResponse(publicAccountsJson, 200)
+          }
         }
       }
+      
     }
   })
 
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
-
-      def getBankAccountDetail(bankId : String, accountId : String, viewId : String, user : Box[User]) : Box[(ModeratedBankAccount, Set[View])] = {
-        for {
-          bank <- Bank(bankId)
-          account <- BankAccount(bankId, accountId)
-          availableviews <- Full(account.permittedViews(user))
-          view <- View.fromUrl(viewId)
-          moderatedAccount <- account.moderatedBankAccount(view, user)
-        } yield (moderatedAccount, availableviews)
-      }
-
-      def accountDetailJsonResponse(accountDetails : Box[(ModeratedBankAccount, Set[View])]) : JsonResponse = {
-
-        accountDetails match {
-          case Full(details) => {
-            val views = details._2
-            val account = details._1
-
-            val viewsAvailable : Set[ViewJSON] =
-                views.map( v => {
-                  JSONFactory.createViewJSON(v)
-                })
-            val moderatedAccount = JSONFactory.createModeratedAccountJSON(account,viewsAvailable)
-
-            val accountInJson = Extraction.decompose(moderatedAccount)
-            JsonResponse(accountInJson, Nil, Nil, 200)
+      
+      failIfBadOauth {
+        user: Box[User] => {
+          for {
+            bank <- Bank(bankId)
+            account <- BankAccount(bankId, accountId)
+            availableviews <- Full(account.permittedViews(user))
+            view <- View.fromUrl(viewId)
+            moderatedAccount <- account.moderatedBankAccount(view, user)
+          } yield {
+            val viewsAvailable = availableviews.map(JSONFactory.createViewJSON)
+            val moderatedAccountJson = JSONFactory.createModeratedAccountJSON(moderatedAccount, viewsAvailable)
+            successJsonResponse(Extraction.decompose(moderatedAccountJson), 200)
           }
-          case Failure(msg, _, _) => errorJsonResponse(msg,400)
-          case _ => errorJsonResponse("error",400)
         }
       }
-
-      if(isThereAnOAuthHeader)
-      {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-        if(httpCode == 200)
-        {
-          val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
-          val accountDetails : Box[(ModeratedBankAccount, Set[View])] = getBankAccountDetail(bankId, accountId, viewId, user)
-          accountDetailJsonResponse(accountDetails)
-        }
-        else
-          errorJsonResponse(message,httpCode)
-      }
-      else
-      {
-        val accountDetail = getBankAccountDetail(bankId, accountId, viewId, Empty)
-        accountDetailJsonResponse(accountDetail)
-      }
+      
     }
   })
 
