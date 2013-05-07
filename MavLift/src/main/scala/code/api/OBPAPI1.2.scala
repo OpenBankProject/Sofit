@@ -246,6 +246,23 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       JsonResponse(banksToJson(Bank.all))
     }
   })
+  serve(apiPrefix prefix{
+    case "banks" :: bankId :: Nil JsonGet json => {
+      logAPICall
+
+      def bankToJson(bank : Bank) : JValue = {
+        val bankJSON = JSONFactory.createBankJSON(bank)
+        Extraction.decompose(bankJSON)
+      }
+
+      Bank(bankId) match {
+        case Full(bank) => {
+          successJsonResponse(bankToJson(bank),200)
+        }
+        case _ => errorJsonResponse("bank " + bankId + " not found",400)
+      }
+    }
+  })
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: Nil JsonGet json => {
       logAPICall
@@ -270,10 +287,8 @@ object OBPAPI1_2 extends RestHelper with Loggable {
               JsonResponse(bankAccountsListToJson(availableAccounts, None))
           }
         }
-        case _ =>  {
-          val error = "bank " + bankId + " not found"
-          JsonResponse(ErrorMessage(error), Nil, Nil, 400)
-        }
+        case _ =>
+          errorJsonResponse("bank " + bankId + " not found",400)
       }
     }
   })
