@@ -257,7 +257,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   serve(apiPrefix prefix {
     case Nil JsonGet json => {
-      logAPICall
 
       val apiDetails : JValue = {
         val hostedBy = new HostedBy("TESOBE", "contact@tesobe.com", "+49 (0)30 8145 3994")
@@ -270,7 +269,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
   serve(apiPrefix prefix{
     case "banks" :: Nil JsonGet json => {
-      logAPICall
 
       def banksToJson(banksList : List[Bank]) : JValue = {
         val banksJSON : List[BankJSON] = banksList.map( b => {
@@ -285,7 +283,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: Nil JsonGet json => {
-      logAPICall
 
       Bank(bankId) match {
         case Full(bank) => {
@@ -316,7 +313,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: "private" :: Nil JsonGet json => {
-      logAPICall
 
       if (isThereAnOAuthHeader)
       {
@@ -346,7 +342,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: "public" :: Nil JsonGet json => {
-      logAPICall
 
       Bank(bankId) match {
         case Full(bank) => {
@@ -363,7 +358,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   serve(apiPrefix prefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
-      logAPICall
 
       def getBankAccountDetail(bankId : String, accountId : String, viewId : String, user : Box[User]) : Box[(ModeratedBankAccount, Set[View])] = {
         for {
