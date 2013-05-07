@@ -285,19 +285,21 @@ object OBPAPI1_2 extends RestHelper with Loggable {
       {
         val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
         if(httpCode == 200)
-        {
-          val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
-          Bank(bankId) match {
-            case Full(bank) => {
-                val availableAccounts = bank.privateAccounts(user)
-                JsonResponse(bankAccountsListToJson(availableAccounts, user))
+          getUser(httpCode,oAuthParameters.get("oauth_token")) match {
+            case Full(user) => {
+              Bank(bankId) match {
+                case Full(bank) => {
+                    val availableAccounts = bank.nonPublicAccounts(user)
+                    JsonResponse(bankAccountsListToJson(availableAccounts, Full(user)))
+                }
+                case _ =>  {
+                  val error = "bank " + bankId + " not found"
+                  errorJsonResponse("error", 400)
+                }
+              }
             }
-            case _ =>  {
-              val error = "bank " + bankId + " not found"
-              JsonResponse(ErrorMessage(error), Nil, Nil, 400)
-            }
+            case _ => errorJsonResponse("user not found", 400)
           }
-        }
         else
           errorJsonResponse(message,httpCode)
       }
@@ -316,7 +318,7 @@ object OBPAPI1_2 extends RestHelper with Loggable {
         }
         case _ =>  {
           val error = "bank " + bankId + " not found"
-          JsonResponse(ErrorMessage(error), Nil, Nil, 400)
+          errorJsonResponse("error", 400)
         }
       }
     }

@@ -46,7 +46,7 @@ trait Bank
   def logoURL : String
 	def accounts : List[BankAccount]
   def publicAccounts : List[BankAccount]
-  def privateAccounts(user : Box[User]) : List[BankAccount]
+  def nonPublicAccounts(user : User) : List[BankAccount]
   def website : String
 
 	def detailedJson : JObject = {
