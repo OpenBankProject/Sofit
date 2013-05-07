@@ -50,6 +50,7 @@ import Helpers._
 import net.liftweb.util.Props
 import code.model.TokenType
 import code.model.traits.User
+import net.liftweb.common.Failure
 
 /**
 * This object provides the API calls necessary to third party applications
@@ -468,7 +469,10 @@ object OAuthHandshake extends RestHelper with Loggable {
       case _ => "GET"
     }
     val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-    getUser(httpCode, oAuthParameters.get("oauth_token"))
+    
+    //TODO: Needs refactoring
+    if(httpCode== 200) getUser(httpCode, oAuthParameters.get("oauth_token"))
+    else Failure(message)
   }
 	
   def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] =
