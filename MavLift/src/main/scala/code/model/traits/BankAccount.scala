@@ -82,7 +82,7 @@ trait BankAccount {
   def moderatedTransaction(id: String, view: View, user: Box[User]) : Box[ModeratedTransaction] = {
     if(permittedViews(user).contains(view)) {
       transaction(id).map(view.moderate)
-    } else Empty
+    } else Failure("view/transaction not authorized")
   }
 
   def moderatedBankAccount(view: View, user: Box[User]) : Box[ModeratedBankAccount] = {

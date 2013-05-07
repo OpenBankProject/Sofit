@@ -391,7 +391,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     for {
       account <- BankAccount(bankId, accountId)
       view <- View.fromUrl(viewId)
-      moderatedTransaction <- account.moderatedTransaction(transactionID, view, user) ?~ "view/transaction not authorized"
+      moderatedTransaction <- account.moderatedTransaction(transactionID, view, user)
       metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
     } yield metadata
 }
