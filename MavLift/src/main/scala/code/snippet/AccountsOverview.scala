@@ -64,7 +64,7 @@ class AccountsOverview {
 
   def authorisedAccounts = {
     def loggedInSnippet(user: User) = {
-      val accountsWithMoreThanAnonAccess = user.accountsWithMoreThanAnonAccess.toList.sortBy(acc => acc.label)
+      val accountsWithMoreThanAnonAccess = user.nonPublicAccounts.toList.sortBy(acc => acc.label)
       ".accountList" #> accountsWithMoreThanAnonAccess.map(acc => {
         ".accLink *" #> acc.name &
         //TODO: Would be nice to be able to calculate this is in a way that would be less fragile in terms of maintenance

@@ -38,7 +38,7 @@ import net.liftweb.mongodb.BsonDSL._
 import net.liftweb.json.JsonDSL._
 import net.liftweb.common.Loggable
 import code.model.dataAccess.OBPEnvelope.OBPQueryParam
-import net.liftweb.mapper.By
+import net.liftweb.mapper.{By,IHaveValidatedThisSQL}
 import net.liftweb.mongodb.MongoDB
 import com.mongodb.BasicDBList
 import java.util.ArrayList
@@ -103,7 +103,8 @@ trait LocalStorage extends Loggable {
   def getAllAccounts() : List[BankAccount]
   def getAllPublicAccounts() : List[BankAccount]
   def getPublicBankAccounts(bank : Bank) : List[BankAccount]
-  def getPrivateBankAccounts(bank : Bank) : List[BankAccount]
+  def getNonPublicBankAccounts(user : User) :  List[BankAccount]
+  def getNonPublicBankAccounts(user : User, bankID : String) :  List[BankAccount]
 }
 
 class MongoDBLocalStorage extends LocalStorage {
@@ -251,10 +252,82 @@ class MongoDBLocalStorage extends LocalStorage {
     val rawAccounts = Account.findAll(("bankID",bankId) ~ ("anonAccess", true))
     rawAccounts.map(Account.toBankAccount)
   }
-  def getPrivateBankAccounts(bank : Bank) : List[BankAccount] = {
-    val bankId = new ObjectId(bank.id)
-    val rawAccounts = Account.findAll(("bankID",bankId))
-    rawAccounts.map(Account.toBankAccount)
+
+  /**
+  * @return the bank accounts where the user has at least access to a non public view (is_public==false)
+  */
+  def getNonPublicBankAccounts(user : User) :  List[BankAccount] = {
+
+    val hostedAccountTable = HostedAccount._dbTableNameLC
+    val privilegeTable = Privilege._dbTableNameLC
+    val userTable = OBPUser._dbTableNameLC
+
+    val hostedId = hostedAccountTable + "." + HostedAccount.id.dbColumnName
+    val hostedAccId = hostedAccountTable + "." + HostedAccount.accountID.dbColumnName
+    val privilegeAccId = privilegeTable + "." + Privilege.account.dbColumnName
+    val privilegeUserId = privilegeTable + "." + Privilege.user.dbColumnName
+    val userId = user.id_
+
+    val ourNetworkPrivilege = privilegeTable + "." + Privilege.ourNetworkPermission.dbColumnName
+    val teamPrivilege = privilegeTable + "." + Privilege.teamPermission.dbColumnName
+    val boardPrivilege = privilegeTable + "." + Privilege.boardPermission.dbColumnName
+    val authoritiesPrivilege = privilegeTable + "." + Privilege.authoritiesPermission.dbColumnName
+    val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
+    val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
+
+    val query = "SELECT " + hostedId + ", " + hostedAccId +
+          " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
+          " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
+            " AND " + "( " + privilegeUserId + " = " + userId + ")" +
+            " AND " + "( " + ourNetworkPrivilege + " = true" +
+              " OR " + teamPrivilege + " = true" +
+              " OR " + boardPrivilege + " = true" +
+              " OR " + authoritiesPrivilege + " = true" +
+              " OR " + managementPrivilege + " = true" +
+              " OR " + ownerPrivilege + " = true)"
+
+    val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
+    val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
+
+    Account.findAll(mongoIds).map(Account.toBankAccount)
+  }
+  def getNonPublicBankAccounts(user : User, bankID : String) :  List[BankAccount] = {
+
+    val hostedAccountTable = HostedAccount._dbTableNameLC
+    val privilegeTable = Privilege._dbTableNameLC
+    val userTable = OBPUser._dbTableNameLC
+
+    val hostedId = hostedAccountTable + "." + HostedAccount.id.dbColumnName
+    val hostedAccId = hostedAccountTable + "." + HostedAccount.accountID.dbColumnName
+    val privilegeAccId = privilegeTable + "." + Privilege.account.dbColumnName
+    val privilegeUserId = privilegeTable + "." + Privilege.user.dbColumnName
+    val userId = user.id_
+
+    val ourNetworkPrivilege = privilegeTable + "." + Privilege.ourNetworkPermission.dbColumnName
+    val teamPrivilege = privilegeTable + "." + Privilege.teamPermission.dbColumnName
+    val boardPrivilege = privilegeTable + "." + Privilege.boardPermission.dbColumnName
+    val authoritiesPrivilege = privilegeTable + "." + Privilege.authoritiesPermission.dbColumnName
+    val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
+    val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
+
+    val query = "SELECT " + hostedId + ", " + hostedAccId +
+          " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
+          " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
+            " AND " + "( " + privilegeUserId + " = " + userId + ")" +
+            " AND " + "( " + ourNetworkPrivilege + " = true" +
+              " OR " + teamPrivilege + " = true" +
+              " OR " + boardPrivilege + " = true" +
+              " OR " + authoritiesPrivilege + " = true" +
+              " OR " + managementPrivilege + " = true" +
+              " OR " + ownerPrivilege + " = true)"
+
+    val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
+    val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
+
+    val bankObjectId = new ObjectId(bankID)
+    def sameBank(account : Account) : Boolean =
+      account.bankID.get == bankObjectId
+    Account.findAll(mongoIds).filter(sameBank).map(Account.toBankAccount)
   }
 
   //check if the bank and the accounts exist in the database

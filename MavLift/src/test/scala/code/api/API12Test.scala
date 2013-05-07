@@ -244,7 +244,6 @@ class API1_2Test extends ServerSetup{
         a.id.nonEmpty should equal (true)
         a.views_available.nonEmpty should equal (true)
       })
-      println("==> accounts: " + privateAccountsInfo.accounts)
     }
     scenario("we don't get the private bank accounts") {
       Given("We will not use an access token")
