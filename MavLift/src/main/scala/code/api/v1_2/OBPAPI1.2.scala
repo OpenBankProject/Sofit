@@ -59,6 +59,7 @@ import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrde
 import java.net.URL
 import code.util.APIUtil._
 import code.api.OBPRestHelper
+import code.model.implementedTraits.Owner
 
 
 object OBPAPI1_2 extends OBPRestHelper with Loggable {
@@ -206,12 +207,30 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
         user =>
           for {
-            metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, getUser)
+            metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
             images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
           } yield {
               val json = JSONFactory.createTransactionImagesJson(images)
               successJsonResponse(Extraction.decompose(json))
             }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: imageId :: Nil JsonDelete _ => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
+          toDelete <- Box(images.find(image => image.id_ == imageId)) ?~ { "image not found" }
+          bankAccount <- BankAccount(bankId, accountId)
+          deletable <- if(toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
+                       else Failure("insufficient privileges to delete image")
+          deleteFunction <- metadata.deleteImage
+        } yield {
+          deleteFunction(deletable.id_)
+          successJsonResponse(204)
+        }
     }
   })
 
