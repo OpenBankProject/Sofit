@@ -204,8 +204,11 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
         //that takes a parameter)
         SHtml.ajaxInvoke(() => {
           imageJson.id match {
-            case Some(id) => ObpAPI.deleteImage(urlParams.bankId, urlParams.accountId,
+            case Some(id) => {
+              val deleted = ObpAPI.deleteImage(urlParams.bankId, urlParams.accountId,
               urlParams.viewId, urlParams.transactionId, id)
+              if(!deleted) logger.error("Tried to delete an image but it didn't work")
+            }
             case _ => logger.warn("Tried to delete an image without an id")
           }
           val jqueryRemoveImage = "$('.image-holder[data-id=\"" + imageHtmlId(imageJson) + "\"]').remove();"
