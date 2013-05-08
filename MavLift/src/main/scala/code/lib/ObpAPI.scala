@@ -170,7 +170,7 @@ object ObpDelete {
       val status = request.getResponseCode()
 
       status match {
-        case 200 => true
+        case 200 | 204 => true
         case _ => false
       }
     }
