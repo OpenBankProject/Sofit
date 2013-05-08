@@ -47,7 +47,7 @@ object APIUtil {
     commit getOrElse ""
   }
 
-  def successJsonResponse(json: JsExp, httpCode : Int) : JsonResponse =
+  def successJsonResponse(json: JsExp, httpCode : Int = 200) : JsonResponse =
     JsonResponse(json, Nil, Nil, httpCode)
 
   def errorJsonResponse(message : String = "error", httpCode : Int = 400) : JsonResponse =

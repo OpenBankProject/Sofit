@@ -55,6 +55,10 @@ class API1_2Test extends ServerSetup{
 
 
   /********************* API test methods ********************/
+  val emptyJSON : JObject =
+    ("" -> "")
+  val errorAPIResponse = new APIResponse(400,emptyJSON)
+
   def getAPIInfo : h.HttpPackage[APIResponse] = {
     val request = v1_2Request
     makeGetRequest(request)
@@ -65,8 +69,17 @@ class API1_2Test extends ServerSetup{
     makeGetRequest(request)
   }
 
-  val emptyJSON : JObject =
-    ("" -> "")
+  def getBankInfo : h.HttpPackage[APIResponse]  = {
+    val banksInfo = getBanksInfo.body.extract[BanksJSON]
+    if(banksInfo.banks.nonEmpty)
+    {
+      val bank = banksInfo.banks.head
+      val request = v1_2Request / "banks" / bank.id
+      makeGetRequest(request)
+    }
+    else
+      errorAPIResponse
+  }
 
   def getPublicAccounts : h.HttpPackage[APIResponse]= {
     val reply = getBanksInfo
@@ -78,7 +91,7 @@ class API1_2Test extends ServerSetup{
       makeGetRequest(request)
     }
     else
-      new APIResponse(400,emptyJSON)
+      errorAPIResponse
   }
 
   def getPrivateAccounts : h.HttpPackage[APIResponse] = {
@@ -91,7 +104,7 @@ class API1_2Test extends ServerSetup{
       makeGetRequest(request)
     }
     else
-      new APIResponse(400,emptyJSON)
+      errorAPIResponse
   }
 
   def getBankAccounts : h.HttpPackage[APIResponse] = {
@@ -104,7 +117,7 @@ class API1_2Test extends ServerSetup{
       makeGetRequest(request)
     }
     else
-      new APIResponse(400,emptyJSON)
+      errorAPIResponse
   }
 
   def getBankAccountsWithToken : h.HttpPackage[APIResponse] = {
@@ -117,7 +130,7 @@ class API1_2Test extends ServerSetup{
       makeGetRequest(request)
     }
     else
-      new APIResponse(400,emptyJSON)
+      errorAPIResponse
   }
 
   def getPrivateAccountsWithOutToken : h.HttpPackage[APIResponse] = {
@@ -130,7 +143,7 @@ class API1_2Test extends ServerSetup{
       makeGetRequest(request)
     }
     else
-      new APIResponse(400,emptyJSON)
+      errorAPIResponse
   }
 
   def getPublicBankAccountDetails : h.HttpPackage[APIResponse] = {
@@ -144,7 +157,7 @@ class API1_2Test extends ServerSetup{
       makeGetRequest(request)
     }
     else
-      new APIResponse(400,emptyJSON)
+      errorAPIResponse
   }
 
   def getPrivateBankAccountDetails : h.HttpPackage[APIResponse] = {
@@ -158,7 +171,7 @@ class API1_2Test extends ServerSetup{
       makeGetRequest(request)
     }
     else
-      new APIResponse(400,emptyJSON)
+      errorAPIResponse
   }
 
   /************************ the tests ************************/
@@ -186,6 +199,18 @@ class API1_2Test extends ServerSetup{
       banksInfo.banks.foreach(b => {
         b.id.nonEmpty should equal (true)
       })
+    }
+  }
+
+  feature("Information about one hosted bank"){
+    scenario("we get the hosted bank information") {
+      Given("We will not use an access token")
+      When("the request is sent")
+      val reply = getBankInfo
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+      val banksInfo = reply.body.extract[BankJSON]
+      banksInfo.id.nonEmpty should equal (true)
     }
   }
 

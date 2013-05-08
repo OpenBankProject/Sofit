@@ -114,15 +114,5 @@ class BankAccountImpl(
    LocalStorage.getTransactions(permalink, bankPermalink)
   }
 
-  def authorizedAccess(view: code.model.traits.View, user: Option[User]) = {
-    view match {
-      case Public => allowPublicAccess
-      case _ => user match {
-        case Some(u) => u.permittedViews(this).contains(view)
-        case _ => false
-      }
-    }
-  }
-
 }
 
