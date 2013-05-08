@@ -105,6 +105,7 @@ trait LocalStorage extends Loggable {
   def getPublicBankAccounts(bank : Bank) : List[BankAccount]
   def getNonPublicBankAccounts(user : User) :  List[BankAccount]
   def getNonPublicBankAccounts(user : User, bankID : String) :  List[BankAccount]
+  def permissions(account : BankAccount) : Box[List[Permission]]
 }
 
 class MongoDBLocalStorage extends LocalStorage {
@@ -428,6 +429,24 @@ class MongoDBLocalStorage extends LocalStorage {
           case _ => Failure("other account id " + otherAccountID + "not found", Empty, Empty)
         }
       case _ => Failure("Bank account id " + accountID + " not found.")
+    }
+  }
+  def permissions(account : BankAccount) : Box[List[Permission]] = {
+
+    HostedAccount.find(By(HostedAccount.accountID,account.id)) match {
+      case Full(acc) => {
+        val privileges =  Privilege.findAll(By(Privilege.account, acc.id.get))
+        val permissions : List[Box[Permission]] = privileges.map( p => {
+            p.user.obj.map(u => {
+                new Permission(
+                  u,
+                  u.permittedViews(account).toList
+                )
+              })
+          })
+        Full(permissions.flatten)
+      }
+      case _ => Failure("Could not find the hostedAccount", Empty, Empty)
     }
   }
 }

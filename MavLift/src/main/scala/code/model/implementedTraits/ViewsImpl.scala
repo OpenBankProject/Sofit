@@ -38,7 +38,7 @@ import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST.JObject
 
 object View {
-  //transforme the url into a view
+  //transform the url into a view
   //TODO : load the view from the Data base
   def fromUrl(viewNameURL: String): Box[View] =
     viewNameURL match {

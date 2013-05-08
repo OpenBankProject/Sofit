@@ -47,6 +47,10 @@ object PublicAlias extends Alias
 object PrivateAlias extends Alias
 object NoAlias extends AliasType
 case class AccountName(display: String, aliasType: AliasType)
+case class Permission(
+  user : User,
+  views : List[View]
+)
 
 trait View {
 

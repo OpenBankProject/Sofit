@@ -33,15 +33,12 @@ Berlin 13359, Germany
 package code.model.traits
 import scala.math.BigDecimal
 import java.util.Date
-import code.model.dataAccess.LocalStorage
+import code.model.dataAccess.{LocalStorage,Account}
 import net.liftweb.common.{Full, Empty, Failure, Box}
-import code.model.dataAccess.Account
 import code.model.dataAccess.OBPEnvelope.OBPQueryParam
 import net.liftweb.json.JObject
 import net.liftweb.json.JsonDSL._
-import net.liftweb.http.LiftResponse
-import net.liftweb.http.JsonResponse
-import code.model.implementedTraits.View
+import code.model.implementedTraits.{Owner, Public, View}
 
 trait BankAccount {
 
@@ -96,16 +93,31 @@ trait BankAccount {
       Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
   }
 
+  def permissions(user : User) : Box[List[Permission]] = {
+    //see if the user have access to the owner view in this the account
+    if(authorizedAccess(Owner,Full(user)))
+      LocalStorage.permissions(this)
+    else
+      Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
+  }
+
   //Is a public view is available for this bank account
   def allowPublicAccess : Boolean
 
+  def authorizedAccess(view: code.model.traits.View, user: Option[User]) : Boolean = {
+    view match {
+      case Public => allowPublicAccess
+      case _ => user match {
+        case Some(u) => u.permittedViews(this).contains(view)
+        case _ => false
+      }
+    }
+  }
   def permittedViews(user: Box[User]) : Set[View]
 
   def getModeratedTransactions(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
 
   def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
-
-  def authorizedAccess(view: View, user: Option[User]) : Boolean
 
   def overviewJson(user: Box[User]): JObject = {
     val views = permittedViews(user)
@@ -147,5 +159,4 @@ object BankAccount {
   def publicAccounts : List[BankAccount] = {
     LocalStorage.getAllPublicAccounts()
   }
-
 }
