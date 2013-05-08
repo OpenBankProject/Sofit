@@ -274,8 +274,8 @@ object JSONFactory{
       label = stringOptionOrNull(transaction.label),
       posted = transaction.startDate.getOrElse(null),
       completed = transaction.finishDate.getOrElse(null),
-      new_balance = createAmountOfMoneyJSON("TODO", "TODO"),
-      value= createAmountOfMoneyJSON("TODO", "TODO")
+      new_balance = createAmountOfMoneyJSON(transaction.currency, transaction.balance),
+      value= createAmountOfMoneyJSON(transaction.currency, transaction.amount.map(_.toString))
     )
   }
   
@@ -373,6 +373,21 @@ object JSONFactory{
       stringOrNull(amount)
     )
   }
+  
+  def createAmountOfMoneyJSON(currency : Option[String], amount  : Option[String]) : AmountOfMoneyJSON = {
+    new AmountOfMoneyJSON(
+      stringOptionOrNull(currency),
+      stringOptionOrNull(amount)
+    )
+  }
+  
+  def createAmountOfMoneyJSON(currency : Option[String], amount  : String) : AmountOfMoneyJSON = {
+    new AmountOfMoneyJSON(
+      stringOptionOrNull(currency),
+      stringOrNull(amount)
+    )
+  }
+  
   def createPermissionsJSON(permissions : List[Permission]) : PermissionsJSON = {
     val permissionsJson = permissions.map(p => {
         new PermissionJSON(
