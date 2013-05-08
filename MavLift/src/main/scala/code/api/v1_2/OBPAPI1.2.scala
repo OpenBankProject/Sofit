@@ -199,7 +199,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
             val json = JSONFactory.createTransactionJSON(moderatedTransaction)
             successJsonResponse(Extraction.decompose(json))
           }
-        Full(errorJsonResponse("TODO"))
     }
   })
 
