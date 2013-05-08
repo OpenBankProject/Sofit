@@ -81,6 +81,11 @@ class API1_2Test extends ServerSetup{
       errorAPIResponse
   }
 
+  def getBankInfoWithRandomID : h.HttpPackage[APIResponse]  = {
+      val request = v1_2Request / "banks" / Helpers.randomString(5)
+      makeGetRequest(request)
+  }
+
   def getPublicAccounts : h.HttpPackage[APIResponse]= {
     val reply = getBanksInfo
     val banksInfo = reply.body.extract[BanksJSON]
@@ -209,8 +214,17 @@ class API1_2Test extends ServerSetup{
       val reply = getBankInfo
       Then("we should get a 200 ok code")
       reply.code should equal (200)
-      val banksInfo = reply.body.extract[BankJSON]
-      banksInfo.id.nonEmpty should equal (true)
+      val bankInfo = reply.body.extract[BankJSON]
+      bankInfo.id.nonEmpty should equal (true)
+    }
+
+    scenario("we don't get the hosted bank information") {
+      Given("We will not use an access token and request a random bankId")
+      When("the request is sent")
+      val reply = getBankInfoWithRandomID
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      println("error message: " + reply.body)
     }
   }
 
