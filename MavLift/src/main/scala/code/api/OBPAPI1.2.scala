@@ -58,6 +58,7 @@ import code.api.OAuthHandshake._
 import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
 import java.net.URL
 import code.util.APIUtil._
+import code.api.OBPRestHelper
 
 case class APIInfoJSON(
   version : String,
@@ -77,6 +78,10 @@ case class SuccessMessage(
 )
 case class BanksJSON(
   banks : List[BankJSON]
+)
+case class MinimalBankJSON(
+  national_identifier : String,
+  name : String
 )
 case class BankJSON(
   id : String,
@@ -104,21 +109,102 @@ case class ModeratedAccountJSON(
   id : String,
   label : String,
   number : String,
-  owners : List[UserJson],
+  owners : List[UserJSON],
   `type` : String,
   balance : AmountOfMoneyJSON,
   IBAN : String,
   views_available : Set[ViewJSON],
   bank_id : String
 )
-case class UserJson(
+case class UserJSON(
   user_id : String,
   user_provider : String,
   display_name : String
 )
+case class PermissionsJSON(
+  permissions : List[PermissionJSON]
+)
+case class PermissionJSON(
+  user : UserJSON,
+  views : List[ViewJSON]
+)
 case class AmountOfMoneyJSON(
   currency : String,
   amount : String
+)
+case class AccountHolderJSON(
+  name : String,
+  is_alias : Boolean
+)
+case class ThisAccountJSON(
+  holders : List[AccountHolderJSON],
+  number : String,
+  kind : String,
+  IBAN : String,
+  bank : MinimalBankJSON
+)
+case class OtherAccountJSON(
+  holder : AccountHolderJSON,
+  number : String,
+  kind : String,
+  IBAN : String,
+  bank : MinimalBankJSON,
+  metadata : OtherAccountMetadataJSON)
+case class OtherAccountMetadataJSON(
+  public_alias : String,
+  private_alias : String,
+  more_info : String,
+  URL : String,
+  image_URL : String,
+  open_corporates_URL : String,
+  corporate_location : LocationJSON,
+  physical_location : LocationJSON
+)
+case class LocationJSON(
+  latitude : Double,
+  longitude : Double,
+  date : Date,
+  user : UserJSON
+)
+case class TransactionDetailsJSON(
+  `type` : String,
+  label : String,
+  posted : Date,
+  completed : Date,
+  new_balance : AmountOfMoneyJSON,
+  value : AmountOfMoneyJSON
+)
+case class TransactionMetadataJSON(
+  narrative : String,
+  comments : List[TransactionCommentJSON],
+  tags : List[TransactionTagJSON],
+  images : List[TransactionImageJSON],
+  where : LocationJSON
+)
+case class TransactionJSON(
+  id : String,
+  this_account : ThisAccountJSON,
+  other_account : OtherAccountJSON,
+  details : TransactionDetailsJSON,
+  metadata : TransactionMetadataJSON)
+case class TransactionImagesJSON(
+  images : List[TransactionImageJSON])
+case class TransactionImageJSON(
+  id : String,
+  label : String,
+  URL : String,
+  date : Date,
+  user : UserJSON)
+case class TransactionTagJSON(
+  id : String,
+  value : String,
+  date : Date,
+  user : UserJSON)
+case class TransactionCommentJSON(
+  id : String,
+  value : String,
+  date: Date,
+  user : UserJSON
 )
 
 object JSONFactory{
@@ -177,9 +263,54 @@ object JSONFactory{
     )
   }
 
-  def createOwnersJSON(owners : Set[AccountOwner], bankName : String) : List[UserJson] = {
+  def createTransactionJson(transaction : ModeratedTransaction) : TransactionJSON = {
+    new TransactionJSON(
+        id = transaction.id,
+        this_account = transaction.bankAccount.map(createThisAccountJSON).getOrElse(null),
+        other_account = transaction.otherBankAccount.map(createOtherAccountJSON).getOrElse(null),
+        details = createTransactionDetailsJSON(transaction),
+        metadata = createTransactionMetadataJSON(transaction)
+      )
+  }
+
+  def createTransactionMetadataJSON(transaction : ModeratedTransaction) : TransactionMetadataJSON = {
+    //TODO
+    null
+  }
+
+  def createTransactionDetailsJSON(transaction : ModeratedTransaction) : TransactionDetailsJSON = {
+    //TODO
+    null
+  }
+
+  def createThisAccountJSON(bankAccount : ModeratedBankAccount) : ThisAccountJSON = {
+    //TODO
+    null
+  }
+
+  def createOtherAccountJSON(bankAccount : ModeratedOtherBankAccount) : OtherAccountJSON = {
+    //TODO
+    null
+  }
+
+  def createUserJSON(user : User) : UserJSON = {
+    new UserJSON(
+          user.id_,
+          stringOrNull(user.provider),
+          stringOrNull(user.emailAddress)
+        )
+  }
+
+  def createUserJSON(user : Box[User]) : UserJSON = {
+    user match {
+      case Full(u) => createUserJSON(u)
+      case _ => null
+    }
+  }
+
+  def createOwnersJSON(owners : Set[AccountOwner], bankName : String) : List[UserJSON] = {
     owners.map(o => {
-        new UserJson(
+        new UserJSON(
           o.id,
           stringOrNull(bankName),
           stringOrNull(o.name)
@@ -193,15 +324,36 @@ object JSONFactory{
       stringOrNull(amount)
     )
   }
+  def createPermissionsJSON(permissions : List[Permission]) : PermissionsJSON = {
+    val permissionsJson = permissions.map(p => {
+        new PermissionJSON(
+          createUserJSON(p.user),
+          p.views.map(createViewJSON)
+        )
+      })
+    new PermissionsJSON(permissionsJson)
+  }
+  def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
+    new TransactionImagesJSON(images.map(createTransactionImageJSON))
+  }
+
+  def createTransactionImageJSON(image : TransactionImage) : TransactionImageJSON = {
+    new TransactionImageJSON(
+        id = image.id_,
+        label = image.description,
+        URL = image.imageUrl.toString,
+        date = image.datePosted,
+        user = createUserJSON(image.postedBy))
+  }
 }
 
-object OBPAPI1_2 extends RestHelper with Loggable {
+object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   implicit def errorToJson(error: ErrorMessage): JValue = Extraction.decompose(error)
   implicit def successToJson(success: SuccessMessage): JValue = Extraction.decompose(success)
 
   val dateFormat = ModeratedTransaction.dateFormat
-  val apiPrefix = "obp" / "v1.2"
+  val apiPrefix = "obp" / "v1.2" oPrefix _
 
   private def bankAccountsListToJson(bankAccounts: List[BankAccount], user : Box[User]): JValue = {
     val accJson : List[AccountJSON] = bankAccounts.map( account => {
@@ -216,181 +368,148 @@ object OBPAPI1_2 extends RestHelper with Loggable {
     val accounts = new AccountsJSON(accJson)
     Extraction.decompose(accounts)
   }
+  private def moderatedTransactionMetadata(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : Box[ModeratedTransactionMetadata] =
+    for {
+      account <- BankAccount(bankId, accountId)
+      view <- View.fromUrl(viewId)
+      moderatedTransaction <- account.moderatedTransaction(transactionID, view, user)
+      metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
+    } yield metadata
 
-
-  serve(apiPrefix prefix {
+  oauthServe(apiPrefix {
     case Nil JsonGet json => {
-      logAPICall
+      user =>
+        val apiDetails: JValue = {
+          val hostedBy = new HostedBy("TESOBE", "contact@tesobe.com", "+49 (0)30 8145 3994")
+          val apiInfoJSON = new APIInfoJSON("1.2", gitCommit, hostedBy)
+          Extraction.decompose(apiInfoJSON)
+        }
 
-      val apiDetails : JValue = {
-        val hostedBy = new HostedBy("TESOBE", "contact@tesobe.com", "+49 (0)30 8145 3994")
-        val apiInfoJSON = new APIInfoJSON("1.2", gitCommit, hostedBy)
-        Extraction.decompose(apiInfoJSON)
-      }
-
-      JsonResponse(apiDetails)
+        Full(successJsonResponse(apiDetails, 200))
     }
   })
-  serve(apiPrefix prefix{
-    case "banks" :: Nil JsonGet json => {
-      logAPICall
 
-      def banksToJson(banksList : List[Bank]) : JValue = {
-        val banksJSON : List[BankJSON] = banksList.map( b => {
+  oauthServe(apiPrefix {
+    case "banks" :: Nil JsonGet json => {
+      user =>
+        def banksToJson(banksList: List[Bank]): JValue = {
+          val banksJSON: List[BankJSON] = banksList.map(b => {
             JSONFactory.createBankJSON(b)
           })
-        val banks = new BanksJSON(banksJSON)
-        Extraction.decompose(banks)
-      }
+          val banks = new BanksJSON(banksJSON)
+          Extraction.decompose(banks)
+        }
 
-      JsonResponse(banksToJson(Bank.all))
+        Full(successJsonResponse(banksToJson(Bank.all)))
     }
   })
-  serve(apiPrefix prefix{
+
+  oauthServe(apiPrefix{
     case "banks" :: bankId :: Nil JsonGet json => {
-      logAPICall
-
-      def bankToJson(bank : Bank) : JValue = {
-        val bankJSON = JSONFactory.createBankJSON(bank)
-        Extraction.decompose(bankJSON)
-      }
-
-      Bank(bankId) match {
-        case Full(bank) => {
-          successJsonResponse(bankToJson(bank),200)
+      user =>
+        def bankToJson(bank : Bank) : JValue = {
+          val bankJSON = JSONFactory.createBankJSON(bank)
+          Extraction.decompose(bankJSON)
         }
-        case _ => errorJsonResponse("bank " + bankId + " not found",400)
-      }
+
+        for(bank <- Bank(bankId))
+          yield successJsonResponse(bankToJson(bank))
     }
   })
-  serve(apiPrefix prefix {
+
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: Nil JsonGet json => {
-      logAPICall
-
-      Bank(bankId) match {
-        case Full(bank) => {
-          if (isThereAnOAuthHeader)
-          {
-            val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-            if(httpCode == 200)
-            {
-              val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
-              val availableAccounts = bank.accounts.filter(_.permittedViews(user).size!=0)
-              JsonResponse(bankAccountsListToJson(availableAccounts, user))
+      user =>
+        for (bank <- Bank(bankId) )
+          yield {
+            val availableAccounts = user match {
+              case Full(u) => bank.accounts.filter(_.permittedViews(user).size != 0)
+              case _ => bank.publicAccounts
             }
-            else
-              errorJsonResponse(message,httpCode)
+            successJsonResponse(bankAccountsListToJson(availableAccounts, user))
           }
-          else
-          {
-              val availableAccounts = bank.publicAccounts
-              JsonResponse(bankAccountsListToJson(availableAccounts, None))
-          }
-        }
-        case _ =>
-          errorJsonResponse("bank " + bankId + " not found",400)
-      }
     }
   })
-  serve(apiPrefix prefix {
+
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: "private" :: Nil JsonGet json => {
-      logAPICall
-
-      if (isThereAnOAuthHeader)
-      {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-        if(httpCode == 200)
-          getUser(httpCode,oAuthParameters.get("oauth_token")) match {
-            case Full(user) => {
-              Bank(bankId) match {
-                case Full(bank) => {
-                    val availableAccounts = bank.nonPublicAccounts(user)
-                    JsonResponse(bankAccountsListToJson(availableAccounts, Full(user)))
-                }
-                case _ =>  {
-                  val error = "bank " + bankId + " not found"
-                  errorJsonResponse("error", 400)
-                }
-              }
-            }
-            case _ => errorJsonResponse("user not found", 400)
-          }
-        else
-          errorJsonResponse(message,httpCode)
-      }
-      else
-        oauthHeaderRequiredJsonResponce
+      user =>
+        for {
+          u <- user ?~ "user not found"
+          bank <- Bank(bankId)
+        } yield {
+          val availableAccounts = bank.nonPublicAccounts(u)
+          successJsonResponse(bankAccountsListToJson(availableAccounts, Full(u)))
+        }
     }
   })
-  serve(apiPrefix prefix {
+
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: "public" :: Nil JsonGet json => {
-      logAPICall
-
-      Bank(bankId) match {
-        case Full(bank) => {
-            val availableAccounts = bank.publicAccounts
-            JsonResponse(bankAccountsListToJson(availableAccounts, None))
+      user =>
+        for {
+          bank <- Bank(bankId)
+        } yield {
+          val availableAccounts = bank.publicAccounts
+          val publicAccountsJson = bankAccountsListToJson(availableAccounts, user)
+          successJsonResponse(publicAccountsJson)
         }
-        case _ =>  {
-          val error = "bank " + bankId + " not found"
-          errorJsonResponse("error", 400)
-        }
-      }
     }
   })
 
-  serve(apiPrefix prefix {
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
-      logAPICall
-
-      def getBankAccountDetail(bankId : String, accountId : String, viewId : String, user : Box[User]) : Box[(ModeratedBankAccount, Set[View])] = {
+      user =>
         for {
           bank <- Bank(bankId)
           account <- BankAccount(bankId, accountId)
           availableviews <- Full(account.permittedViews(user))
           view <- View.fromUrl(viewId)
           moderatedAccount <- account.moderatedBankAccount(view, user)
-        } yield (moderatedAccount, availableviews)
-      }
-
-      def accountDetailJsonResponse(accountDetails : Box[(ModeratedBankAccount, Set[View])]) : JsonResponse = {
-
-        accountDetails match {
-          case Full(details) => {
-            val views = details._2
-            val account = details._1
-
-            val viewsAvailable : Set[ViewJSON] =
-                views.map( v => {
-                  JSONFactory.createViewJSON(v)
-                })
-            val moderatedAccount = JSONFactory.createModeratedAccountJSON(account,viewsAvailable)
-
-            val accountInJson = Extraction.decompose(moderatedAccount)
-            JsonResponse(accountInJson, Nil, Nil, 200)
+        } yield {
+            val viewsAvailable = availableviews.map(JSONFactory.createViewJSON)
+            val moderatedAccountJson = JSONFactory.createModeratedAccountJSON(moderatedAccount, viewsAvailable)
+            successJsonResponse(Extraction.decompose(moderatedAccountJson))
           }
-          case Failure(msg, _, _) => errorJsonResponse(msg,400)
-          case _ => errorJsonResponse("error",400)
-        }
-      }
+    }
+  })
 
-      if(isThereAnOAuthHeader)
-      {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-        if(httpCode == 200)
-        {
-          val user = getUser(httpCode,oAuthParameters.get("oauth_token"))
-          val accountDetails : Box[(ModeratedBankAccount, Set[View])] = getBankAccountDetail(bankId, accountId, viewId, user)
-          accountDetailJsonResponse(accountDetails)
-        }
-        else
-          errorJsonResponse(message,httpCode)
-      }
-      else
-      {
-        val accountDetail = getBankAccountDetail(bankId, accountId, viewId, Empty)
-        accountDetailJsonResponse(accountDetail)
-      }
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "transaction" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          moderatedTransaction <- account.moderatedTransaction(transactionId, view, user) ?~ "view/transaction not authorized"
+        } yield {
+            val json = JSONFactory.createTransactionJson(moderatedTransaction)
+            successJsonResponse(Extraction.decompose(json))
+          }
+        Full(errorJsonResponse("TODO"))
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
+        user =>
+          for {
+            metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, getUser)
+            images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
+          } yield {
+              val json = JSONFactory.createTransactionImagesJson(images)
+              successJsonResponse(Extraction.decompose(json))
+            }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: "account" :: "users" :: Nil JsonGet json => {
+      user =>
+          for {
+            account <- BankAccount(bankId, accountId)
+            u <- user ?~ "user not found"
+            permissions <- account permissions u
+          } yield successJsonResponse(Extraction.decompose(permissions))
     }
   })
 }
