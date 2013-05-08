@@ -19,7 +19,7 @@ class OBPRestHelper extends RestHelper {
     }
   }
 
-  def failIfBadOauth(fn: (Box[User]) => JsonResponse) : JsonResponse = {
+  def failIfBadOauth(fn: (Box[User]) => Box[JsonResponse]) : JsonResponse = {
     if (isThereAnOAuthHeader) {
       getUser match {
         case Full(u) => fn(Full(u))
@@ -27,6 +27,42 @@ class OBPRestHelper extends RestHelper {
         case _ => errorJsonResponse("oauth error")
       }
     } else fn(Empty)
+  }
+
+  class RichStringList(list: List[String]) {
+    val listLen = list.length
+    
+    /**
+     * Normally we would use ListServeMagic's prefix function, but it works with PartialFunction[Req, () => Box[LiftResponse]]
+     * instead of the PartialFunction[Req, Box[User] => Box[JsonResponse]] that we need. This function does the same thing, really.
+     */
+    def oPrefix(pf: PartialFunction[Req, Box[User] => Box[JsonResponse]]): PartialFunction[Req, Box[User] => Box[JsonResponse]] =
+      new PartialFunction[Req, Box[User] => Box[JsonResponse]] {
+        def isDefinedAt(req: Req): Boolean =
+          req.path.partPath.startsWith(list) && {
+            pf.isDefinedAt(req.withNewPath(req.path.drop(listLen)))
+          }
+
+        def apply(req: Req): Box[User] => Box[JsonResponse] =
+          pf.apply(req.withNewPath(req.path.drop(listLen)))
+      }
+  }
+  
+  //Give all lists of strings in OBPRestHelpers the oPrefix method
+  implicit def stringListToRichStringList(list : List[String]) : RichStringList = new RichStringList(list)
+  
+  def oauthServe(handler : PartialFunction[Req, Box[User] => Box[JsonResponse]]) : Unit = {
+    val obpHandler : PartialFunction[Req, () => Box[LiftResponse]] = {
+      new PartialFunction[Req, () => Box[LiftResponse]] {
+        def apply(r : Req) = {
+          failIfBadOauth {
+            handler(r)
+          }
+        }
+        def isDefinedAt(r : Req) = handler.isDefinedAt(r)
+      }
+    }
+    serve(obpHandler)
   }
   
   override protected def serve(handler: PartialFunction[Req, () => Box[LiftResponse]]) : Unit= {
