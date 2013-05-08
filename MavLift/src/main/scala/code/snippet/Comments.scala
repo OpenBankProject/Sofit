@@ -196,20 +196,6 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       JsRaw(jqueryRemoveImage).cmd
     }
 
-    def imagesSelector2(images : List[TransactionImage]) =
-      ".noImages" #> "" &
-      ".image-holder" #> images.map(image => {
-        ".image-holder [data-id]" #> imageHtmlId2(image) &
-        ".trans-image [src]" #> image.imageUrl.toString &
-        ".image-description *" #> image.description &
-        ".postedBy *" #> { image.postedBy.map(_.emailAddress) getOrElse "unknown" } &
-        ".postedTime *" #> commentDateFormat.format(image.datePosted) &
-        //TODO: This could be optimised into calling an ajax function with image id as a parameter to avoid
-        //storing multiple closures server side (i.e. one client side function maps to on server side function
-        //that takes a parameter)
-        ".deleteImage [onclick]" #> SHtml.ajaxInvoke(() => deleteImage2(image))
-      })
-
     def imagesSelector(imageJsons: List[TransactionImageJson]) = {
 
       def deleteImage(imageJson: TransactionImageJson) = {
@@ -239,7 +225,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
     }
       
     val imageJsons = transactionJson.imageJsons
-    
+
     imageJsons match {
       case Some(iJsons) => {
         if(iJsons.isEmpty) noImages
@@ -248,15 +234,6 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       case _ => imagesNotAllowed
     }
 
-    val sel = for {
-      metadata <- transaction.metadata
-      images <- metadata.images
-    } yield {
-      if(images.isEmpty) noImages
-      else imagesSelector2(images)
-    }
-
-    sel getOrElse {"* *" #> ""}
   }
   
   def apiAddImage = {
