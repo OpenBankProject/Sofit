@@ -196,7 +196,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           moderatedTransaction <- account.moderatedTransaction(transactionId, view, user) ?~ "view/transaction not authorized"
         } yield {
-            val json = JSONFactory.createTransactionJson(moderatedTransaction)
+            val json = JSONFactory.createTransactionJSON(moderatedTransaction)
             successJsonResponse(Extraction.decompose(json))
           }
         Full(errorJsonResponse("TODO"))
