@@ -189,6 +189,17 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: "account" :: "users" :: Nil JsonGet json => {
+      user =>
+          for {
+            account <- BankAccount(bankId, accountId)
+            u <- user ?~ "user not found"
+            permissions <- account permissions u
+          } yield successJsonResponse(Extraction.decompose(permissions))
+    }
+  })
+
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "transaction" :: Nil JsonGet json => {
       user =>
         for {
@@ -213,17 +224,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
               val json = JSONFactory.createTransactionImagesJson(images)
               successJsonResponse(Extraction.decompose(json))
             }
-    }
-  })
-
-  oauthServe(apiPrefix {
-    case "banks" :: bankId :: "accounts" :: accountId :: "account" :: "users" :: Nil JsonGet json => {
-      user =>
-          for {
-            account <- BankAccount(bankId, accountId)
-            u <- user ?~ "user not found"
-            permissions <- account permissions u
-          } yield successJsonResponse(Extraction.decompose(permissions))
     }
   })
 }

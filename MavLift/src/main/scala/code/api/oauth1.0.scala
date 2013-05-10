@@ -462,19 +462,19 @@ object OAuthHandshake extends RestHelper with Loggable {
 
     nonceSaved && tokenSaved
 	}
-	
+
   def getUser : Box[User] = {
     val httpMethod = S.request match {
       case Full(r) => r.request.method
       case _ => "GET"
     }
     val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-    
+
     //TODO: Needs refactoring
     if(httpCode== 200) getUser(httpCode, oAuthParameters.get("oauth_token"))
     else Failure(message)
   }
-	
+
   def getUser(httpCode : Int, tokenID : Box[String]) : Box[User] =
     if(httpCode==200)
     {

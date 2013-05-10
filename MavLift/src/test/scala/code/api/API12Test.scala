@@ -17,6 +17,7 @@ import _root_.net.liftweb.json.JsonAST.{JValue, JObject}
 import org.mortbay.jetty.nio.SelectChannelConnector
 import net.liftweb.json.NoTypeHints
 import net.liftweb.json.JsonDSL._
+import scala.util.Random
 
 import code.model.{Consumer => OBPConsumer, Token => OBPToken}
 import code.model.TokenType
@@ -178,6 +179,36 @@ class API1_2Test extends ServerSetup{
     else
       errorAPIResponse
   }
+  def getAccountPermission : h.HttpPackage[APIResponse] = {
+    val accounts = getBankAccounts
+    val accountsInfo = accounts.body.extract[AccountsJSON]
+    if(accountsInfo.accounts.nonEmpty)
+    {
+      val accountsSize = accountsInfo.accounts.size
+      val randomAccount = Random.nextInt(accountsSize)
+      val account = accountsInfo.accounts(randomAccount)
+      val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "account" / "users" <@(consumer,token)
+      makeGetRequest(request)
+    }
+    else
+      errorAPIResponse
+  }
+
+  def getAccountPermissionWithoutToken = {
+    val accounts = getBankAccounts
+    val accountsInfo = accounts.body.extract[AccountsJSON]
+    if(accountsInfo.accounts.nonEmpty)
+    {
+      val accountsSize = accountsInfo.accounts.size
+      val randomAccount = Random.nextInt(accountsSize)
+      val account = accountsInfo.accounts(randomAccount)
+      val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "account" / "users"
+      makeGetRequest(request)
+    }
+    else
+      errorAPIResponse
+  }
+
 
   /************************ the tests ************************/
   feature("base line URL works"){
@@ -241,7 +272,6 @@ class API1_2Test extends ServerSetup{
         a.views_available.nonEmpty should equal (true)
       })
     }
-
     scenario("we get the bank accounts the user have access to") {
       Given("We will use an access token")
       When("the request is sent")
@@ -316,6 +346,24 @@ class API1_2Test extends ServerSetup{
       privateAccountDetails.id.nonEmpty should equal (true)
       privateAccountDetails.bank_id.nonEmpty should equal (true)
       privateAccountDetails.views_available.nonEmpty should equal (true)
+    }
+  }
+  feature("Information about the permissions of a specific bank account"){
+
+    scenario("we get data by using an access token") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = getAccountPermission
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+    }
+
+    scenario("we don't get data") {
+      Given("We will not use an access token")
+      When("the request is sent")
+      val reply = getAccountPermissionWithoutToken
+      Then("we should get a 400 code")
+      reply.code should equal (400)
     }
   }
 }
