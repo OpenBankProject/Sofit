@@ -223,7 +223,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           imageJson <- tryo{json.extract[PostTransactionImageJSON]}
           u <- user
           view <- View.fromUrl(viewId)
-          metadata <- moderatedTransactionMetadata(bankId, accountId, view.id.toString, transactionID, Full(u))
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
           addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
                           else Failure("view does not allow images to be added") 
           url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
