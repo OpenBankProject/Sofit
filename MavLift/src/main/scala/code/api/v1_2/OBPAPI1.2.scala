@@ -278,10 +278,12 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
           toDelete <- Box(images.find(image => image.id_ == imageId)) ?~ { "image not found" }
+          view <- View.fromUrl(viewId)
           bankAccount <- BankAccount(bankId, accountId)
           deletable <- if(toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
                        else Failure("insufficient privileges to delete image")
-          deleteFunction <- metadata.deleteImage
+          deleteFunction <- if(view.canDeleteImage) Box(metadata.deleteImage)
+                            else Failure("view does not allow images to be deleted")
         } yield {
           deleteFunction(deletable.id_)
           successJsonResponse(204)
