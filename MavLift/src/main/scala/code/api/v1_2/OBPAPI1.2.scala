@@ -231,54 +231,20 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "images" :: Nil JsonPost json -> _ => {
       user =>
         for {
-          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionID, user)
-          addImageFunc <- Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
+          imageJson <- tryo{json.extract[PostTransactionImageJSON]}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
+                          else Failure("view does not allow images to be added") 
+          url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
+          postedImageId <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
+          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          allImages <- Box(newMetadata.images) ?~! "Server error: no images found after posting"
+          postedImage <- Box(allImages.find(image => image.id_ == postedImageId)) ?~! "Server error: posted image not found after posting"
         } yield {
-          
+          successJsonResponse(Extraction.decompose(postedImage))
         }
-      
-      if(isThereAnOAuthHeader)
-      {
-        val (httpCode, message, oAuthParameters) = validator("protectedResource", httpMethod)
-        if(httpCode == 200)
-          tryo{
-            json.extract[ImageJSON]
-          } match {
-            case Full(imageJson) => {
-              def addImage(user : User, viewID : Long, label: String, url : URL) : Box[String] = {
-                val addImage = for {
-                  metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,Full(user))
-                  addImageFunc <- Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
-                } yield addImageFunc
-
-                addImage.map(
-                  func =>{
-                    val datePosted = (now: TimeSpan)
-                    func(user.id_, viewID, label, datePosted, url)
-                  }
-                )
-              }
-
-              val imageId = for{
-                  user <- getUser(httpCode,oAuthParameters.get("oauth_token")) ?~ "User not found. Authentication via OAuth is required"
-                  view <- View.fromUrl(viewId) ?~ {"view " + viewId +" view not found"}
-                  url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
-                  postedImageId <- addImage(user, view.id, imageJson.label, url)
-                } yield postedImageId
-
-              imageId match {
-                case Full(postedImageId) => JsonResponse(SuccessMessage("image : " + postedImageId + "successfully saved"), Nil, Nil, 201)
-                case Failure(msg, _, _) => JsonResponse(ErrorMessage(msg), Nil, Nil, 400)
-                case _ => JsonResponse(ErrorMessage("error"), Nil, Nil, 400)
-              }
-            }
-            case _ => JsonResponse(ErrorMessage("wrong JSON format"), Nil, Nil, 400)
-          }
-        else
-          JsonResponse(ErrorMessage(message), Nil, Nil, httpCode)
-      }
-      else
-        JsonResponse(ErrorMessage("Authentication via OAuth is required"), Nil, Nil, 400)
     }
   })
 
