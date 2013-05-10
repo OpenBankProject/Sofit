@@ -580,6 +580,8 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
               }
               
               val commentId = "comment_" + {position + 1 }
+              
+              ".text *" #> commentJson.value.getOrElse("--") &
               ".commentLink * " #> { "#" + commentId } &
               ".commentLink [id]" #> commentId &
               ".commentLink [href]" #> { "#" + commentId } &
