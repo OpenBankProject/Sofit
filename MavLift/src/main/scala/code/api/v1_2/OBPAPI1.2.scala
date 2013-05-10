@@ -220,7 +220,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "images" :: Nil JsonPost json -> _ => {
       user =>
         for {
-          imageJson <- tryo{json.extract[TransactionImageJSON]}
+          imageJson <- tryo{json.extract[PostTransactionImageJSON]}
           u <- user
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, view.id.toString, transactionID, Full(u))
