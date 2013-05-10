@@ -195,7 +195,25 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
             account <- BankAccount(bankId, accountId)
             u <- user ?~ "user not found"
             permissions <- account permissions u
-          } yield successJsonResponse(Extraction.decompose(permissions))
+          } yield {
+            val permissionsJSON = JSONFactory.createPermissionsJSON(permissions)
+            successJsonResponse(Extraction.decompose(permissionsJSON))
+          }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: "account" :: "users" :: userId :: Nil JsonGet json => {
+      user =>
+          for {
+            account <- BankAccount(bankId, accountId)
+            u <- user ?~ "user not found"
+            permissions <- account permissions u
+            userPermission <- Box(permissions.find(p => { p.user.id_ == userId})) ?~ {userId +" not found" }
+          } yield {
+            val views = JSONFactory.createViewsJSON(userPermission.views)
+            successJsonResponse(Extraction.decompose(views))
+          }
     }
   })
 
