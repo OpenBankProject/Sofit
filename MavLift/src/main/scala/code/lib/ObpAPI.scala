@@ -240,9 +240,9 @@ object ObpJson {
 		  		  logo: Option[String],
 		  		  website: Option[String])
 		  		  
-  case class UserJson(user_id: Option[String],
-		  				  user_provider: Option[String],
-		  				  display_name: Option[String])
+  case class UserJson(id: Option[String],
+                      provider: Option[String],
+		  		      display_name: Option[String])
   
   case class AccountBalanceJson(currency: Option[String],
 		  					amount: Option[String])		  	
