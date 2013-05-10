@@ -185,6 +185,9 @@ case class TransactionCommentJSON(
   date: Date,
   user : UserJSON
 )
+case class TransactionCommentsJSON(
+  comments: List[TransactionCommentJSON]    
+)
 
 object JSONFactory{
   def stringOrNull(text : String) =
@@ -250,6 +253,19 @@ object JSONFactory{
         details = createTransactionDetailsJSON(transaction),
         metadata = transaction.metadata.map(createTransactionMetadataJSON).getOrElse(null)
       )
+  }
+  
+  def createTransactionCommentsJson(comments : List[Comment]) : TransactionCommentsJSON = {
+    new TransactionCommentsJSON(comments.map(createTransactionCommentJSON))
+  }
+  
+  def createTransactionCommentJSON(comment : Comment) : TransactionCommentJSON = {
+    new TransactionCommentJSON(
+      id = comment.id_,
+      value = comment.text,
+      date = comment.datePosted,
+      user = createUserJSON(comment.postedBy)
+    )
   }
   
   def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
