@@ -118,7 +118,8 @@ object ObpPost {
       val status = request.getResponseCode()
 
       //bleh
-      val reader = new BufferedReader(new InputStreamReader(request.getInputStream()))
+      val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
+      val reader = new BufferedReader(new InputStreamReader(inputStream))
       val builder = new StringBuilder()
       var line = ""
       def readLines() {
@@ -131,11 +132,11 @@ object ObpPost {
       readLines()
       reader.close();
       val result = builder.toString();
-      
+
       status match {
         case 200 | 201 => parse(result)
         case code => {
-          throw new Exception("Bad response code from server: " + result) //bleh -> converts to Failure due to the tryo
+          throw new Exception("Bad response code (" + code + ") from server: " + result) //bleh -> converts to Failure due to the tryo
         }
       }
     }
@@ -200,7 +201,8 @@ object ObpGet {
       val status = request.getResponseCode()
       
       //bleh
-      val reader = new BufferedReader(new InputStreamReader(request.getInputStream()))
+      val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
+      val reader = new BufferedReader(new InputStreamReader(inputStream))
       val builder = new StringBuilder()
       var line = ""
       def readLines() {
@@ -217,7 +219,7 @@ object ObpGet {
       status match {
         case 200 => parse(result)
         case code => {
-          throw new Exception("Bad response code from server: " + result) //bleh -> converts to Failure due to the tryo
+          throw new Exception("Bad response code (" + code + ") from server: " + result) //bleh -> converts to Failure due to the tryo
         }
       }
     }
