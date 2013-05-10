@@ -80,6 +80,10 @@ case class CommentsURLParams(bankId: String, accountId: String, viewId: String, 
  * This whole class is a rather hastily put together mess
  */
 class Comments(params : ((ModeratedTransaction, View),(TransactionJson, CommentsURLParams))) extends Loggable{
+  
+  //TODO: Support multiple providers
+  val provider = OAuthClient.defaultProvider
+  
   val FORBIDDEN = "---"
   val transaction = params._1._1
   val view = params._1._2
@@ -327,22 +331,15 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
     if(S.post_?) {
       val description = S.param("description") getOrElse ""
       val viewId = view.id
-      val datePosted = now
-      val addFunction = for {
+      val addedImage = for {
         transloadit <- S.param("transloadit") ?~! "No transloadit data received"
         json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"
-        urlString <- tryo{val JString(a) = json \ "results" \\ "url"; a} ?~! {"Could not extract url string from json: " + compact(render(json))}
-        url <- tryo{new URL(urlString)} ?~! "Could not parse url string as a valid URL"
-        metadata <- Box(transaction.metadata) ?~! "Could not access transaction metadata"
-        addImage <- Box(metadata.addImage) ?~! "Could not access add image function"
-        userId <- User.currentUser.map(_.id_) ?~! "Could not retrieve current user id"
-      } yield {
-        () => addImage(userId, viewId, description, datePosted, url)
-      }
+        imageUrl <- tryo{val JString(a) = json \ "results" \\ "url"; a} ?~! {"Could not extract url string from json: " + compact(render(json))}
+        addedImage <- ObpAPI.addImage(urlParams.bankId, urlParams.accountId, urlParams.viewId, urlParams.transactionId, imageUrl, description)
+      } yield addedImage
 
-      addFunction match {
-        case Full(add) => {
-          add()
+      addedImage match {
+        case Full(added) => {
           //kind of a hack, but we redirect to a get request here so that we get the updated transaction (with the new image)
           S.redirectTo(S.uri)
         }
@@ -351,22 +348,13 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       }
     }
 
-    val addImageSelector = for {
-      user <- User.currentUser ?~ "You need to long before you can add an image"
-      metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
-      addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
-    } yield {
+    if (OAuthClient.loggedInAt(provider)) {
       "#imageUploader [action]" #> S.uri &
-      "#imageUploader" #> {
-        "name=params [value]" #> transloadItParams
-      }
-    }
+        "#imageUploader" #> {
+          "name=params [value]" #> transloadItParams
+        }
+    } else ".add *" #> ""
 
-    addImageSelector match {
-      case Full(s) => s
-      case Failure(msg, _, _) => ".add *" #> msg
-      case _ => ".add *" #> ""
-    }
   }
 
   def noTags = ".tag" #> ""

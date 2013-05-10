@@ -43,9 +43,6 @@ object ObpAPI {
   def addTags(bankId : String, accountId : String, viewId : String,
       transactionId: String, tags: List[String]) : List[TransactionTagJson] = {
     
-    //TODO: Proper date format?
-    val postedDate = formats.dateFormat.format(now)
-    
     val addTagJsons = tags.map(tag => {
       ("value" -> tag)
     })
@@ -68,8 +65,7 @@ object ObpAPI {
    * @return The json for the image if it was successfully added
    */
   def addImage(bankId : String, accountId : String, viewId : String,
-      transactionId: String, imageURL: String, imageDescription: String) : Box[TransactionImageJson]  = {
-    throw new NotImplementedException()
+      transactionId: String, imageURL: String, imageDescription: String) = {
 
     val json = 
       ("label" -> imageDescription) ~
@@ -102,10 +98,14 @@ object ObpPost {
       val url = new URL(apiUrl + apiPath)
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
+      request.setDoOutput(true)
       request.setRequestMethod("POST")
       request.setRequestProperty("Content-Type", "application/json")
       request.setRequestProperty("Accept", "application/json")
-
+      
+      //sign the request if we have some credentials to sign it with
+      credentials.foreach(c => c.consumer.sign(request))
+      
       //Set the request body
       val output = request.getOutputStream()
       val body = compact(render(json)).getBytes()
@@ -113,32 +113,29 @@ object ObpPost {
       output.flush()
       output.close()
       
-      //sign the request if we have some credentials to sign it with
-      credentials.foreach(c => c.consumer.sign(request))
       request.connect()
 
       val status = request.getResponseCode()
 
-      status match {
-        case 200 | 201 => {
-          //bleh
-          val reader = new BufferedReader(new InputStreamReader(request.getInputStream()))
-          val builder = new StringBuilder()
-          var line = ""
-          def readLines() {
-            line = reader.readLine()
-            if (line != null) {
-              builder.append(line + "\n")
-              readLines()
-            }
-          }
+      //bleh
+      val reader = new BufferedReader(new InputStreamReader(request.getInputStream()))
+      val builder = new StringBuilder()
+      var line = ""
+      def readLines() {
+        line = reader.readLine()
+        if (line != null) {
+          builder.append(line + "\n")
           readLines()
-          reader.close();
-          val result = builder.toString();
-          parse(result)
         }
+      }
+      readLines()
+      reader.close();
+      val result = builder.toString();
+      
+      status match {
+        case 200 | 201 => parse(result)
         case code => {
-          throw new Exception("Bad response code from server: " + code) //bleh -> converts to Failure due to the tryo
+          throw new Exception("Bad response code from server: " + result) //bleh -> converts to Failure due to the tryo
         }
       }
     }
@@ -201,27 +198,26 @@ object ObpGet {
       request.connect()
 
       val status = request.getResponseCode()
-
-      status match {
-        case 200 => {
-          //bleh
-          val reader = new BufferedReader(new InputStreamReader(request.getInputStream()))
-          val builder = new StringBuilder()
-          var line = ""
-          def readLines() {
-            line = reader.readLine()
-            if (line != null) {
-              builder.append(line + "\n")
-              readLines()
-            }
-          }
+      
+      //bleh
+      val reader = new BufferedReader(new InputStreamReader(request.getInputStream()))
+      val builder = new StringBuilder()
+      var line = ""
+      def readLines() {
+        line = reader.readLine()
+        if (line != null) {
+          builder.append(line + "\n")
           readLines()
-          reader.close();
-          val result = builder.toString();
-          parse(result)
         }
+      }
+      readLines()
+      reader.close();
+      val result = builder.toString();
+      
+      status match {
+        case 200 => parse(result)
         case code => {
-          throw new Exception("Bad response code from server: " + code) //bleh -> converts to Failure due to the tryo
+          throw new Exception("Bad response code from server: " + result) //bleh -> converts to Failure due to the tryo
         }
       }
     }

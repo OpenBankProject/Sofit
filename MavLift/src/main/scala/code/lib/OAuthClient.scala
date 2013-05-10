@@ -175,6 +175,7 @@ object OAuthClient extends Loggable {
     val loggedin = credentials.filter(_.readyToSign).map(_.provider)
     credentials.filter(_.readyToSign).map(_.provider)
   }
+  def loggedInAt(provider : Provider) : Boolean = loggedInAt.contains(provider)
   def loggedInAtAny : Boolean = loggedInAt.size > 0
   def logoutAll() = {
     SofiAPITransition.logoutOBPUserToo()
