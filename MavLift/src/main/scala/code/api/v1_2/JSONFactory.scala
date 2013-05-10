@@ -291,15 +291,6 @@ object JSONFactory{
     )
   }
   
-  def createTransactionCommentJSON(comment : Comment) : TransactionCommentJSON = {
-    new TransactionCommentJSON(
-      id = comment.id_,
-      value = comment.text,
-      date = comment.datePosted,
-      user = createUserJSON(comment.postedBy)
-    )
-  }
-  
   def createLocationJSON(location : GeoTag) : LocationJSON = {
     new LocationJSON(
       latitude = location.latitude,
