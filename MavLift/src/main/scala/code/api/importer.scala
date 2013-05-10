@@ -239,8 +239,9 @@ object ImporterAPI extends RestHelper with Loggable {
               val accountNumber = envelopes(0).get.obp_transaction.get.this_account.get.number.get
               val bankName = envelopes(0).get.obp_transaction.get.this_account.get.bank.get.name.get
               val accountKind = envelopes(0).get.obp_transaction.get.this_account.get.kind.get
+              val holder = envelopes(0).get.obp_transaction.get.this_account.get.holder.get
               //Get all accounts with this account number and kind
-              val accounts = Account.findAll(("number" -> accountNumber) ~ ("kind" -> accountKind))
+              val accounts = Account.findAll(("number" -> accountNumber) ~ ("kind" -> accountKind) ~ ("holder" -> holder))
               //Now get the one that actually belongs to the right bank
               accounts.foreach(a => println(a.bankName))
               val wantedAccount = accounts.find(_.bankName == bankName)

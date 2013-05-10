@@ -248,7 +248,11 @@ object JSONFactory{
       )
   }
   
-  def createTransactionImageJson(image : TransactionImage) : TransactionImageJSON = {
+  def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
+    new TransactionImagesJSON(images.map(createTransactionImageJSON))
+  }
+  
+  def createTransactionImageJSON(image : TransactionImage) : TransactionImageJSON = {
     new TransactionImageJSON(
       id = image.id_,
       label = image.description,
@@ -257,14 +261,41 @@ object JSONFactory{
       user = createUserJSON(image.postedBy)
     )
   }
+  
+  def createTransactionTagJSON(tag : Tag) : TransactionTagJSON = {
+    new TransactionTagJSON(
+      id = tag.id_,
+      value = tag.value,
+      date = tag.datePosted,
+      user = createUserJSON(tag.postedBy)
+    )
+  }
+  
+  def createTransactionCommentJSON(comment : Comment) : TransactionCommentJSON = {
+    new TransactionCommentJSON(
+      id = comment.id_,
+      value = comment.text,
+      date = comment.datePosted,
+      user = createUserJSON(comment.postedBy)
+    )
+  }
+  
+  def createLocationJSON(location : GeoTag) : LocationJSON = {
+    new LocationJSON(
+      latitude = location.latitude,
+      longitude = location.longitude,
+      date = location.datePosted,
+      user = createUserJSON(location.postedBy)
+    )
+  }
 
   def createTransactionMetadataJSON(metadata : ModeratedTransactionMetadata) : TransactionMetadataJSON = {
     new TransactionMetadataJSON(
       narrative = stringOptionOrNull(metadata.ownerComment),
-      comments = null, //TODO
-      tags = null, //TODO
-      images = metadata.images.map(is => is.map(createTransactionImageJson)).getOrElse(null), //TODO
-      where = null //TODO
+      comments = metadata.comments.map(cs => cs.map(createTransactionCommentJSON)).getOrElse(null),
+      tags = metadata.tags.map(ts => ts.map(createTransactionTagJSON)).getOrElse(null), 
+      images = metadata.images.map(is => is.map(createTransactionImageJSON)).getOrElse(null),
+      where = metadata.whereTag.map(createLocationJSON).getOrElse(null)
     )
   }
   
@@ -274,8 +305,8 @@ object JSONFactory{
       label = stringOptionOrNull(transaction.label),
       posted = transaction.startDate.getOrElse(null),
       completed = transaction.finishDate.getOrElse(null),
-      new_balance = createAmountOfMoneyJSON("TODO", "TODO"),
-      value= createAmountOfMoneyJSON("TODO", "TODO")
+      new_balance = createAmountOfMoneyJSON(transaction.currency, transaction.balance),
+      value= createAmountOfMoneyJSON(transaction.currency, transaction.amount.map(_.toString))
     )
   }
   
@@ -317,16 +348,16 @@ object JSONFactory{
     )
   }
   
-    def createOtherAccountMetaDataJSON(bankAccount : ModeratedOtherBankAccount) : OtherAccountMetadataJSON = {
+    def createOtherAccountMetaDataJSON(metadata : ModeratedOtherBankAccountMetadata) : OtherAccountMetadataJSON = {
     new OtherAccountMetadataJSON(
       public_alias = null, //TODO
       private_alias = null, //TODO
-      more_info = null, //TODO
-      URL = null, //TODO
-      image_URL = null, //TODO
-      open_corporates_URL = null, //TODO
-      corporate_location = null, //TODO
-      physical_location = null
+      more_info = stringOptionOrNull(metadata.moreInfo),
+      URL = stringOptionOrNull(metadata.url),
+      image_URL = stringOptionOrNull(metadata.imageUrl),
+      open_corporates_URL = stringOptionOrNull(metadata.openCorporatesUrl),
+      corporate_location = metadata.corporateLocation.map(createLocationJSON).getOrElse(null),
+      physical_location = metadata.physicalLocation.map(createLocationJSON).getOrElse(null)
     )
   }
   
@@ -337,7 +368,7 @@ object JSONFactory{
       IBAN = stringOptionOrNull(bankAccount.iban),
       bank = createMinimalBankJSON(bankAccount),
       holder = createAccountHolderJSON(bankAccount.label.display, bankAccount.isAlias),
-      metadata = createOtherAccountMetaDataJSON(bankAccount)
+      metadata = bankAccount.metadata.map(createOtherAccountMetaDataJSON).getOrElse(null)
     )
   }
   
@@ -373,6 +404,21 @@ object JSONFactory{
       stringOrNull(amount)
     )
   }
+  
+  def createAmountOfMoneyJSON(currency : Option[String], amount  : Option[String]) : AmountOfMoneyJSON = {
+    new AmountOfMoneyJSON(
+      stringOptionOrNull(currency),
+      stringOptionOrNull(amount)
+    )
+  }
+  
+  def createAmountOfMoneyJSON(currency : Option[String], amount  : String) : AmountOfMoneyJSON = {
+    new AmountOfMoneyJSON(
+      stringOptionOrNull(currency),
+      stringOrNull(amount)
+    )
+  }
+  
   def createPermissionsJSON(permissions : List[Permission]) : PermissionsJSON = {
     val permissionsJson = permissions.map(p => {
         new PermissionJSON(
@@ -382,16 +428,5 @@ object JSONFactory{
       })
     new PermissionsJSON(permissionsJson)
   }
-  def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
-    new TransactionImagesJSON(images.map(createTransactionImageJSON))
-  }
 
-  def createTransactionImageJSON(image : TransactionImage) : TransactionImageJSON = {
-    new TransactionImageJSON(
-        id = image.id_,
-        label = image.description,
-        URL = image.imageUrl.toString,
-        date = image.datePosted,
-        user = createUserJSON(image.postedBy))
-  }
 }
