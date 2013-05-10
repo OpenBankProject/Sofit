@@ -178,8 +178,9 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     val num = thisAcc.number.get
     val accKind = thisAcc.kind.get
     val bankName = thisAcc.bank.get.name.get
+    val holder = thisAcc.holder.get
     val accQry = QueryBuilder.start("number").is(num).
-      put("kind").is(accKind).get
+      put("kind").is(accKind).put("holder").is(holder).get
 
     for {
       account <- Account.find(accQry)
