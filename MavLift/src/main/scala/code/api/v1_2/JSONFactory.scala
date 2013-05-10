@@ -170,6 +170,10 @@ case class TransactionImageJSON(
   URL : String,
   date : Date,
   user : UserJSON)
+case class PostTransactionImageJSON(
+  label : String,
+  URL : String
+)
 case class TransactionTagJSON(
   id : String,
   value : String,
