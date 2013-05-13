@@ -93,10 +93,32 @@ trait BankAccount {
       Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
   }
 
+  /**
+  * @param a user requesting to see the other users' permissions
+  * @return a Box of all the users' permissions of this bank account if the user passed as a parameter has access to the owner view (allowed to see this kind of data)
+  */
   def permissions(user : User) : Box[List[Permission]] = {
-    //see if the user have access to the owner view in this the account
+    //check if the user have access to the owner view in this the account
     if(authorizedAccess(Owner,Full(user)))
       LocalStorage.permissions(this)
+    else
+      Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
+  }
+
+  /**
+  * @param a user that want to grant an other user access to a view
+  * @param the id of the view that we want to grant access
+  * @param the id of the other user that we want grant access
+  * @return a Full(true) if everything is okay, a Failure otherwise
+  */
+  def addPermission(user : User, viewId : String, otherUserId : String) : Box[Boolean] = {
+    //check if the user have access to the owner view in this the account
+    if(authorizedAccess(Owner,Full(user)))
+      for{
+        view <- View.fromUrl(viewId) //check if the viewId corresponds to a view
+        otherUser <- User.findById(otherUserId) //check if the userId corresponds to a user
+        saved <- LocalStorage.addPermission(id, view, otherUser) ?~ "could not save the privilege"
+      } yield saved
     else
       Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
   }

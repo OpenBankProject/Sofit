@@ -168,7 +168,7 @@ object Public extends BaseView {
   override def moderate(bankAccount: BankAccount) : Option[ModeratedBankAccount] = {
     Some(
         new ModeratedBankAccount(
-          filteredId = bankAccount.id,
+          filteredId = bankAccount.permalink,
           filteredOwners = Some(bankAccount.owners),
           filteredAccountType = Some(bankAccount.accountType),
           filteredCurrency = Some(bankAccount.currency),
@@ -233,8 +233,7 @@ object Public extends BaseView {
   }
 }
 
-object OurNetwork extends BaseView
-{
+object OurNetwork extends BaseView {
   override def id = 7
   override def name = "Our Network"
   override def permalink ="our-network"
@@ -279,7 +278,7 @@ object OurNetwork extends BaseView
   override def moderate(bankAccount: BankAccount) : Option[ModeratedBankAccount] = {
     Some(
         new ModeratedBankAccount(
-          filteredId = bankAccount.id,
+          filteredId = bankAccount.permalink,
           filteredOwners = Some(bankAccount.owners),
           filteredAccountType = Some(bankAccount.accountType),
           filteredCurrency = Some(bankAccount.currency),
@@ -327,4 +326,10 @@ object Owner extends FullView {
   override def id = 8
   override def name="Owner"
   override def permalink = "owner"
+}
+
+object Management extends FullView {
+  override def id = 9
+  override def name="Management"
+  override def permalink = "management"
 }
