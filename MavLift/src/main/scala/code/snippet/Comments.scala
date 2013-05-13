@@ -75,7 +75,6 @@ import code.lib.OAuthClient
 import net.liftweb.http.RequestVar
 
 case class CommentsURLParams(bankId: String, accountId: String, viewId: String, transactionId: String)
-
 /**
  * This whole class is a rather hastily put together mess
  */
@@ -405,9 +404,10 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
          ".deleteTag" #> deleteTag(tag)
   }
 
-  //This method is a work in progress
-  def apiAddTag(xhtml: NodeSeq): NodeSeq = {
+  def addTag(xhtml: NodeSeq): NodeSeq = {
 
+    var tagValues : List[String] = Nil
+    
     def newTagsXml(newTags: List[TransactionTagJson]): Box[NodeSeq] = {
       Templates(List("templates-hidden", "_tag")).map {
         ".tag" #> newTags.map { getTagSelector }
@@ -415,13 +415,11 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
     }
     
     def addTagSelector = {
-      object tagValues extends RequestVar[List[String]] (Nil)
-      
       SHtml.ajaxForm(
         SHtml.text("",
           tags => {
             val tagVals = tags.split(" ").toList.filter(tag => !tag.isEmpty)
-            tagValues.set(tagVals)
+            tagValues = tagVals
           },
           ("placeholder", "Add tags seperated by spaces"),
           ("id", "addTagInput"),
@@ -430,7 +428,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
             "Tag",
             () => {
               val newTags = ObpAPI.addTags(urlParams.bankId, urlParams.accountId, urlParams.viewId,
-                  urlParams.transactionId, tagValues.get)
+                  urlParams.transactionId, tagValues)
               val newXml = newTagsXml(newTags)
               //TODO: update the page
               val content = Str("")
@@ -448,71 +446,6 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       (".add" #> "You need to login before you can add tags").apply(xhtml)
     }
   }
-  
-  def addTag(xhtml: NodeSeq) : NodeSeq =
-    User.currentUser match {
-      case Full(user) =>
-        transaction.metadata match {
-          case Some(metadata) =>
-            metadata.addTag match {
-              case Some(addTag) => {
-                var tagValues : List[String] = Nil
-                var tagDate = new Date
-                var tagIds : List[String] = List()
-                SHtml.ajaxForm(
-                  SHtml.text(
-                    "",
-                    tags => {
-                      val tagsList = tags.split(" ").toList.filter(tag => !tag.isEmpty)
-                      tagValues = tagsList
-                      tagDate = new Date
-                      tagIds = tagsList.map(addTag(user.id_, view.id, _ ,tagDate))
-                    },
-                    ("placeholder","Add tags seperated by spaces"),
-                    ("id","addTagInput"),
-                    ("size","30")
-                  ) ++
-                  SHtml.ajaxSubmit(
-                    "Tag",
-                    () => {
-                      val tagXml = Templates(List("templates-hidden","_tag")).map({
-                        ".tag" #> {
-                          tagValues.zipWithIndex.map(t => {
-                            ".tagID [id]" #> tagIds(t._2) &
-                            ".tagValue" #> t._1 &
-                            ".deleteTag" #>
-                              SHtml.a(
-                                () => {
-                                  metadata.deleteTag match {
-                                    case Some(del) => {
-                                      del(tagIds(t._2))
-                                      Hide(tagIds(t._2))
-                                    }
-                                    case _ => Alert("deleting tags is not allowed in this view")
-                                  }
-                                },
-                                Text("x"),
-                                ("title","Remove the tag")
-                              )
-                          })
-                        }
-
-                      })
-                      val content = Str("")
-                      SetValById("addTagInput",content)&
-                      SetHtml("noTags",NodeSeq.Empty) &
-                      AppendHtml("tags_list",tagXml.getOrElse(NodeSeq.Empty))
-                    },
-                    ("id","submitTag")
-                  )
-                )
-              }
-              case _ => (".add" #> "You cannot add tags to transactions on this view").apply(xhtml)
-            }
-          case _ => (".add" #> "You cannot add tags to transactions on this view").apply(xhtml)
-        }
-      case _ => (".add" #> "You need to login before you can add tags").apply(xhtml)
-    }
 
   def noComments = ".comment" #> ""
   def commentsNotAllowed = "* *" #> ""
