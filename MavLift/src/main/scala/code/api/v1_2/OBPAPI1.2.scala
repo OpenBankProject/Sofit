@@ -260,6 +260,30 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         }
     }
   })
+<<<<<<< Updated upstream
+=======
+  
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "images" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          imageJson <- tryo{json.extract[PostTransactionImageJSON]}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
+                          else Failure("view does not allow images to be added") 
+          url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
+          postedImageId <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
+          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          allImages <- Box(newMetadata.images) ?~! "Server error: no images found after posting"
+          postedImage <- Box(allImages.find(image => image.id_ == postedImageId)) ?~! "Server error: posted image not found after posting"
+        } yield {
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)))
+        }
+    }
+  })
+>>>>>>> Stashed changes
 
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: imageId :: Nil JsonDelete _ => {
@@ -298,7 +322,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           allTags <- Box(newMetadata.tags) ?~! "Server error: no tags found after posting"
           postedTag <- Box(allTags.find(tag => tag.id_ == postedTagId)) ?~! "Server error: posted tag not found after posting"
         } yield {
-          successJsonResponse(Extraction.decompose(postedTag))
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionTagJSON(postedTag)))
         }
     }
   })
