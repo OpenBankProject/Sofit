@@ -264,7 +264,7 @@ trait View {
 
       Some(
         new ModeratedBankAccount(
-          filteredId = bankAccount.id,
+          filteredId = bankAccount.permalink,
           filteredOwners = Some(owners),
           filteredAccountType = accountType,
           filteredBalance = balance,

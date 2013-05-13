@@ -43,7 +43,7 @@ trait ServerSetup extends FeatureSpec
   /**
    this method do a post request given a URL, a JSON and an optional Headers Map
   */
-  def makePostRequest(req: Request, json: String, headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
+  def makePostRequest(req: Request, json: String = "", headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
     val jsonReq = req << (json, "application/json") <:< headers
     val jsonHandler = jsonReq ># {json => json}
     h x jsonHandler{

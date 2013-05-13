@@ -34,6 +34,7 @@ package code.model.dataAccess
 import code.model.traits._
 import code.model.implementedTraits._
 import net.liftweb.common.{ Box, Empty, Full, Failure }
+import net.liftweb.util.Helpers.tryo
 import net.liftweb.mongodb.BsonDSL._
 import net.liftweb.json.JsonDSL._
 import net.liftweb.common.Loggable
@@ -358,7 +359,11 @@ class MongoDBLocalStorage extends LocalStorage {
   def getAllPublicAccounts() : List[BankAccount] = Account.findAll("anonAccess", true) map Account.toBankAccount
 
   def getUser(id : String) : Box[User] =
-    OBPUser.find(id)
+    OBPUser.find(id) match {
+      case Full(u) => Full(u)
+      case _ => Failure("user " + id + " not found")
+    }
+
   def getCurrentUser : Box[User] = OBPUser.currentUser
 
   def getOtherAccount(accountID : String, otherAccountID : String) : Box[OtherBankAccount] = {
@@ -448,5 +453,28 @@ class MongoDBLocalStorage extends LocalStorage {
       }
       case _ => Failure("Could not find the hostedAccount", Empty, Empty)
     }
+  }
+  def addPermission(bankAccountId : String, view : View, user : User) : Box[Boolean] = {
+    for{
+      userId <- tryo{user.id_.toLong}
+      bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
+    } yield {
+        val privilege = Privilege.create.
+          user(userId).
+          account(bankAccount)
+        setPrivilegeFromView(privilege, view)
+        privilege.save
+      }
+  }
+  private def setPrivilegeFromView(privilege : Privilege, view : View ) = {
+    view match {
+      case OurNetwork => privilege.ourNetworkPermission(true)
+      case Team => privilege.teamPermission(true)
+      case Board => privilege.boardPermission(true)
+      case Authorities => privilege.authoritiesPermission(true)
+      case Owner => privilege.ownerPermission(true)
+      case Management => privilege.mangementPermission(true)
+    }
+
   }
 }
