@@ -22,6 +22,7 @@ import scala.util.Random
 import code.model.{Consumer => OBPConsumer, Token => OBPToken}
 import code.model.TokenType
 import code.api.test.{ServerSetup, APIResponse}
+import code.model.dataAccess.OBPUser
 
 @RunWith(classOf[JUnitRunner])
 class API1_2Test extends ServerSetup{
@@ -54,6 +55,30 @@ class API1_2Test extends ServerSetup{
 
   lazy val token = new Token(testToken.key, testToken.secret)
 
+  // create an other user for test purposes
+  lazy val user =
+    OBPUser.create.
+      email(Helpers.randomString(5) + "@exemple.com").
+      password(Helpers.randomString(10)).
+      validated(true).
+      firstName(Helpers.randomString(10)).
+      lastName(Helpers.randomString(10)).
+      saveMe
+
+  //we create an access token for the other user
+  lazy val testToken2 =
+    OBPToken.create.
+    tokenType(TokenType.Access).
+    consumerId(testConsumer.id).
+    userId(user.id.get.toString).
+    key(Helpers.randomString(40).toLowerCase).
+    secret(Helpers.randomString(40).toLowerCase).
+    duration(tokenDuration).
+    expirationDate({(now : TimeSpan) + tokenDuration}).
+    insertDate(now).
+    saveMe
+
+  lazy val token2 = new Token(testToken2.key, testToken2.secret)
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =
@@ -194,7 +219,7 @@ class API1_2Test extends ServerSetup{
       val accountsSize = accountsInfo.accounts.size
       val randomAccount = Random.nextInt(accountsSize)
       val account = accountsInfo.accounts(randomAccount)
-      val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "account" / "users" <@(consumer,token)
+      val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "users" <@(consumer,token)
       val response = makeGetRequest(request)
       new BankAccountPermission(response, account.bank_id, account.id)
     }
@@ -202,7 +227,7 @@ class API1_2Test extends ServerSetup{
       new BankAccountPermission(errorAPIResponse)
   }
 
-  def getAccountPermissionWithoutToken = {
+  def getAccountPermissionWithoutToken : h.HttpPackage[APIResponse]= {
     val accounts = getBankAccounts
     val accountsInfo = accounts.body.extract[AccountsJSON]
     if(accountsInfo.accounts.nonEmpty)
@@ -210,53 +235,103 @@ class API1_2Test extends ServerSetup{
       val accountsSize = accountsInfo.accounts.size
       val randomAccount = Random.nextInt(accountsSize)
       val account = accountsInfo.accounts(randomAccount)
-      val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "account" / "users"
+      val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "users"
       makeGetRequest(request)
     }
     else
       errorAPIResponse
   }
 
-  def getUserAccountPermission = {
+  def getAccountPermissionWithoutOwnerAccess : h.HttpPackage[APIResponse]= {
+    val accounts = getBankAccounts
+    val accountsInfo = accounts.body.extract[AccountsJSON]
+    if(accountsInfo.accounts.nonEmpty)
+    {
+      val accountsSize = accountsInfo.accounts.size
+      val randomAccount = Random.nextInt(accountsSize)
+      val account = accountsInfo.accounts(randomAccount)
+      val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "users" <@(consumer,token2)
+      makeGetRequest(request)
+    }
+    else
+      errorAPIResponse
+  }
+
+  def getUserAccountPermission : h.HttpPackage[APIResponse]= {
     val permissions = getAccountPermission
     val permissionsInfo = permissions.response.body.extract[PermissionsJSON]
     if(permissionsInfo.permissions.nonEmpty){
       val permissionsSize = permissionsInfo.permissions.size
       val randomPermission = Random.nextInt(permissionsSize)
       val permission = permissionsInfo.permissions(randomPermission)
-      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "account" / "users"/ permission.user.id <@(consumer,token)
+      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "users"/ permission.user.id <@(consumer,token)
       makeGetRequest(request)
     }
     else
       errorAPIResponse
   }
 
-  def getUserAccountPermissionWithoutToken = {
+  def getUserAccountPermissionWithoutToken : h.HttpPackage[APIResponse]= {
     val permissions = getAccountPermission
     val permissionsInfo = permissions.response.body.extract[PermissionsJSON]
     if(permissionsInfo.permissions.nonEmpty){
       val permissionsSize = permissionsInfo.permissions.size
       val randomPermission = Random.nextInt(permissionsSize)
       val permission = permissionsInfo.permissions(randomPermission)
-      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "account" / "users"/ permission.user.id
+      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "users"/ permission.user.id
       makeGetRequest(request)
     }
     else
       errorAPIResponse
   }
 
-  def getUserAccountPermissionWithRandomUserId = {
-        val permissions = getAccountPermission
+  def getUserAccountPermissionWithRandomUserId : h.HttpPackage[APIResponse]= {
+    val permissions = getAccountPermission
     val permissionsInfo = permissions.response.body.extract[PermissionsJSON]
     if(permissionsInfo.permissions.nonEmpty){
       val randomUserId = Helpers.randomString(10)
-      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "account" / "users"/ randomUserId <@(consumer,token)
+      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "users"/ randomUserId <@(consumer,token)
       makeGetRequest(request)
     }
     else
       errorAPIResponse
   }
 
+  def grantUserAccessToView : h.HttpPackage[APIResponse] = {
+    val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
+    //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
+    val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
+    val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
+    val view = possibleViewsPermalinks(randomPosition)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user.id.get.toString / "views" / view).POST.<@(consumer,token)
+    makePostRequest(request)
+  }
+
+  def grantUserAccessToViewWithRandomUserID : h.HttpPackage[APIResponse] = {
+    val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
+    //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
+    val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
+    val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
+    val view = possibleViewsPermalinks(randomPosition)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ Helpers.randomString(10) / "views" / view).POST.<@(consumer,token)
+    makePostRequest(request)
+  }
+
+  def grantUserAccessToViewWithRandomView : h.HttpPackage[APIResponse] = {
+    val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user.id.get.toString / "views" / Helpers.randomString(4)).POST.<@(consumer,token)
+    makePostRequest(request)
+  }
+
+  def grantUserAccessToViewWithoutOwnerAccess : h.HttpPackage[APIResponse] = {
+    val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
+    //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
+    val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
+    val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
+    val view = possibleViewsPermalinks(randomPosition)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ "1" / "views" / view).POST.<@(consumer,token2)
+    makePostRequest(request)
+  }
 
   /************************ the tests ************************/
   feature("base line URL works"){
@@ -303,7 +378,6 @@ class API1_2Test extends ServerSetup{
       val reply = getBankInfoWithRandomID
       Then("we should get a 400 code")
       reply.code should equal (400)
-      println("error message: " + reply.body)
     }
   }
 
@@ -318,7 +392,12 @@ class API1_2Test extends ServerSetup{
       publicAccountsInfo.accounts.foreach(a => {
         a.id.nonEmpty should equal (true)
         a.views_available.nonEmpty should equal (true)
+        a.views_available.foreach(
+          //check that all the views are public
+          v => v.is_public should equal (true)
+        )
       })
+
     }
     scenario("we get the bank accounts the user have access to") {
       Given("We will use an access token")
@@ -345,6 +424,10 @@ class API1_2Test extends ServerSetup{
       publicAccountsInfo.accounts.foreach(a => {
         a.id.nonEmpty should equal (true)
         a.views_available.nonEmpty should equal (true)
+        a.views_available.foreach(
+          //check that all the views are public
+          v => v.is_public should equal (true)
+        )
       })
     }
   }
@@ -398,7 +481,7 @@ class API1_2Test extends ServerSetup{
   }
   feature("Information about the permissions of a specific bank account"){
 
-    scenario("we get data by using an access token") {
+    scenario("we will get one bank account permissions by using an access token") {
       Given("We will use an access token")
       When("the request is sent")
       val reply = getAccountPermission.response
@@ -407,27 +490,35 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[PermissionsJSON]
     }
 
-    scenario("we don't get data") {
+    scenario("we will not get one bank account permissions") {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getAccountPermissionWithoutToken
       Then("we should get a 400 code")
       reply.code should equal (400)
     }
+
+    scenario("we will not get one bank account permissions by using an other access token") {
+      Given("We will use an access token, but that does not grant owner view")
+      When("the request is sent")
+      val reply = getAccountPermissionWithoutOwnerAccess
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
   }
 
-feature("Information about the permissions of a specific user on a specific bank account"){
-
-    scenario("we get data by using an access token") {
+  feature("Information about the permissions of a specific user on a specific bank account"){
+    scenario("we will get the permissions by using an access token") {
       Given("We will use an access token")
       When("the request is sent")
       val reply = getUserAccountPermission
       Then("we should get a 200 ok code")
       reply.code should equal (200)
-      reply.body.extract[ViewsJSON]
+      val viewsInfo = reply.body.extract[ViewsJSON]
+      viewsInfo.views.foreach(v => v.id.nonEmpty should equal (true))
     }
 
-    scenario("we don't get permissions on a specific user") {
+    scenario("we will not get the permissions of a specific user") {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getUserAccountPermissionWithoutToken
@@ -435,11 +526,47 @@ feature("Information about the permissions of a specific user on a specific bank
       reply.code should equal (400)
     }
 
-    scenario("we don't get permissions on a random user") {
+    scenario("we will not get the permissions of a random user") {
       Given("We will use an access token with random user id")
       When("the request is sent")
       val reply = getUserAccountPermissionWithRandomUserId
       Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+  }
+
+  feature("Grant a user access to a view on a bank account"){
+    scenario("we will grant a user access to a view on an bank account") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = grantUserAccessToView
+      Then("we should get a 201 ok code")
+      reply.code should equal (201)
+      val viewInfo = reply.body.extract[ViewJSON]
+      viewInfo.id.nonEmpty should equal (true)
+    }
+
+    scenario("we cannot grant a user access to a view on an bank account because the user does not exist") {
+      Given("We will use an access token with a random user Id")
+      When("the request is sent")
+      val reply = grantUserAccessToViewWithRandomUserID
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
+
+    scenario("we cannot grant a user access to a view on an bank account because the view does not exist") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = grantUserAccessToViewWithRandomView
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
+
+    scenario("we cannot grant a user access to a view on an bank account because the user does not have owner view access") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = grantUserAccessToViewWithoutOwnerAccess
+      Then("we should get a 400 ok code")
       reply.code should equal (400)
     }
   }
