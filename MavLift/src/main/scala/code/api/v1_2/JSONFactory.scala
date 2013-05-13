@@ -177,6 +177,9 @@ case class PostTransactionImageJSON(
   label : String,
   URL : String
 )
+case class PostTransactionTagJSON(
+  value : String 
+)
 case class TransactionTagJSON(
   id : String,
   value : String,
