@@ -364,12 +364,13 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
     SHtml.a(() => {
       tag.id match {
         case Some(id) => {
-          ObpAPI.deleteTag(urlParams.bankId, urlParams.accountId, urlParams.viewId,
-            urlParams.transactionId, tag.id.getOrElse(""))
+          val worked = ObpAPI.deleteTag(urlParams.bankId, urlParams.accountId, urlParams.viewId,
+            urlParams.transactionId, id)
+            if(!worked) logger.warn("Deleting tag with id " + id + " failed")
         }
         case _ => logger.warn("Tried to delete a tag without an id")
       }
-      Hide(tag.id.getOrElse("")) //TODO prefix like tag_?
+      Hide(tag.id.getOrElse(""))
     }, Text("x"), ("title", "Remove the tag"))
   }
   
@@ -384,11 +385,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       
       ".tagsContainer" #> {
         "#noTags" #> "" &
-          ".tag" #> tags.sortWith(orderByDateDescending).map(tag => {
-            ".tagID [id]" #> tag.id.getOrElse("") & //TODO: Why is there no prefix like tag_ here?
-            ".tagValue" #> tag.value.getOrElse("") &
-            ".deleteTag" #> deleteTag(tag)
-          })
+          ".tag" #> tags.sortWith(orderByDateDescending).map(getTagSelector)
       }
     }
     
@@ -400,38 +397,12 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       case _ => tagsNotAllowed
     }
     
-    //TODO: Implement the stuff below using the API instead of the DB
-    // and then test this code and delete the db using code
-    
-    transaction.metadata match {
-      case Some(metadata) => metadata.tags match {
-        case Some(tags) =>
-          if (tags.isEmpty)
-            noTags
-          else
-            ".tagsContainer" #>
-              {
-                def orderByDateDescending = (tag1: Tag, tag2: Tag) =>
-                  tag1.datePosted.before(tag2.datePosted)
-                "#noTags" #> "" &
-                  ".tag" #>
-                  tags.sortWith(orderByDateDescending).map(tag => {
-                    ".tagID [id]" #> tag.id_ &
-                      ".tagValue" #> tag.value &
-                      ".deleteTag" #>
-                      SHtml.a(
-                        () => {
-                          metadata.deleteTag.map(t => t(tag.id_))
-                          Hide(tag.id_)
-                        },
-                        Text("x"),
-                        ("title", "Remove the tag"))
-                  })
-              }
-        case _ => noTags
-      }
-      case _ => noTags
-    }
+  }
+  
+  def getTagSelector (tag: TransactionTagJson) = {
+		 ".tagID [id]" #> tag.id.getOrElse("") &
+		 ".tagValue" #> tag.value.getOrElse("") &
+         ".deleteTag" #> deleteTag(tag)
   }
 
   //This method is a work in progress
@@ -439,10 +410,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
 
     def newTagsXml(newTags: List[TransactionTagJson]): Box[NodeSeq] = {
       Templates(List("templates-hidden", "_tag")).map {
-        ".tag" #> newTags.zipWithIndex.map{case (newTag, index) => {
-          //TODO: Implement this
-          ".foo" #> "bar"
-        }}
+        ".tag" #> newTags.map { getTagSelector }
       }
     }
     
