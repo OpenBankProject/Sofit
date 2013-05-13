@@ -280,6 +280,28 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         }
     }
   })
+  
+  oauthServe(apiPrefix {
+    //post a tag
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
+
+      user =>
+        for {
+          tagJson <- tryo{json.extract[PostTransactionTagJSON]}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          addTagFunc <- if(view.canAddTag) Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding tags"}
+                          else Failure("view does not allow tags to be added") 
+          postedTagId <- Full(addTagFunc(u.id_, view.id, tagJson.value, now))
+          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          allTags <- Box(newMetadata.tags) ?~! "Server error: no tags found after posting"
+          postedTag <- Box(allTags.find(tag => tag.id_ == postedTagId)) ?~! "Server error: posted tag not found after posting"
+        } yield {
+          successJsonResponse(Extraction.decompose(postedTag))
+        }
+    }
+  })
 
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: "account" :: "users" :: Nil JsonGet json => {
