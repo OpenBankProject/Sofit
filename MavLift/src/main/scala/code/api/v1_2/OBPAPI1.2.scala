@@ -277,10 +277,11 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           allImages <- Box(newMetadata.images) ?~! "Server error: no images found after posting"
           postedImage <- Box(allImages.find(image => image.id_ == postedImageId)) ?~! "Server error: posted image not found after posting"
         } yield {
-          successJsonResponse(Extraction.decompose(postedImage))
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)))
         }
     }
   })
+>>>>>>> Stashed changes
 
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: imageId :: Nil JsonDelete _ => {
@@ -319,7 +320,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           allTags <- Box(newMetadata.tags) ?~! "Server error: no tags found after posting"
           postedTag <- Box(allTags.find(tag => tag.id_ == postedTagId)) ?~! "Server error: posted tag not found after posting"
         } yield {
-          successJsonResponse(Extraction.decompose(postedTag))
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionTagJSON(postedTag)))
         }
     }
   })
