@@ -190,6 +190,17 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: "account" :: "users" :: Nil JsonGet json => {
+      user =>
+          for {
+            account <- BankAccount(bankId, accountId)
+            u <- user ?~ "user not found"
+            permissions <- account permissions u
+          } yield successJsonResponse(Extraction.decompose(permissions))
+    }
+  })
+
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "transaction" :: Nil JsonGet json => {
       user =>
         for {
@@ -204,15 +215,70 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonGet json => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          comments <- Box(metadata.comments) ?~ { "view " + viewId + " does not authorize comments access" }
+        } yield {
+          val json = JSONFactory.createTransactionCommentsJson(comments)
+          successJsonResponse(Extraction.decompose(json))
+        }
+    }
+  })
+  
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
-        user =>
-          for {
-            metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-            images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
-          } yield {
-              val json = JSONFactory.createTransactionImagesJson(images)
-              successJsonResponse(Extraction.decompose(json))
-            }
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize images access" }
+        } yield {
+          val json = JSONFactory.createTransactionImagesJson(images)
+          successJsonResponse(Extraction.decompose(json))
+        }
+    }
+  })
+  
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "images" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          imageJson <- tryo{json.extract[PostTransactionImageJSON]}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
+                          else Failure("view does not allow images to be added") 
+          url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
+          postedImageId <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
+          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          allImages <- Box(newMetadata.images) ?~! "Server error: no images found after posting"
+          postedImage <- Box(allImages.find(image => image.id_ == postedImageId)) ?~! "Server error: posted image not found after posting"
+        } yield {
+          successJsonResponse(Extraction.decompose(postedImage))
+        }
+    }
+  })
+  
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "images" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          imageJson <- tryo{json.extract[PostTransactionImageJSON]}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
+                          else Failure("view does not allow images to be added") 
+          url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
+          postedImageId <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
+          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          allImages <- Box(newMetadata.images) ?~! "Server error: no images found after posting"
+          postedImage <- Box(allImages.find(image => image.id_ == postedImageId)) ?~! "Server error: posted image not found after posting"
+        } yield {
+          successJsonResponse(Extraction.decompose(postedImage))
+        }
     }
   })
 
@@ -223,10 +289,12 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
           toDelete <- Box(images.find(image => image.id_ == imageId)) ?~ { "image not found" }
+          view <- View.fromUrl(viewId)
           bankAccount <- BankAccount(bankId, accountId)
           deletable <- if(toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
                        else Failure("insufficient privileges to delete image")
-          deleteFunction <- metadata.deleteImage
+          deleteFunction <- if(view.canDeleteImage) Box(metadata.deleteImage)
+                            else Failure("view does not allow images to be deleted")
         } yield {
           deleteFunction(deletable.id_)
           successJsonResponse(204)

@@ -170,6 +170,10 @@ case class TransactionImageJSON(
   URL : String,
   date : Date,
   user : UserJSON)
+case class PostTransactionImageJSON(
+  label : String,
+  URL : String
+)
 case class TransactionTagJSON(
   id : String,
   value : String,
@@ -180,6 +184,9 @@ case class TransactionCommentJSON(
   value : String,
   date: Date,
   user : UserJSON
+)
+case class TransactionCommentsJSON(
+  comments: List[TransactionCommentJSON]    
 )
 
 object JSONFactory{
@@ -248,6 +255,19 @@ object JSONFactory{
       )
   }
   
+  def createTransactionCommentsJson(comments : List[Comment]) : TransactionCommentsJSON = {
+    new TransactionCommentsJSON(comments.map(createTransactionCommentJSON))
+  }
+  
+  def createTransactionCommentJSON(comment : Comment) : TransactionCommentJSON = {
+    new TransactionCommentJSON(
+      id = comment.id_,
+      value = comment.text,
+      date = comment.datePosted,
+      user = createUserJSON(comment.postedBy)
+    )
+  }
+  
   def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
     new TransactionImagesJSON(images.map(createTransactionImageJSON))
   }
@@ -268,15 +288,6 @@ object JSONFactory{
       value = tag.value,
       date = tag.datePosted,
       user = createUserJSON(tag.postedBy)
-    )
-  }
-  
-  def createTransactionCommentJSON(comment : Comment) : TransactionCommentJSON = {
-    new TransactionCommentJSON(
-      id = comment.id_,
-      value = comment.text,
-      date = comment.datePosted,
-      user = createUserJSON(comment.postedBy)
     )
   }
   

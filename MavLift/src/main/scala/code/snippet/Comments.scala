@@ -579,10 +579,11 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
                   ".userInfo" #> ""
               }
               
-              val commentId = "comment_" + {position + 1 }
+              val displayPosition = position + 1
+              val commentId = "comment_" + displayPosition
               
-              ".text *" #> commentJson.value.getOrElse("--") &
-              ".commentLink * " #> { "#" + commentId } &
+              ".text *" #> commentJson.value.getOrElse("") &
+              ".commentLink * " #> { "#" + displayPosition } &
               ".commentLink [id]" #> commentId &
               ".commentLink [href]" #> { "#" + commentId } &
               commentDate &
@@ -599,6 +600,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       }
       case _ => commentsNotAllowed
     }
+
   }
 
   var commentsListSize = transaction.metadata match {
