@@ -399,39 +399,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       }
       case _ => tagsNotAllowed
     }
-    
-    //TODO: Implement the stuff below using the API instead of the DB
-    // and then test this code and delete the db using code
-    
-    transaction.metadata match {
-      case Some(metadata) => metadata.tags match {
-        case Some(tags) =>
-          if (tags.isEmpty)
-            noTags
-          else
-            ".tagsContainer" #>
-              {
-                def orderByDateDescending = (tag1: Tag, tag2: Tag) =>
-                  tag1.datePosted.before(tag2.datePosted)
-                "#noTags" #> "" &
-                  ".tag" #>
-                  tags.sortWith(orderByDateDescending).map(tag => {
-                    ".tagID [id]" #> tag.id_ &
-                      ".tagValue" #> tag.value &
-                      ".deleteTag" #>
-                      SHtml.a(
-                        () => {
-                          metadata.deleteTag.map(t => t(tag.id_))
-                          Hide(tag.id_)
-                        },
-                        Text("x"),
-                        ("title", "Remove the tag"))
-                  })
-              }
-        case _ => noTags
-      }
-      case _ => noTags
-    }
+
   }
 
   //This method is a work in progress
