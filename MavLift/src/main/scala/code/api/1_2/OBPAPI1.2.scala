@@ -152,9 +152,9 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           u <- user ?~ "user not found"
           bank <- Bank(bankId)
         } yield {
-          val availableAccounts = bank.nonPublicAccounts(u)
-          successJsonResponse(bankAccountsListToJson(availableAccounts, Full(u)))
-        }
+            val availableAccounts = bank.nonPublicAccounts(u)
+            successJsonResponse(bankAccountsListToJson(availableAccounts, Full(u)))
+          }
     }
   })
 
@@ -191,11 +191,11 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: "account" :: "users" :: Nil JsonGet json => {
       user =>
-          for {
-            account <- BankAccount(bankId, accountId)
-            u <- user ?~ "user not found"
-            permissions <- account permissions u
-          } yield {
+        for {
+          account <- BankAccount(bankId, accountId)
+          u <- user ?~ "user not found"
+          permissions <- account permissions u
+        } yield {
             val permissionsJSON = JSONFactory.createPermissionsJSON(permissions)
             successJsonResponse(Extraction.decompose(permissionsJSON))
           }
@@ -205,12 +205,12 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: "account" :: "users" :: userId :: Nil JsonGet json => {
       user =>
-          for {
-            account <- BankAccount(bankId, accountId)
-            u <- user ?~ "user not found"
-            permissions <- account permissions u
-            userPermission <- Box(permissions.find(p => { p.user.id_ == userId})) ?~ {userId +" not found" }
-          } yield {
+        for {
+          account <- BankAccount(bankId, accountId)
+          u <- user ?~ "user not found"
+          permissions <- account permissions u
+          userPermission <- Box(permissions.find(p => { p.user.id_ == userId})) ?~ {userId +" not found" }
+        } yield {
             val views = JSONFactory.createViewsJSON(userPermission.views)
             successJsonResponse(Extraction.decompose(views))
           }

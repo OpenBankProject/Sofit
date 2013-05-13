@@ -303,7 +303,6 @@ class API1_2Test extends ServerSetup{
       val reply = getBankInfoWithRandomID
       Then("we should get a 400 code")
       reply.code should equal (400)
-      println("error message: " + reply.body)
     }
   }
 
@@ -318,7 +317,12 @@ class API1_2Test extends ServerSetup{
       publicAccountsInfo.accounts.foreach(a => {
         a.id.nonEmpty should equal (true)
         a.views_available.nonEmpty should equal (true)
+        a.views_available.foreach(
+          //check that all the views are public
+          v => v.is_public should equal (true)
+        )
       })
+
     }
     scenario("we get the bank accounts the user have access to") {
       Given("We will use an access token")
@@ -345,6 +349,10 @@ class API1_2Test extends ServerSetup{
       publicAccountsInfo.accounts.foreach(a => {
         a.id.nonEmpty should equal (true)
         a.views_available.nonEmpty should equal (true)
+        a.views_available.foreach(
+          //check that all the views are public
+          v => v.is_public should equal (true)
+        )
       })
     }
   }
@@ -398,7 +406,7 @@ class API1_2Test extends ServerSetup{
   }
   feature("Information about the permissions of a specific bank account"){
 
-    scenario("we get data by using an access token") {
+    scenario("we will get one bank account permissions by using an access token") {
       Given("We will use an access token")
       When("the request is sent")
       val reply = getAccountPermission.response
@@ -407,7 +415,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[PermissionsJSON]
     }
 
-    scenario("we don't get data") {
+    scenario("we will not get one bank account permissions") {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getAccountPermissionWithoutToken
@@ -418,16 +426,17 @@ class API1_2Test extends ServerSetup{
 
 feature("Information about the permissions of a specific user on a specific bank account"){
 
-    scenario("we get data by using an access token") {
+    scenario("we will get the permissions by using an access token") {
       Given("We will use an access token")
       When("the request is sent")
       val reply = getUserAccountPermission
       Then("we should get a 200 ok code")
       reply.code should equal (200)
-      reply.body.extract[ViewsJSON]
+      val viewsInfo = reply.body.extract[ViewsJSON]
+      viewsInfo.views.foreach(v => v.id.nonEmpty should equal (true))
     }
 
-    scenario("we don't get permissions on a specific user") {
+    scenario("we will not get the permissions of a specific user") {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getUserAccountPermissionWithoutToken
@@ -435,7 +444,7 @@ feature("Information about the permissions of a specific user on a specific bank
       reply.code should equal (400)
     }
 
-    scenario("we don't get permissions on a random user") {
+    scenario("we will not get the permissions of a random user") {
       Given("We will use an access token with random user id")
       When("the request is sent")
       val reply = getUserAccountPermissionWithRandomUserId
