@@ -75,6 +75,7 @@ import code.lib.OAuthClient
 import net.liftweb.http.RequestVar
 
 case class CommentsURLParams(bankId: String, accountId: String, viewId: String, transactionId: String)
+
 /**
  * This whole class is a rather hastily put together mess
  */
