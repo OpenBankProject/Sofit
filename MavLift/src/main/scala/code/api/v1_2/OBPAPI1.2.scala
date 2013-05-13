@@ -249,15 +249,28 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonGet json => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          comments <- Box(metadata.comments) ?~ { "view " + viewId + " does not authorize comments access" }
+        } yield {
+          val json = JSONFactory.createTransactionCommentsJson(comments)
+          successJsonResponse(Extraction.decompose(json))
+        }
+    }
+  })
+  
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
-        user =>
-          for {
-            metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-            images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
-          } yield {
-              val json = JSONFactory.createTransactionImagesJson(images)
-              successJsonResponse(Extraction.decompose(json))
-            }
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize images access" }
+        } yield {
+          val json = JSONFactory.createTransactionImagesJson(images)
+          successJsonResponse(Extraction.decompose(json))
+        }
     }
   })
   
