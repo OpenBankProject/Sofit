@@ -75,7 +75,7 @@ class TransactionMetadataImpl(
   narative : String,
   comments_ : List[Comment],
   saveOwnerComment : String => Unit,
-  addCommentFunc : (String,Long, String, Date) => Unit,
+  addCommentFunc : (String,Long, String, Date) => Comment,
   tags_ : List[Tag],
   addTagFunc : (String, Long, String, Date) => String,
   deleteTagFunc : (String) => Unit,
@@ -89,7 +89,7 @@ class TransactionMetadataImpl(
   def ownerComment = Some(narative)
   def ownerComment(comment : String) = saveOwnerComment(comment)
   def comments : List[Comment] = comments_
-  def addComment(userId: String, viewId : Long, text: String, datePosted : Date) : Unit =
+  def addComment(userId: String, viewId : Long, text: String, datePosted : Date) : Comment =
     addCommentFunc(userId, viewId, text, datePosted)
   def tags = tags_
   def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String =
