@@ -178,7 +178,7 @@ class ModeratedTransactionMetadata(
   filteredOwnerComment : Option[String],
   filteredComments : Option[List[Comment]],
   addOwnerCommentFunc : Option[(String => Unit)],
-  addCommentFunc: Option[(String, Long, String, Date) => Unit],
+  addCommentFunc: Option[(String, Long, String, Date) => Comment],
   tags_ : Option[List[Tag]],
   addTagFunc : Option[(String, Long, String, Date) => String],
   deleteTagFunc : Option[(String) => Unit],

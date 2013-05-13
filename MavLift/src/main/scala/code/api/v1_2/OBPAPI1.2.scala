@@ -90,7 +90,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
       moderatedTransaction <- account.moderatedTransaction(transactionID, view, user)
       metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
     } yield metadata
-
+  
   oauthServe(apiPrefix {
     case Nil JsonGet json => {
       user =>
@@ -223,6 +223,23 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         } yield {
           val json = JSONFactory.createTransactionCommentsJson(comments)
           successJsonResponse(Extraction.decompose(json))
+        }
+    }
+  })
+  
+    oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          commentJson <- tryo{json.extract[PostTransactionCommentJSON]}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
+          addCommentFunc <- if(view.canAddComments) Box(metadata.addComment) ?~ {"view " + viewId + " does not authorize adding comments"}
+                          else Failure("view does not allow comments to be added") 
+          postedComment <- Full(addCommentFunc(u.id_, view.id, commentJson.value, now))
+        } yield {
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionCommentJSON(postedComment)))
         }
     }
   })

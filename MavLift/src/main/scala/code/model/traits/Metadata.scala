@@ -40,7 +40,7 @@ trait TransactionMetadata {
   def ownerComment : Option[String]
   def ownerComment(comment : String) : Unit
   def comments : List[Comment]
-  def addComment(userId : String, viewId : Long, text : String, postedDate : Date) : Unit
+  def addComment(userId : String, viewId : Long, text : String, postedDate : Date) : Comment
   def tags : List[Tag]
   def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String
   def deleteTag(id : String) : Unit

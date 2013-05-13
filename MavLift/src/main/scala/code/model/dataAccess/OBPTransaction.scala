@@ -195,12 +195,13 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    * @param email The email address of the person posting the comment
    * @param text The text of the comment
    */
-  def addComment(userId: String, viewId : Long, text: String, datePosted : Date) = {
+  def addComment(userId: String, viewId : Long, text: String, datePosted : Date) : Comment = {
     val comment = OBPComment.createRecord.userId(userId).
       textField(text).
       date(datePosted).
       viewID(viewId).save
     obp_comments(comment.id.is :: obp_comments.get ).save
+    comment
   }
 
   def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
