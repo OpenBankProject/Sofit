@@ -57,7 +57,7 @@ class API1_2Test extends ServerSetup{
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =
-    ("" -> "")
+    ("error" -> "empty List")
   val errorAPIResponse = new APIResponse(400,emptyJSON)
 
   def getAPIInfo : h.HttpPackage[APIResponse] = {
@@ -179,7 +179,14 @@ class API1_2Test extends ServerSetup{
     else
       errorAPIResponse
   }
-  def getAccountPermission : h.HttpPackage[APIResponse] = {
+
+  case class BankAccountPermission(
+    response : APIResponse,
+    bank : String = "",
+    account : String = ""
+  )
+
+  def getAccountPermission : BankAccountPermission = {
     val accounts = getBankAccounts
     val accountsInfo = accounts.body.extract[AccountsJSON]
     if(accountsInfo.accounts.nonEmpty)
@@ -188,10 +195,11 @@ class API1_2Test extends ServerSetup{
       val randomAccount = Random.nextInt(accountsSize)
       val account = accountsInfo.accounts(randomAccount)
       val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "account" / "users" <@(consumer,token)
-      makeGetRequest(request)
+      val response = makeGetRequest(request)
+      new BankAccountPermission(response, account.bank_id, account.id)
     }
     else
-      errorAPIResponse
+      new BankAccountPermission(errorAPIResponse)
   }
 
   def getAccountPermissionWithoutToken = {
@@ -203,6 +211,46 @@ class API1_2Test extends ServerSetup{
       val randomAccount = Random.nextInt(accountsSize)
       val account = accountsInfo.accounts(randomAccount)
       val request = v1_2Request / "banks" / account.bank_id / "accounts" / account.id / "account" / "users"
+      makeGetRequest(request)
+    }
+    else
+      errorAPIResponse
+  }
+
+  def getUserAccountPermission = {
+    val permissions = getAccountPermission
+    val permissionsInfo = permissions.response.body.extract[PermissionsJSON]
+    if(permissionsInfo.permissions.nonEmpty){
+      val permissionsSize = permissionsInfo.permissions.size
+      val randomPermission = Random.nextInt(permissionsSize)
+      val permission = permissionsInfo.permissions(randomPermission)
+      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "account" / "users"/ permission.user.id <@(consumer,token)
+      makeGetRequest(request)
+    }
+    else
+      errorAPIResponse
+  }
+
+  def getUserAccountPermissionWithoutToken = {
+    val permissions = getAccountPermission
+    val permissionsInfo = permissions.response.body.extract[PermissionsJSON]
+    if(permissionsInfo.permissions.nonEmpty){
+      val permissionsSize = permissionsInfo.permissions.size
+      val randomPermission = Random.nextInt(permissionsSize)
+      val permission = permissionsInfo.permissions(randomPermission)
+      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "account" / "users"/ permission.user.id
+      makeGetRequest(request)
+    }
+    else
+      errorAPIResponse
+  }
+
+  def getUserAccountPermissionWithRandomUserId = {
+        val permissions = getAccountPermission
+    val permissionsInfo = permissions.response.body.extract[PermissionsJSON]
+    if(permissionsInfo.permissions.nonEmpty){
+      val randomUserId = Helpers.randomString(10)
+      val request = v1_2Request / "banks" / permissions.bank / "accounts" / permissions.account / "account" / "users"/ randomUserId <@(consumer,token)
       makeGetRequest(request)
     }
     else
@@ -353,15 +401,44 @@ class API1_2Test extends ServerSetup{
     scenario("we get data by using an access token") {
       Given("We will use an access token")
       When("the request is sent")
-      val reply = getAccountPermission
+      val reply = getAccountPermission.response
       Then("we should get a 200 ok code")
       reply.code should equal (200)
+      reply.body.extract[PermissionsJSON]
     }
 
     scenario("we don't get data") {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getAccountPermissionWithoutToken
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+  }
+
+feature("Information about the permissions of a specific user on a specific bank account"){
+
+    scenario("we get data by using an access token") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = getUserAccountPermission
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+      reply.body.extract[ViewsJSON]
+    }
+
+    scenario("we don't get permissions on a specific user") {
+      Given("We will not use an access token")
+      When("the request is sent")
+      val reply = getUserAccountPermissionWithoutToken
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+
+    scenario("we don't get permissions on a random user") {
+      Given("We will use an access token with random user id")
+      When("the request is sent")
+      val reply = getUserAccountPermissionWithRandomUserId
       Then("we should get a 400 code")
       reply.code should equal (400)
     }
