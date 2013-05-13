@@ -579,8 +579,11 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
                   ".userInfo" #> ""
               }
               
-              val commentId = "comment_" + {position + 1 }
-              ".commentLink * " #> { "#" + commentId } &
+              val displayPosition = position + 1
+              val commentId = "comment_" + displayPosition
+              
+              ".text *" #> commentJson.value.getOrElse("") &
+              ".commentLink * " #> { "#" + displayPosition } &
               ".commentLink [id]" #> commentId &
               ".commentLink [href]" #> { "#" + commentId } &
               commentDate &
@@ -596,40 +599,8 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
         else showComments(cJsons)
       }
       case _ => commentsNotAllowed
-    }//TODO: test this code and delete the db using code below
-    
-    transaction.metadata match {
-      case Some(metadata)  =>
-        metadata.comments match {
-          case Some(comments) =>
-            if(comments.size==0)
-              ".comment" #> ""
-            else
-            ".commentsContainer" #>
-            {
-              def orderByDateDescending = (comment1 : Comment, comment2 : Comment) =>
-                comment1.datePosted.before(comment2.datePosted)
-              "#noComments" #> "" &
-              ".comment" #>
-                comments.sortWith(orderByDateDescending).zipWithIndex.map(comment => {
-                  val commentId="comment_"+{comment._2 + 1 }
-                  ".commentLink * " #>{"#"+ {comment._2 + 1}} &
-                  ".commentLink [id]"#>commentId &
-                  ".commentLink [href]" #>{"#"+ commentId} &
-                  ".text *" #> {comment._1.text} &
-                  ".commentDate *" #> {commentDateFormat.format(comment._1.datePosted)} &
-                  ".userInfo *" #> {
-                      comment._1.postedBy match {
-                        case Full(user) => {" -- " + user.theFirstName + " "+ user.theLastName}
-                        case _ => "-- user not found"
-                      }
-                  }
-                })
-            }
-          case _ => ".comment" #> ""
-        }
-      case _ => ".comment" #> ""
     }
+
   }
 
   var commentsListSize = transaction.metadata match {
