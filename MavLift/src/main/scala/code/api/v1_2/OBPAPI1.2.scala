@@ -287,7 +287,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
       user =>
         for {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
+          images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize image access" }
           toDelete <- Box(images.find(image => image.id_ == imageId)) ?~ { "image not found" }
           view <- View.fromUrl(viewId)
           bankAccount <- BankAccount(bankId, accountId)
@@ -320,6 +320,28 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           postedTag <- Box(allTags.find(tag => tag.id_ == postedTagId)) ?~! "Server error: posted tag not found after posting"
         } yield {
           successJsonResponse(Extraction.decompose(postedTag))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    //delete a tag
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "tags" :: tagId :: Nil JsonDelete _ => {
+
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          tags <- Box(metadata.tags) ?~ { "view " + viewId + " does not authorize tags access" }
+          toDelete <- Box(tags.find(tags => tags.id_ == tagId)) ?~ { "tag not found" }
+          view <- View.fromUrl(viewId)
+          bankAccount <- BankAccount(bankId, accountId)
+          deletable <- if (toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
+          else Failure("insufficient privileges to delete tag")
+          deleteFunction <- if (view.canDeleteTag) Box(metadata.deleteTag)
+          else Failure("view does not allow tags to be deleted")
+        } yield {
+          deleteFunction(deletable.id_)
+          successJsonResponse(204)
         }
     }
   })
