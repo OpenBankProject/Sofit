@@ -358,8 +358,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           bankAccount <- BankAccount(bankId, accountId)
           deletable <- if (toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
           else Failure("insufficient privileges to delete tag")
-          deleteFunction <- if (view.canDeleteTag) Box(metadata.deleteTag)
-          else Failure("view does not allow tags to be deleted")
+          deleteFunction <- Box(metadata.deleteTag) ?~ "view does not allow tags to be deleted"
         } yield {
           deleteFunction(deletable.id_)
           successJsonResponse(204)
