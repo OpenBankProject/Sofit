@@ -47,9 +47,9 @@ object APIUtil {
     commit getOrElse ""
   }
 
-  def successJsonResponse(httpCode : Int) : JsonResponse =
-    JsonResponse(JsRaw("{}"), Nil, Nil, httpCode)
-  
+  def noContentJsonResponse : JsonResponse =
+    JsonResponse(JsRaw(""), Nil, Nil, 204)
+
   def successJsonResponse(json: JsExp, httpCode : Int = 200) : JsonResponse =
     JsonResponse(json, Nil, Nil, httpCode)
 
