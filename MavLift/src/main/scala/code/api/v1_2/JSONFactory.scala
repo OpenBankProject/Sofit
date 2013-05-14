@@ -65,6 +65,9 @@ case class BankJSON(
   logo : String,
   website : String
 )
+case class ViewsJSON(
+  views : List[ViewJSON]
+)
 case class ViewJSON(
   id : String,
   short_name : String,
@@ -92,8 +95,8 @@ case class ModeratedAccountJSON(
   bank_id : String
 )
 case class UserJSON(
-  user_id : String,
-  user_provider : String,
+  id : String,
+  provider : String,
   display_name : String
 )
 case class PermissionsJSON(
@@ -216,6 +219,11 @@ object JSONFactory{
       stringOrNull(bank.logoURL),
       stringOrNull(bank.website)
     )
+  }
+
+  def createViewsJSON(views : List[View]) : ViewsJSON = {
+    val list : List[ViewJSON] = views.map(createViewJSON)
+    new ViewsJSON(list)
   }
 
   def createViewJSON(view : View) : ViewJSON = {

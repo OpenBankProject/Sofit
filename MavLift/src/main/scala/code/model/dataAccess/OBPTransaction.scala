@@ -228,14 +228,14 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     true
   }
 
-  def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : String = {
+  def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : Tag = {
     val tag = OBPTag.createRecord.
       userId(userId).
       tag(value).
       date(datePosted).
       viewID(viewId).save
     tags(tag.id.is :: tags.get ).save
-    tag.id.is.toString
+    tag
   }
 
   def deleteTag(id : String) = {
@@ -251,11 +251,11 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   /**
    * @return the id of the newly added image
    */
-  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
+  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageURL : URL) : TransactionImage = {
     val image = OBPTransactionImage.createRecord.
         userId(userId).imageComment(description).date(datePosted).viewID(viewId).url(imageURL.toString).save
     images(image.id.is :: images.get).save
-    image.id.is.toString
+    image
   }
 
   def deleteImage(id : String){

@@ -93,12 +93,52 @@ trait BankAccount {
       Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
   }
 
+  /**
+  * @param a user requesting to see the other users' permissions
+  * @return a Box of all the users' permissions of this bank account if the user passed as a parameter has access to the owner view (allowed to see this kind of data)
+  */
   def permissions(user : User) : Box[List[Permission]] = {
-    //see if the user have access to the owner view in this the account
+    //check if the user have access to the owner view in this the account
     if(authorizedAccess(Owner,Full(user)))
       LocalStorage.permissions(this)
     else
       Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
+  }
+
+  /**
+  * @param a user that want to grant an other user access to a view
+  * @param the id of the view that we want to grant access
+  * @param the id of the other user that we want grant access
+  * @return a Full(true) if everything is okay, a Failure otherwise
+  */
+  def addPermission(user : User, viewId : String, otherUserId : String) : Box[Boolean] = {
+    //check if the user have access to the owner view in this the account
+    if(authorizedAccess(Owner,Full(user)))
+      for{
+        view <- View.fromUrl(viewId) //check if the viewId corresponds to a view
+        otherUser <- User.findById(otherUserId) //check if the userId corresponds to a user
+        isSaved <- LocalStorage.addPermission(id, view, otherUser) ?~ "could not save the privilege"
+      } yield isSaved
+    else
+      Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
+  }
+
+  /**
+  * @param a user that want to revoke an other user access to a view
+  * @param the id of the view that we want to revoke access
+  * @param the id of the other user that we want revoke access
+  * @return a Full(true) if everything is okay, a Failure otherwise
+  */
+  def revokePermission(user : User, viewId : String, otherUserId : String) : Box[Boolean] = {
+    //check if the user have access to the owner view in this the account
+    if(authorizedAccess(Owner,Full(user)))
+      for{
+        view <- View.fromUrl(viewId) //check if the viewId corresponds to a view
+        otherUser <- User.findById(otherUserId) //check if the userId corresponds to a user
+        isRevoked <- LocalStorage.revokePermission(id, view, otherUser) ?~ "could not revoke the privilege"
+      } yield isRevoked
+    else
+      Failure("user : " + user.emailAddress + " don't have access to owner view on account " + id, Empty, Empty)
   }
 
   //Is a public view is available for this bank account
