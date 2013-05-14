@@ -117,10 +117,28 @@ trait BankAccount {
       for{
         view <- View.fromUrl(viewId) //check if the viewId corresponds to a view
         otherUser <- User.findById(otherUserId) //check if the userId corresponds to a user
-        saved <- LocalStorage.addPermission(id, view, otherUser) ?~ "could not save the privilege"
-      } yield saved
+        isSaved <- LocalStorage.addPermission(id, view, otherUser) ?~ "could not save the privilege"
+      } yield isSaved
     else
       Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
+  }
+
+  /**
+  * @param a user that want to revoke an other user access to a view
+  * @param the id of the view that we want to revoke access
+  * @param the id of the other user that we want revoke access
+  * @return a Full(true) if everything is okay, a Failure otherwise
+  */
+  def revokePermission(user : User, viewId : String, otherUserId : String) : Box[Boolean] = {
+    //check if the user have access to the owner view in this the account
+    if(authorizedAccess(Owner,Full(user)))
+      for{
+        view <- View.fromUrl(viewId) //check if the viewId corresponds to a view
+        otherUser <- User.findById(otherUserId) //check if the userId corresponds to a user
+        isRevoked <- LocalStorage.revokePermission(id, view, otherUser) ?~ "could not revoke the privilege"
+      } yield isRevoked
+    else
+      Failure("user : " + user.emailAddress + " don't have access to owner view on account " + id, Empty, Empty)
   }
 
   //Is a public view is available for this bank account
