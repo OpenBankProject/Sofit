@@ -293,7 +293,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                       val tagsList = tags.split(" ").toList.filter(tag => !tag.isEmpty)
                       tagValues = tagsList
                       tagDate = new Date
-                      tagIds = tagsList.map(addTag(user.id_, view.id, _ ,tagDate))
+                      tagIds = tagsList.map(addTag(user.id_, view.id, _ ,tagDate).id_)
                     },
                     ("placeholder","Add tags seperated by spaces"),
                     ("id","addTagInput"),

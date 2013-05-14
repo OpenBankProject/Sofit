@@ -338,10 +338,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
           addTagFunc <- Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding tags"}
-          postedTagId <- Full(addTagFunc(u.id_, view.id, tagJson.value, now))
-          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
-          allTags <- Box(newMetadata.tags) ?~! "Server error: no tags found after posting"
-          postedTag <- Box(allTags.find(tag => tag.id_ == postedTagId)) ?~! "Server error: posted tag not found after posting"
+          postedTag <- Full(addTagFunc(u.id_, view.id, tagJson.value, now))
         } yield {
           successJsonResponse(Extraction.decompose(JSONFactory.createTransactionTagJSON(postedTag)))
         }

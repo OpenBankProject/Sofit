@@ -42,7 +42,7 @@ trait TransactionMetadata {
   def comments : List[Comment]
   def addComment(userId : String, viewId : Long, text : String, postedDate : Date) : Comment
   def tags : List[Tag]
-  def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String
+  def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : Tag
   def deleteTag(id : String) : Unit
   def images : List[TransactionImage]
   def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : TransactionImage

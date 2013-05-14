@@ -77,7 +77,7 @@ class TransactionMetadataImpl(
   saveOwnerComment : String => Unit,
   addCommentFunc : (String,Long, String, Date) => Comment,
   tags_ : List[Tag],
-  addTagFunc : (String, Long, String, Date) => String,
+  addTagFunc : (String, Long, String, Date) => Tag,
   deleteTagFunc : (String) => Unit,
   images_ : List[TransactionImage],
   addImageFunc : (String, Long, String, Date, URL) => TransactionImage,
@@ -92,7 +92,7 @@ class TransactionMetadataImpl(
   def addComment(userId: String, viewId : Long, text: String, datePosted : Date) : Comment =
     addCommentFunc(userId, viewId, text, datePosted)
   def tags = tags_
-  def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String =
+  def addTag(userId : String, viewId : Long, tag : String, postedDate : Date) : Tag =
     addTagFunc(userId,viewId,tag, postedDate)
   def deleteTag(id : String) : Unit =
     deleteTagFunc(id)

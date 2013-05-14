@@ -180,7 +180,7 @@ class ModeratedTransactionMetadata(
   addOwnerCommentFunc : Option[(String => Unit)],
   addCommentFunc: Option[(String, Long, String, Date) => Comment],
   tags_ : Option[List[Tag]],
-  addTagFunc : Option[(String, Long, String, Date) => String],
+  addTagFunc : Option[(String, Long, String, Date) => Tag],
   deleteTagFunc : Option[(String) => Unit],
   images_ : Option[List[TransactionImage]],
   addImageFunc : Option[(String, Long, String, Date, URL) => TransactionImage],

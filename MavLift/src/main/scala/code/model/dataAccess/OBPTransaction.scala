@@ -228,14 +228,14 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     true
   }
 
-  def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : String = {
+  def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : Tag = {
     val tag = OBPTag.createRecord.
       userId(userId).
       tag(value).
       date(datePosted).
       viewID(viewId).save
     tags(tag.id.is :: tags.get ).save
-    tag.id.is.toString
+    tag
   }
 
   def deleteTag(id : String) = {
