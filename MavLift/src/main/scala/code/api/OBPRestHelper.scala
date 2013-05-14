@@ -9,12 +9,15 @@ import code.util.APIUtil._
 import code.model.traits.User
 import code.api.OAuthHandshake._
 
-class OBPRestHelper extends RestHelper {
+class OBPRestHelper extends RestHelper with Loggable {
 
   implicit def jsonResponseBoxToJsonReponse(box: Box[JsonResponse]): JsonResponse = {
     box match {
       case Full(r) => r
-      case Failure(msg, _, _) => errorJsonResponse(msg)
+      case Failure(msg, _, _) => {
+        logger.info("API Failure: " + msg)
+        errorJsonResponse(msg)
+      }
       case _ => errorJsonResponse()
     }
   }
@@ -31,7 +34,7 @@ class OBPRestHelper extends RestHelper {
 
   class RichStringList(list: List[String]) {
     val listLen = list.length
-    
+
     /**
      * Normally we would use ListServeMagic's prefix function, but it works with PartialFunction[Req, () => Box[LiftResponse]]
      * instead of the PartialFunction[Req, Box[User] => Box[JsonResponse]] that we need. This function does the same thing, really.
@@ -47,10 +50,10 @@ class OBPRestHelper extends RestHelper {
           pf.apply(req.withNewPath(req.path.drop(listLen)))
       }
   }
-  
+
   //Give all lists of strings in OBPRestHelpers the oPrefix method
   implicit def stringListToRichStringList(list : List[String]) : RichStringList = new RichStringList(list)
-  
+
   def oauthServe(handler : PartialFunction[Req, Box[User] => Box[JsonResponse]]) : Unit = {
     val obpHandler : PartialFunction[Req, () => Box[LiftResponse]] = {
       new PartialFunction[Req, () => Box[LiftResponse]] {
@@ -64,9 +67,9 @@ class OBPRestHelper extends RestHelper {
     }
     serve(obpHandler)
   }
-  
+
   override protected def serve(handler: PartialFunction[Req, () => Box[LiftResponse]]) : Unit= {
-    
+
     val obpHandler : PartialFunction[Req, () => Box[LiftResponse]] = {
       new PartialFunction[Req, () => Box[LiftResponse]] {
         def apply(r : Req) = {
@@ -75,10 +78,10 @@ class OBPRestHelper extends RestHelper {
           handler(r)
         }
         def isDefinedAt(r : Req) = handler.isDefinedAt(r)
-      }    
+      }
     }
     super.serve(obpHandler)
   }
-  
-  
+
+
 }

@@ -69,6 +69,17 @@ trait ServerSetup extends FeatureSpec
        case (code, _, _, json) => APIResponse(code, json())
     }
   }
+
+  /**
+  * this method do a delete request given a URL
+  */
+  def makeDeleteRequest(req: Request, headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
+    val jsonReq = (req <:< headers).DELETE
+    val jsonHandler = jsonReq.>|
+    h x jsonHandler{
+       case (code, _, _, _) => APIResponse(code, null)
+    }
+  }
 }
 
 object ServerSetup {

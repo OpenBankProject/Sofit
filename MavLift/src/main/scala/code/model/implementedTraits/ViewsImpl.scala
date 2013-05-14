@@ -48,6 +48,7 @@ object View {
       case "team" => Full(Team)
       case "owner" => Full(Owner)
       case "public" | "anonymous" => Full(Public)
+      case "management" => Full(Management)
       case _ => Failure("view " + viewNameURL + " not found", Empty, Empty)
     }
 

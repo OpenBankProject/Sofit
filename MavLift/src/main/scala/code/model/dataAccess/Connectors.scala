@@ -462,19 +462,28 @@ class MongoDBLocalStorage extends LocalStorage {
         val privilege = Privilege.create.
           user(userId).
           account(bankAccount)
-        setPrivilegeFromView(privilege, view)
+        setPrivilegeFromView(privilege, view, true)
         privilege.save
       }
   }
-  private def setPrivilegeFromView(privilege : Privilege, view : View ) = {
+  def revokePermission(bankAccountId : String, view : View, user : User) : Box[Boolean] = {
+    for{
+      userId <- tryo{user.id_.toLong}
+      bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
+      privilege <- Privilege.find(By(Privilege.user, userId), By(Privilege.account, bankAccount))
+    } yield {
+        setPrivilegeFromView(privilege, view, false)
+        privilege.save
+      }
+  }
+  private def setPrivilegeFromView(privilege : Privilege, view : View, value : Boolean ) = {
     view match {
-      case OurNetwork => privilege.ourNetworkPermission(true)
-      case Team => privilege.teamPermission(true)
-      case Board => privilege.boardPermission(true)
-      case Authorities => privilege.authoritiesPermission(true)
-      case Owner => privilege.ownerPermission(true)
-      case Management => privilege.mangementPermission(true)
+      case OurNetwork => privilege.ourNetworkPermission(value)
+      case Team => privilege.teamPermission(value)
+      case Board => privilege.boardPermission(value)
+      case Authorities => privilege.authoritiesPermission(value)
+      case Owner => privilege.ownerPermission(value)
+      case Management => privilege.mangementPermission(value)
     }
-
   }
 }
