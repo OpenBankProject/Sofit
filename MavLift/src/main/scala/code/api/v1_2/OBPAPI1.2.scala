@@ -269,8 +269,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           u <- user
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
-          addCommentFunc <- if(view.canAddComments) Box(metadata.addComment) ?~ {"view " + viewId + " does not authorize adding comments"}
-                          else Failure("view does not allow comments to be added") 
+          addCommentFunc <- Box(metadata.addComment) ?~ {"view " + viewId + " does not authorize adding comments"}
           postedComment <- Full(addCommentFunc(u.id_, view.id, commentJson.value, now))
         } yield {
           successJsonResponse(Extraction.decompose(JSONFactory.createTransactionCommentJSON(postedComment)))
@@ -299,8 +298,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           u <- user
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
-          addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
-                          else Failure("view does not allow images to be added") 
+          addImageFunc <- Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding images"}
           url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
           postedImage <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
         } yield {
@@ -321,8 +319,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           bankAccount <- BankAccount(bankId, accountId)
           deletable <- if(toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
                        else Failure("insufficient privileges to delete image")
-          deleteFunction <- if(view.canDeleteImage) Box(metadata.deleteImage)
-                            else Failure("view does not allow images to be deleted")
+          deleteFunction <- Box(metadata.deleteImage) ?~ "view does not allow images to be deleted"
         } yield {
           deleteFunction(deletable.id_)
           successJsonResponse(204)
@@ -340,8 +337,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           u <- user
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
-          addTagFunc <- if(view.canAddTag) Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding tags"}
-                          else Failure("view does not allow tags to be added") 
+          addTagFunc <- Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding tags"}
           postedTagId <- Full(addTagFunc(u.id_, view.id, tagJson.value, now))
           newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
           allTags <- Box(newMetadata.tags) ?~! "Server error: no tags found after posting"
