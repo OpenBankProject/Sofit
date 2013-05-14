@@ -183,7 +183,7 @@ class ModeratedTransactionMetadata(
   addTagFunc : Option[(String, Long, String, Date) => String],
   deleteTagFunc : Option[(String) => Unit],
   images_ : Option[List[TransactionImage]],
-  addImageFunc : Option[(String, Long, String, Date, URL) => String],
+  addImageFunc : Option[(String, Long, String, Date, URL) => TransactionImage],
   deleteImageFunc  : Option[String => Unit],
   addWhereTagFunc : Option[(String, Long, Date, Double, Double) => Boolean],
   whereTag_ : Option[GeoTag]

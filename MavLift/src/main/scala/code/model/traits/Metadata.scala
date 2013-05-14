@@ -45,7 +45,7 @@ trait TransactionMetadata {
   def addTag(userId : String, viewId : Long, tag : String, postedDate :Date) : String
   def deleteTag(id : String) : Unit
   def images : List[TransactionImage]
-  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : String
+  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageUrl : URL) : TransactionImage
   def deleteImage(id : String) : Unit
   def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
   def whereTags : List[GeoTag]

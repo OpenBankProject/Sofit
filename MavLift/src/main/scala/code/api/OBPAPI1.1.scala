@@ -959,7 +959,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                 addImage.map(
                   func =>{
                     val datePosted = (now: TimeSpan)
-                    func(user.id_, viewID, label, datePosted, url)
+                    func(user.id_, viewID, label, datePosted, url).id_
                   }
                 )
               }

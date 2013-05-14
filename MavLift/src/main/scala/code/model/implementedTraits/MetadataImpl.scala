@@ -80,7 +80,7 @@ class TransactionMetadataImpl(
   addTagFunc : (String, Long, String, Date) => String,
   deleteTagFunc : (String) => Unit,
   images_ : List[TransactionImage],
-  addImageFunc : (String, Long, String, Date, URL) => String,
+  addImageFunc : (String, Long, String, Date, URL) => TransactionImage,
   deleteImageFunc : String => Unit,
   addWhereTagFunc : (String, Long, Date, Double, Double) => Boolean,
   whereTags_ : List[GeoTag]

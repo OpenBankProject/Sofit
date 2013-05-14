@@ -302,10 +302,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
                           else Failure("view does not allow images to be added") 
           url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
-          postedImageId <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
-          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
-          allImages <- Box(newMetadata.images) ?~! "Server error: no images found after posting"
-          postedImage <- Box(allImages.find(image => image.id_ == postedImageId)) ?~! "Server error: posted image not found after posting"
+          postedImage <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
         } yield {
           successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)))
         }
