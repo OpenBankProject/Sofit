@@ -173,6 +173,13 @@ case class TransactionImageJSON(
   URL : String,
   date : Date,
   user : UserJSON)
+case class PostTransactionImageJSON(
+  label : String,
+  URL : String
+)
+case class PostTransactionTagJSON(
+  value : String 
+)
 case class TransactionTagJSON(
   id : String,
   value : String,
@@ -183,6 +190,9 @@ case class TransactionCommentJSON(
   value : String,
   date: Date,
   user : UserJSON
+)
+case class TransactionCommentsJSON(
+  comments: List[TransactionCommentJSON]    
 )
 
 object JSONFactory{
@@ -246,36 +256,144 @@ object JSONFactory{
     )
   }
 
-  def createTransactionJson(transaction : ModeratedTransaction) : TransactionJSON = {
+  def createTransactionJSON(transaction : ModeratedTransaction) : TransactionJSON = {
     new TransactionJSON(
         id = transaction.id,
         this_account = transaction.bankAccount.map(createThisAccountJSON).getOrElse(null),
         other_account = transaction.otherBankAccount.map(createOtherAccountJSON).getOrElse(null),
         details = createTransactionDetailsJSON(transaction),
-        metadata = createTransactionMetadataJSON(transaction)
+        metadata = transaction.metadata.map(createTransactionMetadataJSON).getOrElse(null)
       )
   }
-
-  def createTransactionMetadataJSON(transaction : ModeratedTransaction) : TransactionMetadataJSON = {
-    //TODO
-    null
+  
+  def createTransactionCommentsJson(comments : List[Comment]) : TransactionCommentsJSON = {
+    new TransactionCommentsJSON(comments.map(createTransactionCommentJSON))
+  }
+  
+  def createTransactionCommentJSON(comment : Comment) : TransactionCommentJSON = {
+    new TransactionCommentJSON(
+      id = comment.id_,
+      value = comment.text,
+      date = comment.datePosted,
+      user = createUserJSON(comment.postedBy)
+    )
+  }
+  
+  def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
+    new TransactionImagesJSON(images.map(createTransactionImageJSON))
+  }
+  
+  def createTransactionImageJSON(image : TransactionImage) : TransactionImageJSON = {
+    new TransactionImageJSON(
+      id = image.id_,
+      label = image.description,
+      URL = image.imageUrl.toString,
+      date = image.datePosted,
+      user = createUserJSON(image.postedBy)
+    )
+  }
+  
+  def createTransactionTagJSON(tag : Tag) : TransactionTagJSON = {
+    new TransactionTagJSON(
+      id = tag.id_,
+      value = tag.value,
+      date = tag.datePosted,
+      user = createUserJSON(tag.postedBy)
+    )
+  }
+  
+  def createLocationJSON(location : GeoTag) : LocationJSON = {
+    new LocationJSON(
+      latitude = location.latitude,
+      longitude = location.longitude,
+      date = location.datePosted,
+      user = createUserJSON(location.postedBy)
+    )
   }
 
+  def createTransactionMetadataJSON(metadata : ModeratedTransactionMetadata) : TransactionMetadataJSON = {
+    new TransactionMetadataJSON(
+      narrative = stringOptionOrNull(metadata.ownerComment),
+      comments = metadata.comments.map(cs => cs.map(createTransactionCommentJSON)).getOrElse(null),
+      tags = metadata.tags.map(ts => ts.map(createTransactionTagJSON)).getOrElse(null), 
+      images = metadata.images.map(is => is.map(createTransactionImageJSON)).getOrElse(null),
+      where = metadata.whereTag.map(createLocationJSON).getOrElse(null)
+    )
+  }
+  
   def createTransactionDetailsJSON(transaction : ModeratedTransaction) : TransactionDetailsJSON = {
-    //TODO
-    null
+    new TransactionDetailsJSON(
+      `type` = stringOptionOrNull(transaction.transactionType),
+      label = stringOptionOrNull(transaction.label),
+      posted = transaction.startDate.getOrElse(null),
+      completed = transaction.finishDate.getOrElse(null),
+      new_balance = createAmountOfMoneyJSON(transaction.currency, transaction.balance),
+      value= createAmountOfMoneyJSON(transaction.currency, transaction.amount.map(_.toString))
+    )
   }
-
+  
+    def createMinimalBankJSON(bankAccount : ModeratedBankAccount) : MinimalBankJSON = {
+    new MinimalBankJSON(
+      national_identifier = stringOptionOrNull(bankAccount.nationalIdentifier),
+      name = stringOptionOrNull(bankAccount.bankName)
+    )
+  }
+  
+  def createMinimalBankJSON(bankAccount : ModeratedOtherBankAccount) : MinimalBankJSON = {
+    new MinimalBankJSON(
+      national_identifier = stringOptionOrNull(bankAccount.nationalIdentifier),
+      name = stringOptionOrNull(bankAccount.bankName)
+    )
+  }
+  
   def createThisAccountJSON(bankAccount : ModeratedBankAccount) : ThisAccountJSON = {
-    //TODO
-    null
+    new ThisAccountJSON(
+      number = stringOptionOrNull(bankAccount.number),
+      kind = stringOptionOrNull(bankAccount.accountType),
+      IBAN = stringOptionOrNull(bankAccount.iban),
+      bank = createMinimalBankJSON(bankAccount),
+      holders = null //TODO //bankAccount.owners.map(x => x.toList.map(h => createAccountHolderJSON(h, ??))).getOrElse(null)
+    )
   }
-
+  
+  def createAccountHolderJSON(owner : AccountOwner, isAlias : Boolean) : AccountHolderJSON = {
+    new AccountHolderJSON(
+      name = owner.name,
+      is_alias = isAlias
+    )
+  }
+  
+  def createAccountHolderJSON(name : String, isAlias : Boolean) : AccountHolderJSON = {
+    new AccountHolderJSON(
+      name = name,
+      is_alias = isAlias
+    )
+  }
+  
+    def createOtherAccountMetaDataJSON(metadata : ModeratedOtherBankAccountMetadata) : OtherAccountMetadataJSON = {
+    new OtherAccountMetadataJSON(
+      public_alias = null, //TODO
+      private_alias = null, //TODO
+      more_info = stringOptionOrNull(metadata.moreInfo),
+      URL = stringOptionOrNull(metadata.url),
+      image_URL = stringOptionOrNull(metadata.imageUrl),
+      open_corporates_URL = stringOptionOrNull(metadata.openCorporatesUrl),
+      corporate_location = metadata.corporateLocation.map(createLocationJSON).getOrElse(null),
+      physical_location = metadata.physicalLocation.map(createLocationJSON).getOrElse(null)
+    )
+  }
+  
   def createOtherAccountJSON(bankAccount : ModeratedOtherBankAccount) : OtherAccountJSON = {
-    //TODO
-    null
+    new OtherAccountJSON(
+      number = stringOptionOrNull(bankAccount.number),
+      kind = stringOptionOrNull(bankAccount.kind),
+      IBAN = stringOptionOrNull(bankAccount.iban),
+      bank = createMinimalBankJSON(bankAccount),
+      holder = createAccountHolderJSON(bankAccount.label.display, bankAccount.isAlias),
+      metadata = bankAccount.metadata.map(createOtherAccountMetaDataJSON).getOrElse(null)
+    )
   }
-
+  
   def createUserJSON(user : User) : UserJSON = {
     new UserJSON(
           user.id_,
@@ -283,14 +401,14 @@ object JSONFactory{
           stringOrNull(user.emailAddress)
         )
   }
-
+  
   def createUserJSON(user : Box[User]) : UserJSON = {
     user match {
       case Full(u) => createUserJSON(u)
       case _ => null
     }
   }
-
+  
   def createOwnersJSON(owners : Set[AccountOwner], bankName : String) : List[UserJSON] = {
     owners.map(o => {
         new UserJSON(
@@ -301,12 +419,28 @@ object JSONFactory{
       }
     ).toList
   }
+  
   def createAmountOfMoneyJSON(currency : String, amount  : String) : AmountOfMoneyJSON = {
     new AmountOfMoneyJSON(
       stringOrNull(currency),
       stringOrNull(amount)
     )
   }
+  
+  def createAmountOfMoneyJSON(currency : Option[String], amount  : Option[String]) : AmountOfMoneyJSON = {
+    new AmountOfMoneyJSON(
+      stringOptionOrNull(currency),
+      stringOptionOrNull(amount)
+    )
+  }
+  
+  def createAmountOfMoneyJSON(currency : Option[String], amount  : String) : AmountOfMoneyJSON = {
+    new AmountOfMoneyJSON(
+      stringOptionOrNull(currency),
+      stringOrNull(amount)
+    )
+  }
+  
   def createPermissionsJSON(permissions : List[Permission]) : PermissionsJSON = {
     val permissionsJson = permissions.map(p => {
         new PermissionJSON(
@@ -316,16 +450,5 @@ object JSONFactory{
       })
     new PermissionsJSON(permissionsJson)
   }
-  def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
-    new TransactionImagesJSON(images.map(createTransactionImageJSON))
-  }
 
-  def createTransactionImageJSON(image : TransactionImage) : TransactionImageJSON = {
-    new TransactionImageJSON(
-        id = image.id_,
-        label = image.description,
-        URL = image.imageUrl.toString,
-        date = image.datePosted,
-        user = createUserJSON(image.postedBy))
-  }
 }

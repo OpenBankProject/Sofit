@@ -2,7 +2,6 @@ package code.util
 
 import code.model.dataAccess.APIMetric
 import code.api.v1_2.ErrorMessage
-
 import net.liftweb.http.JsonResponse
 import net.liftweb.json.Extraction
 import net.liftweb.json.JsonAST.JValue
@@ -10,6 +9,7 @@ import net.liftweb.http.js.JsExp
 import net.liftweb.common.Full
 import net.liftweb.util.Helpers._
 import net.liftweb.http.S
+import net.liftweb.http.js.JE.JsRaw
 
 object APIUtil {
 
@@ -46,6 +46,9 @@ object APIUtil {
     }
     commit getOrElse ""
   }
+
+  def noContentJsonResponse : JsonResponse =
+    JsonResponse(JsRaw(""), Nil, Nil, 204)
 
   def successJsonResponse(json: JsExp, httpCode : Int = 200) : JsonResponse =
     JsonResponse(json, Nil, Nil, httpCode)

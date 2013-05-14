@@ -90,6 +90,7 @@ class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
 
   def transactionsForAccount = QueryBuilder.start("obp_transaction.this_account.number").is(number.get).
     put("obp_transaction.this_account.kind").is(kind.get).
+    put("obp_transaction.this_account.holder").is(holder.get).
     put("obp_transaction.this_account.bank.name").is(bankName)
 
   //find all the envelopes related to this account

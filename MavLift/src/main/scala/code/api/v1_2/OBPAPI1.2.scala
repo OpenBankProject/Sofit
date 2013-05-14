@@ -59,6 +59,7 @@ import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrde
 import java.net.URL
 import code.util.APIUtil._
 import code.api.OBPRestHelper
+import code.model.implementedTraits.Owner
 
 
 object OBPAPI1_2 extends OBPRestHelper with Loggable {
@@ -82,6 +83,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     val accounts = new AccountsJSON(accJson)
     Extraction.decompose(accounts)
   }
+
   private def moderatedTransactionMetadata(bankId : String, accountId : String, viewId : String, transactionID : String, user : Box[User]) : Box[ModeratedTransactionMetadata] =
     for {
       account <- BankAccount(bankId, accountId)
@@ -175,7 +177,6 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "account" :: Nil JsonGet json => {
       user =>
         for {
-          bank <- Bank(bankId)
           account <- BankAccount(bankId, accountId)
           availableviews <- Full(account.permittedViews(user))
           view <- View.fromUrl(viewId)
@@ -241,23 +242,116 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           moderatedTransaction <- account.moderatedTransaction(transactionId, view, user) ?~ "view/transaction not authorized"
         } yield {
-            val json = JSONFactory.createTransactionJson(moderatedTransaction)
+            val json = JSONFactory.createTransactionJSON(moderatedTransaction)
             successJsonResponse(Extraction.decompose(json))
           }
-        Full(errorJsonResponse("TODO"))
     }
   })
 
   oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonGet json => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          comments <- Box(metadata.comments) ?~ { "view " + viewId + " does not authorize comments access" }
+        } yield {
+          val json = JSONFactory.createTransactionCommentsJson(comments)
+          successJsonResponse(Extraction.decompose(json))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          tagJson <- tryo{json.extract[PostTransactionTagJSON]} ?~ {"Wrong format of the posted JSON"}
+          u <- user ?~ "user not found"
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          addTagFunc <- if(view.canAddTag) Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding tags"}
+                          else Failure("view does not allow tags to be added")
+          postedTagId <- Full(addTagFunc(u.id_, view.id, tagJson.value, now))
+          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          allTags <- Box(newMetadata.tags) ?~! "Server error: no tags found after posting"
+          postedTag <- Box(allTags.find(tag => tag.id_ == postedTagId)) ?~! "Server error: posted tag not found after posting"
+        } yield {
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionTagJSON(postedTag)))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "tags" :: tagId :: Nil JsonDelete _ => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          tags <- Box(metadata.tags) ?~ { "view " + viewId + " does not authorize tags access" }
+          toDelete <- Box(tags.find(tags => tags.id_ == tagId)) ?~ { "tag not found" }
+          view <- View.fromUrl(viewId)
+          bankAccount <- BankAccount(bankId, accountId)
+          deletable <- if (toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
+          else Failure("insufficient privileges to delete tag")
+          deleteFunction <- if (view.canDeleteTag) Box(metadata.deleteTag)
+          else Failure("view does not allow tags to be deleted")
+        } yield {
+            deleteFunction(deletable.id_)
+            noContentJsonResponse
+          }
+    }
+  })
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
-        user =>
-          for {
-            metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, getUser)
-            images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize tags access" }
-          } yield {
-              val json = JSONFactory.createTransactionImagesJson(images)
-              successJsonResponse(Extraction.decompose(json))
-            }
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize images access" }
+        } yield {
+          val json = JSONFactory.createTransactionImagesJson(images)
+          successJsonResponse(Extraction.decompose(json))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "images" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          imageJson <- tryo{json.extract[PostTransactionImageJSON]}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
+                          else Failure("view does not allow images to be added")
+          url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
+          postedImageId <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
+          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
+          allImages <- Box(newMetadata.images) ?~! "Server error: no images found after posting"
+          postedImage <- Box(allImages.find(image => image.id_ == postedImageId)) ?~! "Server error: posted image not found after posting"
+        } yield {
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)))
+        }
+    }
+  })
+
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: imageId :: Nil JsonDelete _ => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize image access" }
+          toDelete <- Box(images.find(image => image.id_ == imageId)) ?~ { "image not found" }
+          view <- View.fromUrl(viewId)
+          bankAccount <- BankAccount(bankId, accountId)
+          deletable <- if(toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
+                       else Failure("insufficient privileges to delete image")
+          deleteFunction <- if(view.canDeleteImage) Box(metadata.deleteImage)
+                            else Failure("view does not allow images to be deleted")
+        } yield {
+          deleteFunction(deletable.id_)
+          noContentJsonResponse
+        }
     }
   })
 }
