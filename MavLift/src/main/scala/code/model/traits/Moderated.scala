@@ -41,6 +41,10 @@ import net.liftweb.http.JsonResponse
 import net.liftweb.http.LiftResponse
 import java.text.SimpleDateFormat
 import java.net.URL
+import net.liftweb.common.Box
+import code.model.implementedTraits.Owner
+import net.liftweb.common.Full
+import net.liftweb.common.Failure
 
 class ModeratedOtherBankAccount(
   id_ : String,
@@ -195,10 +199,42 @@ class ModeratedTransactionMetadata(
   def addComment= addCommentFunc
   def tags = tags_
   def addTag = addTagFunc
+  @deprecated //This should be removed once SoFi is split from the API
   def deleteTag = deleteTagFunc
+   /**
+   * @return Full if deleting the tag worked, or a failure message if it didn't
+   */
+  def deleteTag(tagId : String, user: Option[User], bankAccount : BankAccount) : Box[Unit] = {
+    for {
+      tagList <- Box(tags) ?~ { "You must be able to see tags in order to delete them"}
+      tag <- Box(tagList.find(tag => tag.id_ == tagId)) ?~ {"Tag with id " + tagId + "not found for this transaction"}
+      deleteFunc <- if(tag.postedBy == user || bankAccount.authorizedAccess(Owner, user)) 
+    	              Box(deleteTagFunc) ?~ "Deleting tags not permitted for this view"
+                    else 
+                      Failure("deleting tags not permitted for the current user")
+    } yield {
+      deleteFunc(tagId)
+    }
+  }
   def images = images_
   def addImage  = addImageFunc
+  @deprecated //This should be removed once SoFi is split from the API
   def deleteImage = deleteImageFunc
+  /**
+   * @return Full if deleting the image worked, or a failure message if it didn't
+   */
+  def deleteImage(imageId : String, user: Option[User], bankAccount : BankAccount) : Box[Unit] = {
+    for {
+      imageList <- Box(images) ?~ { "You must be able to see images in order to delete them"}
+      image <- Box(imageList.find(image => image.id_ == imageId)) ?~ {"Image with id " + imageId + "not found for this transaction"}
+      deleteFunc <- if(image.postedBy == user || bankAccount.authorizedAccess(Owner, user)) 
+    	              Box(deleteImageFunc) ?~ "Deleting images not permitted for this view"
+                    else 
+                      Failure("deleting images not permitted for the current user")
+    } yield {
+      deleteFunc(imageId)
+    }
+  }
   def addWhereTag = addWhereTagFunc
   def whereTag : Option[GeoTag] = whereTag_
 }

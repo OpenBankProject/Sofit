@@ -303,6 +303,8 @@ class API1_2Test extends ServerSetup{
     val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
     val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
     val view = possibleViewsPermalinks(randomPosition)
+    println("==>should be 201")
+    println("==>granting access to user id: " + user.id.get.toString)
     val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user.id.get.toString / "views" / view).POST.<@(consumer,token)
     makePostRequest(request)
   }
