@@ -55,10 +55,10 @@ class API1_2Test extends ServerSetup{
 
   lazy val token = new Token(testToken.key, testToken.secret)
 
-  // create an other user for test purposes
-  lazy val user =
+  // create a user for test purposes
+  lazy val user2 =
     OBPUser.create.
-      email(Helpers.randomString(5) + "@exemple.com").
+      email("testuser2@exemple.com").
       password(Helpers.randomString(10)).
       validated(true).
       firstName(Helpers.randomString(10)).
@@ -70,7 +70,7 @@ class API1_2Test extends ServerSetup{
     OBPToken.create.
     tokenType(TokenType.Access).
     consumerId(testConsumer.id).
-    userId(user.id.get.toString).
+    userId(user2.id.get.toString).
     key(Helpers.randomString(40).toLowerCase).
     secret(Helpers.randomString(40).toLowerCase).
     duration(tokenDuration).
@@ -79,6 +79,31 @@ class API1_2Test extends ServerSetup{
     saveMe
 
   lazy val token2 = new Token(testToken2.key, testToken2.secret)
+
+  // create a user for test purposes
+  lazy val user3 =
+    OBPUser.create.
+      email("testuser3@exemple.com").
+      password(Helpers.randomString(10)).
+      validated(true).
+      firstName(Helpers.randomString(10)).
+      lastName(Helpers.randomString(10)).
+      saveMe
+
+  //we create an access token for the other user
+  lazy val testToken3 =
+    OBPToken.create.
+    tokenType(TokenType.Access).
+    consumerId(testConsumer.id).
+    userId(user3.id.get.toString).
+    key(Helpers.randomString(40).toLowerCase).
+    secret(Helpers.randomString(40).toLowerCase).
+    duration(tokenDuration).
+    expirationDate({(now : TimeSpan) + tokenDuration}).
+    insertDate(now).
+    saveMe
+
+  lazy val token3 = new Token(testToken3.key, testToken3.secret)
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =
@@ -303,9 +328,7 @@ class API1_2Test extends ServerSetup{
     val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
     val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
     val view = possibleViewsPermalinks(randomPosition)
-    println("==>should be 201")
-    println("==>granting access to user id: " + user.id.get.toString)
-    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user.id.get.toString / "views" / view).POST.<@(consumer,token)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user2.id.get.toString / "views" / view).POST.<@(consumer,token)
     makePostRequest(request)
   }
 
@@ -321,7 +344,7 @@ class API1_2Test extends ServerSetup{
 
   def grantUserAccessToViewWithRandomView : h.HttpPackage[APIResponse] = {
     val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
-    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user.id.get.toString / "views" / Helpers.randomString(4)).POST.<@(consumer,token)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user2.id.get.toString / "views" / Helpers.randomString(4)).POST.<@(consumer,token)
     makePostRequest(request)
   }
 
@@ -331,8 +354,20 @@ class API1_2Test extends ServerSetup{
     val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
     val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
     val view = possibleViewsPermalinks(randomPosition)
-    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ "1" / "views" / view).POST.<@(consumer,token2)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user2.id.get.toString / "views" / view).POST.<@(consumer,token3)
     makePostRequest(request)
+  }
+
+  def revokeUserAccessToView : h.HttpPackage[APIResponse] = {
+    val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
+    //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
+    val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
+    val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
+    val view = possibleViewsPermalinks(randomPosition)
+    println("==>should be 204")
+    println("==>granting access to user id: " + user2.id.get.toString)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user2.id.get.toString / "views" / view).DELETE.<@(consumer,token)
+    makeDeleteRequest(request)
   }
 
   /************************ the tests ************************/
@@ -571,5 +606,39 @@ class API1_2Test extends ServerSetup{
       Then("we should get a 400 ok code")
       reply.code should equal (400)
     }
+  }
+
+  feature("Revoke a user access to a view on a bank account"){
+    scenario("we will revoke the access of a user to a view on an bank account") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = revokeUserAccessToView
+      Then("we should get a 204 no content code")
+      reply.code should equal (204)
+    }
+
+    // scenario("we cannot revoke the access to a user access that does not exist") {
+    //   Given("We will use an access token with a random user Id")
+    //   When("the request is sent")
+    //   val reply = revokeUserAccessToViewWithRandomUserID
+    //   Then("we should get a 400 ok code")
+    //   reply.code should equal (400)
+    // }
+
+    // scenario("we cannot grant a user access to a view on an bank account because the view does not exist") {
+    //   Given("We will use an access token")
+    //   When("the request is sent")
+    //   val reply = grantUserAccessToViewWithRandomView
+    //   Then("we should get a 400 ok code")
+    //   reply.code should equal (400)
+    // }
+
+    // scenario("we cannot grant a user access to a view on an bank account because the user does not have owner view access") {
+    //   Given("We will use an access token")
+    //   When("the request is sent")
+    //   val reply = grantUserAccessToViewWithoutOwnerAccess
+    //   Then("we should get a 400 ok code")
+    //   reply.code should equal (400)
+    // }
   }
 }

@@ -225,12 +225,24 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           account <- BankAccount(bankId, accountId)
           u <- user ?~ "user not found"
           view <- View.fromUrl(viewId)
-          added <- account addPermission(u, viewId, userId)
-          if(added)
+          isAdded <- account addPermission(u, viewId, userId)
+          if(isAdded)
         } yield {
             val viewJson = JSONFactory.createViewJSON(view)
             successJsonResponse(Extraction.decompose(viewJson), 201)
           }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonDelete json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          u <- user ?~ "user not found"
+          isRevoked <- account revokePermission(u, viewId, userId)
+          if(isRevoked)
+        } yield noContentJsonResponse
     }
   })
 
