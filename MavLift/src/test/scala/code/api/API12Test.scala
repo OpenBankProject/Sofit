@@ -370,6 +370,33 @@ class API1_2Test extends ServerSetup{
     makeDeleteRequest(request)
   }
 
+  def revokeUserAccessToViewWithRandomUserID : h.HttpPackage[APIResponse] = {
+    val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
+    //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
+    val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
+    val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
+    val view = possibleViewsPermalinks(randomPosition)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ Helpers.randomString(10) / "views" / view).DELETE.<@(consumer,token)
+    makeDeleteRequest(request)
+  }
+
+  def revokeUserAccessToViewWithRandomView : h.HttpPackage[APIResponse] = {
+    val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user2.id.get.toString / "views" / Helpers.randomString(10)).DELETE.<@(consumer,token)
+    makeDeleteRequest(request)
+  }
+  def revokeUserAccessToViewWithoutOwnerAccess : h.HttpPackage[APIResponse] = {
+    val accountInfo = getPrivateBankAccountDetails.body.extract[ModeratedAccountJSON]
+    //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
+    val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
+    val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
+    val view = possibleViewsPermalinks(randomPosition)
+    println("==>should be 204")
+    println("==>granting access to user id: " + user2.id.get.toString)
+    val request = (v1_2Request / "banks" / accountInfo.bank_id / "accounts" / accountInfo.id / "users"/ user2.id.get.toString / "views" / view).DELETE.<@(consumer,token3)
+    makeDeleteRequest(request)
+  }
+
   /************************ the tests ************************/
   feature("base line URL works"){
     scenario("we get the api information") {
@@ -617,28 +644,28 @@ class API1_2Test extends ServerSetup{
       reply.code should equal (204)
     }
 
-    // scenario("we cannot revoke the access to a user access that does not exist") {
-    //   Given("We will use an access token with a random user Id")
-    //   When("the request is sent")
-    //   val reply = revokeUserAccessToViewWithRandomUserID
-    //   Then("we should get a 400 ok code")
-    //   reply.code should equal (400)
-    // }
+    scenario("we cannot revoke the access to a user that does not exist") {
+      Given("We will use an access token with a random user Id")
+      When("the request is sent")
+      val reply = revokeUserAccessToViewWithRandomUserID
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
 
-    // scenario("we cannot grant a user access to a view on an bank account because the view does not exist") {
-    //   Given("We will use an access token")
-    //   When("the request is sent")
-    //   val reply = grantUserAccessToViewWithRandomView
-    //   Then("we should get a 400 ok code")
-    //   reply.code should equal (400)
-    // }
+    scenario("we cannot revoke a user access to a view on an bank account because the view does not exist") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = revokeUserAccessToViewWithRandomView
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
 
-    // scenario("we cannot grant a user access to a view on an bank account because the user does not have owner view access") {
-    //   Given("We will use an access token")
-    //   When("the request is sent")
-    //   val reply = grantUserAccessToViewWithoutOwnerAccess
-    //   Then("we should get a 400 ok code")
-    //   reply.code should equal (400)
-    // }
+    scenario("we cannot revoke a user access to a view on an bank account because the user does not have owner view access") {
+      Given("We will use an access token")
+      When("the request is sent")
+      val reply = revokeUserAccessToViewWithoutOwnerAccess
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
   }
 }
