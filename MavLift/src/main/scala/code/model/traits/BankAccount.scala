@@ -149,7 +149,7 @@ trait BankAccount {
       case Public => allowPublicAccess
       case _ => user match {
         case Some(u) => u.permittedViews(this).contains(view)
-        case _ => false
+        case None => false
       }
     }
   }

@@ -18,9 +18,10 @@ import org.mortbay.jetty.nio.SelectChannelConnector
 import net.liftweb.json.NoTypeHints
 import net.liftweb.json.JsonDSL._
 import scala.util.Random
+import net.liftweb.mapper.By
 
 import code.model.{Consumer => OBPConsumer, Token => OBPToken}
-import code.model.TokenType
+import code.model.TokenType._
 import code.api.test.{ServerSetup, APIResponse}
 import code.model.dataAccess.OBPUser
 
@@ -41,11 +42,17 @@ class API1_2Test extends ServerSetup{
   lazy val consumer = new Consumer (testConsumer.key,testConsumer.secret)
   // create the access token
   lazy val tokenDuration = Helpers.weeks(4)
+
+  val userId = OBPUser.find(By(OBPUser.email, "tesobe@tesobe.com")) match {
+    case Full(user) => user.id.get
+    case _ => 1
+  }
+
   lazy val testToken =
     OBPToken.create.
-    tokenType(TokenType.Access).
+    tokenType(Access).
     consumerId(testConsumer.id).
-    userId("1").
+    userId(userId.toString).
     key(Helpers.randomString(40).toLowerCase).
     secret(Helpers.randomString(40).toLowerCase).
     duration(tokenDuration).
@@ -68,7 +75,7 @@ class API1_2Test extends ServerSetup{
   //we create an access token for the other user
   lazy val testToken2 =
     OBPToken.create.
-    tokenType(TokenType.Access).
+    tokenType(Access).
     consumerId(testConsumer.id).
     userId(user2.id.get.toString).
     key(Helpers.randomString(40).toLowerCase).
@@ -93,7 +100,7 @@ class API1_2Test extends ServerSetup{
   //we create an access token for the other user
   lazy val testToken3 =
     OBPToken.create.
-    tokenType(TokenType.Access).
+    tokenType(Access).
     consumerId(testConsumer.id).
     userId(user3.id.get.toString).
     key(Helpers.randomString(40).toLowerCase).
@@ -182,6 +189,7 @@ class API1_2Test extends ServerSetup{
     if(banksInfo.banks.nonEmpty)
     {
       val bank = banksInfo.banks.head
+      println("==>")
       val request = v1_2Request / "banks" / bank.id / "accounts" <@(consumer,token)
       makeGetRequest(request)
     }

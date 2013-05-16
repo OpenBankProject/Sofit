@@ -266,7 +266,7 @@ class Boot extends Loggable{
     /**
      * A temporary measure to make sure there is an owner for the account, so that someone can set permissions
      */
-    Account.find(("holder", "Music Pictures Limited")) match{
+    Account.find(("holder", "MUSIC PICTURES LIMITED")) match{
       case Full(a) =>
         HostedAccount.find(By(HostedAccount.accountID,a.id.toString)) match {
           case Empty => {
