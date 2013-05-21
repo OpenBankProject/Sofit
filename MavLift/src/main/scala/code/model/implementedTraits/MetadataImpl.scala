@@ -50,7 +50,9 @@ class OtherBankAccountMetadataImpl(
   addImageURLFunc : (String) => Boolean,
   addOpenCorporatesUrlFunc : (String) => Boolean,
   addCorporateLocationFunc : (String, Long, Date, Double, Double) => Boolean,
-  addPhysicalLocationFunc : (String, Long, Date, Double, Double) => Boolean
+  addPhysicalLocationFunc : (String, Long, Date, Double, Double) => Boolean,
+  addPublicAliasFunc : (String) => Boolean,
+  addPrivateAliasFunc : (String) => Boolean
 ) extends OtherBankAccountMetadata {
 
   def publicAlias : String = publicAlias_
@@ -69,6 +71,8 @@ class OtherBankAccountMetadataImpl(
     addCorporateLocationFunc(userId,viewId, datePosted, longitude, latitude)
   def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean =
     addPhysicalLocationFunc(userId,viewId, datePosted, longitude, latitude)
+  def addPublicAlias(alias : String) : Boolean = addPublicAliasFunc(alias)
+  def addPrivateAlias(alias : String) : Boolean = addPrivateAliasFunc(alias)
 }
 
 class TransactionMetadataImpl(

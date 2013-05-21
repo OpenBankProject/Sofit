@@ -115,12 +115,16 @@ trait View {
   def canSeeOpenCorporatesUrl: Boolean
   def canSeeCorporateLocation : Boolean
   def canSeePhysicalLocation : Boolean
+  def canSeePublicAlias : Boolean
+  def canSeePrivateAlias : Boolean
   def canAddMoreInfo : Boolean
   def canAddURL : Boolean
   def canAddImageURL : Boolean
   def canAddOpenCorporatesUrl : Boolean
   def canAddCorporateLocation : Boolean
   def canAddPhysicalLocation : Boolean
+  def canAddPublicAlias : Boolean
+  def canAddPrivateAlias : Boolean
 
   //writing access
   def canEditOwnerComment: Boolean
@@ -367,6 +371,27 @@ trait View {
               Some(otherBankAccount.metadata.addPhysicalLocation _)
             else
               None
+          val publicAlias =
+            if(canSeePublicAlias)
+              Some(otherBankAccount.metadata.publicAlias)
+            else
+              None
+          val privateAlias =
+            if(canSeePrivateAlias)
+              Some(otherBankAccount.metadata.privateAlias)
+            else
+              None
+          val addPublicAlias =
+            if(canAddPublicAlias)
+              Some(otherBankAccount.metadata.addPublicAlias _)
+            else
+              None
+          val addPrivateAlias =
+            if(canAddPrivateAlias)
+              Some(otherBankAccount.metadata.addPrivateAlias _)
+            else
+              None
+
 
           Some(
             new ModeratedOtherBankAccountMetadata(
@@ -376,12 +401,17 @@ trait View {
               openCorporatesUrl,
               corporateLocation,
               physicalLocation,
+              publicAlias,
+              privateAlias,
               addMoreInfo,
               addURL,
               addImageURL,
               addOpenCorporatesUrl,
               addCorporateLocation,
-              addPhysicalLocation
+              addPhysicalLocation,
+              addPublicAlias,
+              addPrivateAlias
+
           ))
         }
         else
@@ -472,12 +502,17 @@ class BaseView extends View {
   def canSeeOpenCorporatesUrl = false
   def canSeeCorporateLocation = false
   def canSeePhysicalLocation = false
+  def canSeePublicAlias = false
+  def canSeePrivateAlias = false
+
   def canAddMoreInfo = false
   def canAddURL = false
   def canAddImageURL = false
   def canAddOpenCorporatesUrl = false
   def canAddCorporateLocation = false
   def canAddPhysicalLocation = false
+  def canAddPublicAlias = false
+  def canAddPrivateAlias = false
 
   //writing access
   def canEditOwnerComment = false
@@ -551,12 +586,17 @@ class FullView extends View {
   def canSeeOpenCorporatesUrl = true
   def canSeeCorporateLocation = true
   def canSeePhysicalLocation = true
+  def canSeePublicAlias = true
+  def canSeePrivateAlias = true
+
   def canAddMoreInfo = true
   def canAddURL = true
   def canAddImageURL = true
   def canAddOpenCorporatesUrl = true
   def canAddCorporateLocation = true
   def canAddPhysicalLocation = true
+  def canAddPublicAlias = true
+  def canAddPrivateAlias = true
 
   //writing access
   def canEditOwnerComment = true
