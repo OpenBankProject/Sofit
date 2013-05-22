@@ -833,3 +833,12 @@ span#accountsMsg
     padding: 0 5px;
 }
 /* Feedbackbuttonc css end*/
+
+a.otherAccountLinkForName{
+	text-decoration: None;
+	color: black;
+}
+a.otherAccountLinkForAlias{
+	text-decoration: None;
+	color: inherit;
+}

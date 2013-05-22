@@ -50,12 +50,13 @@ import code.model.implementedTraits._
 import code.model.traits._
 import java.util.Currency
 
-class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransaction],View)){
+class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransaction],View, BankAccount)){
 
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
   val FORBIDDEN = "---"
   val filteredTransactions = filteredTransactionsAndView._1
   val view = filteredTransactionsAndView._2
+  val bankAccount = filteredTransactionsAndView._3
   val currencySymbol  = filteredTransactions match {
     case Nil => ""
     case x :: xs => x.bankAccount match {
@@ -73,6 +74,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
       case _ => ""
     }
   }
+
   def individualTransaction(transaction: ModeratedTransaction): CssSel = {
 
     def otherPartyInfo: CssSel = {
@@ -106,16 +108,45 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
         transaction.otherBankAccount match {
           case Some(otherAccount) =>
           {
-            ".the_name *" #> otherAccount.label.display &
-            {otherAccount.label.aliasType match{
-                case PublicAlias =>
-                  ".alias_indicator [class+]" #> "alias_indicator_public" &
-                    ".alias_indicator *" #> "(Alias)"
-                case PrivateAlias =>
-                  ".alias_indicator [class+]" #> "alias_indicator_private" &
-                    ".alias_indicator *" #> "(Alias)"
-                case _ => NOOP_SELECTOR
-            }}&
+
+            val otherAccountId = User.currentUser match {
+              case Full(user) =>
+                if(user.hasMangementAccess(bankAccount))
+                  {"management#"+otherAccount.id}
+                else
+                  ""
+              case _ => ""
+            }
+            val removeAliasIndicator = ".alias_indicator" #> ""
+            val otherAccountIdLink =
+              if(otherAccountId.isEmpty)
+                ".the_name *" #> otherAccount.label.display & {
+                  otherAccount.label.aliasType match{
+                    case PublicAlias =>
+                      ".alias_indicator [class+]" #> "alias_indicator_public" &
+                        ".alias_indicator *" #> "(Alias)"
+                    case PrivateAlias =>
+                      ".alias_indicator [class+]" #> "alias_indicator_private" &
+                        ".alias_indicator *" #> "(Alias)"
+                    case _ => removeAliasIndicator
+                  }
+                }
+              else
+                ".otherAccountLinkForName [href]" #> otherAccountId &
+                ".otherAccountLinkForName *" #> otherAccount.label.display &
+                ".otherAccountLinkForAlias [href]" #> otherAccountId & {
+                  otherAccount.label.aliasType match{
+                    case PublicAlias =>
+                      ".alias_indicator [class+]" #> "alias_indicator_public" &
+                        ".otherAccountLinkForAlias *" #> "(Alias)"
+                    case PrivateAlias =>
+                      ".alias_indicator [class+]" #> "alias_indicator_private" &
+                        ".otherAccountLinkForAlias *" #> "(Alias)"
+                    case _ => removeAliasIndicator
+                  }
+                }
+
+            otherAccountIdLink &
             {otherAccount.metadata match {
                 case Some(metadata) =>
                 {
