@@ -290,7 +290,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                   SHtml.text(
                     "",
                     tags => {
-                      val tagsList = tags.split(" ").toList.filter(tag => !tag.isEmpty)
+                      val tagsList = tags.split(" ").toList.filter(_.nonEmpty).flatMap(_.split(","))
                       tagValues = tagsList
                       tagDate = new Date
                       tagIds = tagsList.map(addTag(user.id_, view.id, _ ,tagDate).id_)
