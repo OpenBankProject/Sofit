@@ -214,6 +214,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
           {metadata.tags match{
             case Some(tags) => {
               if(tags.nonEmpty){
+                //only first 3 elements of the list should be displayed
                 val tags3 = tags.splitAt(3)._1
                 ".tags *" #>  {
                   ".tag *" #>  tags3.map(tag => {
