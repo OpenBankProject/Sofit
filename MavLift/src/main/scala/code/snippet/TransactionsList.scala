@@ -214,11 +214,15 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
           {metadata.tags match{
             case Some(tags) => {
               if(tags.nonEmpty){
-                ".tags *" #> "Tags"
+                val tags3 = tags.splitAt(3)._1
+                ".tags *" #>  {
+                  ".tag *" #>  tags3.map(tag => {
+                  ".tagContent *" #> tag.value
+                  })}
               }
-              else NOOP_SELECTOR
+              else ".tags *" #> ""
             }
-            case _=> NOOP_SELECTOR
+            case _=>  ".tags *" #> ""
           }}
         }
         case _ =>  ".comments *" #> NodeSeq.Empty
