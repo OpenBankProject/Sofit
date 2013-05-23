@@ -93,12 +93,16 @@ class ModeratedOtherBankAccountMetadata(
   openCorporatesUrl_ : Option[String],
   corporateLocation_ : Option[GeoTag],
   physicalLocation_ :  Option[GeoTag],
+  publicAlias_ : Option[String],
+  privateAlias_ : Option[String],
   addMoreInfo_ : Option[(String) => Boolean],
   addURL_ : Option[(String) => Boolean],
   addImageUrl_ : Option[(String) => Boolean],
   addOpenCorporatesUrl_ : Option[(String) => Boolean],
   addCorporateLocation_ : Option[(String, Long, Date, Double, Double) => Boolean],
-  addPhysicalLocation_ : Option[(String, Long, Date, Double, Double) => Boolean]
+  addPhysicalLocation_ : Option[(String, Long, Date, Double, Double) => Boolean],
+  addPublicAlias_ : Option[(String) => Boolean],
+  addPrivateAlias_ : Option[(String) => Boolean]
 ) {
   def moreInfo = moreInfo_
   def url = url_
@@ -106,12 +110,16 @@ class ModeratedOtherBankAccountMetadata(
   def openCorporatesUrl = openCorporatesUrl_
   def corporateLocation = corporateLocation_
   def physicalLocation = physicalLocation_
+  def publicAlias = publicAlias_
+  def privateAlias = privateAlias_
   def addMoreInfo = addMoreInfo_
   def addUrl = addURL_
   def addImageUrl = addImageUrl_
   def addOpenCorporatesUrl = addOpenCorporatesUrl_
   def addCorporateLocation = addCorporateLocation_
   def addPhysicalLocation = addPhysicalLocation_
+  def addPublicAlias = addPublicAlias_
+  def addPrivateAlias = addPrivateAlias_
 }
 
 object ModeratedOtherBankAccountMetadata {

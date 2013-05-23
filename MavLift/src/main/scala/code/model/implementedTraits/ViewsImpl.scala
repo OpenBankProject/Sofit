@@ -211,12 +211,16 @@ object Public extends BaseView {
           openCorporatesUrl,
           corporateLocation,
           physicalLocation,
+          Some(otherAccount.metadata.publicAlias),
+          None,
           None,
           None,
           None,
           None,
           Some(otherAccount.metadata.addCorporateLocation _),
-          Some(otherAccount.metadata.addPhysicalLocation _)
+          Some(otherAccount.metadata.addPhysicalLocation _),
+          None,
+          None
       ))
     }
 
@@ -310,12 +314,16 @@ object OurNetwork extends BaseView {
         Some(otherAccount.metadata.openCorporatesUrl),
         otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id),
         otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id),
+        Some(otherAccount.metadata.publicAlias),
+        Some(otherAccount.metadata.privateAlias),
         None,
         None,
         None,
         None,
         Some(otherAccount.metadata.addCorporateLocation _ ),
-        Some(otherAccount.metadata.addPhysicalLocation _)
+        Some(otherAccount.metadata.addPhysicalLocation _),
+        Some(otherAccount.metadata.addPublicAlias _),
+        Some(otherAccount.metadata.addPrivateAlias _)
       ))
 
     Some(new ModeratedOtherBankAccount(otherAccount.id,otherAccountLabel,None,None,None,

@@ -76,14 +76,23 @@ trait BankAccount {
 
   def transaction(id: String) : Box[Transaction]
 
+  //Is a public view is available for this bank account
+  def allowPublicAccess : Boolean
+
+  def permittedViews(user: Box[User]) : Set[View]
+
+  def getModeratedTransactions(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
+
+  def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
+
   def moderatedTransaction(id: String, view: View, user: Box[User]) : Box[ModeratedTransaction] = {
-    if(permittedViews(user).contains(view)) {
+    if(authorizedAccess(view, user)) {
       transaction(id).map(view.moderate)
     } else Failure("view/transaction not authorized")
   }
 
   def moderatedBankAccount(view: View, user: Box[User]) : Box[ModeratedBankAccount] = {
-    if(permittedViews(user).contains(view)){
+    if(authorizedAccess(view, user)){
       view.moderate(this) match {
         case Some(thisBankAccount) => Full(thisBankAccount)
         case _ => Failure("could not moderate this bank account id " + id, Empty, Empty)
@@ -141,35 +150,50 @@ trait BankAccount {
       Failure("user : " + user.emailAddress + " don't have access to owner view on account " + id, Empty, Empty)
   }
 
-  //Is a public view is available for this bank account
-  def allowPublicAccess : Boolean
-
+  /**
+  * @param the view that we want test the access to
+  * @param the user that we want to see if he has access to the view or not
+  * @return true if the user is allowed to access this view, false otherwise
+  */
   def authorizedAccess(view: code.model.traits.View, user: Option[User]) : Boolean = {
+
     view match {
       case Public => allowPublicAccess
       case _ => user match {
-        case Some(u) => u.permittedViews(this).contains(view)
-        case _ => false
+        case Some(u) => {
+          u.permittedViews(this).contains(view)
+        }
+        case None => false
       }
     }
   }
-  def permittedViews(user: Box[User]) : Set[View]
 
-  def getModeratedTransactions(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
-
-  def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
-
-  def overviewJson(user: Box[User]): JObject = {
-    val views = permittedViews(user)
-    ("number" -> number) ~
-    ("account_alias" -> label) ~
-    ("owner_description" -> "") ~
-    ("views_available" -> views.map(view => view.toJson)) ~
-    View.linksJson(views, permalink, bankPermalink)
+  /**
+  * @param the view that we will use to get the ModeratedOtherBankAccount list
+  * @param the user that want access to the ModeratedOtherBankAccount list
+  * @return a Box of a list ModeratedOtherBankAccounts, it the bank
+  *  accounts that have at least one transaction in common with this bank account
+  */
+  def moderatedOtherBankAccounts(view : View, user : Box[User]) : Box[List[ModeratedOtherBankAccount]] = {
+    if(authorizedAccess(view, user)){
+      LocalStorage.getOthersAccount(id) match {
+        case Full(otherbankAccounts) => Full(otherbankAccounts.map(view.moderate).collect{case Some(t) => t})
+        case Failure(msg, _, _) => Failure(msg, Empty, Empty)
+        case _ => Empty
+      }
+    }
+    else
+      Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
   }
-
+  /**
+  * @param the ID of the other bank account that the user want have access
+  * @param the view that we will use to get the ModeratedOtherBankAccount
+  * @param the user that want access to the otherBankAccounts list
+  * @return a Box of a ModeratedOtherBankAccounts, it a bank
+  *  account that have at least one transaction in common with this bank account
+  */
   def moderatedOtherBankAccount(otherAccountID : String, view : View, user : Box[User]) : Box[ModeratedOtherBankAccount] =
-    if(permittedViews(user).contains(view)) {
+    if(authorizedAccess(view, user)) {
       LocalStorage.getOtherAccount(id, otherAccountID) match {
         case Full(otherbankAccount) =>
           view.moderate(otherbankAccount) match {
@@ -182,6 +206,15 @@ trait BankAccount {
     }
     else
       Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
+
+  def overviewJson(user: Box[User]): JObject = {
+    val views = permittedViews(user)
+    ("number" -> number) ~
+    ("account_alias" -> label) ~
+    ("owner_description" -> "") ~
+    ("views_available" -> views.map(view => view.toJson)) ~
+    View.linksJson(views, permalink, bankPermalink)
+  }
 }
 
 object BankAccount {

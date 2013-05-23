@@ -115,19 +115,25 @@ case class AccountHolderJSON(
   is_alias : Boolean
 )
 case class ThisAccountJSON(
+  id : String,
   holders : List[AccountHolderJSON],
   number : String,
   kind : String,
   IBAN : String,
   bank : MinimalBankJSON
 )
+case class OtherAccountsJSON(
+  other_accounts : List[OtherAccountJSON]
+)
 case class OtherAccountJSON(
+  id : String,
   holder : AccountHolderJSON,
   number : String,
   kind : String,
   IBAN : String,
   bank : MinimalBankJSON,
-  metadata : OtherAccountMetadataJSON)
+  metadata : OtherAccountMetadataJSON
+)
 case class OtherAccountMetadataJSON(
   public_alias : String,
   private_alias : String,
@@ -164,9 +170,11 @@ case class TransactionJSON(
   this_account : ThisAccountJSON,
   other_account : OtherAccountJSON,
   details : TransactionDetailsJSON,
-  metadata : TransactionMetadataJSON)
+  metadata : TransactionMetadataJSON
+)
 case class TransactionImagesJSON(
-  images : List[TransactionImageJSON])
+  images : List[TransactionImageJSON]
+)
 case class TransactionImageJSON(
   id : String,
   label : String,
@@ -181,7 +189,7 @@ case class PostTransactionCommentJSON(
     value: String
 )
 case class PostTransactionTagJSON(
-  value : String 
+  value : String
 )
 case class TransactionTagJSON(
   id : String,
@@ -195,8 +203,9 @@ case class TransactionCommentJSON(
   user : UserJSON
 )
 case class TransactionCommentsJSON(
-  comments: List[TransactionCommentJSON]    
+  comments: List[TransactionCommentJSON]
 )
+case class AliasJSON(alias: String)
 
 object JSONFactory{
   def stringOrNull(text : String) =
@@ -244,7 +253,7 @@ object JSONFactory{
     )
   }
 
-  def createModeratedAccountJSON(account : ModeratedBankAccount, viewsAvailable : Set[ViewJSON]) : ModeratedAccountJSON =  {
+  def createBankAccountJSON(account : ModeratedBankAccount, viewsAvailable : Set[ViewJSON]) : ModeratedAccountJSON =  {
     val bankName = account.bankName.getOrElse("")
     new ModeratedAccountJSON(
       account.id,
@@ -263,16 +272,16 @@ object JSONFactory{
     new TransactionJSON(
         id = transaction.id,
         this_account = transaction.bankAccount.map(createThisAccountJSON).getOrElse(null),
-        other_account = transaction.otherBankAccount.map(createOtherAccountJSON).getOrElse(null),
+        other_account = transaction.otherBankAccount.map(createOtherBankAccount).getOrElse(null),
         details = createTransactionDetailsJSON(transaction),
         metadata = transaction.metadata.map(createTransactionMetadataJSON).getOrElse(null)
       )
   }
-  
+
   def createTransactionCommentsJson(comments : List[Comment]) : TransactionCommentsJSON = {
     new TransactionCommentsJSON(comments.map(createTransactionCommentJSON))
   }
-  
+
   def createTransactionCommentJSON(comment : Comment) : TransactionCommentJSON = {
     new TransactionCommentJSON(
       id = comment.id_,
@@ -281,11 +290,11 @@ object JSONFactory{
       user = createUserJSON(comment.postedBy)
     )
   }
-  
+
   def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
     new TransactionImagesJSON(images.map(createTransactionImageJSON))
   }
-  
+
   def createTransactionImageJSON(image : TransactionImage) : TransactionImageJSON = {
     new TransactionImageJSON(
       id = image.id_,
@@ -295,7 +304,7 @@ object JSONFactory{
       user = createUserJSON(image.postedBy)
     )
   }
-  
+
   def createTransactionTagJSON(tag : Tag) : TransactionTagJSON = {
     new TransactionTagJSON(
       id = tag.id_,
@@ -304,7 +313,7 @@ object JSONFactory{
       user = createUserJSON(tag.postedBy)
     )
   }
-  
+
   def createLocationJSON(location : GeoTag) : LocationJSON = {
     new LocationJSON(
       latitude = location.latitude,
@@ -318,12 +327,12 @@ object JSONFactory{
     new TransactionMetadataJSON(
       narrative = stringOptionOrNull(metadata.ownerComment),
       comments = metadata.comments.map(cs => cs.map(createTransactionCommentJSON)).getOrElse(null),
-      tags = metadata.tags.map(ts => ts.map(createTransactionTagJSON)).getOrElse(null), 
+      tags = metadata.tags.map(ts => ts.map(createTransactionTagJSON)).getOrElse(null),
       images = metadata.images.map(is => is.map(createTransactionImageJSON)).getOrElse(null),
       where = metadata.whereTag.map(createLocationJSON).getOrElse(null)
     )
   }
-  
+
   def createTransactionDetailsJSON(transaction : ModeratedTransaction) : TransactionDetailsJSON = {
     new TransactionDetailsJSON(
       `type` = stringOptionOrNull(transaction.transactionType),
@@ -334,23 +343,24 @@ object JSONFactory{
       value= createAmountOfMoneyJSON(transaction.currency, transaction.amount.map(_.toString))
     )
   }
-  
-    def createMinimalBankJSON(bankAccount : ModeratedBankAccount) : MinimalBankJSON = {
+
+  def createMinimalBankJSON(bankAccount : ModeratedBankAccount) : MinimalBankJSON = {
     new MinimalBankJSON(
       national_identifier = stringOptionOrNull(bankAccount.nationalIdentifier),
       name = stringOptionOrNull(bankAccount.bankName)
     )
   }
-  
+
   def createMinimalBankJSON(bankAccount : ModeratedOtherBankAccount) : MinimalBankJSON = {
     new MinimalBankJSON(
       national_identifier = stringOptionOrNull(bankAccount.nationalIdentifier),
       name = stringOptionOrNull(bankAccount.bankName)
     )
   }
-  
+
   def createThisAccountJSON(bankAccount : ModeratedBankAccount) : ThisAccountJSON = {
     new ThisAccountJSON(
+      id = bankAccount.id,
       number = stringOptionOrNull(bankAccount.number),
       kind = stringOptionOrNull(bankAccount.accountType),
       IBAN = stringOptionOrNull(bankAccount.iban),
@@ -358,25 +368,25 @@ object JSONFactory{
       holders = null //TODO //bankAccount.owners.map(x => x.toList.map(h => createAccountHolderJSON(h, ??))).getOrElse(null)
     )
   }
-  
+
   def createAccountHolderJSON(owner : AccountOwner, isAlias : Boolean) : AccountHolderJSON = {
     new AccountHolderJSON(
       name = owner.name,
       is_alias = isAlias
     )
   }
-  
+
   def createAccountHolderJSON(name : String, isAlias : Boolean) : AccountHolderJSON = {
     new AccountHolderJSON(
       name = name,
       is_alias = isAlias
     )
   }
-  
-    def createOtherAccountMetaDataJSON(metadata : ModeratedOtherBankAccountMetadata) : OtherAccountMetadataJSON = {
+
+  def createOtherAccountMetaDataJSON(metadata : ModeratedOtherBankAccountMetadata) : OtherAccountMetadataJSON = {
     new OtherAccountMetadataJSON(
-      public_alias = null, //TODO
-      private_alias = null, //TODO
+      public_alias = stringOptionOrNull(metadata.publicAlias),
+      private_alias = stringOptionOrNull(metadata.privateAlias),
       more_info = stringOptionOrNull(metadata.moreInfo),
       URL = stringOptionOrNull(metadata.url),
       image_URL = stringOptionOrNull(metadata.imageUrl),
@@ -385,9 +395,10 @@ object JSONFactory{
       physical_location = metadata.physicalLocation.map(createLocationJSON).getOrElse(null)
     )
   }
-  
-  def createOtherAccountJSON(bankAccount : ModeratedOtherBankAccount) : OtherAccountJSON = {
+
+  def createOtherBankAccount(bankAccount : ModeratedOtherBankAccount) : OtherAccountJSON = {
     new OtherAccountJSON(
+      id = bankAccount.id,
       number = stringOptionOrNull(bankAccount.number),
       kind = stringOptionOrNull(bankAccount.kind),
       IBAN = stringOptionOrNull(bankAccount.iban),
@@ -396,7 +407,11 @@ object JSONFactory{
       metadata = bankAccount.metadata.map(createOtherAccountMetaDataJSON).getOrElse(null)
     )
   }
-  
+
+  def createOtherBankAccountsJSON(otherBankAccounts : List[ModeratedOtherBankAccount]) : OtherAccountsJSON =  {
+    val otherAccountsJSON : List[OtherAccountJSON] = otherBankAccounts.map(createOtherBankAccount)
+    OtherAccountsJSON(otherAccountsJSON)
+  }
   def createUserJSON(user : User) : UserJSON = {
     new UserJSON(
           user.id_,
@@ -404,14 +419,14 @@ object JSONFactory{
           stringOrNull(user.emailAddress)
         )
   }
-  
+
   def createUserJSON(user : Box[User]) : UserJSON = {
     user match {
       case Full(u) => createUserJSON(u)
       case _ => null
     }
   }
-  
+
   def createOwnersJSON(owners : Set[AccountOwner], bankName : String) : List[UserJSON] = {
     owners.map(o => {
         new UserJSON(
@@ -422,28 +437,28 @@ object JSONFactory{
       }
     ).toList
   }
-  
+
   def createAmountOfMoneyJSON(currency : String, amount  : String) : AmountOfMoneyJSON = {
     new AmountOfMoneyJSON(
       stringOrNull(currency),
       stringOrNull(amount)
     )
   }
-  
+
   def createAmountOfMoneyJSON(currency : Option[String], amount  : Option[String]) : AmountOfMoneyJSON = {
     new AmountOfMoneyJSON(
       stringOptionOrNull(currency),
       stringOptionOrNull(amount)
     )
   }
-  
+
   def createAmountOfMoneyJSON(currency : Option[String], amount  : String) : AmountOfMoneyJSON = {
     new AmountOfMoneyJSON(
       stringOptionOrNull(currency),
       stringOrNull(amount)
     )
   }
-  
+
   def createPermissionsJSON(permissions : List[Permission]) : PermissionsJSON = {
     val permissionsJson = permissions.map(p => {
         new PermissionJSON(
@@ -454,4 +469,7 @@ object JSONFactory{
     new PermissionsJSON(permissionsJson)
   }
 
+  def createAliasJSON(alias: String): AliasJSON = {
+    AliasJSON(stringOrNull(alias))
+  }
 }
