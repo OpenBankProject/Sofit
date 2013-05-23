@@ -51,7 +51,7 @@ trait ServerSetup extends FeatureSpec
     }
   }
 
-  def makePutRequest(req: Request, json: String, headers : Map[String,String] = Map()) : h.HttpPackage[APIResponse] = {
+  def makePutRequest(req: Request, json: String, headers : Map[String,String] = Map(("Content-type","application/json"))) : h.HttpPackage[APIResponse] = {
     val jsonReq = req <<< json <:< headers
     val jsonHandler = jsonReq ># {json => json}
     h x jsonHandler{

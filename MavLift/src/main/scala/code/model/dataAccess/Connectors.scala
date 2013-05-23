@@ -582,10 +582,15 @@ class MongoDBLocalStorage extends LocalStorage {
     for{
       userId <- tryo{user.id_.toLong}
       bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
-      privilege <- Privilege.find(By(Privilege.user, userId), By(Privilege.account, bankAccount))
     } yield {
-        setPrivilegeFromView(privilege, view, false)
-        privilege.save
+        Privilege.find(By(Privilege.user, userId), By(Privilege.account, bankAccount)) match {
+          case Full(privilege) => {
+            setPrivilegeFromView(privilege, view, false)
+            privilege.save
+          }
+          //there is no privilege to this user, so there is nothing to revoke
+          case _ => true
+        }
       }
   }
   private def setPrivilegeFromView(privilege : Privilege, view : View, value : Boolean ) = {

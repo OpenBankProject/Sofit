@@ -467,6 +467,6 @@ object JSONFactory{
   }
 
   def createAliasJSON(alias: String): AliasJSON = {
-    AliasJSON(alias)
+    AliasJSON(stringOrNull(alias))
   }
 }
