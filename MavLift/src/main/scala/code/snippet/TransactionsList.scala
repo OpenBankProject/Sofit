@@ -191,14 +191,40 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
 	        				  	case _ => ""
 	        					} } &
       {transaction.metadata match {
-        case Some(metadata) => metadata.comments match{
+        case Some(metadata) => {
+          {metadata.comments match{
             case Some(comments) => ".comments_ext [href]" #> { "transactions/" + transaction.id +"/"+view.permalink } &
-                                   ".comment *" #> comments.length.toString()
+                                 ".comment *" #> comments.length.toString()
             case _ =>  ".comments *" #> NodeSeq.Empty
-          }
+          }}&
+          {metadata.images match{
+            case Some(images) => {
+              if (images.nonEmpty) {
+                ".transaction_image [src]" #> images(0).imageUrl.toString &
+                {
+                  if (images(0).description.nonEmpty)
+                    ".transaction_image [alt]" #> images(0).description                  
+                  else NOOP_SELECTOR
+                }
+              }
+              else ".transaction_images *" #> ""
+            }
+            case _ => ".transaction_images *" #> ""
+          }}&
+          {metadata.tags match{
+            case Some(tags) => {
+              if(tags.nonEmpty){
+                ".tags *" #> "Tags"
+              }
+              else NOOP_SELECTOR
+            }
+            case _=> NOOP_SELECTOR
+          }}
+        }
         case _ =>  ".comments *" #> NodeSeq.Empty
-      }}
+      }
     }
+  }
    transactionInformations &
    otherPartyInfo
   }

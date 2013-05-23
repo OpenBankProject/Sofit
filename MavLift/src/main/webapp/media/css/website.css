@@ -321,6 +321,11 @@ table.transactions td.name {
 	width: 160px;
 }
 
+
+table.transactions td.transaction_images .transaction_image {
+	width: 50px;
+}
+
 table.transactions td.extra {
 	width: 350px;
 }
