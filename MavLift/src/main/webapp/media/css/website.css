@@ -321,6 +321,20 @@ table.transactions td.name {
 	width: 160px;
 }
 
+table.transactions td.transaction_images .transaction_image {
+	width: 50px;
+}
+
+table.transactions td.tags .tag {
+    width: 100%
+}
+table.transactions td.tags .tag .tagContent {
+    border: 2px solid #CBCBCB;
+    display: inline-block;
+    margin-bottom: 2px;
+    padding: 1px 4px;
+}
+
 table.transactions td.extra {
 	width: 350px;
 }
