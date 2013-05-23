@@ -183,7 +183,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           moderatedAccount <- account.moderatedBankAccount(view, user)
         } yield {
             val viewsAvailable = availableviews.map(JSONFactory.createViewJSON)
-            val moderatedAccountJson = JSONFactory.createModeratedAccountJSON(moderatedAccount, viewsAvailable)
+            val moderatedAccountJson = JSONFactory.createBankAccountJSON(moderatedAccount, viewsAvailable)
             successJsonResponse(Extraction.decompose(moderatedAccountJson))
           }
     }
@@ -242,6 +242,180 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           u <- user ?~ "user not found"
           isRevoked <- account revokePermission(u, viewId, userId)
           if(isRevoked)
+        } yield noContentJsonResponse
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccounts <- account.moderatedOtherBankAccounts(view, user)
+        } yield {
+          val otherBankAccountsJson = JSONFactory.createOtherBankAccountsJSON(otherBankAccounts)
+          successJsonResponse(Extraction.decompose(otherBankAccountsJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+        } yield {
+          val otherBankAccountJson = JSONFactory.createOtherBankAccount(otherBankAccount)
+          successJsonResponse(Extraction.decompose(otherBankAccountJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "metadata" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+        } yield {
+          val metadataJson = JSONFactory.createOtherAccountMetaDataJSON(metadata)
+          successJsonResponse(Extraction.decompose(metadataJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "public_alias" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          alias <- Box(metadata.publicAlias) ?~ {"the view " + viewId + "does not allow public alias access"}
+        } yield {
+          val aliasJson = JSONFactory.createAliasJSON(alias)
+          successJsonResponse(Extraction.decompose(aliasJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "public_alias" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addAlias <- Box(metadata.addPublicAlias) ?~ {"the view " + viewId + "does not allow adding a public alias"}
+          aliasJson <- tryo{(json.extract[AliasJSON])} ?~ {"wrong JSON format"}
+          if(addAlias(aliasJson.alias))
+        } yield {
+            successJsonResponse(Extraction.decompose(SuccessMessage("public alias added")), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "public_alias" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addAlias <- Box(metadata.addPublicAlias) ?~ {"the view " + viewId + "does not allow updating the public alias"}
+          aliasJson <- tryo{(json.extract[AliasJSON])} ?~ {"wrong JSON format"}
+          if(addAlias(aliasJson.alias))
+        } yield {
+            successJsonResponse(Extraction.decompose(SuccessMessage("public alias updated")))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "public_alias" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addAlias <- Box(metadata.addPublicAlias) ?~ {"the view " + viewId + "does not allow updating the public alias"}
+          if(addAlias(""))
+        } yield noContentJsonResponse
+    }
+  })
+
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "private_alias" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          alias <- Box(metadata.privateAlias) ?~ {"the view " + viewId + "does not allow private alias access"}
+        } yield {
+          val aliasJson = JSONFactory.createAliasJSON(alias)
+          successJsonResponse(Extraction.decompose(aliasJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "private_alias" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addAlias <- Box(metadata.addPrivateAlias) ?~ {"the view " + viewId + "does not allow adding a private alias"}
+          aliasJson <- tryo{(json.extract[AliasJSON])} ?~ {"wrong JSON format"}
+          if(addAlias(aliasJson.alias))
+        } yield {
+            val successJson = SuccessMessage("private alias added")
+            successJsonResponse(Extraction.decompose(successJson), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "private_alias" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addAlias <- Box(metadata.addPrivateAlias) ?~ {"the view " + viewId + "does not allow updating a private alias"}
+          aliasJson <- tryo{(json.extract[AliasJSON])} ?~ {"wrong JSON format"}
+          if(addAlias(aliasJson.alias))
+        } yield {
+            val successJson = SuccessMessage("private alias updated")
+            successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "private_alias" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addAlias <- Box(metadata.addPrivateAlias) ?~ {"the view " + viewId + "does not allow adding a private alias"}
+          if(addAlias(""))
         } yield noContentJsonResponse
     }
   })

@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -116,13 +116,13 @@ object ImporterAPI extends RestHelper with Loggable {
         createdEnvelopes match {
           case Full(l: List[JObject]) =>{
             if(matchingEnvelopes.size!=0)
-            {  
-              Account.find(("number" -> Props.get("exceptional_account_number").getOrElse("")) ~ 
-                ("bankName" -> Props.get("exceptional_account_bankName").getOrElse("")) ~ 
+            {
+              Account.find(("number" -> Props.get("exceptional_account_number").getOrElse("")) ~
+                ("bankName" -> Props.get("exceptional_account_bankName").getOrElse("")) ~
                 ("kind" -> Props.get("exceptional_account_kind").getOrElse("")))
               match {
                 case Full(account) =>  account.lastUpdate(new Date).save
-                case _ => 
+                case _ =>
               }
             }
             JsonResponse(JArray(l))
@@ -130,22 +130,22 @@ object ImporterAPI extends RestHelper with Loggable {
           case _ => InternalServerErrorResponse()
         }
       }
-      
+
       def valid(secret : String) = {
         val authorised = for (validSecret <- Props.get("exceptional_account_secret"))
-          yield secret == validSecret 
-          
+          yield secret == validSecret
+
         authorised getOrElse false
       }
-      
+
       secretKey match {
-        case Full(s) => if(valid(s)) 
-                          addMatchingTransactions(s) 
-                        else 
+        case Full(s) => if(valid(s))
+                          addMatchingTransactions(s)
+                        else
                           UnauthorizedResponse("wrong secret key")
         case _ => NotFoundResponse()
       }
-      
+
     }
   }
 
@@ -201,9 +201,9 @@ object ImporterAPI extends RestHelper with Loggable {
       //
       // WARNING!
       //
-      // If you have not configured a web server to restrict this URL 
+      // If you have not configured a web server to restrict this URL
       // appropriately, anyone will be
-      // able to post transactions to your database. This would obviously 
+      // able to post transactions to your database. This would obviously
       // be undesirable. So you should
       // definitely sort that out.
       //
@@ -234,8 +234,8 @@ object ImporterAPI extends RestHelper with Loggable {
         case Full(l: List[JObject]) =>{
             logger.info("inserted " + l.size + "transactions")
             if(envelopes.size!=0)
-            {  
-              //we assume here that all the Envelopes concerns only one account 
+            {
+              //we assume here that all the Envelopes concerns only one account
               val accountNumber = envelopes(0).get.obp_transaction.get.this_account.get.number.get
               val bankName = envelopes(0).get.obp_transaction.get.this_account.get.bank.get.name.get
               val accountKind = envelopes(0).get.obp_transaction.get.this_account.get.kind.get
@@ -243,7 +243,6 @@ object ImporterAPI extends RestHelper with Loggable {
               //Get all accounts with this account number and kind
               val accounts = Account.findAll(("number" -> accountNumber) ~ ("kind" -> accountKind) ~ ("holder" -> holder))
               //Now get the one that actually belongs to the right bank
-              accounts.foreach(a => println(a.bankName))
               val wantedAccount = accounts.find(_.bankName == bankName)
               wantedAccount match {
                 case Some(account) =>  {
@@ -265,7 +264,7 @@ object ImporterAPI extends RestHelper with Loggable {
               }
             }
             JsonResponse(JArray(l))
-          } 
+          }
         case _ => InternalServerErrorResponse()
       }
     }

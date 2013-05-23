@@ -67,4 +67,6 @@ trait OtherBankAccountMetadata
   def addOpenCorporatesUrl(url : String) : Boolean
   def addCorporateLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
   def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean
+  def addPublicAlias(alias : String) : Boolean
+  def addPrivateAlias(alias : String) : Boolean
 }
