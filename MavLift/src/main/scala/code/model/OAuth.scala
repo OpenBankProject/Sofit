@@ -33,7 +33,6 @@ package code.model
 import net.liftweb.mapper._
 import java.util.Date
 import scala.compat.Platform
-import code.model.traits.User
 import net.liftweb.http.SHtml
 import net.liftweb.util.FieldError
 import net.liftweb.util.FieldIdentifier

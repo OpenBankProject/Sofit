@@ -64,20 +64,11 @@ import net.liftweb.mongodb.{ Skip, Limit }
 import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.mapper.view._
 import com.mongodb._
-import code.model.dataAccess.{ Account, OBPEnvelope, OBPUser }
-import code.model.dataAccess.HostedAccount
-import code.model.dataAccess.LocalStorage
-import code.model.traits.ModeratedTransaction
-import code.model.traits.View
-import code.model.implementedTraits.View
+import code.model.dataAccess.{ Account, OBPEnvelope, OBPUser, HostedAccount, LocalStorage }
+import code.model.{ModeratedTransaction, ModeratedBankAccount, View, BankAccount, Public, Bank, User}
 import code.model.dataAccess.OBPEnvelope._
-import code.model.traits.BankAccount
-import code.model.implementedTraits.Public
-import code.model.traits.Bank
-import code.model.traits.User
 import java.util.Date
 import code.api.OAuthHandshake._
-import code.model.traits.ModeratedBankAccount
 
 object ImporterAPI extends RestHelper with Loggable {
   serve {

@@ -53,13 +53,12 @@ import net.liftweb.http.StringField
 import java.util.Date
 import java.text.SimpleDateFormat
 import net.liftweb.common.Loggable
-import code.model.traits.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag, User}
+import code.model.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag, User, TransactionImage}
 import java.util.Currency
 import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
 import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
 import net.liftweb.http.js.JE.Str
 import net.liftweb.http.js.JsCmds.Alert
-import code.model.traits.TransactionImage
 import net.liftweb.util.Props
 import scala.xml.Utility
 import net.liftweb.common.Failure

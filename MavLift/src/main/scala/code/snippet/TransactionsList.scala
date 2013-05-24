@@ -46,8 +46,7 @@ import scala.xml.Text
 import net.liftweb.common.{Box, Failure, Empty, Full}
 import java.util.Date
 import net.liftweb.http.js.JsCmds.Noop
-import code.model.implementedTraits._
-import code.model.traits._
+import code.model._
 import java.util.Currency
 
 class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransaction],View, BankAccount)){
@@ -90,7 +89,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
           NOOP_SELECTOR
 
         def logoNotBlank =
-          ".other_account_logo_img [src]" #> transaction.otherBankAccount.get.metadata.get.imageUrl.get
+          ".other_account_logo_img [src]" #> transaction.otherBankAccount.get.metadata.get.imageURL.get
 
         def websiteBlank =
           ".other_acc_link" #> NodeSeq.Empty & //If there is no link to display, don't render the <a> element
@@ -103,7 +102,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
           ".open_corporates_link" #> NodeSeq.Empty
 
         def openCorporatesNotBlank =
-          ".open_corporates_link [href]" #> transaction.otherBankAccount.get.metadata.get.openCorporatesUrl.get
+          ".open_corporates_link [href]" #> transaction.otherBankAccount.get.metadata.get.openCorporatesURL.get
 
         transaction.otherBankAccount match {
           case Some(otherAccount) =>
@@ -154,7 +153,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
                             case Some(m) => if(m.isEmpty) moreInfoBlank else moreInfoNotBlank
                             case _ => moreInfoBlank
                   }}&
-                  {metadata.imageUrl match{
+                  {metadata.imageURL match{
                           case Some(i) => if(i.isEmpty) logoBlank else logoNotBlank
                           case _ => logoBlank
                   }}&
@@ -162,7 +161,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
                     case Some(m) => if(m.isEmpty) websiteBlank else websiteNotBlank
                     case _ => websiteBlank
                   }}&
-                  {metadata.openCorporatesUrl match{
+                  {metadata.openCorporatesURL match{
                     case Some(m) => if(m.isEmpty) openCorporatesBlank else openCorporatesNotBlank
                     case _ => openCorporatesBlank
                   }}

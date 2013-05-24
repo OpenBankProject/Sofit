@@ -56,9 +56,7 @@ import net.liftweb.mongodb.{ Skip, Limit }
 import _root_.net.liftweb.http.S._
 import _root_.net.liftweb.mapper.view._
 import com.mongodb._
-import code.model.traits._
-import code.model.implementedTraits.View
-import code.model.implementedTraits.Public
+import code.model._
 import java.util.Date
 import code.api.OAuthHandshake._
 import code.model.dataAccess.APIMetric
@@ -178,7 +176,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
 
   private def transactionJson(t : ModeratedTransaction) : JObject = {
     ("transaction" ->
-      ("uuid" -> t.uuid) ~
+      ("uuid" -> t.UUID) ~
       ("id" -> t.id) ~
       ("this_account" -> t.bankAccount.map(thisAccountJson)) ~
       ("other_account" -> t.otherBankAccount.map(otherAccountToJson)) ~
@@ -698,7 +696,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       //log the API call
       logAPICall
 
-      def commentToJson(comment : code.model.traits.Comment) : JValue = {
+      def commentToJson(comment : code.model.Comment) : JValue = {
         ("comment" ->
           ("id" -> comment.id_) ~
           ("date" -> comment.datePosted.toString) ~
@@ -708,7 +706,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
         )
       }
 
-      def commentsToJson(comments : List[code.model.traits.Comment]) : JValue = {
+      def commentsToJson(comments : List[code.model.Comment]) : JValue = {
         ("comments" -> comments.map(commentToJson))
       }
 
@@ -1172,8 +1170,8 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       def otherAccountMetadataToJson(metadata : ModeratedOtherBankAccountMetadata) : JObject = {
         ("more_info" -> metadata.moreInfo.getOrElse("")) ~
         ("URL" -> metadata.url.getOrElse("")) ~
-        ("image_URL" -> metadata.imageUrl.getOrElse("")) ~
-        ("open_corporates_URL" -> metadata.openCorporatesUrl.getOrElse("")) ~
+        ("image_URL" -> metadata.imageURL.getOrElse("")) ~
+        ("open_corporates_URL" -> metadata.openCorporatesURL.getOrElse("")) ~
         ("corporate_location" -> geoTagToJson("corporate_location",metadata.corporateLocation)) ~
         ("physical_location" -> geoTagToJson("physical_location",metadata.physicalLocation))
       }
@@ -1330,7 +1328,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                   metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
                   url <- Box(metadata.url) ?~! {"view " + viewId + " does not authorize access to URL"}
                   setUrl <- isFieldAlreadySet(url)
-                  addUrl <- Box(metadata.addUrl) ?~ {"view " + viewId + " does not authorize adding URL"}
+                  addUrl <- Box(metadata.addURL) ?~ {"view " + viewId + " does not authorize adding URL"}
                 } yield addUrl
 
                 addUrl.map(
@@ -1383,7 +1381,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
               def addUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
                 val addUrl = for {
                   metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
-                  addUrl <- Box(metadata.addUrl) ?~ {"view " + viewId + " does not authorize adding URL"}
+                  addUrl <- Box(metadata.addURL) ?~ {"view " + viewId + " does not authorize adding URL"}
                 } yield addUrl
 
                 addUrl.map(
@@ -1436,9 +1434,9 @@ object OBPAPI1_1 extends RestHelper with Loggable {
               def addImageUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
                 val addImageUrl = for {
                   metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
-                  imageUrl <- Box(metadata.imageUrl) ?~! {"view " + viewId + " does not authorize access to image URL"}
+                  imageUrl <- Box(metadata.imageURL) ?~! {"view " + viewId + " does not authorize access to image URL"}
                   setImageUrl <- isFieldAlreadySet(imageUrl)
-                  addImageUrl <- Box(metadata.addImageUrl) ?~ {"view " + viewId + " does not authorize adding image URL"}
+                  addImageUrl <- Box(metadata.addImageURL) ?~ {"view " + viewId + " does not authorize adding image URL"}
                 } yield addImageUrl
 
                 addImageUrl.map(
@@ -1491,7 +1489,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
               def addImageUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
                 val addImageUrl = for {
                   metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
-                  addImageUrl <- Box(metadata.addImageUrl) ?~ {"view " + viewId + " does not authorize adding image URL"}
+                  addImageUrl <- Box(metadata.addImageURL) ?~ {"view " + viewId + " does not authorize adding image URL"}
                 } yield addImageUrl
 
                 addImageUrl.map(
@@ -1544,9 +1542,9 @@ object OBPAPI1_1 extends RestHelper with Loggable {
               def addOpenCorporatesUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
                 val addOpenCorporatesUrl = for {
                   metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
-                  openCorporatesUrl <- Box(metadata.openCorporatesUrl) ?~! {"view " + viewId + " does not authorize access to open_corporates_url"}
+                  openCorporatesUrl <- Box(metadata.openCorporatesURL) ?~! {"view " + viewId + " does not authorize access to open_corporates_url"}
                   setImageUrl <- isFieldAlreadySet(openCorporatesUrl)
-                  addOpenCorporatesUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"view " + viewId + " does not authorize adding open_corporates_url"}
+                  addOpenCorporatesUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"view " + viewId + " does not authorize adding open_corporates_url"}
                 } yield addOpenCorporatesUrl
 
                 addOpenCorporatesUrl.map(
@@ -1599,7 +1597,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
               def addOpenCorporatesUrl(bankId : String, accountId : String, viewId : String, otherAccountId : String, user : Box[User], url : String): Box[Boolean] = {
                 val addOpenCorporatesUrl = for {
                   metadata <- moderatedOtherAccountMetadata(bankId,accountId,viewId,otherAccountId,user)
-                  addOpenCorporatesUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"view " + viewId + " does not authorize adding open_corporates_url"}
+                  addOpenCorporatesUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"view " + viewId + " does not authorize adding open_corporates_url"}
                 } yield addOpenCorporatesUrl
 
                 addOpenCorporatesUrl.map(
