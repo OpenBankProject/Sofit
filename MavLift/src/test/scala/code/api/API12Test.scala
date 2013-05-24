@@ -134,7 +134,7 @@ class API1_2Test extends ServerSetup{
   lazy val token3 = new Token(testToken3.key, testToken3.secret)
 
   //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
-  val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
+  val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner")
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =

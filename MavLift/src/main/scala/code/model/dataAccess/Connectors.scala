@@ -31,8 +31,7 @@ Berlin 13359, Germany
  */
 package code.model.dataAccess
 
-import code.model.traits._
-import code.model.implementedTraits._
+import code.model._
 import net.liftweb.common.{ Box, Empty, Full, Failure }
 import net.liftweb.util.Helpers.tryo
 import net.liftweb.mongodb.BsonDSL._
@@ -128,7 +127,7 @@ class MongoDBLocalStorage extends LocalStorage {
     val id = env.id.is.toString()
     val uuid = id
     val otherAccountMetadata =
-      new OtherBankAccountMetadataImpl(
+      new OtherBankAccountMetadata(
         oAcc.publicAlias.get,
         oAcc.privateAlias.get,
         oAcc.moreInfo.get,
@@ -175,30 +174,30 @@ class MongoDBLocalStorage extends LocalStorage {
           true
         })
       )
-    val otherAccount = new OtherBankAccountImpl(
-        id_ = oAcc.id.is.toString,
-        label_ = otherAccount_.holder.get,
-        nationalIdentifier_ = otherAccount_.bank.get.national_identifier.get,
-        swift_bic_ = None, //TODO: need to add this to the json/model
-        iban_ = Some(otherAccount_.bank.get.IBAN.get),
-        number_ = otherAccount_.number.get,
-        bankName_ = otherAccount_.bank.get.name.get,
-        metadata_ = otherAccountMetadata,
-        kind_ = ""
+    val otherAccount = new OtherBankAccount(
+        id = oAcc.id.is.toString,
+        label = otherAccount_.holder.get,
+        nationalIdentifier = otherAccount_.bank.get.national_identifier.get,
+        swift_bic = None, //TODO: need to add this to the json/model
+        iban = Some(otherAccount_.bank.get.IBAN.get),
+        number = otherAccount_.number.get,
+        bankName = otherAccount_.bank.get.name.get,
+        metadata = otherAccountMetadata,
+        kind = ""
       )
-    val metadata = new TransactionMetadataImpl(
+    val metadata = new TransactionMetadata(
       env.narrative.get,
-      env.obp_comments.objs,
       (text => env.narrative(text).save),
-      env.addComment _,
+      env.obp_comments.objs,
+      env.addComment,
       env.tags.objs,
-      env.addTag _,
-      env.deleteTag _,
+      env.addTag,
+      env.deleteTag,
       env.images.objs,
-      env.addImage _,
-      env.deleteImage _,
-      env.addWhereTag _,
-      env.whereTags.get
+      env.addImage,
+      env.deleteImage,
+      env.whereTags.get,
+      env.addWhereTag
     )
     val transactionType = transaction.details.get.type_en.get
     val amount = transaction.details.get.value.get.amount.get
@@ -207,8 +206,20 @@ class MongoDBLocalStorage extends LocalStorage {
     val startDate = transaction.details.get.posted.get
     val finishDate = transaction.details.get.completed.get
     val balance = transaction.details.get.new_balance.get.amount.get
-    new TransactionImpl(uuid, id, thisBankAccount, otherAccount, metadata, transactionType, amount, currency,
-      label, startDate, finishDate, balance)
+    new Transaction(
+      uuid,
+      id,
+      thisBankAccount,
+      otherAccount,
+      metadata,
+      transactionType,
+      amount,
+      currency,
+      label,
+      startDate,
+      finishDate,
+      balance
+    )
   }
 
   def getTransactions(permalink: String, bankPermalink: String, envelopesForAccount: Account => List[OBPEnvelope]): Box[List[Transaction]] = {
@@ -229,7 +240,7 @@ class MongoDBLocalStorage extends LocalStorage {
     HostedBank.find("permalink", permalink) match {
       case Full(bank) =>
         Full(
-          new BankImpl(
+          new Bank(
             bank.id.is.toString,
             bank.alias.is,
             bank.name.is,
@@ -245,7 +256,7 @@ class MongoDBLocalStorage extends LocalStorage {
     HostedBank.findAll.
       map(
         bank =>
-        new BankImpl(
+        new Bank(
           bank.id.is.toString,
           bank.alias.is,
           bank.name.is,
@@ -399,7 +410,7 @@ class MongoDBLocalStorage extends LocalStorage {
               }
 
             val metadata =
-              new OtherBankAccountMetadataImpl(
+              new OtherBankAccountMetadata(
                 otherAccount.publicAlias.get,
                 otherAccount.privateAlias.get,
                 otherAccount.moreInfo.get,
@@ -449,16 +460,16 @@ class MongoDBLocalStorage extends LocalStorage {
               )
 
             val otherBankAccount =
-              new OtherBankAccountImpl(
-                id_ = otherAccount.id.is.toString,
-                label_ = otherAccount.holder.get,
-                nationalIdentifier_ = otherAccountFromTransaction.bank.get.national_identifier.get,
-                swift_bic_ = None, //TODO: need to add this to the json/model
-                iban_ = Some(otherAccountFromTransaction.bank.get.IBAN.get),
-                number_ = otherAccountFromTransaction.number.get,
-                bankName_ = otherAccountFromTransaction.bank.get.name.get,
-                metadata_ = metadata,
-                kind_ = ""
+              new OtherBankAccount(
+                id = otherAccount.id.is.toString,
+                label = otherAccount.holder.get,
+                nationalIdentifier = otherAccountFromTransaction.bank.get.national_identifier.get,
+                swift_bic = None, //TODO: need to add this to the json/model
+                iban = Some(otherAccountFromTransaction.bank.get.IBAN.get),
+                number = otherAccountFromTransaction.number.get,
+                bankName = otherAccountFromTransaction.bank.get.name.get,
+                metadata = metadata,
+                kind = ""
               )
               Full(otherBankAccount)
           }
@@ -480,7 +491,7 @@ class MongoDBLocalStorage extends LocalStorage {
             }
 
           val metadata =
-            new OtherBankAccountMetadataImpl(
+            new OtherBankAccountMetadata(
               otherAccount.publicAlias.get,
               otherAccount.privateAlias.get,
               otherAccount.moreInfo.get,
@@ -530,16 +541,16 @@ class MongoDBLocalStorage extends LocalStorage {
             )
 
           val otherBankAccount =
-            new OtherBankAccountImpl(
-              id_ = otherAccount.id.is.toString,
-              label_ = otherAccount.holder.get,
-              nationalIdentifier_ = otherAccountFromTransaction.bank.get.national_identifier.get,
-              swift_bic_ = None, //TODO: need to add this to the json/model
-              iban_ = Some(otherAccountFromTransaction.bank.get.IBAN.get),
-              number_ = otherAccountFromTransaction.number.get,
-              bankName_ = otherAccountFromTransaction.bank.get.name.get,
-              metadata_ = metadata,
-              kind_ = ""
+            new OtherBankAccount(
+              id = otherAccount.id.is.toString,
+              label = otherAccount.holder.get,
+              nationalIdentifier = otherAccountFromTransaction.bank.get.national_identifier.get,
+              swift_bic = None, //TODO: need to add this to the json/model
+              iban = Some(otherAccountFromTransaction.bank.get.IBAN.get),
+              number = otherAccountFromTransaction.number.get,
+              bankName = otherAccountFromTransaction.bank.get.name.get,
+              metadata = metadata,
+              kind = ""
             )
             otherBankAccount
         })

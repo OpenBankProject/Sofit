@@ -50,16 +50,13 @@ import _root_.net.liftweb.http.S._
 import net.liftweb.mongodb.{ Skip, Limit }
 import _root_.net.liftweb.mapper.view._
 import com.mongodb._
-import code.model.traits._
-import code.model.implementedTraits.View
-import code.model.implementedTraits.Public
 import java.util.Date
 import code.api.OAuthHandshake._
 import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
+import code.model._
 import java.net.URL
 import code.util.APIUtil._
 import code.api.OBPRestHelper
-import code.model.implementedTraits.Owner
 
 
 object OBPAPI1_2 extends OBPRestHelper with Loggable {
@@ -91,7 +88,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
       moderatedTransaction <- account.moderatedTransaction(transactionID, view, user)
       metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
     } yield metadata
-  
+
   oauthServe(apiPrefix {
     case Nil JsonGet json => {
       user =>
@@ -446,7 +443,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         }
     }
   })
-  
+
 oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
       user =>
@@ -495,7 +492,7 @@ oauthServe(apiPrefix {
         }
     }
   })
-  
+
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
       user =>

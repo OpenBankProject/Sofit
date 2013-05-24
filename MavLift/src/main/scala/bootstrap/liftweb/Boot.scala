@@ -40,9 +40,7 @@ import sitemap._
 import Loc._
 import mapper._
 import code.model.dataAccess._
-import code.model.{Nonce, Consumer, Token}
-import code.model.traits.{Bank, View, ModeratedTransaction}
-import code.model.implementedTraits.{View}
+import code.model.{Nonce, Consumer, Token, Bank, ModeratedTransaction, View, BankAccount}
 import code.api._
 import net.liftweb.util.Helpers._
 import net.liftweb.widgets.tablesorter.TableSorter
@@ -50,8 +48,6 @@ import net.liftweb.json.JsonDSL._
 import code.api.OAuthHandshake
 import net.liftweb.util.Schedule
 import net.liftweb.mongodb.BsonDSL._
-import code.model.dataAccess.LocalStorage
-import code.model.traits.BankAccount
 import net.liftweb.http.js.jquery.JqJsCmds
 import code.snippet.OAuthAuthorisation
 

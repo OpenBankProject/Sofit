@@ -33,16 +33,9 @@ Berlin 13359, Germany
 package code.snippet
 
 import net.liftweb.util.Helpers._
-import code.model.traits.BankAccount
 import net.liftweb.common.Full
 import code.model.dataAccess.OBPUser
-import code.model.traits.User
-import code.model.implementedTraits.Public
-import code.model.implementedTraits.Owner
-import code.model.implementedTraits.Board
-import code.model.implementedTraits.Authorities
-import code.model.implementedTraits.Team
-import code.model.implementedTraits.OurNetwork
+import code.model.{User, BankAccount, Public, Owner, Board, Authorities, Team, OurNetwork}
 import net.liftweb.http.SHtml
 import scala.xml.Text
 import net.liftweb.http.js.JsCmds.Noop

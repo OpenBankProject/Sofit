@@ -47,7 +47,7 @@ import net.liftweb.mongodb.record.field.{MongoJsonObjectListField, MongoRefField
 import scala.util.Random
 import com.mongodb.QueryBuilder
 import com.mongodb.BasicDBObject
-import code.model.traits.{Comment,Tag,GeoTag,TransactionImage}
+import code.model.{Comment,Tag,GeoTag,TransactionImage}
 import net.liftweb.common.Loggable
 import org.bson.types.ObjectId
 import net.liftweb.util.Helpers._

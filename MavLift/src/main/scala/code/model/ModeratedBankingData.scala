@@ -30,7 +30,7 @@ Berlin 13359, Germany
 
  */
 
-package code.model.traits
+package code.model
 import java.util.Date
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json.JsonAST.JString
@@ -42,122 +42,26 @@ import net.liftweb.http.LiftResponse
 import java.text.SimpleDateFormat
 import java.net.URL
 import net.liftweb.common.Box
-import code.model.implementedTraits.Owner
 import net.liftweb.common.Full
 import net.liftweb.common.Failure
 
-class ModeratedOtherBankAccount(
-  id_ : String,
-  label_ : AccountName,
-  nationalIdentifier_ : Option[String],
-  swift_bic_ : Option[String],
-  iban_ : Option[String],
-  bankName_ : Option[String],
-  number_ : Option[String],
-  metadata_ : Option[ModeratedOtherBankAccountMetadata],
-  kind_ : Option[String]
-)
-{
-    def id = id_
-    def label = label_
-    def nationalIdentifier = nationalIdentifier_
-    def swift_bic = swift_bic_
-    def iban = iban_
-    def bankName = bankName_
-    def number = number_
-    def metadata = metadata_
-    def isAlias : Boolean = label_.aliasType match{
-      case PublicAlias | PrivateAlias => true
-      case _ => false
-    }
-    def kind = kind_
-}
-
-object ModeratedOtherBankAccount {
-  implicit def moderatedOtherBankAccount2Json(mOtherBank: ModeratedOtherBankAccount) : JObject = {
-    val holderName = mOtherBank.label.display
-    val isAlias = if(mOtherBank.isAlias) "yes" else "no"
-    val number = mOtherBank.number getOrElse ""
-    val kind = ""
-    val bankIBAN = mOtherBank.iban.getOrElse("")
-    val bankNatIdent = mOtherBank.nationalIdentifier getOrElse ""
-    val bankName = mOtherBank.bankName getOrElse ""
-    ModeratedBankAccount.bankJson(holderName, isAlias, number, kind, bankIBAN, bankNatIdent, bankName)
-  }
-}
-
-class ModeratedOtherBankAccountMetadata(
-  moreInfo_ : Option[String],
-  url_ : Option[String],
-  imageURL_ : Option[String],
-  openCorporatesUrl_ : Option[String],
-  corporateLocation_ : Option[GeoTag],
-  physicalLocation_ :  Option[GeoTag],
-  publicAlias_ : Option[String],
-  privateAlias_ : Option[String],
-  addMoreInfo_ : Option[(String) => Boolean],
-  addURL_ : Option[(String) => Boolean],
-  addImageUrl_ : Option[(String) => Boolean],
-  addOpenCorporatesUrl_ : Option[(String) => Boolean],
-  addCorporateLocation_ : Option[(String, Long, Date, Double, Double) => Boolean],
-  addPhysicalLocation_ : Option[(String, Long, Date, Double, Double) => Boolean],
-  addPublicAlias_ : Option[(String) => Boolean],
-  addPrivateAlias_ : Option[(String) => Boolean]
-) {
-  def moreInfo = moreInfo_
-  def url = url_
-  def imageUrl = imageURL_
-  def openCorporatesUrl = openCorporatesUrl_
-  def corporateLocation = corporateLocation_
-  def physicalLocation = physicalLocation_
-  def publicAlias = publicAlias_
-  def privateAlias = privateAlias_
-  def addMoreInfo = addMoreInfo_
-  def addUrl = addURL_
-  def addImageUrl = addImageUrl_
-  def addOpenCorporatesUrl = addOpenCorporatesUrl_
-  def addCorporateLocation = addCorporateLocation_
-  def addPhysicalLocation = addPhysicalLocation_
-  def addPublicAlias = addPublicAlias_
-  def addPrivateAlias = addPrivateAlias_
-}
-
-object ModeratedOtherBankAccountMetadata {
-  implicit def moderatedOtherBankAccountMetadata2Json(mOtherBankMeta: ModeratedOtherBankAccountMetadata) : JObject = {
-    JObject(JField("blah", JString("test")) :: Nil)
-  }
-}
-
 
 class ModeratedTransaction(
-  filteredUUID : String,
-  filteredId: String,
-  filteredBankAccount: Option[ModeratedBankAccount],
-  filteredOtherBankAccount: Option[ModeratedOtherBankAccount],
-  filteredMetaData : Option[ModeratedTransactionMetadata],
-  filteredTransactionType: Option[String],
-  filteredAmount: Option[BigDecimal],
-  filteredCurrency: Option[String],
-  filteredLabel: Option[String],
-  filteredStartDate: Option[Date],
-  filteredFinishDate: Option[Date],
-  filteredBalance : String
-) {
-
+  val UUID : String,
+  val id: String,
+  val bankAccount: Option[ModeratedBankAccount],
+  val otherBankAccount: Option[ModeratedOtherBankAccount],
+  val metadata : Option[ModeratedTransactionMetadata],
+  val transactionType: Option[String],
+  val amount: Option[BigDecimal],
+  val currency: Option[String],
+  val label: Option[String],
+  val startDate: Option[Date],
+  val finishDate: Option[Date],
   //the filteredBlance type in this class is a string rather than Big decimal like in Transaction trait for snippet (display) reasons.
   //the view should be able to return a sign (- or +) or the real value. casting signs into bigdecimal is not possible
-  def uuid = filteredUUID
-  def id = filteredId
-  def bankAccount = filteredBankAccount
-  def otherBankAccount = filteredOtherBankAccount
-  def metadata = filteredMetaData
-  def transactionType = filteredTransactionType
-  def amount = filteredAmount
-  def currency = filteredCurrency
-  def label = filteredLabel
-  def startDate = filteredStartDate
-  def finishDate = filteredFinishDate
-  def balance = filteredBalance
+  val balance : String
+) {
 
   def dateOption2JString(date: Option[Date]) : JString = {
     JString(date.map(d => ModeratedTransaction.dateFormat.format(d)) getOrElse "")
@@ -187,28 +91,25 @@ object ModeratedTransaction {
 }
 
 class ModeratedTransactionMetadata(
-  filteredOwnerComment : Option[String],
-  filteredComments : Option[List[Comment]],
-  addOwnerCommentFunc : Option[(String => Unit)],
-  addCommentFunc: Option[(String, Long, String, Date) => Comment],
-  tags_ : Option[List[Tag]],
-  addTagFunc : Option[(String, Long, String, Date) => Tag],
-  deleteTagFunc : Option[(String) => Unit],
-  images_ : Option[List[TransactionImage]],
-  addImageFunc : Option[(String, Long, String, Date, URL) => TransactionImage],
-  deleteImageFunc  : Option[String => Unit],
-  addWhereTagFunc : Option[(String, Long, Date, Double, Double) => Boolean],
-  whereTag_ : Option[GeoTag]
-)
-{
-  def ownerComment = filteredOwnerComment
-  def comments = filteredComments
-  def saveOwnerComment = addOwnerCommentFunc
-  def addComment= addCommentFunc
-  def tags = tags_
-  def addTag = addTagFunc
-  @deprecated //This should be removed once SoFi is split from the API
+  val ownerComment : Option[String],
+  val saveOwnerComment : Option[(String => Unit)],
+  val comments : Option[List[Comment]],
+  val addComment: Option[(String, Long, String, Date) => Comment],
+  val tags : Option[List[Tag]],
+  val addTag : Option[(String, Long, String, Date) => Tag],
+  //TODO: rename the field to deleteTag once this class as one unique deleteTag function
+  val deleteTagFunc : Option[(String) => Unit],
+  val images : Option[List[TransactionImage]],
+  val addImage : Option[(String, Long, String, Date, URL) => TransactionImage],
+  //TODO: rename the field to deleteImage once this class as one unique deleteImage function
+  val deleteImageFunc  : Option[String => Unit],
+  val whereTag : Option[GeoTag],
+  val addWhereTag : Option[(String, Long, Date, Double, Double) => Boolean]
+){
+
+  @deprecated //TODO:This should be removed once SoFi is split from the API
   def deleteTag = deleteTagFunc
+
    /**
    * @return Full if deleting the tag worked, or a failure message if it didn't
    */
@@ -216,18 +117,18 @@ class ModeratedTransactionMetadata(
     for {
       tagList <- Box(tags) ?~ { "You must be able to see tags in order to delete them"}
       tag <- Box(tagList.find(tag => tag.id_ == tagId)) ?~ {"Tag with id " + tagId + "not found for this transaction"}
-      deleteFunc <- if(tag.postedBy == user || bankAccount.authorizedAccess(Owner, user)) 
+      deleteFunc <- if(tag.postedBy == user || bankAccount.authorizedAccess(Owner, user))
     	              Box(deleteTagFunc) ?~ "Deleting tags not permitted for this view"
-                    else 
+                    else
                       Failure("deleting tags not permitted for the current user")
     } yield {
       deleteFunc(tagId)
     }
   }
-  def images = images_
-  def addImage  = addImageFunc
+
   @deprecated //This should be removed once SoFi is split from the API
   def deleteImage = deleteImageFunc
+
   /**
    * @return Full if deleting the image worked, or a failure message if it didn't
    */
@@ -235,16 +136,14 @@ class ModeratedTransactionMetadata(
     for {
       imageList <- Box(images) ?~ { "You must be able to see images in order to delete them"}
       image <- Box(imageList.find(image => image.id_ == imageId)) ?~ {"Image with id " + imageId + "not found for this transaction"}
-      deleteFunc <- if(image.postedBy == user || bankAccount.authorizedAccess(Owner, user)) 
+      deleteFunc <- if(image.postedBy == user || bankAccount.authorizedAccess(Owner, user))
     	              Box(deleteImageFunc) ?~ "Deleting images not permitted for this view"
-                    else 
+                    else
                       Failure("deleting images not permitted for the current user")
     } yield {
       deleteFunc(imageId)
     }
   }
-  def addWhereTag = addWhereTagFunc
-  def whereTag : Option[GeoTag] = whereTag_
 }
 
 object ModeratedTransactionMetadata {
@@ -254,32 +153,19 @@ object ModeratedTransactionMetadata {
 }
 
 class ModeratedBankAccount(
-  filteredId : String,
-  filteredOwners : Option[Set[AccountOwner]],
-  filteredAccountType : Option[String],
-  filteredBalance: String = "",
-  filteredCurrency : Option[String],
-  filteredLabel : Option[String],
-  filteredNationalIdentifier : Option[String],
-  filteredSwift_bic : Option[String],
-  filteredIban : Option[String],
-  filteredNumber: Option[String],
-  filteredBankName: Option[String],
-  filteredBankPermalink : Option[String]
+  val id : String,
+  val owners : Option[Set[AccountOwner]],
+  val accountType : Option[String],
+  val balance: String = "",
+  val currency : Option[String],
+  val label : Option[String],
+  val nationalIdentifier : Option[String],
+  val swift_bic : Option[String],
+  val iban : Option[String],
+  val number: Option[String],
+  val bankName: Option[String],
+  val bankPermalink : Option[String]
 ){
-  def id = filteredId
-  def owners = filteredOwners
-  def accountType = filteredAccountType
-  def balance = filteredBalance
-  def currency = filteredCurrency
-  def label = filteredLabel
-  def nationalIdentifier = filteredNationalIdentifier
-  def swift_bic = filteredSwift_bic
-  def iban = filteredIban
-  def number = filteredNumber
-  def bankName = filteredBankName
-  def bankPermalink = filteredBankPermalink
-
   def toJson = {
     //TODO: Decide if unauthorized info (I guess that is represented by a 'none' option'? I can't really remember)
     // should just disappear from the json or if an empty string should be used.
@@ -330,5 +216,61 @@ object ModeratedBankAccount {
     val bankNatIdent = mBankAccount.nationalIdentifier getOrElse ""
     val bankName = mBankAccount.bankName getOrElse ""
     bankJson(holderName, isAlias, number, kind, bankIBAN, bankNatIdent, bankName)
+  }
+}
+
+class ModeratedOtherBankAccount(
+  val id : String,
+  val label : AccountName,
+  val nationalIdentifier : Option[String],
+  val swift_bic : Option[String],
+  val iban : Option[String],
+  val bankName : Option[String],
+  val number : Option[String],
+  val metadata : Option[ModeratedOtherBankAccountMetadata],
+  val kind : Option[String]
+){
+
+  def isAlias : Boolean = label.aliasType match{
+    case PublicAlias | PrivateAlias => true
+    case _ => false
+  }
+}
+
+object ModeratedOtherBankAccount {
+  implicit def moderatedOtherBankAccount2Json(mOtherBank: ModeratedOtherBankAccount) : JObject = {
+    val holderName = mOtherBank.label.display
+    val isAlias = if(mOtherBank.isAlias) "yes" else "no"
+    val number = mOtherBank.number getOrElse ""
+    val kind = ""
+    val bankIBAN = mOtherBank.iban.getOrElse("")
+    val bankNatIdent = mOtherBank.nationalIdentifier getOrElse ""
+    val bankName = mOtherBank.bankName getOrElse ""
+    ModeratedBankAccount.bankJson(holderName, isAlias, number, kind, bankIBAN, bankNatIdent, bankName)
+  }
+}
+
+class ModeratedOtherBankAccountMetadata(
+  val moreInfo : Option[String],
+  val url : Option[String],
+  val imageURL : Option[String],
+  val openCorporatesURL : Option[String],
+  val corporateLocation : Option[GeoTag],
+  val physicalLocation :  Option[GeoTag],
+  val publicAlias : Option[String],
+  val privateAlias : Option[String],
+  val addMoreInfo : Option[(String) => Boolean],
+  val addURL : Option[(String) => Boolean],
+  val addImageURL : Option[(String) => Boolean],
+  val addOpenCorporatesURL : Option[(String) => Boolean],
+  val addCorporateLocation : Option[(String, Long, Date, Double, Double) => Boolean],
+  val addPhysicalLocation : Option[(String, Long, Date, Double, Double) => Boolean],
+  val addPublicAlias : Option[(String) => Boolean],
+  val addPrivateAlias : Option[(String) => Boolean]
+)
+
+object ModeratedOtherBankAccountMetadata {
+  implicit def moderatedOtherBankAccountMetadata2Json(mOtherBankMeta: ModeratedOtherBankAccountMetadata) : JObject = {
+    JObject(JField("blah", JString("test")) :: Nil)
   }
 }

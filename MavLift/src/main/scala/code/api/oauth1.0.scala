@@ -49,7 +49,7 @@ import scala.xml.NodeSeq
 import Helpers._
 import net.liftweb.util.Props
 import code.model.TokenType
-import code.model.traits.User
+import code.model.User
 import net.liftweb.common.Failure
 
 /**
