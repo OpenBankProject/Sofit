@@ -205,7 +205,21 @@ case class TransactionCommentJSON(
 case class TransactionCommentsJSON(
   comments: List[TransactionCommentJSON]
 )
-case class AliasJSON(alias: String)
+case class AliasJSON(
+  alias: String
+)
+case class MoreInfoJSON(
+  more_info: String
+)
+case class UrlJSON(
+  URL:String
+)
+case class ImageUrlJSON(
+  image_URL: String
+)
+case class OpenCorporateUrlJSON(
+  open_corporates_URL: String
+)
 
 object JSONFactory{
   def stringOrNull(text : String) =

@@ -225,7 +225,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
     }
 
     val addImageSelector = for {
-      user <- User.currentUser ?~ "You need to long before you can add an image"
+      user <- User.currentUser ?~ "You need to login before you can add an image"
       metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
       addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
     } yield {
