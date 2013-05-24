@@ -326,10 +326,10 @@ trait View {
             if (canSeeUrl) Some(otherBankAccount.metadata.url)
             else None
           val imageUrl =
-            if (canSeeImageUrl) Some(otherBankAccount.metadata.imageUrl)
+            if (canSeeImageUrl) Some(otherBankAccount.metadata.imageURL)
             else None
           val openCorporatesUrl =
-            if (canSeeOpenCorporatesUrl) Some(otherBankAccount.metadata.openCorporatesUrl)
+            if (canSeeOpenCorporatesUrl) Some(otherBankAccount.metadata.openCorporatesURL)
             else None
           val corporateLocation =
             if(canSeeCorporateLocation)
@@ -358,7 +358,7 @@ trait View {
               None
           val addOpenCorporatesUrl =
             if(canAddOpenCorporatesUrl)
-              Some(otherBankAccount.metadata.addOpenCorporatesUrl)
+              Some(otherBankAccount.metadata.addOpenCorporatesURL)
             else
               None
           val addCorporateLocation =
@@ -771,8 +771,8 @@ object Public extends BaseView {
       }
       val moreInfo = if (isPublicAlias) None else Some(otherAccount.metadata.moreInfo)
       val url = if (isPublicAlias) None else Some(otherAccount.metadata.url)
-      val imageUrl = if (isPublicAlias) None else Some(otherAccount.metadata.imageUrl)
-      val openCorporatesUrl = if (isPublicAlias) None else Some(otherAccount.metadata.openCorporatesUrl)
+      val imageUrl = if (isPublicAlias) None else Some(otherAccount.metadata.imageURL)
+      val openCorporatesUrl = if (isPublicAlias) None else Some(otherAccount.metadata.openCorporatesURL)
       val corporateLocation = if (isPublicAlias) None else otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id)
       val physicalLocation = if (isPublicAlias) None else otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id)
 
@@ -883,8 +883,8 @@ object OurNetwork extends BaseView {
         new ModeratedOtherBankAccountMetadata(
         Some(otherAccount.metadata.moreInfo),
         Some(otherAccount.metadata.url),
-        Some(otherAccount.metadata.imageUrl),
-        Some(otherAccount.metadata.openCorporatesUrl),
+        Some(otherAccount.metadata.imageURL),
+        Some(otherAccount.metadata.openCorporatesURL),
         otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id),
         otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id),
         Some(otherAccount.metadata.publicAlias),

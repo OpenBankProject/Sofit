@@ -475,7 +475,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addUrl <- Box(metadata.addUrl) ?~ {"the view " + viewId + "does not allow adding a url"}
+          addUrl <- Box(metadata.addURL) ?~ {"the view " + viewId + "does not allow adding a url"}
           urlJson <- tryo{(json.extract[UrlJSON])} ?~ {"wrong JSON format"}
           if(addUrl(urlJson.URL))
         } yield {
@@ -493,7 +493,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addUrl <- Box(metadata.addUrl) ?~ {"the view " + viewId + "does not allow updating a url"}
+          addUrl <- Box(metadata.addURL) ?~ {"the view " + viewId + "does not allow updating a url"}
           urlJson <- tryo{(json.extract[UrlJSON])} ?~ {"wrong JSON format"}
           if(addUrl(urlJson.URL))
         } yield {
@@ -511,7 +511,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addUrl <- Box(metadata.addUrl) ?~ {"the view " + viewId + "does not allow deleting a url"}
+          addUrl <- Box(metadata.addURL) ?~ {"the view " + viewId + "does not allow deleting a url"}
           if(addUrl(""))
         } yield noContentJsonResponse
     }
@@ -525,7 +525,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addImageUrl <- Box(metadata.addImageUrl) ?~ {"the view " + viewId + "does not allow adding an image url"}
+          addImageUrl <- Box(metadata.addImageURL) ?~ {"the view " + viewId + "does not allow adding an image url"}
           imageUrlJson <- tryo{(json.extract[ImageUrlJSON])} ?~ {"wrong JSON format"}
           if(addImageUrl(imageUrlJson.image_URL))
         } yield {
@@ -543,7 +543,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addImageUrl <- Box(metadata.addImageUrl) ?~ {"the view " + viewId + "does not allow updating an image url"}
+          addImageUrl <- Box(metadata.addImageURL) ?~ {"the view " + viewId + "does not allow updating an image url"}
           imageUrlJson <- tryo{(json.extract[ImageUrlJSON])} ?~ {"wrong JSON format"}
           if(addImageUrl(imageUrlJson.image_URL))
         } yield {
@@ -561,7 +561,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addImageUrl <- Box(metadata.addImageUrl) ?~ {"the view " + viewId + "does not allow deleting an image url"}
+          addImageUrl <- Box(metadata.addImageURL) ?~ {"the view " + viewId + "does not allow deleting an image url"}
           if(addImageUrl(""))
         } yield noContentJsonResponse
     }
@@ -575,7 +575,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addOpenCorpUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"the view " + viewId + "does not allow adding an open corporate url"}
+          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow adding an open corporate url"}
           opernCoprUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
           if(addOpenCorpUrl(opernCoprUrl.open_corporates_URL))
         } yield {
@@ -593,7 +593,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addOpenCorpUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"the view " + viewId + "does not allow updating an open corporate url"}
+          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow updating an open corporate url"}
           opernCoprUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
           if(addOpenCorpUrl(opernCoprUrl.open_corporates_URL))
         } yield {
@@ -611,7 +611,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addOpenCorpUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"the view " + viewId + "does not allow deleting an open corporate url"}
+          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow deleting an open corporate url"}
           if(addOpenCorpUrl(""))
         } yield noContentJsonResponse
     }

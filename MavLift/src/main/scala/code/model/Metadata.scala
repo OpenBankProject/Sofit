@@ -104,14 +104,14 @@ class OtherBankAccountMetadata(
   val privateAlias : String,
   val moreInfo : String,
   val url : String,
-  val imageUrl : String,
-  val openCorporatesUrl : String,
+  val imageURL : String,
+  val openCorporatesURL : String,
   val corporateLocations : List[GeoTag],
   val physicalLocations : List[GeoTag],
   val addMoreInfo : (String) => Boolean,
   val addURL : (String) => Boolean,
   val addImageURL : (String) => Boolean,
-  val addOpenCorporatesUrl : (String) => Boolean,
+  val addOpenCorporatesURL : (String) => Boolean,
 
   /**
   * @param: userId
