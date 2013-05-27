@@ -277,7 +277,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     val date2 = e2.obp_transaction.get.details.get.completed.get
     date1.after(date2)
   }
-  def createAliases = {
+  def createAliases : Box[String] = {
     val realOtherAccHolder = this.obp_transaction.get.other_account.get.holder.get
 
     def publicAliasExists(realValue: String): Boolean = {
@@ -292,7 +292,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
       }
     }
 
-    def createPublicAlias(realOtherAccHolder : String) = {
+    def createPublicAlias(realOtherAccHolder : String) : Box[String] = {
 
       /**
        * Generates a new alias name that is guaranteed not to collide with any existing public alias names
@@ -333,13 +333,15 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
         }
         case _ => {
           logger.warn("Account not found to create aliases for")
-          Empty
+          Failure("Account not found to create aliases for")
         }
       }
     }
 
     if (!publicAliasExists(realOtherAccHolder))
       createPublicAlias(realOtherAccHolder)
+    else
+      Full(realOtherAccHolder)
   }
   /**
    * A JSON representation of the transaction to be returned when successfully added via an API call
@@ -387,13 +389,16 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
   case class OBPToDate(value: Date) extends OBPQueryParam
   case class OBPOrdering(field: Option[String], order: OBPOrder) extends OBPQueryParam
 
-  override def fromJValue(jval: JValue) = {
-    val created = super.fromJValue(jval)
+  def envlopesFromJvalue(jval: JValue) : Box[OBPEnvelope] = {
+    val created = fromJValue(jval)
     created match {
-      case Full(c) => c.createAliases
-      case _ => //don't create anything
+      case Full(c) => c.createAliases match {
+          case Full(alias) => Full(c)
+          case Failure(msg, _, _ ) => Failure(msg)
+          case _ => Failure("Alias not created")
+        }
+      case _ => Failure("could not create Envelope form JValue")
     }
-    created
   }
 }
 

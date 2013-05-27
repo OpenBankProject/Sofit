@@ -202,8 +202,8 @@ object ImporterAPI extends RestHelper with Loggable {
 
       val rawEnvelopes = json._1.children
 
-      val envelopes = rawEnvelopes.map(e => {
-        OBPEnvelope.fromJValue(e)
+      val envelopes : List[OBPEnvelope]= rawEnvelopes.flatMap(e => {
+        OBPEnvelope.envlopesFromJvalue(e)
       })
 
       val ipAddress = json._2.remoteAddr
@@ -219,7 +219,7 @@ object ImporterAPI extends RestHelper with Loggable {
        * is too inefficient. If it is, we could break it up into one actor
        * per "Account".
        */
-      val createdEnvelopes = EnvelopeInserter !? (3 seconds, envelopes.flatten)
+      val createdEnvelopes = EnvelopeInserter !? (3 seconds, envelopes)
 
       createdEnvelopes match {
         case Full(l: List[JObject]) =>{
@@ -227,10 +227,10 @@ object ImporterAPI extends RestHelper with Loggable {
             if(envelopes.size!=0)
             {
               //we assume here that all the Envelopes concerns only one account
-              val accountNumber = envelopes(0).get.obp_transaction.get.this_account.get.number.get
-              val bankName = envelopes(0).get.obp_transaction.get.this_account.get.bank.get.name.get
-              val accountKind = envelopes(0).get.obp_transaction.get.this_account.get.kind.get
-              val holder = envelopes(0).get.obp_transaction.get.this_account.get.holder.get
+              val accountNumber = envelopes(0).obp_transaction.get.this_account.get.number.get
+              val bankName = envelopes(0).obp_transaction.get.this_account.get.bank.get.name.get
+              val accountKind = envelopes(0).obp_transaction.get.this_account.get.kind.get
+              val holder = envelopes(0).obp_transaction.get.this_account.get.holder.get
               //Get all accounts with this account number and kind
               val accounts = Account.findAll(("number" -> accountNumber) ~ ("kind" -> accountKind) ~ ("holder" -> holder))
               //Now get the one that actually belongs to the right bank
