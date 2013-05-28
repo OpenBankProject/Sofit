@@ -233,71 +233,6 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
     }
 
   }
-  
-  def apiAddImage = {
-
-    //transloadit requires its parameters to be an escaped json string
-    val transloadItParams : String = {
-      import net.liftweb.json.JsonDSL._
-      import net.liftweb.json._
-
-      val authKey = Props.get("transloadit.authkey") getOrElse ""
-      val addImageTemplate = Props.get("transloadit.addImageTemplate") getOrElse ""
-      val json =
-        (
-          "auth" -> (
-            "key" -> authKey
-          )
-        ) ~
-        ("template_id" -> addImageTemplate)
-
-      Utility.escape(compact(render(json)), new StringBuilder).toString
-    }
-
-    if(S.post_?) {
-      val description = S.param("description") getOrElse ""
-      val viewId = view.id
-      val datePosted = now
-      val addFunction = for {
-        transloadit <- S.param("transloadit") ?~! "No transloadit data received"
-        json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"
-        urlString <- tryo{val JString(a) = json \ "results" \\ "url"; a} ?~! {"Could not extract url string from json: " + compact(render(json))}
-      } yield {
-        () => ObpAPI.addImage(urlParams.bankId, urlParams.accountId, urlParams.viewId, urlParams.transactionId, urlString, description)
-      }
-
-      addFunction match {
-        case Full(add) => {
-          add()
-          //kind of a hack, but we redirect to a get request here so that we get the updated transaction (with the new image)
-          S.redirectTo(S.uri)
-        }
-        case Failure(msg, _ , _) => logger.warn("Problem adding new image: " + msg)
-        case _ => logger.warn("Problem adding new image")
-      }
-    }
-
-    val addImageSelector = for {
-      user <- User.currentUser ?~ "You need to long before you can add an image"
-      metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
-      addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
-    } yield {
-      "#imageUploader [action]" #> S.uri &
-      "#imageUploader" #> {
-        "name=params [value]" #> transloadItParams
-      }
-    }
-
-    //TODO: Here we would need to know if this view allows image uploading... but there is no way
-    //to get that yet, as far as I can tell
-    throw new NotImplementedException()
-    
-    addImageSelector match {
-      case Full(s) => s
-      case Failure(msg, _, _) => ".add *" #> msg
-      case _ => ".add *" #> ""
-    }
-  }
 
   def addImage = {
 
@@ -338,7 +273,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
         case _ => logger.warn("Problem adding new image")
       }
     }
-
+    
     if (OAuthClient.loggedInAt(provider)) {
       "#imageUploader [action]" #> S.uri &
         "#imageUploader" #> {
