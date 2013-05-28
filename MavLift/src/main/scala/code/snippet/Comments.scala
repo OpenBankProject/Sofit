@@ -182,7 +182,6 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
   def imagesNotAllowed = "* *" #> ""
 
   def imageHtmlId(image: TransactionImageJson) : String = "trans-image-" + image.id.getOrElse("")
-  def imageHtmlId2(image: TransactionImage) : String = "trans-image-" + image.id_
 
   def showImages = {
 
