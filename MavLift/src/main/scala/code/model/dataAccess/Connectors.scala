@@ -174,7 +174,8 @@ class MongoDBLocalStorage extends LocalStorage {
           //so we a true
           true
         }),
-        deleteCorporateLocation = oAcc.deleteCorporateLocation
+        deleteCorporateLocation = oAcc.deleteCorporateLocation,
+        deletePhysicalLocation = oAcc.deletePhysicalLocation
       )
     val otherAccount = new OtherBankAccount(
         id = oAcc.id.is.toString,
@@ -459,7 +460,8 @@ class MongoDBLocalStorage extends LocalStorage {
                   //so we a true
                   true
                 }),
-                deleteCorporateLocation = otherAccount.deleteCorporateLocation
+                deleteCorporateLocation = otherAccount.deleteCorporateLocation,
+                deletePhysicalLocation = otherAccount.deletePhysicalLocation
               )
 
             val otherBankAccount =
@@ -541,7 +543,8 @@ class MongoDBLocalStorage extends LocalStorage {
                 //so we a true
                 true
               }),
-              deleteCorporateLocation = otherAccount.deleteCorporateLocation
+              deleteCorporateLocation = otherAccount.deleteCorporateLocation,
+              deletePhysicalLocation = otherAccount.deletePhysicalLocation
             )
 
           val otherBankAccount =

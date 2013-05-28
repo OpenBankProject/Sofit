@@ -126,6 +126,7 @@ trait View {
   def canAddPublicAlias : Boolean
   def canAddPrivateAlias : Boolean
   def canDeleteCorporateLocation : Boolean
+  def canDeletePhysicalLocation : Boolean
 
   //writing access
   def canEditOwnerComment: Boolean
@@ -397,6 +398,11 @@ trait View {
               Some(otherBankAccount.metadata.deleteCorporateLocation)
             else
               None
+          val deletePhysicalLocation =
+            if(canDeletePhysicalLocation)
+              Some(otherBankAccount.metadata.deletePhysicalLocation)
+            else
+              None
 
 
           Some(
@@ -417,7 +423,8 @@ trait View {
               addPhysicalLocation,
               addPublicAlias,
               addPrivateAlias,
-              deleteCorporateLocation
+              deleteCorporateLocation,
+              deletePhysicalLocation
           ))
         }
         else
@@ -520,6 +527,7 @@ class BaseView extends View {
   def canAddPublicAlias = false
   def canAddPrivateAlias = false
   def canDeleteCorporateLocation = false
+  def canDeletePhysicalLocation = false
 
   //writing access
   def canEditOwnerComment = false
@@ -605,6 +613,7 @@ class FullView extends View {
   def canAddPublicAlias = true
   def canAddPrivateAlias = true
   def canDeleteCorporateLocation = true
+  def canDeletePhysicalLocation = true
 
   //writing access
   def canEditOwnerComment = true
@@ -802,7 +811,8 @@ object Public extends BaseView {
           Some(otherAccount.metadata.addPhysicalLocation),
           None,
           None,
-          Some(otherAccount.metadata.deleteCorporateLocation)
+          Some(otherAccount.metadata.deleteCorporateLocation),
+          Some(otherAccount.metadata.deletePhysicalLocation)
       ))
     }
 
@@ -906,7 +916,8 @@ object OurNetwork extends BaseView {
         Some(otherAccount.metadata.addPhysicalLocation),
         Some(otherAccount.metadata.addPublicAlias),
         Some(otherAccount.metadata.addPrivateAlias),
-        Some(otherAccount.metadata.deleteCorporateLocation)
+        Some(otherAccount.metadata.deleteCorporateLocation),
+        Some(otherAccount.metadata.deletePhysicalLocation)
       ))
 
     Some(new ModeratedOtherBankAccount(otherAccount.id,otherAccountLabel,None,None,None,

@@ -133,6 +133,10 @@ class OtherBankAccountMetadata(
   * @param: latitude
   */
   val addPhysicalLocation : (String, Long, Date, Double, Double) => Boolean,
+  /**
+  * @param: viewId
+  */
+  val deletePhysicalLocation : (Long) => Unit,
   val addPublicAlias : (String) => Boolean,
   val addPrivateAlias : (String) => Boolean
 )
