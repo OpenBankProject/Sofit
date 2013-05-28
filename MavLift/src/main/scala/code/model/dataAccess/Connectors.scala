@@ -173,7 +173,8 @@ class MongoDBLocalStorage extends LocalStorage {
           //the save method does not return a Boolean to inform about the saving state,
           //so we a true
           true
-        })
+        }),
+        oAcc.deleteCorporateLocation
       )
     val otherAccount = new OtherBankAccountImpl(
         id_ = oAcc.id.is.toString,
@@ -445,7 +446,8 @@ class MongoDBLocalStorage extends LocalStorage {
                   //the save method does not return a Boolean to inform about the saving state,
                   //so we a true
                   true
-                })
+                }),
+                otherAccount.deleteCorporateLocation
               )
 
             val otherBankAccount =
@@ -526,7 +528,8 @@ class MongoDBLocalStorage extends LocalStorage {
                 //the save method does not return a Boolean to inform about the saving state,
                 //so we a true
                 true
-              })
+              }),
+              otherAccount.deleteCorporateLocation
             )
 
           val otherBankAccount =

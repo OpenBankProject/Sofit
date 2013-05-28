@@ -188,6 +188,19 @@ class OtherAccount private() extends MongoRecord[OtherAccount] with ObjectIdPk[O
     corporateLocation(tags).save
     true
   }
+  def deleteCorporateLocation(viewId: Long):Unit = {
+    val location :Option[OBPGeoTag] = corporateLocation.get.find(
+      loc=>{loc.viewId ==viewId})
+    location match {
+      case Some(l) => {
+        val newCorporateLocation = corporateLocation.get.diff(Seq(l))
+        corporateLocation(newCorporateLocation).save
+      }
+      case None =>
+    }
+
+  }
+
   def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
     val newTag = OBPGeoTag.createRecord.
                 userId(userId).

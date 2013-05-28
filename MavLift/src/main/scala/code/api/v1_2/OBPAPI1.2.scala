@@ -91,7 +91,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
       moderatedTransaction <- account.moderatedTransaction(transactionID, view, user)
       metadata <- Box(moderatedTransaction.metadata) ?~ {"view " + viewId + " does not authorize metadata access"}
     } yield metadata
-  
+
   oauthServe(apiPrefix {
     case Nil JsonGet json => {
       user =>
@@ -578,15 +578,9 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-<<<<<<< Updated upstream
           addOpenCorpUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"the view " + viewId + "does not allow adding an open corporate url"}
           opernCoprUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
           if(addOpenCorpUrl(opernCoprUrl.open_corporates_URL))
-=======
-          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow adding an open corporate url"}
-          openCorpUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
-          if(addOpenCorpUrl(openCorpUrl.open_corporates_URL))
->>>>>>> Stashed changes
         } yield {
             val successJson = SuccessMessage("open corporate url added")
             successJsonResponse(Extraction.decompose(successJson), 201)
@@ -602,15 +596,9 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-<<<<<<< Updated upstream
           addOpenCorpUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"the view " + viewId + "does not allow updating an open corporate url"}
           opernCoprUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
           if(addOpenCorpUrl(opernCoprUrl.open_corporates_URL))
-=======
-          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow updating an open corporate url"}
-          openCorpUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
-          if(addOpenCorpUrl(openCorpUrl.open_corporates_URL))
->>>>>>> Stashed changes
         } yield {
             val successJson = SuccessMessage("open corporate url updated")
             successJsonResponse(Extraction.decompose(successJson))
@@ -666,6 +654,23 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         } yield {
             val successJson = SuccessMessage("corporate location updated")
             successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "corporate_location" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          u <- user
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addCorpLocation <- Box(metadata.addCorporateLocation) ?~ {"the view " + viewId + "does not allow deleting a corporate location"}
+          deleted <- Box(metadata.deleteCorporateLocation)
+        } yield {
+          noContentJsonResponse
         }
     }
   })
@@ -734,7 +739,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         }
     }
   })
-  
+
 oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
       user =>
@@ -783,7 +788,7 @@ oauthServe(apiPrefix {
         }
     }
   })
-  
+
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
       user =>

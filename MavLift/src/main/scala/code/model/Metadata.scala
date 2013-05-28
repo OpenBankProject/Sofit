@@ -121,7 +121,10 @@ class OtherBankAccountMetadata(
   * @param: latitude
   */
   val addCorporateLocation : (String, Long, Date, Double, Double) => Boolean,
-
+  /**
+  * @param: viewId
+  */
+  val deleteCorporateLocation : (Long) => Unit,
   /**
   * @param: userId
   * @param: viewId

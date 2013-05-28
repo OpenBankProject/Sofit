@@ -102,7 +102,8 @@ class ModeratedOtherBankAccountMetadata(
   addCorporateLocation_ : Option[(String, Long, Date, Double, Double) => Boolean],
   addPhysicalLocation_ : Option[(String, Long, Date, Double, Double) => Boolean],
   addPublicAlias_ : Option[(String) => Boolean],
-  addPrivateAlias_ : Option[(String) => Boolean]
+  addPrivateAlias_ : Option[(String) => Boolean],
+  deleteCorporateLocation_ : Option[(Long) => Unit]
 ) {
   def moreInfo = moreInfo_
   def url = url_
@@ -120,6 +121,7 @@ class ModeratedOtherBankAccountMetadata(
   def addPhysicalLocation = addPhysicalLocation_
   def addPublicAlias = addPublicAlias_
   def addPrivateAlias = addPrivateAlias_
+  def deleteCorporateLocation = deleteCorporateLocation_
 }
 
 object ModeratedOtherBankAccountMetadata {
@@ -216,9 +218,9 @@ class ModeratedTransactionMetadata(
     for {
       tagList <- Box(tags) ?~ { "You must be able to see tags in order to delete them"}
       tag <- Box(tagList.find(tag => tag.id_ == tagId)) ?~ {"Tag with id " + tagId + "not found for this transaction"}
-      deleteFunc <- if(tag.postedBy == user || bankAccount.authorizedAccess(Owner, user)) 
+      deleteFunc <- if(tag.postedBy == user || bankAccount.authorizedAccess(Owner, user))
     	              Box(deleteTagFunc) ?~ "Deleting tags not permitted for this view"
-                    else 
+                    else
                       Failure("deleting tags not permitted for the current user")
     } yield {
       deleteFunc(tagId)
@@ -235,9 +237,9 @@ class ModeratedTransactionMetadata(
     for {
       imageList <- Box(images) ?~ { "You must be able to see images in order to delete them"}
       image <- Box(imageList.find(image => image.id_ == imageId)) ?~ {"Image with id " + imageId + "not found for this transaction"}
-      deleteFunc <- if(image.postedBy == user || bankAccount.authorizedAccess(Owner, user)) 
+      deleteFunc <- if(image.postedBy == user || bankAccount.authorizedAccess(Owner, user))
     	              Box(deleteImageFunc) ?~ "Deleting images not permitted for this view"
-                    else 
+                    else
                       Failure("deleting images not permitted for the current user")
     } yield {
       deleteFunc(imageId)

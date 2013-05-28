@@ -125,6 +125,7 @@ trait View {
   def canAddPhysicalLocation : Boolean
   def canAddPublicAlias : Boolean
   def canAddPrivateAlias : Boolean
+  def canDeleteCorporateLocation : Boolean
 
   //writing access
   def canEditOwnerComment: Boolean
@@ -391,6 +392,11 @@ trait View {
               Some(otherBankAccount.metadata.addPrivateAlias _)
             else
               None
+          val deleteCorporateLocation =
+            if(canDeleteCorporateLocation)
+              Some(otherBankAccount.metadata.deleteCorporateLocation _)
+            else
+              None
 
 
           Some(
@@ -410,8 +416,8 @@ trait View {
               addCorporateLocation,
               addPhysicalLocation,
               addPublicAlias,
-              addPrivateAlias
-
+              addPrivateAlias,
+              deleteCorporateLocation
           ))
         }
         else
@@ -513,6 +519,7 @@ class BaseView extends View {
   def canAddPhysicalLocation = false
   def canAddPublicAlias = false
   def canAddPrivateAlias = false
+  def canDeleteCorporateLocation = false
 
   //writing access
   def canEditOwnerComment = false
@@ -597,6 +604,7 @@ class FullView extends View {
   def canAddPhysicalLocation = true
   def canAddPublicAlias = true
   def canAddPrivateAlias = true
+  def canDeleteCorporateLocation = true
 
   //writing access
   def canEditOwnerComment = true
