@@ -329,7 +329,6 @@ table.transactions td.tags .tag {
     width: 100%
 }
 table.transactions td.tags .tag .tagContent {
-    border: 2px solid #CBCBCB;
     display: inline-block;
     margin-bottom: 2px;
     padding: 1px 4px;

@@ -46,7 +46,7 @@ import code.model.dataAccess.{OBPUser,Account, LocalStorage}
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds._Noop
-import code.model.traits.BankAccount
+import code.model.BankAccount
 
 class Nav {
 
@@ -112,10 +112,11 @@ class Nav {
   def item = {
     val attrs = S.prefixedAttrsToMetaData("a")
     val name = S.attr("name").getOrElse("")
-    val loc = (for{
-      sitemap <- LiftRules.siteMap
-      l <- new SiteMapSingleton().findAndTestLoc(name)
-    } yield l)
+    val loc =
+      for{
+        sitemap <- LiftRules.siteMap
+        l <- new SiteMapSingleton().findAndTestLoc(name)
+      } yield l
 
     ".navitem *" #>{
       loc.map(navItemSelector)

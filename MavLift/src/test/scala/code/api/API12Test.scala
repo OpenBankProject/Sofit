@@ -178,7 +178,7 @@ class API1_2Test extends ServerSetup{
   }
 
   def randomOtherBankAccount(bankId : String, accountId : String, viewId : String): OtherAccountJSON = {
-    val otherAccounts = getTheOtherBankAccounts(bankId, accountId, viewId).body.extract[OtherAccountsJSON].other_accounts
+    val otherAccounts = getTheOtherBankAccounts(bankId, accountId, randomViewPermalink).body.extract[OtherAccountsJSON].other_accounts
     otherAccounts(Random.nextInt(otherAccounts.size))
   }
 

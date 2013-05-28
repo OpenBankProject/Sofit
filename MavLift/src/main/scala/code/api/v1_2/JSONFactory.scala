@@ -33,7 +33,7 @@ package code.api.v1_2
 
 import java.util.Date
 import net.liftweb.common.{Box, Full}
-import code.model.traits._
+import code.model._
 
 case class APIInfoJSON(
   version : String,
@@ -413,8 +413,8 @@ object JSONFactory{
       private_alias = stringOptionOrNull(metadata.privateAlias),
       more_info = stringOptionOrNull(metadata.moreInfo),
       URL = stringOptionOrNull(metadata.url),
-      image_URL = stringOptionOrNull(metadata.imageUrl),
-      open_corporates_URL = stringOptionOrNull(metadata.openCorporatesUrl),
+      image_URL = stringOptionOrNull(metadata.imageURL),
+      open_corporates_URL = stringOptionOrNull(metadata.openCorporatesURL),
       corporate_location = metadata.corporateLocation.map(createLocationJSON).getOrElse(null),
       physical_location = metadata.physicalLocation.map(createLocationJSON).getOrElse(null)
     )

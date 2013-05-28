@@ -47,12 +47,10 @@ import net.liftweb.mongodb.record.field.BsonRecordListField
 import net.liftweb.mongodb.record.{ BsonRecord, BsonMetaRecord }
 import net.liftweb.record.field.{ StringField, BooleanField, DecimalField }
 import net.liftweb.mongodb.{Limit, Skip}
-import code.model.dataAccess.OBPEnvelope._
-import code.model.traits.ModeratedTransaction
-import code.model.traits.BankAccount
-import code.model.implementedTraits.{ BankAccountImpl, AccountOwnerImpl }
+import code.model.{ModeratedTransaction, AccountOwner, BankAccount}
 import net.liftweb.mongodb.BsonDSL._
 import java.util.Date
+import OBPEnvelope._
 
 
 /**
@@ -126,9 +124,9 @@ object Account extends Account with MongoMetaRecord[Account] {
   def toBankAccount(account: Account): BankAccount = {
     val iban = if (account.iban.toString.isEmpty) None else Some(account.iban.toString)
     var bankAccount =
-      new BankAccountImpl(
+      new BankAccount(
         account.id.toString,
-        Set(),
+        Set(new AccountOwner("", account.holder.toString)),
         account.kind.toString,
         account.balance.get,
         account.currency.toString,
@@ -143,9 +141,6 @@ object Account extends Account with MongoMetaRecord[Account] {
         account.bankPermalink,
         account.permalink.get
       )
-    val owners = Set(new AccountOwnerImpl("", account.holder.toString, Set(bankAccount)))
-    bankAccount.owners = Set(new AccountOwnerImpl("", account.holder.toString, Set(bankAccount)))
-
     bankAccount
   }
 }
