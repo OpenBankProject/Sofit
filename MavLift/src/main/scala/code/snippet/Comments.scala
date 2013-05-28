@@ -493,14 +493,8 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       commentDate &
       userInfo
   }
-
-  var commentsListSize = transaction.metadata match {
-    case Some(metadata) => metadata.comments match {
-      case Some(comments) => comments.size
-      case _ =>  0
-    }
-    case _ => 0
-  }
+  
+  var commentsListSize : Int = transactionJson.commentJsons.map(_.size).getOrElse(0)
 
   def addComment : CssSel = {
 
