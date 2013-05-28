@@ -46,7 +46,7 @@ import code.model.dataAccess.{ OBPUser, Account, LocalStorage }
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds._Noop
-import code.model.traits.BankAccount
+import code.model.BankAccount
 import code.lib.ObpJson._
 import code.lib.ObpGet
 import code.lib.ObpAPI
