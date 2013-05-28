@@ -31,8 +31,7 @@ Berlin 13359, Germany
  */
 package code.model.dataAccess
 
-import code.model.traits._
-import code.model.implementedTraits._
+import code.model._
 import net.liftweb.common.{ Box, Empty, Full, Failure }
 import net.liftweb.util.Helpers.tryo
 import net.liftweb.mongodb.BsonDSL._
@@ -128,7 +127,7 @@ class MongoDBLocalStorage extends LocalStorage {
     val id = env.id.is.toString()
     val uuid = id
     val otherAccountMetadata =
-      new OtherBankAccountMetadataImpl(
+      new OtherBankAccountMetadata(
         oAcc.publicAlias.get,
         oAcc.privateAlias.get,
         oAcc.moreInfo.get,
@@ -161,32 +160,44 @@ class MongoDBLocalStorage extends LocalStorage {
           true
         }),
         oAcc.addCorporateLocation _,
-        oAcc.addPhysicalLocation _
+        oAcc.addPhysicalLocation _,
+        (alias => {
+          oAcc.publicAlias(alias).save
+          //the save method does not return a Boolean to inform about the saving state,
+          //so we a true
+          true
+        }),
+        (alias => {
+          oAcc.privateAlias(alias).save
+          //the save method does not return a Boolean to inform about the saving state,
+          //so we a true
+          true
+        })
       )
-    val otherAccount = new OtherBankAccountImpl(
-        id_ = oAcc.id.is.toString,
-        label_ = otherAccount_.holder.get,
-        nationalIdentifier_ = otherAccount_.bank.get.national_identifier.get,
-        swift_bic_ = None, //TODO: need to add this to the json/model
-        iban_ = Some(otherAccount_.bank.get.IBAN.get),
-        number_ = otherAccount_.number.get,
-        bankName_ = otherAccount_.bank.get.name.get,
-        metadata_ = otherAccountMetadata,
-        kind_ = ""
+    val otherAccount = new OtherBankAccount(
+        id = oAcc.id.is.toString,
+        label = otherAccount_.holder.get,
+        nationalIdentifier = otherAccount_.bank.get.national_identifier.get,
+        swift_bic = None, //TODO: need to add this to the json/model
+        iban = Some(otherAccount_.bank.get.IBAN.get),
+        number = otherAccount_.number.get,
+        bankName = otherAccount_.bank.get.name.get,
+        metadata = otherAccountMetadata,
+        kind = ""
       )
-    val metadata = new TransactionMetadataImpl(
+    val metadata = new TransactionMetadata(
       env.narrative.get,
-      env.obp_comments.objs,
       (text => env.narrative(text).save),
-      env.addComment _,
+      env.obp_comments.objs,
+      env.addComment,
       env.tags.objs,
-      env.addTag _,
-      env.deleteTag _,
+      env.addTag,
+      env.deleteTag,
       env.images.objs,
-      env.addImage _,
-      env.deleteImage _,
-      env.addWhereTag _,
-      env.whereTags.get
+      env.addImage,
+      env.deleteImage,
+      env.whereTags.get,
+      env.addWhereTag
     )
     val transactionType = transaction.details.get.type_en.get
     val amount = transaction.details.get.value.get.amount.get
@@ -195,8 +206,20 @@ class MongoDBLocalStorage extends LocalStorage {
     val startDate = transaction.details.get.posted.get
     val finishDate = transaction.details.get.completed.get
     val balance = transaction.details.get.new_balance.get.amount.get
-    new TransactionImpl(uuid, id, thisBankAccount, otherAccount, metadata, transactionType, amount, currency,
-      label, startDate, finishDate, balance)
+    new Transaction(
+      uuid,
+      id,
+      thisBankAccount,
+      otherAccount,
+      metadata,
+      transactionType,
+      amount,
+      currency,
+      label,
+      startDate,
+      finishDate,
+      balance
+    )
   }
 
   def getTransactions(permalink: String, bankPermalink: String, envelopesForAccount: Account => List[OBPEnvelope]): Box[List[Transaction]] = {
@@ -217,7 +240,7 @@ class MongoDBLocalStorage extends LocalStorage {
     HostedBank.find("permalink", permalink) match {
       case Full(bank) =>
         Full(
-          new BankImpl(
+          new Bank(
             bank.id.is.toString,
             bank.alias.is,
             bank.name.is,
@@ -233,7 +256,7 @@ class MongoDBLocalStorage extends LocalStorage {
     HostedBank.findAll.
       map(
         bank =>
-        new BankImpl(
+        new Bank(
           bank.id.is.toString,
           bank.alias.is,
           bank.name.is,
@@ -359,8 +382,15 @@ class MongoDBLocalStorage extends LocalStorage {
   def getAllPublicAccounts() : List[BankAccount] = Account.findAll("anonAccess", true) map Account.toBankAccount
 
   def getUser(id : String) : Box[User] =
-    OBPUser.find(id) match {
-      case Full(u) => Full(u)
+    tryo{
+      id.toLong
+    } match {
+      case Full(idInLong) => {
+        OBPUser.find(By(OBPUser.id,idInLong)) match {
+          case Full(u) => Full(u)
+          case _ => Failure("user " + id + " not found")
+        }
+      }
       case _ => Failure("user " + id + " not found")
     }
 
@@ -371,7 +401,7 @@ class MongoDBLocalStorage extends LocalStorage {
       case Full(account) =>
         account.otherAccounts.objs.find(otherAccount => { otherAccount.id.get.equals(otherAccountID)}) match {
           case Some(otherAccount) =>{
-            //for leagcy reasons some of the data about the "other account" are stored only on the transactions
+            //for legacy reasons some of the data about the "other account" are stored only on the transactions
             //so we need first to get a transaction that match to have the rest of the data
             val otherAccountFromTransaction : OBPAccount = OBPEnvelope.find("obp_transaction.other_account.holder",otherAccount.holder.get) match {
                 case Full(envelope) =>
@@ -380,7 +410,7 @@ class MongoDBLocalStorage extends LocalStorage {
               }
 
             val metadata =
-              new OtherBankAccountMetadataImpl(
+              new OtherBankAccountMetadata(
                 otherAccount.publicAlias.get,
                 otherAccount.privateAlias.get,
                 otherAccount.moreInfo.get,
@@ -414,25 +444,118 @@ class MongoDBLocalStorage extends LocalStorage {
                   true
                 }),
                 otherAccount.addCorporateLocation _,
-                otherAccount.addPhysicalLocation _
+                otherAccount.addPhysicalLocation _,
+                (alias => {
+                  otherAccount.publicAlias(alias).save
+                  //the save method does not return a Boolean to inform about the saving state,
+                  //so we a true
+                  true
+                }),
+                (alias => {
+                  otherAccount.privateAlias(alias).save
+                  //the save method does not return a Boolean to inform about the saving state,
+                  //so we a true
+                  true
+                })
               )
 
             val otherBankAccount =
-              new OtherBankAccountImpl(
-                id_ = otherAccount.id.is.toString,
-                label_ = otherAccount.holder.get,
-                nationalIdentifier_ = otherAccountFromTransaction.bank.get.national_identifier.get,
-                swift_bic_ = None, //TODO: need to add this to the json/model
-                iban_ = Some(otherAccountFromTransaction.bank.get.IBAN.get),
-                number_ = otherAccountFromTransaction.number.get,
-                bankName_ = otherAccountFromTransaction.bank.get.name.get,
-                metadata_ = metadata,
-                kind_ = ""
+              new OtherBankAccount(
+                id = otherAccount.id.is.toString,
+                label = otherAccount.holder.get,
+                nationalIdentifier = otherAccountFromTransaction.bank.get.national_identifier.get,
+                swift_bic = None, //TODO: need to add this to the json/model
+                iban = Some(otherAccountFromTransaction.bank.get.IBAN.get),
+                number = otherAccountFromTransaction.number.get,
+                bankName = otherAccountFromTransaction.bank.get.name.get,
+                metadata = metadata,
+                kind = ""
               )
               Full(otherBankAccount)
           }
           case _ => Failure("other account id " + otherAccountID + "not found", Empty, Empty)
         }
+      case _ => Failure("Bank account id " + accountID + " not found.")
+    }
+  }
+  def getOthersAccount(accountID : String) : Box[List[OtherBankAccount]] = {
+    Account.find("_id",new ObjectId(accountID)) match {
+      case Full(account) => {
+        val otherBankAccounts = account.otherAccounts.objs.map(otherAccount => {
+          //for legacy reasons some of the data about the "other account" are stored only on the transactions
+          //so we need first to get a transaction that match to have the rest of the data
+          val otherAccountFromTransaction : OBPAccount = OBPEnvelope.find("obp_transaction.other_account.holder",otherAccount.holder.get) match {
+              case Full(envelope) =>
+                envelope.obp_transaction.get.other_account.get
+              case _ => OBPAccount.createRecord
+            }
+
+          val metadata =
+            new OtherBankAccountMetadata(
+              otherAccount.publicAlias.get,
+              otherAccount.privateAlias.get,
+              otherAccount.moreInfo.get,
+              otherAccount.url.get,
+              otherAccount.imageUrl.get,
+              otherAccount.openCorporatesUrl.get,
+              otherAccount.corporateLocation.get,
+              otherAccount.physicalLocation.get,
+              (text => {
+                otherAccount.moreInfo(text).save
+                //the save method does not return a Boolean to inform about the saving state,
+                //so we a true
+                true
+              }),
+              (text => {
+                otherAccount.url(text).save
+                //the save method does not return a Boolean to inform about the saving state,
+                //so we a true
+                true
+              }),
+              (text => {
+                otherAccount.imageUrl(text).save
+                //the save method does not return a Boolean to inform about the saving state,
+                //so we a true
+                true
+              }),
+              (text => {
+                otherAccount.openCorporatesUrl(text).save
+                //the save method does not return a Boolean to inform about the saving state,
+                //so we a true
+                true
+              }),
+              otherAccount.addCorporateLocation _,
+              otherAccount.addPhysicalLocation _,
+              (alias => {
+                otherAccount.publicAlias(alias).save
+                //the save method does not return a Boolean to inform about the saving state,
+                //so we a true
+                true
+              }),
+              (alias => {
+                otherAccount.privateAlias(alias).save
+                //the save method does not return a Boolean to inform about the saving state,
+                //so we a true
+                true
+              })
+            )
+
+          val otherBankAccount =
+            new OtherBankAccount(
+              id = otherAccount.id.is.toString,
+              label = otherAccount.holder.get,
+              nationalIdentifier = otherAccountFromTransaction.bank.get.national_identifier.get,
+              swift_bic = None, //TODO: need to add this to the json/model
+              iban = Some(otherAccountFromTransaction.bank.get.IBAN.get),
+              number = otherAccountFromTransaction.number.get,
+              bankName = otherAccountFromTransaction.bank.get.name.get,
+              metadata = metadata,
+              kind = ""
+            )
+            otherBankAccount
+        })
+        Full(otherBankAccounts)
+      }
       case _ => Failure("Bank account id " + accountID + " not found.")
     }
   }
@@ -470,10 +593,15 @@ class MongoDBLocalStorage extends LocalStorage {
     for{
       userId <- tryo{user.id_.toLong}
       bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
-      privilege <- Privilege.find(By(Privilege.user, userId), By(Privilege.account, bankAccount))
     } yield {
-        setPrivilegeFromView(privilege, view, false)
-        privilege.save
+        Privilege.find(By(Privilege.user, userId), By(Privilege.account, bankAccount)) match {
+          case Full(privilege) => {
+            setPrivilegeFromView(privilege, view, false)
+            privilege.save
+          }
+          //there is no privilege to this user, so there is nothing to revoke
+          case _ => true
+        }
       }
   }
   private def setPrivilegeFromView(privilege : Privilege, view : View, value : Boolean ) = {

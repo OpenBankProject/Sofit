@@ -29,28 +29,38 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 
  */
-package code.model.implementedTraits
 
-import code.model.traits.{Transaction,BankAccount,OtherBankAccount, TransactionMetadata}
-import scala.math.BigDecimal
-import java.util.Date
-import net.liftweb.common.Loggable
+package code.model
 
-class TransactionImpl(uuid_ : String, id_ : String, var _thisAccount : BankAccount = null, otherAccount_ : OtherBankAccount,
-  metadata_ : TransactionMetadata, transactionType_ : String, amount_ : BigDecimal, currency_ : String,
-  label_ : Option[String], startDate_ : Date, finishDate_ : Date, balance_ :  BigDecimal) extends Transaction with Loggable {
+import net.liftweb.json.JsonDSL._
+import net.liftweb.json.JsonAST.JObject
+import code.model.dataAccess.LocalStorage
+import net.liftweb.common.Box
 
-  def uuid = uuid_
-  def id = id_
-  def thisAccount = _thisAccount
-  def thisAccount_= (newThisAccount : BankAccount) = _thisAccount = newThisAccount
-  def otherAccount = otherAccount_
-  def metadata = metadata_
-  def transactionType = transactionType_
-  def amount = amount_
-  def currency = currency_
-  def label = label_
-  def startDate = startDate_
-  def finishDate = finishDate_
-  def balance = balance_
+trait User {
+  def id_ : String
+  def provider : String
+  def emailAddress : String
+  def theFirstName : String
+  def theLastName : String
+  def permittedViews(bankAccount: BankAccount) : Set[View]
+  def hasMangementAccess(bankAccount: BankAccount)  : Boolean
+  override def toString = emailAddress
+
+  /**
+  * @return the bank accounts where the user has at least access to a non public view (is_public==false)
+  */
+  def nonPublicAccounts : List[BankAccount] = LocalStorage.getNonPublicBankAccounts(this)
+
+  def toJson : JObject =
+    ("id" -> id_) ~
+    ("provider" -> "sofi.openbankproject.com") ~
+    ("display_name" -> {theFirstName + " " + theLastName})
+}
+
+object User {
+  def findById(id : String) : Box[User] =
+    LocalStorage.getUser(id)
+  def currentUser : Box[User] =
+    LocalStorage.getCurrentUser
 }

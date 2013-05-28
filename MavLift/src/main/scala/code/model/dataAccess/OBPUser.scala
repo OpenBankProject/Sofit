@@ -39,8 +39,7 @@ import scala.xml.NodeSeq
 import net.liftweb.sitemap.Loc.LocGroup
 import net.liftweb.http.{S,SessionVar,Templates}
 import com.mongodb.QueryBuilder
-import code.model.traits.{View,BankAccount,User}
-import code.model.implementedTraits._
+import code.model.{View,User, BankAccount, OurNetwork, Management, Public, Team, Board, Authorities, Owner}
 import net.liftweb.json.JsonDSL._
 import net.liftweb.http.SHtml
 import net.liftweb.http.S
