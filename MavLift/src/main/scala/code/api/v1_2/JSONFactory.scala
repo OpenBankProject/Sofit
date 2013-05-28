@@ -220,6 +220,16 @@ case class ImageUrlJSON(
 case class OpenCorporateUrlJSON(
   open_corporates_URL: String
 )
+case class CorporateLocationJSON(
+  corporate_location: LocationPlainJSON
+)
+case class PhysicalLocationJSON(
+  physical_location: LocationPlainJSON
+)
+case class LocationPlainJSON(
+  latitude : Double,
+  longitude : Double
+)
 
 object JSONFactory{
   def stringOrNull(text : String) =

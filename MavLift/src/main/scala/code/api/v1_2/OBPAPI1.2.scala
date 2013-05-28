@@ -578,9 +578,15 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+<<<<<<< Updated upstream
           addOpenCorpUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"the view " + viewId + "does not allow adding an open corporate url"}
           opernCoprUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
           if(addOpenCorpUrl(opernCoprUrl.open_corporates_URL))
+=======
+          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow adding an open corporate url"}
+          openCorpUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
+          if(addOpenCorpUrl(openCorpUrl.open_corporates_URL))
+>>>>>>> Stashed changes
         } yield {
             val successJson = SuccessMessage("open corporate url added")
             successJsonResponse(Extraction.decompose(successJson), 201)
@@ -596,9 +602,15 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+<<<<<<< Updated upstream
           addOpenCorpUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"the view " + viewId + "does not allow updating an open corporate url"}
           opernCoprUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
           if(addOpenCorpUrl(opernCoprUrl.open_corporates_URL))
+=======
+          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow updating an open corporate url"}
+          openCorpUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
+          if(addOpenCorpUrl(openCorpUrl.open_corporates_URL))
+>>>>>>> Stashed changes
         } yield {
             val successJson = SuccessMessage("open corporate url updated")
             successJsonResponse(Extraction.decompose(successJson))
@@ -617,6 +629,82 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           addOpenCorpUrl <- Box(metadata.addOpenCorporatesUrl) ?~ {"the view " + viewId + "does not allow deleting an open corporate url"}
           if(addOpenCorpUrl(""))
         } yield noContentJsonResponse
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: other_account_id :: "corporate_location" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          u <- user
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addCorpLocation <- Box(metadata.addCorporateLocation) ?~ {"the view " + viewId + "does not allow adding a corporate location"}
+          openCorpLocation <- tryo{(json.extract[CorporateLocationJSON])} ?~ {"wrong JSON format"}
+          if(addCorpLocation(u.id_, view.id, now, openCorpLocation.corporate_location.longitude, openCorpLocation.corporate_location.latitude))
+        } yield {
+            val successJson = SuccessMessage("corporate location added")
+            successJsonResponse(Extraction.decompose(successJson), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "corporate_location" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          u <- user
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addCorpLocation <- Box(metadata.addCorporateLocation) ?~ {"the view " + viewId + "does not allow updating a corporate location"}
+          openCorpLocation <- tryo{(json.extract[CorporateLocationJSON])} ?~ {"wrong JSON format"}
+         if(addCorpLocation(u.id_, view.id, now, openCorpLocation.corporate_location.longitude, openCorpLocation.corporate_location.latitude))
+        } yield {
+            val successJson = SuccessMessage("corporate location updated")
+            successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts" :: other_account_id :: "physical_location" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          u <- user
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addPhysicalLocation <- Box(metadata.addPhysicalLocation) ?~ {"the view " + viewId + "does not allow adding a physical location"}
+          openPhysicalLocation <- tryo{(json.extract[PhysicalLocationJSON])} ?~ {"wrong JSON format"}
+          if(addPhysicalLocation(u.id_, view.id, now, openPhysicalLocation.physical_location.longitude, openPhysicalLocation.physical_location.latitude))
+        } yield {
+            val successJson = SuccessMessage("physical location added")
+            successJsonResponse(Extraction.decompose(successJson), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "physical_location" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          u <- user
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addPhysicalLocation <- Box(metadata.addPhysicalLocation) ?~ {"the view " + viewId + "does not allow updating a physical location"}
+          openPhysicalLocation <- tryo{(json.extract[PhysicalLocationJSON])} ?~ {"wrong JSON format"}
+         if(addPhysicalLocation(u.id_, view.id, now, openPhysicalLocation.physical_location.longitude, openPhysicalLocation.physical_location.latitude))
+        } yield {
+            val successJson = SuccessMessage("physical location updated")
+            successJsonResponse(Extraction.decompose(successJson))
+        }
     }
   })
 
@@ -726,7 +814,6 @@ oauthServe(apiPrefix {
     }
   })
 
-
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: imageId :: Nil JsonDelete _ => {
       user =>
@@ -740,5 +827,4 @@ oauthServe(apiPrefix {
         }
     }
   })
-
 }
