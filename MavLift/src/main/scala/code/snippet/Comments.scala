@@ -53,13 +53,11 @@ import net.liftweb.http.StringField
 import java.util.Date
 import java.text.SimpleDateFormat
 import net.liftweb.common.Loggable
-import code.model.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag, User}
 import java.util.Currency
 import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
 import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
 import net.liftweb.http.js.JE.Str
 import net.liftweb.http.js.JsCmds.Alert
-import code.model.TransactionImage
 import net.liftweb.util.Props
 import scala.xml.Utility
 import net.liftweb.common.Failure
@@ -80,17 +78,14 @@ case class CommentsURLParams(bankId: String, accountId: String, viewId: String, 
 /**
  * This whole class is a rather hastily put together mess
  */
-class Comments(params : ((ModeratedTransaction, View),(TransactionJson, CommentsURLParams))) extends Loggable{
+class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
   
   //TODO: Support multiple providers
   val provider = OAuthClient.defaultProvider
   
   val FORBIDDEN = "---"
-  val transaction = params._1._1
-  val view = params._1._2
-  val transactionInfo = params._2
-  val transactionJson = transactionInfo._1
-  val urlParams = transactionInfo._2
+  val transactionJson = params._1
+  val urlParams = params._2
   val details = transactionJson.details
   val transactionMetaData = transactionJson.metadata
   val otherHolder = transactionJson.other_account.flatMap(_.holder)
@@ -256,7 +251,6 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
 
     if(S.post_?) {
       val description = S.param("description") getOrElse ""
-      val viewId = view.id
       val addedImage = for {
         transloadit <- S.param("transloadit") ?~! "No transloadit data received"
         json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"

@@ -191,21 +191,11 @@ class Boot extends Loggable{
           val transactionJson = ObpGet("/banks/" + bank + "/accounts/" + account + "/" + viewName +
             "/transactions/" + transactionID + "/transaction").flatMap(x => x.extractOpt[TransactionJson])
 
-          //This comes from the DB and should be removed during the transition to API only access
-          // But for now Comments.scala still needs it as the transition is incomplete
-          val transaction = for {
-            bankAccount <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
-            transaction <- bankAccount.transaction(transactionID) ?~ { "transaction " + transactionID + " not found in account " + account + " for bank " + bank }
-            view <- View.fromUrl(viewName) ?~ { "view " + viewName + " not found" }
-            if (bankAccount.authorizedAccess(view, OBPUser.currentUser))
-          } yield (view.moderate(transaction), view)
-
           val commentsURLParams = CommentsURLParams(bankId = bank, accountId = account, transactionId = transactionID, viewId = viewName)
           
           for {
-            t <- transaction
             tJson <- transactionJson
-          } yield ((t, (tJson, commentsURLParams)))
+          } yield (tJson, commentsURLParams)
         } else
           Empty
       }
@@ -238,7 +228,7 @@ class Boot extends Loggable{
           Menu.params[(List[ModeratedTransaction], View, BankAccount)]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
 
-          Menu.params[((ModeratedTransaction, View),(TransactionJson, CommentsURLParams))]("transaction", "transaction", getTransaction _ ,  t => List("") )
+          Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
           / "banks" / * / "accounts" / * / "transactions" / * / *
     )
 
