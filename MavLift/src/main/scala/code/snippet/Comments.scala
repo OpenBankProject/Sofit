@@ -190,16 +190,6 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
   def imageHtmlId2(image: TransactionImage) : String = "trans-image-" + image.id_
 
   def showImages = {
-    
-    def deleteImage2(image: TransactionImage) = {
-      transaction.metadata.flatMap(_.deleteImage) match {
-        case Some(delete) => delete(image.id_)
-        case _ => logger.warn("No delete image function found.")
-      }
-
-      val jqueryRemoveImage = "$('.image-holder[data-id=\"" + imageHtmlId2(image) + "\"]').remove();"
-      JsRaw(jqueryRemoveImage).cmd
-    }
 
     def imagesSelector(imageJsons: List[TransactionImageJson]) = {
 
