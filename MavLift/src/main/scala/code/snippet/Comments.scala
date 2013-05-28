@@ -73,6 +73,7 @@ import code.lib.ObpAPI
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import code.lib.OAuthClient
 import net.liftweb.http.RequestVar
+import code.api.v1_2.TransactionCommentJSON
 
 case class CommentsURLParams(bankId: String, accountId: String, viewId: String, transactionId: String)
 
@@ -463,34 +464,7 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
       ".commentsContainer" #> {
         "#noComments" #> "" &
           ".comment" #> comments.sortWith(orderByDateDescending).zipWithIndex.map {
-            case (commentJson, position) => {
-
-              def commentDate : CssSel = {
-                commentJson.date.map(d => {
-                  ".commentDate *" #> commentDateFormat.format(d)
-                }) getOrElse
-                  ".commentDate" #> ""
-              }
-
-              def userInfo : CssSel = {
-                commentJson.user.map(u => {
-                  ".userInfo *" #> {
-                    " -- " + u.display_name.getOrElse("")
-                  }
-                }) getOrElse
-                  ".userInfo" #> ""
-              }
-              
-              val displayPosition = position + 1
-              val commentId = "comment_" + displayPosition
-              
-              ".text *" #> commentJson.value.getOrElse("") &
-              ".commentLink * " #> { "#" + displayPosition } &
-              ".commentLink [id]" #> commentId &
-              ".commentLink [href]" #> { "#" + commentId } &
-              commentDate &
-              userInfo
-            }
+            case (commentJson, position) => commentCssSel(commentJson, position + 1)
           }
       }
     }
@@ -505,6 +479,31 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
 
   }
 
+  def commentCssSel(commentJson: TransactionCommentJson, displayPosition : Int) = {
+    def commentDate: CssSel = {
+      commentJson.date.map(d => {
+        ".commentDate *" #> commentDateFormat.format(d)
+      }) getOrElse
+        ".commentDate" #> ""
+    }
+
+    def userInfo: CssSel = {
+      commentJson.user.map(u => {
+        ".userInfo *" #> {
+          " -- " + u.display_name.getOrElse("")
+        }
+      }) getOrElse
+        ".userInfo" #> ""
+    }
+
+    ".text *" #> commentJson.value.getOrElse("") &
+      ".commentLink * " #> { "#" + displayPosition } &
+      ".commentLink [id]" #> displayPosition &
+      ".commentLink [href]" #> { "#" + displayPosition } &
+      commentDate &
+      userInfo
+  }
+
   var commentsListSize = transaction.metadata match {
     case Some(metadata) => metadata.comments match {
       case Some(comments) => comments.size
@@ -513,50 +512,45 @@ class Comments(params : ((ModeratedTransaction, View),(TransactionJson, Comments
     case _ => 0
   }
 
-  def addComment(xhtml: NodeSeq) : NodeSeq = {
-    User.currentUser match {
-      case Full(user) =>
-        transaction.metadata match {
-          case Some(metadata) =>
-            metadata.addComment match {
-              case Some(addComment) => {
-                var commentText = ""
-                var commentDate = new Date
-                SHtml.ajaxForm(
-                  SHtml.textarea(
-                    "",
-                    comment => {
-                      commentText = comment
-                      commentDate = new Date
-                      addComment(user.id_, view.id, comment,commentDate)
-                    },
-                    ("rows","4"),("cols","50"),
-                    ("id","addCommentTextArea"),
-                    ("placeholder","add a comment here")
-                  ) ++
-                  SHtml.ajaxSubmit("add a comment",() => {
-                    val commentXml = Templates(List("templates-hidden","_comment")).map({
-                      commentsListSize = commentsListSize + 1
-                      val commentId="comment_"+commentsListSize.toString
-                      ".commentLink * " #>{"#"+ commentsListSize} &
-                      ".commentLink [id]"#>commentId &
-                      ".commentLink [href]" #>{"#"+ commentId} &
-                      ".text *" #> {commentText} &
-                      ".commentDate *" #> {commentDateFormat.format(commentDate)} &
-                      ".userInfo *" #> { " -- " + user.theFirstName + " "+ user.theLastName}
-                    })
-                    val content = Str("")
-                    SetValById("addCommentTextArea",content)&
-                    SetHtml("noComments",NodeSeq.Empty) &
-                    AppendHtml("comment_list",commentXml.getOrElse(NodeSeq.Empty))
-                  },("id","submitComment"))
-                )
-              }
-              case _ => (".add" #> "You cannot comment transactions on this view").apply(xhtml)
-            }
-          case _ => (".add" #> "You Cannot comment transactions on this view").apply(xhtml)
-        }
-      case _ => (".add" #> "You need to login before you can submit a comment").apply(xhtml)
+  def addComment : CssSel = {
+
+    //TODO: Get this from the API once there's a good way to do it
+    def viewAllowsAddingComments = true
+
+    def mustLogIn = ".add" #> "You need to login before you can submit a comment"
+    
+    def loggedIn : CssSel = if(viewAllowsAddingComments) addCommentSnippet
+                   else ".add" #> "You cannot comment transactions on this view"
+
+    def addCommentSnippet : CssSel = {
+      var commentText = ""
+      ".add" #>
+	      SHtml.ajaxForm(
+	        SHtml.textarea(
+	          "",
+	          commentText = _,
+	          ("rows", "4"), ("cols", "50"),
+	          ("id", "addCommentTextArea"),
+	          ("placeholder", "add a comment here")) ++
+	          SHtml.ajaxSubmit("add a comment", () => {
+	            val newCommentXml = for {
+	              newComment <- ObpAPI.addComment(urlParams.bankId, urlParams.accountId, urlParams.viewId, urlParams.transactionId, commentText)
+	              commentXml <- Templates(List("templates-hidden", "_comment"))
+	            } yield {
+	              commentsListSize = commentsListSize + 1
+	              commentCssSel(newComment, commentsListSize).apply(commentXml)
+	            }
+	            val content = Str("")
+	            SetValById("addCommentTextArea", content) &
+	              SetHtml("noComments", NodeSeq.Empty) &
+	              AppendHtml("comment_list", newCommentXml.getOrElse(NodeSeq.Empty))
+	          }, ("id", "submitComment")))
     }
+    
+    //TODO: Support multiple providers
+    if (!OAuthClient.loggedInAt.contains(OAuthClient.defaultProvider)) mustLogIn
+    else loggedIn
+    
   }
+  
 }

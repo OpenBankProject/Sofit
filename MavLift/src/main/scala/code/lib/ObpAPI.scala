@@ -37,6 +37,19 @@ object ObpAPI {
     }
   }
   
+   /**
+   * @return The json for the comment if it was successfully added
+   */
+  def addComment(bankId : String, accountId : String, viewId : String,
+      transactionId: String, comment: String) : Box[TransactionCommentJson] = {
+    
+    val addCommentJson = ("value" -> comment)
+    
+    val addCommentUrl = "/banks/" + bankId + "/accounts/" + accountId + "/" + viewId + "/transactions/" + transactionId + "/metadata/comments"
+    
+    ObpPost(addCommentUrl, addCommentJson).flatMap(_.extractOpt[TransactionCommentJson])
+  }
+  
   /**
    * @return The jsons for the tags that were were successfully added
    */
