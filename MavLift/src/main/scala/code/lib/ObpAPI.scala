@@ -366,4 +366,6 @@ object ObpJson {
       metadata.flatMap(_.comments)
     }
   }
+  
+  case class TransactionsJson(transactions: Option[List[TransactionJson]])
 }

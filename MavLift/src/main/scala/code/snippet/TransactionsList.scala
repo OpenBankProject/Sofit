@@ -48,9 +48,15 @@ import java.util.Date
 import net.liftweb.http.js.JsCmds.Noop
 import code.model._
 import java.util.Currency
+import code.lib.ObpJson.TransactionsJson
 
-class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransaction],View, BankAccount)){
+case class TransactionsListURLParams(bankId: String, accountId: String, viewId: String)
 
+class OBPTransactionSnippet (params : ((List[ModeratedTransaction], View, BankAccount), (TransactionsJson, TransactionsListURLParams))){
+
+  val filteredTransactionsAndView = params._1
+  val transactionsJson = params._2._1
+  val transactionsURLParams = params._2._2
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
   val FORBIDDEN = "---"
   val filteredTransactions = filteredTransactionsAndView._1

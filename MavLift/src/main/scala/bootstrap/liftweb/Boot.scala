@@ -55,6 +55,7 @@ import net.liftweb.sitemap.Loc.EarlyResponse
 import code.lib.OAuthClient
 import code.lib.ObpGet
 import code.lib.ObpJson._
+import code.snippet.TransactionsListURLParams
 import code.snippet.CommentsURLParams
 
 /**
@@ -143,25 +144,39 @@ class Boot extends Loggable{
         Full(PlainTextResponse("unauthorized"))
       }
     }
-
-    def getTransactionsAndView (URLParameters : List[String]) : Box[(List[ModeratedTransaction], View, BankAccount)] =
-    {
-      val bank = URLParameters(0)
-      val account = URLParameters(1)
-      val viewName = URLParameters(2)
-
-      val transactionsAndView : Box[(List[ModeratedTransaction], View, BankAccount)] = for {
-        b <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
-        v <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found for account " + account + " and bank " + bank}
-        if(b.authorizedAccess(v, OBPUser.currentUser))
-      } yield (b.getModeratedTransactions(v.moderate), v, b)
-
-      transactionsAndView match {
-        case Failure(msg, _, _) => logger.warn("Could not get transactions and view: " + msg)
-        case _ => //don't log anything
+    
+    def logAndReturnResult[T](result : Box[T]) : Box[T] = {
+      result match {
+        case Failure(msg, _, _) => logger.info("Problem getting url " + tryo{S.uri} + ": " + msg)
+        case _ => //do nothing
       }
-      transactionsAndView
+      result
     }
+
+    def getTransactionsAndView(URLParameters: List[String]): Box[((List[ModeratedTransaction], View, BankAccount), (TransactionsJson, TransactionsListURLParams))] =
+      {
+        val bank = URLParameters(0)
+        val account = URLParameters(1)
+        val viewName = URLParameters(2)
+
+        val transactionsURLParams = TransactionsListURLParams(bankId = bank, accountId = account, viewId = viewName)
+
+        logAndReturnResult {
+
+          for {
+            b <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
+            v <- View.fromUrl(viewName) ?~ { "view " + viewName + " not found for account " + account + " and bank " + bank }
+            if (b.authorizedAccess(v, OBPUser.currentUser))
+            transactionsJson <- Full(new TransactionsJson(Some(Nil))) //TODO: Get this from the API
+            /*TODO: This api call needs to be implemented:
+             * transactionsJson <- ObpGet("/banks/" + bank + "/accounts/" + account + "/" + viewName +
+              "/transactions").flatMap(x => x.extractOpt[TransactionsJson])*/
+          } yield {
+            ((b.getModeratedTransactions(v.moderate), v, b), (transactionsJson, transactionsURLParams))
+          }
+
+        }
+      }
 
     def getAccount(URLParameters : List[String]) =
     {
@@ -174,11 +189,14 @@ class Boot extends Loggable{
         if(user.hasMangementAccess(bankAccount))
       } yield account
 
-      account match {
-        case Failure(msg, _, _) => logger.info("Could not get account: " + msg)
-        case _ => //don't log anything
-      }
-      account
+        logAndReturnResult {
+          for {
+            account <- LocalStorage.getAccount(bankUrl, accountUrl) ?~ { "account " + accountUrl + " not found for bank " + bankUrl }
+            user <- OBPUser.currentUser ?~ { "user not found when attempting to access account " + account + " of bank " + bankUrl }
+            bankAccount <- BankAccount(bankUrl, accountUrl) ?~ { "account " + account + " not found for bank " + bankUrl }
+            if (user.hasMangementAccess(bankAccount))
+          } yield account
+        }
     }
     def getTransaction(URLParameters: List[String]) =
       {
@@ -192,10 +210,13 @@ class Boot extends Loggable{
             "/transactions/" + transactionID + "/transaction").flatMap(x => x.extractOpt[TransactionJson])
 
           val commentsURLParams = CommentsURLParams(bankId = bank, accountId = account, transactionId = transactionID, viewId = viewName)
+
+          logAndReturnResult {
+            for {
+              tJson <- transactionJson
+            } yield (tJson, commentsURLParams)
+          }
           
-          for {
-            tJson <- transactionJson
-          } yield (tJson, commentsURLParams)
         } else
           Empty
       }
@@ -225,7 +246,7 @@ class Boot extends Loggable{
           //test if the bank exists and if the user have access to management page
           Menu.params[Account]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
-          Menu.params[(List[ModeratedTransaction], View, BankAccount)]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
+          Menu.params[((List[ModeratedTransaction], View, BankAccount), (TransactionsJson, TransactionsListURLParams))]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
 
           Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
