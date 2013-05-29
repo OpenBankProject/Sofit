@@ -29,61 +29,124 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 
  */
+package code.model
 
-package code.model.traits
 import scala.math.BigDecimal
 import java.util.Date
-import code.model.dataAccess.{LocalStorage,Account}
-import net.liftweb.common.{Full, Empty, Failure, Box}
-import code.model.dataAccess.OBPEnvelope.OBPQueryParam
+import scala.collection.immutable.Set
+import net.liftweb.json.JsonDSL._
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import net.liftweb.json.JObject
 import net.liftweb.json.JsonDSL._
-import code.model.implementedTraits.{Owner, Public, View}
+import net.liftweb.json.JsonAST.JArray
+import net.liftweb.common._
+import code.model.dataAccess.{LocalStorage, Account, HostedBank}
+import code.model.dataAccess.OBPEnvelope.OBPQueryParam
 
-trait BankAccount {
 
-  def id : String
+class Bank(
+  val id: String,
+  val shortName : String,
+  val fullName : String,
+  val permalink : String,
+  val logoURL : String,
+  val website : String
+)
+{
+  def accounts = LocalStorage.getBankAccounts(this)
+  def publicAccounts = LocalStorage.getPublicBankAccounts(this)
+  def nonPublicAccounts(user : User) : List[BankAccount] = {
+    LocalStorage.getNonPublicBankAccounts(user, id)
+  }
 
-  var owners : Set[AccountOwner]
+  def detailedJson : JObject = {
+    ("name" -> shortName) ~
+    ("website" -> "") ~
+    ("email" -> "")
+  }
 
-  //e.g. chequing, savings
-  def accountType : String
+  def toJson : JObject = {
+    ("alias" -> permalink) ~
+      ("name" -> shortName) ~
+      ("logo" -> "") ~
+      ("links" -> linkJson)
+  }
 
-  //TODO: Check if BigDecimal is an appropriate data type
-  def balance : Option[BigDecimal]
+  def linkJson : JObject = {
+    ("rel" -> "bank") ~
+    ("href" -> {"/" + permalink + "/bank"}) ~
+    ("method" -> "GET") ~
+    ("title" -> {"Get information about the bank identified by " + permalink})
+  }
+}
 
-  //ISO 4217, e.g. EUR, GBP, USD, etc.
-  def currency: String
+object Bank {
+  def apply(bankPermalink: String) : Box[Bank] = LocalStorage.getBank(bankPermalink)
 
-  def name : String
+  def all : List[Bank] = LocalStorage.allBanks
 
-  //label to display, e.g. TESOBE Postbank Account
-  def label : String
+  def toJson(banks: Seq[Bank]) : JArray =
+    banks.map(bank => bank.toJson)
 
-  def bankName : String
+}
 
-  def bankPermalink : String
+class AccountOwner(
+  val id : String,
+  val name : String
+)
 
-  def permalink : String
+class BankAccount(
+  val id : String,
+  val owners : Set[AccountOwner],
+  val accountType : String,
+  val balance : BigDecimal,
+  val currency : String,
+  val name : String,
+  val label : String,
+  val nationalIdentifier : String,
+  val swift_bic : Option[String],
+  val iban : Option[String],
+  val allowAnnoymousAccess : Boolean,
+  val number : String,
+  val bankName : String,
+  val bankPermalink : String,
+  val permalink : String
+) extends Loggable{
 
-  def number: String
+  def permittedViews(user: Box[User]) : Set[View] = {
+    user match {
+      case Full(u) => u.permittedViews(this)
+      case _ =>{
+        logger.info("no user was found in the permittedViews")
+        if(this.allowPublicAccess) Set(Public) else Set()
+      }
+    }
+  }
 
-  def nationalIdentifier : String
+  def transactions(from: Date, to: Date): Set[Transaction] = {
+    throw new NotImplementedException
+  }
 
-  def swift_bic : Option[String]
+  def transaction(id: String): Box[Transaction] = {
+    LocalStorage.getTransaction(id, bankPermalink, permalink)
+  }
+  def allowPublicAccess = allowAnnoymousAccess
 
-  def iban : Option[String]
+  def getModeratedTransactions(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction] = {
+   LocalStorage.getModeratedTransactions(permalink, bankPermalink)(moderate)
+  }
 
-  def transaction(id: String) : Box[Transaction]
+  def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction] = {
+    LocalStorage.getModeratedTransactions(permalink, bankPermalink, queryParams: _*)(moderate)
+  }
 
-  //Is a public view is available for this bank account
-  def allowPublicAccess : Boolean
+  def getTransactions(queryParams: OBPQueryParam*) : Box[List[Transaction]] = {
+    LocalStorage.getTransactions(permalink, bankPermalink, queryParams: _*)
+  }
 
-  def permittedViews(user: Box[User]) : Set[View]
-
-  def getModeratedTransactions(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
-
-  def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction]
+  def getTransactions(bank: String, account: String): Box[List[Transaction]] = {
+   LocalStorage.getTransactions(permalink, bankPermalink)
+  }
 
   def moderatedTransaction(id: String, view: View, user: Box[User]) : Box[ModeratedTransaction] = {
     if(authorizedAccess(view, user)) {
@@ -155,7 +218,7 @@ trait BankAccount {
   * @param the user that we want to see if he has access to the view or not
   * @return true if the user is allowed to access this view, false otherwise
   */
-  def authorizedAccess(view: code.model.traits.View, user: Option[User]) : Boolean = {
+  def authorizedAccess(view: View, user: Option[User]) : Boolean = {
 
     view match {
       case Public => allowPublicAccess
@@ -233,3 +296,40 @@ object BankAccount {
     LocalStorage.getAllPublicAccounts()
   }
 }
+
+class OtherBankAccount(
+  val id : String,
+  val label : String,
+  val nationalIdentifier : String,
+  //the bank international identifier
+  val swift_bic : Option[String],
+  //the international account identifier
+  val iban : Option[String],
+  val number : String,
+  val bankName : String,
+  val metadata : OtherBankAccountMetadata,
+  val kind : String
+)
+
+class Transaction(
+  //A universally unique id
+  val uuid : String,
+  //The bank's id for the transaction
+  val id : String,
+  val thisAccount : BankAccount,
+  val otherAccount : OtherBankAccount,
+  val metadata : TransactionMetadata,
+  //E.g. cash withdrawal, electronic payment, etc.
+  val transactionType : String,
+  val amount : BigDecimal,
+  //ISO 4217, e.g. EUR, GBP, USD, etc.
+  val currency : String,
+  // Bank provided comment
+  val label : Option[String],
+  // The date the transaction was initiated
+  val startDate : Date,
+  // The date when the money finished changing hands
+  val finishDate : Date,
+  //the new balance for the bank account
+  val balance :  BigDecimal
+)

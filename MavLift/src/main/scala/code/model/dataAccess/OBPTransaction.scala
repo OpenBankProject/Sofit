@@ -47,7 +47,7 @@ import net.liftweb.mongodb.record.field.{MongoJsonObjectListField, MongoRefField
 import scala.util.Random
 import com.mongodb.QueryBuilder
 import com.mongodb.BasicDBObject
-import code.model.traits.{Comment,Tag,GeoTag,TransactionImage}
+import code.model.{Comment,Tag,GeoTag,TransactionImage}
 import net.liftweb.common.Loggable
 import org.bson.types.ObjectId
 import net.liftweb.util.Helpers._
@@ -195,12 +195,13 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
    * @param email The email address of the person posting the comment
    * @param text The text of the comment
    */
-  def addComment(userId: String, viewId : Long, text: String, datePosted : Date) = {
+  def addComment(userId: String, viewId : Long, text: String, datePosted : Date) : Comment = {
     val comment = OBPComment.createRecord.userId(userId).
       textField(text).
       date(datePosted).
       viewID(viewId).save
     obp_comments(comment.id.is :: obp_comments.get ).save
+    comment
   }
 
   def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
@@ -227,14 +228,14 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     true
   }
 
-  def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : String = {
+  def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : Tag = {
     val tag = OBPTag.createRecord.
       userId(userId).
       tag(value).
       date(datePosted).
       viewID(viewId).save
     tags(tag.id.is :: tags.get ).save
-    tag.id.is.toString
+    tag
   }
 
   def deleteTag(id : String) = {
@@ -250,11 +251,11 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
   /**
    * @return the id of the newly added image
    */
-  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageURL : URL) : String = {
+  def addImage(userId: String, viewId : Long, description: String, datePosted : Date, imageURL : URL) : TransactionImage = {
     val image = OBPTransactionImage.createRecord.
         userId(userId).imageComment(description).date(datePosted).viewID(viewId).url(imageURL.toString).save
     images(image.id.is :: images.get).save
-    image.id.is.toString
+    image
   }
 
   def deleteImage(id : String){
@@ -276,7 +277,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     val date2 = e2.obp_transaction.get.details.get.completed.get
     date1.after(date2)
   }
-  def createAliases = {
+  def createAliases : Box[String] = {
     val realOtherAccHolder = this.obp_transaction.get.other_account.get.holder.get
 
     def publicAliasExists(realValue: String): Boolean = {
@@ -291,7 +292,7 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
       }
     }
 
-    def createPublicAlias(realOtherAccHolder : String) = {
+    def createPublicAlias(realOtherAccHolder : String) : Box[String] = {
 
       /**
        * Generates a new alias name that is guaranteed not to collide with any existing public alias names
@@ -332,13 +333,15 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
         }
         case _ => {
           logger.warn("Account not found to create aliases for")
-          Empty
+          Failure("Account not found to create aliases for")
         }
       }
     }
 
     if (!publicAliasExists(realOtherAccHolder))
       createPublicAlias(realOtherAccHolder)
+    else
+      Full(realOtherAccHolder)
   }
   /**
    * A JSON representation of the transaction to be returned when successfully added via an API call
@@ -386,13 +389,16 @@ object OBPEnvelope extends OBPEnvelope with MongoMetaRecord[OBPEnvelope] with Lo
   case class OBPToDate(value: Date) extends OBPQueryParam
   case class OBPOrdering(field: Option[String], order: OBPOrder) extends OBPQueryParam
 
-  override def fromJValue(jval: JValue) = {
-    val created = super.fromJValue(jval)
+  def envlopesFromJvalue(jval: JValue) : Box[OBPEnvelope] = {
+    val created = fromJValue(jval)
     created match {
-      case Full(c) => c.createAliases
-      case _ => //don't create anything
+      case Full(c) => c.createAliases match {
+          case Full(alias) => Full(c)
+          case Failure(msg, _, _ ) => Failure(msg)
+          case _ => Failure("Alias not created")
+        }
+      case _ => Failure("could not create Envelope form JValue")
     }
-    created
   }
 }
 

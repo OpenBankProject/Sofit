@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -47,72 +47,72 @@ class Management(currentAccount : Account) {
 
   val headers = (0, Sorter("text")) :: (5, DisableSorting()) :: (6, DisableSorting()) :: Nil
   val sortList = (0, Sorting.ASC) :: Nil
-  
+
   val options = CustomTableSorter.options(headers, sortList)
-  
+
   def tableSorter(xhtml: NodeSeq) : NodeSeq = {
     CustomTableSorter("#other_acc_management", options)
   }
-  
+
   def showAll(xhtml: NodeSeq) : NodeSeq = {
-    
+
     def getMostUpToDateOtherAccount(holder: String) = {
       currentAccount.otherAccounts.objs.find(o => {
         o.holder.get.equals(holder)
       })
     }
-    
+
     def editablePublicAlias(initialValue : String, holder: String) = {
       def alterPublicAlias = (oAccount: OtherAccount, newValue: String) => oAccount.publicAlias(newValue)
       editable(initialValue, holder, alterPublicAlias, "Public Alias")
     }
-    
+
     def editablePrivateAlias(initialValue : String, holder: String) = {
       def alterPrivateAlias = (oAccount: OtherAccount, newValue: String) => oAccount.privateAlias(newValue)
       editable(initialValue, holder, alterPrivateAlias, "Private Alias")
     }
-    
+
     def editableImageUrl(initialValue : String, holder: String) = {
       def alterImageUrl = (oAccount: OtherAccount, newValue: String) => oAccount.imageUrl(newValue)
       editable(initialValue, holder, alterImageUrl, "Image URL")
     }
-    
+
     def editableUrl(initialValue : String, holder: String) = {
       def alterUrl = (oAccount: OtherAccount, newValue: String) => oAccount.url(newValue)
       editable(initialValue, holder, alterUrl, "Website")
     }
-    
+
     def editableMoreInfo(initialValue : String, holder: String) = {
       def moreInfo = (oAccount: OtherAccount, newValue: String) => oAccount.moreInfo(newValue)
       editable(initialValue, holder, moreInfo, "Information")
     }
-    
+
     def editableOpenCorporatesUrl(initialValue : String, holder: String) = {
       def openCorporatesUrl = (oAccount: OtherAccount, newValue: String) => oAccount.openCorporatesUrl(newValue)
       editable(initialValue, holder, openCorporatesUrl, "Open Corporates URL")
     }
-    
+
     def editable(
-      initialValue: String, 
-      holder: String,  
+      initialValue: String,
+      holder: String,
       alterOtherAccount: (OtherAccount, String) => OtherAccount,
       defaultValue: String ) = {
       var currentValue = initialValue
-      
+
       def saveValue() = {
         val otherAcc = getMostUpToDateOtherAccount(holder)
         if(otherAcc.isDefined)
           alterOtherAccount(otherAcc.get, currentValue).save
       }
-      
+
       CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{
         saveValue()
         Noop
       }, defaultValue)
     }
-    
+
     currentAccount.otherAccounts.objs.sortBy(_.holder.get).flatMap(other => {
-      
+
       val account = other.holder.get
       val publicAlias = other.publicAlias.get
       val privateAlias = other.privateAlias.get
@@ -120,22 +120,25 @@ class Management(currentAccount : Account) {
       val website = other.url.get
       val openCorporates = other.openCorporatesUrl.get
       val imageURL = other.imageUrl.get
-      
+
       val accountSelector = ".account *" #> account
-      
+
+      val accountId = ".account [id]" #> other.id.get.toString
+
       val publicSelector = ".public *" #> editablePublicAlias(publicAlias, account)
-      
+
       val privateSelector = ".private *" #> editablePrivateAlias(privateAlias, account)
-      
+
       val websiteSelector = ".website *" #> editableUrl(website, account)
-      
+
       val openCorporatesSelector = ".open_corporates *" #> editableOpenCorporatesUrl(openCorporates, account)
-      
+
       val moreInfoSelector = ".information *" #> editableMoreInfo(moreInfo, account)
-      
+
       val imageURLSelector = ".imageURL *" #> editableImageUrl(imageURL, account)
-      
+
       (accountSelector &
+        accountId &
        publicSelector &
        privateSelector &
        websiteSelector &
@@ -144,5 +147,5 @@ class Management(currentAccount : Account) {
        imageURLSelector).apply(xhtml)
     })
   }
-  
+
 }

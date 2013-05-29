@@ -33,7 +33,7 @@ package code.api.v1_2
 
 import java.util.Date
 import net.liftweb.common.{Box, Full}
-import code.model.traits._
+import code.model._
 
 case class APIInfoJSON(
   version : String,
@@ -185,6 +185,9 @@ case class PostTransactionImageJSON(
   label : String,
   URL : String
 )
+case class PostTransactionCommentJSON(
+    value: String
+)
 case class PostTransactionTagJSON(
   value : String
 )
@@ -202,7 +205,21 @@ case class TransactionCommentJSON(
 case class TransactionCommentsJSON(
   comments: List[TransactionCommentJSON]
 )
-case class AliasJSON(alias: String)
+case class AliasJSON(
+  alias: String
+)
+case class MoreInfoJSON(
+  more_info: String
+)
+case class UrlJSON(
+  URL:String
+)
+case class ImageUrlJSON(
+  image_URL: String
+)
+case class OpenCorporateUrlJSON(
+  open_corporates_URL: String
+)
 
 object JSONFactory{
   def stringOrNull(text : String) =
@@ -386,8 +403,8 @@ object JSONFactory{
       private_alias = stringOptionOrNull(metadata.privateAlias),
       more_info = stringOptionOrNull(metadata.moreInfo),
       URL = stringOptionOrNull(metadata.url),
-      image_URL = stringOptionOrNull(metadata.imageUrl),
-      open_corporates_URL = stringOptionOrNull(metadata.openCorporatesUrl),
+      image_URL = stringOptionOrNull(metadata.imageURL),
+      open_corporates_URL = stringOptionOrNull(metadata.openCorporatesURL),
       corporate_location = metadata.corporateLocation.map(createLocationJSON).getOrElse(null),
       physical_location = metadata.physicalLocation.map(createLocationJSON).getOrElse(null)
     )

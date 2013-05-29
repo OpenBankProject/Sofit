@@ -53,13 +53,12 @@ import net.liftweb.http.StringField
 import java.util.Date
 import java.text.SimpleDateFormat
 import net.liftweb.common.Loggable
-import code.model.traits.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag, User}
+import code.model.{ModeratedTransaction,PublicAlias,PrivateAlias,NoAlias,Comment, View, Tag, User, TransactionImage}
 import java.util.Currency
 import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
 import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
 import net.liftweb.http.js.JE.Str
 import net.liftweb.http.js.JsCmds.Alert
-import code.model.traits.TransactionImage
 import net.liftweb.util.Props
 import scala.xml.Utility
 import net.liftweb.common.Failure
@@ -226,7 +225,7 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
     }
 
     val addImageSelector = for {
-      user <- User.currentUser ?~ "You need to long before you can add an image"
+      user <- User.currentUser ?~ "You need to login before you can add an image"
       metadata <- Box(transaction.metadata) ?~ "You cannot add images to transactions in this view"
       addImageFunc <- Box(metadata.addImage) ?~ "You cannot add images to transaction in this view"
     } yield {
@@ -290,10 +289,10 @@ class Comments(transactionAndView : (ModeratedTransaction,View)) extends Loggabl
                   SHtml.text(
                     "",
                     tags => {
-                      val tagsList = tags.split(" ").toList.filter(tag => !tag.isEmpty)
+                      val tagsList = tags.split(" ").toList.filter(_.nonEmpty).flatMap(_.split(","))
                       tagValues = tagsList
                       tagDate = new Date
-                      tagIds = tagsList.map(addTag(user.id_, view.id, _ ,tagDate))
+                      tagIds = tagsList.map(addTag(user.id_, view.id, _ ,tagDate).id_)
                     },
                     ("placeholder","Add tags seperated by spaces"),
                     ("id","addTagInput"),

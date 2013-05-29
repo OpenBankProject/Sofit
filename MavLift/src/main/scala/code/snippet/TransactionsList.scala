@@ -46,16 +46,16 @@ import scala.xml.Text
 import net.liftweb.common.{Box, Failure, Empty, Full}
 import java.util.Date
 import net.liftweb.http.js.JsCmds.Noop
-import code.model.implementedTraits._
-import code.model.traits._
+import code.model._
 import java.util.Currency
 
-class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransaction],View)){
+class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransaction],View, BankAccount)){
 
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
   val FORBIDDEN = "---"
   val filteredTransactions = filteredTransactionsAndView._1
   val view = filteredTransactionsAndView._2
+  val bankAccount = filteredTransactionsAndView._3
   val currencySymbol  = filteredTransactions match {
     case Nil => ""
     case x :: xs => x.bankAccount match {
@@ -73,6 +73,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
       case _ => ""
     }
   }
+
   def individualTransaction(transaction: ModeratedTransaction): CssSel = {
 
     def otherPartyInfo: CssSel = {
@@ -88,7 +89,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
           NOOP_SELECTOR
 
         def logoNotBlank =
-          ".other_account_logo_img [src]" #> transaction.otherBankAccount.get.metadata.get.imageUrl.get
+          ".other_account_logo_img [src]" #> transaction.otherBankAccount.get.metadata.get.imageURL.get
 
         def websiteBlank =
           ".other_acc_link" #> NodeSeq.Empty & //If there is no link to display, don't render the <a> element
@@ -101,21 +102,50 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
           ".open_corporates_link" #> NodeSeq.Empty
 
         def openCorporatesNotBlank =
-          ".open_corporates_link [href]" #> transaction.otherBankAccount.get.metadata.get.openCorporatesUrl.get
+          ".open_corporates_link [href]" #> transaction.otherBankAccount.get.metadata.get.openCorporatesURL.get
 
         transaction.otherBankAccount match {
           case Some(otherAccount) =>
           {
-            ".the_name *" #> otherAccount.label.display &
-            {otherAccount.label.aliasType match{
-                case PublicAlias =>
-                  ".alias_indicator [class+]" #> "alias_indicator_public" &
-                    ".alias_indicator *" #> "(Alias)"
-                case PrivateAlias =>
-                  ".alias_indicator [class+]" #> "alias_indicator_private" &
-                    ".alias_indicator *" #> "(Alias)"
-                case _ => NOOP_SELECTOR
-            }}&
+
+            val otherAccountId = User.currentUser match {
+              case Full(user) =>
+                if(user.hasMangementAccess(bankAccount))
+                  {"management#"+otherAccount.id}
+                else
+                  ""
+              case _ => ""
+            }
+            val removeAliasIndicator = ".alias_indicator" #> ""
+            val otherAccountIdLink =
+              if(otherAccountId.isEmpty)
+                ".the_name *" #> otherAccount.label.display & {
+                  otherAccount.label.aliasType match{
+                    case PublicAlias =>
+                      ".alias_indicator [class+]" #> "alias_indicator_public" &
+                        ".alias_indicator *" #> "(Alias)"
+                    case PrivateAlias =>
+                      ".alias_indicator [class+]" #> "alias_indicator_private" &
+                        ".alias_indicator *" #> "(Alias)"
+                    case _ => removeAliasIndicator
+                  }
+                }
+              else
+                ".otherAccountLinkForName [href]" #> otherAccountId &
+                ".otherAccountLinkForName *" #> otherAccount.label.display &
+                ".otherAccountLinkForAlias [href]" #> otherAccountId & {
+                  otherAccount.label.aliasType match{
+                    case PublicAlias =>
+                      ".alias_indicator [class+]" #> "alias_indicator_public" &
+                        ".otherAccountLinkForAlias *" #> "(Alias)"
+                    case PrivateAlias =>
+                      ".alias_indicator [class+]" #> "alias_indicator_private" &
+                        ".otherAccountLinkForAlias *" #> "(Alias)"
+                    case _ => removeAliasIndicator
+                  }
+                }
+
+            otherAccountIdLink &
             {otherAccount.metadata match {
                 case Some(metadata) =>
                 {
@@ -123,7 +153,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
                             case Some(m) => if(m.isEmpty) moreInfoBlank else moreInfoNotBlank
                             case _ => moreInfoBlank
                   }}&
-                  {metadata.imageUrl match{
+                  {metadata.imageURL match{
                           case Some(i) => if(i.isEmpty) logoBlank else logoNotBlank
                           case _ => logoBlank
                   }}&
@@ -131,7 +161,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
                     case Some(m) => if(m.isEmpty) websiteBlank else websiteNotBlank
                     case _ => websiteBlank
                   }}&
-                  {metadata.openCorporatesUrl match{
+                  {metadata.openCorporatesURL match{
                     case Some(m) => if(m.isEmpty) openCorporatesBlank else openCorporatesNotBlank
                     case _ => openCorporatesBlank
                   }}
@@ -160,14 +190,45 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
 	        				  	case _ => ""
 	        					} } &
       {transaction.metadata match {
-        case Some(metadata) => metadata.comments match{
+        case Some(metadata) => {
+          {metadata.comments match{
             case Some(comments) => ".comments_ext [href]" #> { "transactions/" + transaction.id +"/"+view.permalink } &
-                                   ".comment *" #> comments.length.toString()
+                                 ".comment *" #> comments.length.toString()
             case _ =>  ".comments *" #> NodeSeq.Empty
-          }
+          }}&
+          {metadata.images match{
+            case Some(images) => {
+              if (images.nonEmpty) {
+                ".transaction_image [src]" #> images(0).imageUrl.toString &
+                {
+                  if (images(0).description.nonEmpty)
+                    ".transaction_image [alt]" #> images(0).description                  
+                  else NOOP_SELECTOR
+                }
+              }
+              else ".transaction_images *" #> ""
+            }
+            case _ => ".transaction_images *" #> ""
+          }}&
+          {metadata.tags match{
+            case Some(tags) => {
+              if(tags.nonEmpty){
+                //only first 3 elements of the list should be displayed
+                val tags3 = tags.splitAt(3)._1
+                ".tags *" #>  {
+                  ".tag *" #>  tags3.map(tag => {
+                  ".tagContent *" #> tag.value
+                  })}
+              }
+              else ".tags *" #> ""
+            }
+            case _=>  ".tags *" #> ""
+          }}
+        }
         case _ =>  ".comments *" #> NodeSeq.Empty
-      }}
+      }
     }
+  }
    transactionInformations &
    otherPartyInfo
   }

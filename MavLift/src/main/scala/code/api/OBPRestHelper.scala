@@ -6,7 +6,7 @@ import net.liftweb.common._
 import net.liftweb.http.LiftResponse
 import net.liftweb.http.JsonResponse
 import code.util.APIUtil._
-import code.model.traits.User
+import code.model.User
 import code.api.OAuthHandshake._
 
 class OBPRestHelper extends RestHelper with Loggable {

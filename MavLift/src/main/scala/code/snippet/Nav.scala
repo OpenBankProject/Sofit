@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -46,12 +46,12 @@ import code.model.dataAccess.{OBPUser,Account, LocalStorage}
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds._Noop
-import code.model.traits.BankAccount
+import code.model.BankAccount
 
 class Nav {
 
-  def eraseMenu = 
-     "* * " #> ""  
+  def eraseMenu =
+     "* * " #> ""
   def views :net.liftweb.util.CssSel = {
     val url = S.uri.split("/",0)
     if(url.size>4)
@@ -68,7 +68,7 @@ class Nav {
               val viewUrl = "/banks/"+url(2)+"/accounts/"+url(4)+"/"+view.permalink
               ".navlink [href]" #>  {viewUrl} &
               ".navlink *" #> view.name &
-              ".navlink [class+]" #> markIfSelected(viewUrl)  
+              ".navlink [class+]" #> markIfSelected(viewUrl)
             })}
           else
             eraseMenu
@@ -79,16 +79,16 @@ class Nav {
                                      val anoymousUrl = "/banks/"+url(2)+"/accounts/"+url(4)+"/public"
                                     ".navlink [href]" #>  {anoymousUrl} &
                                     ".navlink *" #> "Public" &
-                                    ".navlink [class+]" #> markIfSelected(anoymousUrl)  
+                                    ".navlink [class+]" #> markIfSelected(anoymousUrl)
                                   }
                                 else
                                   eraseMenu
           case _ => eraseMenu
         }
-        
+
       }
     else
-       eraseMenu      
+       eraseMenu
   }
 
   def management = {
@@ -108,34 +108,35 @@ class Nav {
     if (url.size > 4) getManagement getOrElse eraseMenu
     else eraseMenu
   }
-  
+
   def item = {
     val attrs = S.prefixedAttrsToMetaData("a")
     val name = S.attr("name").getOrElse("")
-    val loc = (for{
-      sitemap <- LiftRules.siteMap
-      l <- new SiteMapSingleton().findAndTestLoc(name)
-    } yield l)
-    
+    val loc =
+      for{
+        sitemap <- LiftRules.siteMap
+        l <- new SiteMapSingleton().findAndTestLoc(name)
+      } yield l
+
     ".navitem *" #>{
       loc.map(navItemSelector)
     }
-  }  
-  
+  }
+
   def navItemSelector(l : Loc[_]) = {
      ".navlink [href]" #> l.calcDefaultHref &
      ".navlink *" #> l.linkText &
      ".navlink [class+]" #> markIfSelected(l.calcDefaultHref)
   }
-  
+
   def onlyOnSomePages = {
     val pages : List[String]= S.attr("pages").map(_.toString.split(",").toList).getOrElse(Nil)
-    
+
     val locs = pages.flatMap(page => (for{
       sitemap <- LiftRules.siteMap
       l <- new SiteMapSingleton().findAndTestLoc(page)
     } yield l))
-    
+
     val isPage = locs.map(l => {
       //hack due to deadline to fix / and /index being the same
       val currentPage = if(S.uri == "/") "/index" else S.uri
@@ -145,14 +146,16 @@ class Nav {
     if(isPage) item
     else "* *" #> ""
   }
-  
+
   def privilegeAdmin = {
     val url = S.uri.split("/", 0)
 
     def hide = ".navitem *" #> ""
+
     def getPrivilegeAdmin = for {
       bankAccount <- BankAccount(url(2), url(4))
-      if (OBPUser.hasOwnerPermission(bankAccount))
+      user <- OBPUser.currentUser
+      if (user.hasOwnerPermission(bankAccount))
       loc <- new SiteMapSingleton().findAndTestLoc("Privilege Admin")
     } yield {
       ".navitem *" #> {
@@ -161,10 +164,10 @@ class Nav {
           ".navlink [class+]" #> markIfSelected(loc.calcDefaultHref)
       }
     }
-    
+
     if(url.size > 4) getPrivilegeAdmin.getOrElse(hide) else hide
   }
-  
+
   def markIfSelected(href : String) : Box[String]= {
     val currentHref = S.uri
     if(href.equals(currentHref)) Full("selected")
@@ -177,35 +180,35 @@ class Nav {
       case Full(user) => Account.findAll.map(account => {
         val bankAccount = Account.toBankAccount(account)
         if(user.permittedViews(bankAccount).size != 0)
-          accounts ::= (account.bankPermalink + "," + account.permalink, account.bankName + " - " + account.name)  
+          accounts ::= (account.bankPermalink + "," + account.permalink, account.bankName + " - " + account.name)
       })
-      case _ => Account.findAll.map(account => 
+      case _ => Account.findAll.map(account =>
         if(account.anonAccess.is)
-          accounts ::= (account.bankPermalink + "," + account.permalink, account.bankName + " - " + account.name)   
-        )  
+          accounts ::= (account.bankPermalink + "," + account.permalink, account.bankName + " - " + account.name)
+        )
     }
     accounts ::= ("0","--> Choose an account")
-    def redirect(selectValue : String) : JsCmd = 
+    def redirect(selectValue : String) : JsCmd =
     {
-      val bankAndaccount = selectValue.split(",",0)      
+      val bankAndaccount = selectValue.split(",",0)
       if(bankAndaccount.size==2)
         if (LocalStorage.correctBankAndAccount(bankAndaccount(0), bankAndaccount(1)))
           //TODO : the account may not has an public view, so this redirection would retun a 404
           //a better solution has to be found
           S.redirectTo("/banks/" + bankAndaccount(0) + "/accounts/" + bankAndaccount(1) +"/public")
-        else 
+        else
         _Noop
       else
         _Noop
-    } 
-    def computeDefaultValue : Box[String] = 
+    }
+    def computeDefaultValue : Box[String] =
     {
       val url = S.uri.split("/",0)
       var output="0"
       if(url.size>4)
         output = url(2) + "," + url(4)
       Full(output)
-    }  
+    }
     "#accountList *" #> {
       computeDefaultValue match {
         case Full("postbank,tesobe") =>

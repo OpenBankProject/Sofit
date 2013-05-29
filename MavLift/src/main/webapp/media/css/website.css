@@ -321,6 +321,19 @@ table.transactions td.name {
 	width: 160px;
 }
 
+table.transactions td.transaction_images .transaction_image {
+	width: 50px;
+}
+
+table.transactions td.tags .tag {
+    width: 100%
+}
+table.transactions td.tags .tag .tagContent {
+    display: inline-block;
+    margin-bottom: 2px;
+    padding: 1px 4px;
+}
+
 table.transactions td.extra {
 	width: 350px;
 }
@@ -833,3 +846,12 @@ span#accountsMsg
     padding: 0 5px;
 }
 /* Feedbackbuttonc css end*/
+
+a.otherAccountLinkForName{
+	text-decoration: None;
+	color: black;
+}
+a.otherAccountLinkForAlias{
+	text-decoration: None;
+	color: inherit;
+}

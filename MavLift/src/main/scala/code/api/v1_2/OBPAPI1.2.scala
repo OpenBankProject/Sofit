@@ -50,16 +50,13 @@ import _root_.net.liftweb.http.S._
 import net.liftweb.mongodb.{ Skip, Limit }
 import _root_.net.liftweb.mapper.view._
 import com.mongodb._
-import code.model.traits._
-import code.model.implementedTraits.View
-import code.model.implementedTraits.Public
 import java.util.Date
 import code.api.OAuthHandshake._
 import code.model.dataAccess.OBPEnvelope.{OBPOrder, OBPLimit, OBPOffset, OBPOrdering, OBPFromDate, OBPToDate, OBPQueryParam}
+import code.model._
 import java.net.URL
 import code.util.APIUtil._
 import code.api.OBPRestHelper
-import code.model.implementedTraits.Owner
 
 
 object OBPAPI1_2 extends OBPRestHelper with Loggable {
@@ -347,7 +344,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addAlias <- Box(metadata.addPublicAlias) ?~ {"the view " + viewId + "does not allow updating the public alias"}
+          addAlias <- Box(metadata.addPublicAlias) ?~ {"the view " + viewId + "does not allow deleting the public alias"}
           if(addAlias(""))
         } yield noContentJsonResponse
     }
@@ -396,7 +393,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addAlias <- Box(metadata.addPrivateAlias) ?~ {"the view " + viewId + "does not allow updating a private alias"}
+          addAlias <- Box(metadata.addPrivateAlias) ?~ {"the view " + viewId + "does not allow updating the private alias"}
           aliasJson <- tryo{(json.extract[AliasJSON])} ?~ {"wrong JSON format"}
           if(addAlias(aliasJson.alias))
         } yield {
@@ -414,8 +411,208 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           view <- View.fromUrl(viewId)
           otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
-          addAlias <- Box(metadata.addPrivateAlias) ?~ {"the view " + viewId + "does not allow adding a private alias"}
+          addAlias <- Box(metadata.addPrivateAlias) ?~ {"the view " + viewId + "does not allow deleting the private alias"}
           if(addAlias(""))
+        } yield noContentJsonResponse
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "more_info" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addMoreInfo <- Box(metadata.addMoreInfo) ?~ {"the view " + viewId + "does not allow adding more info"}
+          moreInfoJson <- tryo{(json.extract[MoreInfoJSON])} ?~ {"wrong JSON format"}
+          if(addMoreInfo(moreInfoJson.more_info))
+        } yield {
+            val successJson = SuccessMessage("more info added")
+            successJsonResponse(Extraction.decompose(successJson), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "more_info" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addMoreInfo <- Box(metadata.addMoreInfo) ?~ {"the view " + viewId + "does not allow updating more info"}
+          moreInfoJson <- tryo{(json.extract[MoreInfoJSON])} ?~ {"wrong JSON format"}
+          if(addMoreInfo(moreInfoJson.more_info))
+        } yield {
+            val successJson = SuccessMessage("more info updated")
+            successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "more_info" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addMoreInfo <- Box(metadata.addMoreInfo) ?~ {"the view " + viewId + "does not allow deleting more info"}
+          if(addMoreInfo(""))
+        } yield noContentJsonResponse
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "url" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addUrl <- Box(metadata.addURL) ?~ {"the view " + viewId + "does not allow adding a url"}
+          urlJson <- tryo{(json.extract[UrlJSON])} ?~ {"wrong JSON format"}
+          if(addUrl(urlJson.URL))
+        } yield {
+            val successJson = SuccessMessage("url added")
+            successJsonResponse(Extraction.decompose(successJson), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "url" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addUrl <- Box(metadata.addURL) ?~ {"the view " + viewId + "does not allow updating a url"}
+          urlJson <- tryo{(json.extract[UrlJSON])} ?~ {"wrong JSON format"}
+          if(addUrl(urlJson.URL))
+        } yield {
+            val successJson = SuccessMessage("url updated")
+            successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "url" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addUrl <- Box(metadata.addURL) ?~ {"the view " + viewId + "does not allow deleting a url"}
+          if(addUrl(""))
+        } yield noContentJsonResponse
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "image_url" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addImageUrl <- Box(metadata.addImageURL) ?~ {"the view " + viewId + "does not allow adding an image url"}
+          imageUrlJson <- tryo{(json.extract[ImageUrlJSON])} ?~ {"wrong JSON format"}
+          if(addImageUrl(imageUrlJson.image_URL))
+        } yield {
+            val successJson = SuccessMessage("image url added")
+            successJsonResponse(Extraction.decompose(successJson), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "image_url" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addImageUrl <- Box(metadata.addImageURL) ?~ {"the view " + viewId + "does not allow updating an image url"}
+          imageUrlJson <- tryo{(json.extract[ImageUrlJSON])} ?~ {"wrong JSON format"}
+          if(addImageUrl(imageUrlJson.image_URL))
+        } yield {
+            val successJson = SuccessMessage("image url updated")
+            successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "image_url" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addImageUrl <- Box(metadata.addImageURL) ?~ {"the view " + viewId + "does not allow deleting an image url"}
+          if(addImageUrl(""))
+        } yield noContentJsonResponse
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "open_corporates_url" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow adding an open corporate url"}
+          opernCoprUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
+          if(addOpenCorpUrl(opernCoprUrl.open_corporates_URL))
+        } yield {
+            val successJson = SuccessMessage("open corporate url added")
+            successJsonResponse(Extraction.decompose(successJson), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "open_corporates_url" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow updating an open corporate url"}
+          opernCoprUrl <- tryo{(json.extract[OpenCorporateUrlJSON])} ?~ {"wrong JSON format"}
+          if(addOpenCorpUrl(opernCoprUrl.open_corporates_URL))
+        } yield {
+            val successJson = SuccessMessage("open corporate url updated")
+            successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "other_accounts":: other_account_id :: "open_corporates_url" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          otherBankAccount <- account.moderatedOtherBankAccount(other_account_id, view, user)
+          metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
+          addOpenCorpUrl <- Box(metadata.addOpenCorporatesURL) ?~ {"the view " + viewId + "does not allow deleting an open corporate url"}
+          if(addOpenCorpUrl(""))
         } yield noContentJsonResponse
     }
   })
@@ -447,20 +644,33 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     }
   })
 
-  oauthServe(apiPrefix {
-    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
+oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
       user =>
         for {
-          tagJson <- tryo{json.extract[PostTransactionTagJSON]} ?~ {"Wrong format of the posted JSON"}
-          u <- user ?~ "user not found"
+          commentJson <- tryo{json.extract[PostTransactionCommentJSON]}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
+          addCommentFunc <- Box(metadata.addComment) ?~ {"view " + viewId + " does not authorize adding comments"}
+          postedComment <- Full(addCommentFunc(u.id_, view.id, commentJson.value, now))
+        } yield {
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionCommentJSON(postedComment)))
+        }
+    }
+  })
+  oauthServe(apiPrefix {
+    //post a tag
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
+
+      user =>
+        for {
+          tagJson <- tryo{json.extract[PostTransactionTagJSON]}
+          u <- user
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
-          addTagFunc <- if(view.canAddTag) Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding tags"}
-                          else Failure("view does not allow tags to be added")
-          postedTagId <- Full(addTagFunc(u.id_, view.id, tagJson.value, now))
-          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
-          allTags <- Box(newMetadata.tags) ?~! "Server error: no tags found after posting"
-          postedTag <- Box(allTags.find(tag => tag.id_ == postedTagId)) ?~! "Server error: posted tag not found after posting"
+          addTagFunc <- Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding tags"}
+          postedTag <- Full(addTagFunc(u.id_, view.id, tagJson.value, now))
         } yield {
           successJsonResponse(Extraction.decompose(JSONFactory.createTransactionTagJSON(postedTag)))
         }
@@ -468,24 +678,21 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix {
+    //delete a tag
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "tags" :: tagId :: Nil JsonDelete _ => {
+
       user =>
         for {
-          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          tags <- Box(metadata.tags) ?~ { "view " + viewId + " does not authorize tags access" }
-          toDelete <- Box(tags.find(tags => tags.id_ == tagId)) ?~ { "tag not found" }
           view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           bankAccount <- BankAccount(bankId, accountId)
-          deletable <- if (toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
-          else Failure("insufficient privileges to delete tag")
-          deleteFunction <- if (view.canDeleteTag) Box(metadata.deleteTag)
-          else Failure("view does not allow tags to be deleted")
+          deleted <- Box(metadata.deleteTag(tagId, user, bankAccount))
         } yield {
-            deleteFunction(deletable.id_)
-            noContentJsonResponse
-          }
+          successJsonResponse(204)
+        }
     }
   })
+
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "images" :: Nil JsonGet json => {
       user =>
@@ -507,13 +714,9 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           u <- user
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
-          addImageFunc <- if(view.canAddImage) Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding comment"}
-                          else Failure("view does not allow images to be added")
+          addImageFunc <- Box(metadata.addImage) ?~ {"view " + viewId + " does not authorize adding images"}
           url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
-          postedImageId <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
-          newMetadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionID, Full(u))
-          allImages <- Box(newMetadata.images) ?~! "Server error: no images found after posting"
-          postedImage <- Box(allImages.find(image => image.id_ == postedImageId)) ?~! "Server error: posted image not found after posting"
+          postedImage <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
         } yield {
           successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)))
         }
@@ -526,18 +729,13 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
       user =>
         for {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize image access" }
-          toDelete <- Box(images.find(image => image.id_ == imageId)) ?~ { "image not found" }
           view <- View.fromUrl(viewId)
           bankAccount <- BankAccount(bankId, accountId)
-          deletable <- if(toDelete.postedBy == user || bankAccount.permittedViews(user).contains(Owner)) Full(toDelete)
-                       else Failure("insufficient privileges to delete image")
-          deleteFunction <- if(view.canDeleteImage) Box(metadata.deleteImage)
-                            else Failure("view does not allow images to be deleted")
+          deleted <- Box(metadata.deleteImage(imageId, user, bankAccount))
         } yield {
-          deleteFunction(deletable.id_)
           noContentJsonResponse
         }
     }
   })
+
 }

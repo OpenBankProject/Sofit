@@ -40,9 +40,7 @@ import sitemap._
 import Loc._
 import mapper._
 import code.model.dataAccess._
-import code.model.{Nonce, Consumer, Token}
-import code.model.traits.{Bank, View, ModeratedTransaction}
-import code.model.implementedTraits.{View}
+import code.model.{Nonce, Consumer, Token, Bank, ModeratedTransaction, View, BankAccount}
 import code.api._
 import net.liftweb.util.Helpers._
 import net.liftweb.widgets.tablesorter.TableSorter
@@ -50,8 +48,6 @@ import net.liftweb.json.JsonDSL._
 import code.api.OAuthHandshake
 import net.liftweb.util.Schedule
 import net.liftweb.mongodb.BsonDSL._
-import code.model.dataAccess.LocalStorage
-import code.model.traits.BankAccount
 import net.liftweb.http.js.jquery.JqJsCmds
 import code.snippet.OAuthAuthorisation
 
@@ -143,17 +139,17 @@ class Boot extends Loggable{
       }
     }
 
-    def getTransactionsAndView (URLParameters : List[String]) : Box[(List[ModeratedTransaction], View)] =
+    def getTransactionsAndView (URLParameters : List[String]) : Box[(List[ModeratedTransaction], View, BankAccount)] =
     {
       val bank = URLParameters(0)
       val account = URLParameters(1)
       val viewName = URLParameters(2)
 
-      val transactionsAndView : Box[(List[ModeratedTransaction], View)] = for {
+      val transactionsAndView : Box[(List[ModeratedTransaction], View, BankAccount)] = for {
         b <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
         v <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found for account " + account + " and bank " + bank}
         if(b.authorizedAccess(v, OBPUser.currentUser))
-      } yield (b.getModeratedTransactions(v.moderate), v)
+      } yield (b.getModeratedTransactions(v.moderate), v, b)
 
       transactionsAndView match {
         case Failure(msg, _, _) => logger.warn("Could not get transactions and view: " + msg)
@@ -226,7 +222,7 @@ class Boot extends Loggable{
           //test if the bank exists and if the user have access to management page
           Menu.params[Account]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
-          Menu.params[(List[ModeratedTransaction], View)]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
+          Menu.params[(List[ModeratedTransaction], View, BankAccount)]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
 
           Menu.params[(ModeratedTransaction,View)]("transaction", "transaction", getTransaction _ ,  t => List("") )
