@@ -740,8 +740,30 @@ class API1_2Test extends ServerSetup{
     makeDeleteRequest(request)
   }
 
+  def getPhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : LocationJSON = {
+    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId).body.extract[OtherAccountMetadataJSON].physical_location
+  }
 
-  /************************ the tests ************************/
+  def postPhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").POST <@(consumer,token)
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePostRequest(request, write(physLocationJson))
+  }
+
+  def postPhysicalLocationForAnOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location"
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePostRequest(request, write(physLocationJson))
+  }
+
+  def postPhysicalLocationForAnOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").POST <@(consumer,token3)
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePostRequest(request, write(physLocationJson))
+  }
+
+
+/************************ the tests ************************/
   feature("base line URL works"){
     scenario("we get the api information") {
       Given("We will not use an access token")
@@ -2939,6 +2961,85 @@ class API1_2Test extends ServerSetup{
       val deleteReply = deleteCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
+    }
+  }
+
+  feature("We post the physical location for one specific other bank"){
+    scenario("we will post the physical location for one random other bank account") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
+      postReply.body.extract[SuccessMessage]
+      And("the physical location should be changed")
+      val location = getPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      randomLoc.latitude should equal (location.latitude)
+      randomLoc.longitude should equal (location.longitude)
+    }
+
+    scenario("we will not post the physical location for a random other bank account due to a missing token") {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForAnOtherBankAccountWithoutToken(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the physical location for a random other bank account because the user does not have enough privileges") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForAnOtherBankAccountWithWrongUser(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the physical location for a random other bank account because the view does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, Helpers.randomString(5), otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the physical location for a random other bank account because the account does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5), randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
   }
 }
