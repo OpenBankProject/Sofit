@@ -220,6 +220,16 @@ case class ImageUrlJSON(
 case class OpenCorporateUrlJSON(
   open_corporates_URL: String
 )
+case class CorporateLocationJSON(
+  corporate_location: LocationPlainJSON
+)
+case class PhysicalLocationJSON(
+  physical_location: LocationPlainJSON
+)
+case class LocationPlainJSON(
+  latitude : Double,
+  longitude : Double
+)
 
 object JSONFactory{
   def stringOrNull(text : String) =
@@ -335,6 +345,13 @@ object JSONFactory{
       date = location.datePosted,
       user = createUserJSON(location.postedBy)
     )
+  }
+
+  def createLocationPlainJSON(lat: Double, lon: Double) : LocationPlainJSON = {
+    new LocationPlainJSON(
+      latitude = lat,
+      longitude = lon
+      )
   }
 
   def createTransactionMetadataJSON(metadata : ModeratedTransactionMetadata) : TransactionMetadataJSON = {

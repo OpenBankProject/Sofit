@@ -29,7 +29,7 @@ import code.model.dataAccess.{OBPUser, Privilege, HostedAccount, Account}
 class API1_2Test extends ServerSetup{
 
   val v1_2Request = baseRequest / "obp" / "v1.2"
-
+  implicit val dateFormats = net.liftweb.json.DefaultFormats
   //create the application
   lazy val testConsumer =
     OBPConsumer.create.
@@ -134,8 +134,8 @@ class API1_2Test extends ServerSetup{
   lazy val token3 = new Token(testToken3.key, testToken3.secret)
 
   //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
-  val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner", "management")
-  val possibleViewsPermalinksAllowingViewPrivilige = List("team", "board", "authorities", "owner", "management")
+  val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner")
+  val possibleViewsPermalinksAllowingViewPrivilige = List("team", "board", "authorities", "owner")
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =
@@ -178,8 +178,19 @@ class API1_2Test extends ServerSetup{
   }
 
   def randomOtherBankAccount(bankId : String, accountId : String, viewId : String): OtherAccountJSON = {
-    val otherAccounts = getTheOtherBankAccounts(bankId, accountId, randomViewPermalink).body.extract[OtherAccountsJSON].other_accounts
+    val otherAccounts = getTheOtherBankAccounts(bankId, accountId, viewId).body.extract[OtherAccountsJSON].other_accounts
     otherAccounts(Random.nextInt(otherAccounts.size))
+  }
+
+  def randomLocation : LocationPlainJSON = {
+    def sign = {
+      val b = Random.nextBoolean
+      if(b) 1
+      else -1
+    }
+    val longitude = Random.nextInt(180)*sign*Random.nextDouble
+    val latitude = Random.nextInt(180)*sign*Random.nextDouble
+    JSONFactory.createLocationPlainJSON(latitude, longitude)
   }
 
   def getAPIInfo : h.HttpPackage[APIResponse] = {
@@ -625,38 +636,38 @@ class API1_2Test extends ServerSetup{
 
   def postOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String) : h.HttpPackage[APIResponse] = {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").POST <@(consumer,token)
-    val urlOpenCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
-    makePostRequest(request, write(urlOpenCorporateUrlJson))
+    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
+    makePostRequest(request, write(openCorporateUrlJson))
   }
 
   def postOpenCorporatesUrlForAnOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String) : h.HttpPackage[APIResponse] = {
     val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url"
-    val urlOpenCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
-    makePostRequest(request, write(urlOpenCorporateUrlJson))
+    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
+    makePostRequest(request, write(openCorporateUrlJson))
   }
 
   def postOpenCorporatesUrlForAnOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String) : h.HttpPackage[APIResponse] = {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").POST <@(consumer,token3)
-    val urlOpenCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
-    makePostRequest(request, write(urlOpenCorporateUrlJson))
+    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
+    makePostRequest(request, write(openCorporateUrlJson))
   }
 
   def updateOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String) : h.HttpPackage[APIResponse] = {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").PUT <@(consumer, token)
-    val urlOpenCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
-    makePutRequest(request, write(urlOpenCorporateUrlJson))
+    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
+    makePutRequest(request, write(openCorporateUrlJson))
   }
 
   def updateOpenCorporatesUrlForOneOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String) : h.HttpPackage[APIResponse] = {
     val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url"
-    val urlOpenCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
-    makePutRequest(request, write(urlOpenCorporateUrlJson))
+    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
+    makePutRequest(request, write(openCorporateUrlJson))
   }
 
   def updateOpenCorporatesUrlForOneOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String) : h.HttpPackage[APIResponse] = {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").PUT <@(consumer, token3)
-    val urlOpenCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
-    makePutRequest(request, write(urlOpenCorporateUrlJson))
+    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
+    makePutRequest(request, write(openCorporateUrlJson))
   }
 
   def deleteOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
@@ -674,7 +685,118 @@ class API1_2Test extends ServerSetup{
     makeDeleteRequest(request)
   }
 
-  /************************ the tests ************************/
+  def getCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : LocationJSON = {
+    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId).body.extract[OtherAccountMetadataJSON].corporate_location
+  }
+
+  def postCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").POST <@(consumer,token)
+    val corpLocationJson = CorporateLocationJSON(corporateLocation)
+    makePostRequest(request, write(corpLocationJson))
+  }
+
+  def postCorporateLocationForAnOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location"
+    val corpLocationJson = CorporateLocationJSON(corporateLocation)
+    makePostRequest(request, write(corpLocationJson))
+  }
+
+  def postCorporateLocationForAnOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").POST <@(consumer,token3)
+    val corpLocationJson = CorporateLocationJSON(corporateLocation)
+    makePostRequest(request, write(corpLocationJson))
+  }
+
+  def updateCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").PUT <@(consumer, token)
+    val corpLocationJson = CorporateLocationJSON(corporateLocation)
+    makePutRequest(request, write(corpLocationJson))
+  }
+
+  def updateCorporateLocationForOneOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location"
+    val corpLocationJson = CorporateLocationJSON(corporateLocation)
+    makePutRequest(request, write(corpLocationJson))
+  }
+
+  def updateCorporateLocationForOneOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").PUT <@(consumer, token3)
+    val corpLocationJson = CorporateLocationJSON(corporateLocation)
+    makePutRequest(request, write(corpLocationJson))
+  }
+
+  def deleteCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").DELETE <@(consumer, token)
+    makeDeleteRequest(request)
+  }
+
+  def deleteCorporateLocationForOneOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location"
+    makeDeleteRequest(request)
+  }
+
+  def deleteCorporateLocationForOneOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").DELETE <@(consumer, token3)
+    makeDeleteRequest(request)
+  }
+
+  def getPhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : LocationJSON = {
+    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId).body.extract[OtherAccountMetadataJSON].physical_location
+  }
+
+  def postPhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").POST <@(consumer,token)
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePostRequest(request, write(physLocationJson))
+  }
+
+  def postPhysicalLocationForAnOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location"
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePostRequest(request, write(physLocationJson))
+  }
+
+  def postPhysicalLocationForAnOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").POST <@(consumer,token3)
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePostRequest(request, write(physLocationJson))
+  }
+
+  def updatePhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").PUT <@(consumer, token)
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePutRequest(request, write(physLocationJson))
+  }
+
+  def updatePhysicalLocationForOneOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location"
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePutRequest(request, write(physLocationJson))
+  }
+
+  def updatePhysicalLocationForOneOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").PUT <@(consumer, token3)
+    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+    makePutRequest(request, write(physLocationJson))
+  }
+
+  def deletePhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").DELETE <@(consumer, token)
+    makeDeleteRequest(request)
+  }
+
+  def deletePhysicalLocationForOneOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location"
+    makeDeleteRequest(request)
+  }
+
+  def deletePhysicalLocationForOneOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").DELETE <@(consumer, token3)
+    makeDeleteRequest(request)
+  }
+
+
+/************************ the tests ************************/
   feature("base line URL works"){
     scenario("we get the api information") {
       Given("We will not use an access token")
@@ -838,6 +960,7 @@ class API1_2Test extends ServerSetup{
       privateAccountDetails.views_available.nonEmpty should equal (true)
     }
   }
+
   feature("Information about the permissions of a specific bank account"){
     scenario("we will get one bank account permissions by using an access token") {
       Given("We will use an access token")
@@ -2661,6 +2784,422 @@ class API1_2Test extends ServerSetup{
       val randomURL = Helpers.randomString(20)
       When("the delete request is sent")
       val deleteReply = deleteOpenCorporatesUrlForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+  }
+
+  feature("We post the corporate location for one specific other bank"){
+    scenario("we will post the corporate location for one random other bank account") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
+      postReply.body.extract[SuccessMessage]
+      And("the corporate location should be changed")
+      val location = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      randomLoc.latitude should equal (location.latitude)
+      randomLoc.longitude should equal (location.longitude)
+    }
+
+    scenario("we will not post the corporate location for a random other bank account due to a missing token") {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postCorporateLocationForAnOtherBankAccountWithoutToken(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the corporate location for a random other bank account because the user does not have enough privileges") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postCorporateLocationForAnOtherBankAccountWithWrongUser(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the corporate location for a random other bank account because the view does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, Helpers.randomString(5), otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the corporate location for a random other bank account because the account does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5), randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We update the corporate location for one specific other bank"){
+    scenario("we will update the corporate location for one random other bank account") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val randomLoc = randomLocation
+      val putReply = updateCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 200 code")
+      putReply.code should equal (200)
+      putReply.body.extract[SuccessMessage]
+      And("the corporate location should be changed")
+      val location = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      randomLoc.latitude should equal (location.latitude)
+      randomLoc.longitude should equal (location.longitude)
+    }
+
+    scenario("we will not update the corporate location for a random other bank account due to a missing token") {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updateCorporateLocationForOneOtherBankAccountWithoutToken(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not update the corporate location for a random other bank account because the user does not have enough privileges") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updateCorporateLocationForOneOtherBankAccountWithWrongUser(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not update the corporate location for a random other bank account because the account does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updateCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5), randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We delete the corporate location for one specific other bank"){
+    scenario("we will delete the corporate location for one random other bank account") {
+      Given("We will use an access token and will set a corporate location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 204 code")
+      deleteReply.code should equal (204)
+      And("the corporate location should be null")
+      val locationAfterDelete = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should equal (null)
+    }
+
+    scenario("we will not delete the corporate location for a random other bank account due to a missing token") {
+      Given("We will not use an access token and will set a corporate location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteCorporateLocationForOneOtherBankAccountWithoutToken(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      And("the corporate location should not be null")
+      val locationAfterDelete = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should not equal (null)
+    }
+
+    scenario("we will not delete the corporate location for a random other bank account because the user does not have enough privileges") {
+      Given("We will use an access token and will set a corporate location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteCorporateLocationForOneOtherBankAccountWithWrongUser(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      And("the corporate location should not be null")
+      val locationAfterDelete = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should not equal (null)
+    }
+
+    scenario("we will not delete the corporate location for a random other bank account because the account does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val randomLoc = randomLocation
+      When("the delete request is sent")
+      val deleteReply = deleteCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+  }
+
+  feature("We post the physical location for one specific other bank"){
+    scenario("we will post the physical location for one random other bank account") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
+      postReply.body.extract[SuccessMessage]
+      And("the physical location should be changed")
+      val location = getPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      randomLoc.latitude should equal (location.latitude)
+      randomLoc.longitude should equal (location.longitude)
+    }
+
+    scenario("we will not post the physical location for a random other bank account due to a missing token") {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForAnOtherBankAccountWithoutToken(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the physical location for a random other bank account because the user does not have enough privileges") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForAnOtherBankAccountWithWrongUser(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the physical location for a random other bank account because the view does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, Helpers.randomString(5), otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the physical location for a random other bank account because the account does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5), randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We update the physical location for one specific other bank"){
+    scenario("we will update the physical location for one random other bank account") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val randomLoc = randomLocation
+      val putReply = updatePhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 200 code")
+      putReply.code should equal (200)
+      putReply.body.extract[SuccessMessage]
+      And("the physical location should be changed")
+      val location = getPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      randomLoc.latitude should equal (location.latitude)
+      randomLoc.longitude should equal (location.longitude)
+    }
+
+    scenario("we will not update the physical location for a random other bank account due to a missing token") {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updatePhysicalLocationForOneOtherBankAccountWithoutToken(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not update the physical location for a random other bank account because the user does not have enough privileges") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updatePhysicalLocationForOneOtherBankAccountWithWrongUser(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not update the physical location for a random other bank account because the account does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updatePhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5), randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We delete the physical location for one specific other bank"){
+    scenario("we will delete the physical location for one random other bank account") {
+      Given("We will use an access token and will set a physical location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deletePhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 204 code")
+      deleteReply.code should equal (204)
+      And("the physical location should be null")
+      val locationAfterDelete = getPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should equal (null)
+    }
+
+    scenario("we will not delete the physical location for a random other bank account due to a missing token") {
+      Given("We will not use an access token and will set a physical location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deletePhysicalLocationForOneOtherBankAccountWithoutToken(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      And("the physical location should not be null")
+      val locationAfterDelete = getPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should not equal (null)
+    }
+
+    scenario("we will not delete the physical location for a random other bank account because the user does not have enough privileges") {
+      Given("We will use an access token and will set a physical location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deletePhysicalLocationForOneOtherBankAccountWithWrongUser(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      And("the physical location should not be null")
+      val locationAfterDelete = getPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should not equal (null)
+    }
+
+    scenario("we will not delete the physical location for a random other bank account because the account does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val randomLoc = randomLocation
+      When("the delete request is sent")
+      val deleteReply = deletePhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
     }
