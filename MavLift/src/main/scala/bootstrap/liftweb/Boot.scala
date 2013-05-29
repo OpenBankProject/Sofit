@@ -57,6 +57,8 @@ import code.lib.ObpGet
 import code.lib.ObpJson._
 import code.snippet.TransactionsListURLParams
 import code.snippet.CommentsURLParams
+import code.snippet.ManagementURLParams
+import code.lib.ObpJson.OtherAccountsJson
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -183,13 +185,16 @@ class Boot extends Loggable{
       val bankUrl = URLParameters(0)
       val accountUrl = URLParameters(1)
 
+      val urlParams = ManagementURLParams(bankUrl, accountUrl)
+      
         logAndReturnResult {
           for {
             account <- LocalStorage.getAccount(bankUrl, accountUrl) ?~ { "account " + accountUrl + " not found for bank " + bankUrl }
             user <- OBPUser.currentUser ?~ { "user not found when attempting to access account " + account + " of bank " + bankUrl }
             bankAccount <- BankAccount(bankUrl, accountUrl) ?~ { "account " + account + " not found for bank " + bankUrl }
+            otherAccountsJson <- ObpGet("/banks/" + bankUrl + "/accounts/" + accountUrl + "/owner/" + "other_accounts").flatMap(x => x.extractOpt[OtherAccountsJson])
             if (user.hasMangementAccess(bankAccount))
-          } yield account
+          } yield (account, (otherAccountsJson, urlParams))
         }
     }
     def getTransaction(URLParameters: List[String]) =
@@ -238,7 +243,7 @@ class Boot extends Loggable{
           Menu.param[Bank]("Accounts", "accounts", LocalStorage.getBank _ ,  bank => bank.id ) / "banks" / * / "accounts",
 
           //test if the bank exists and if the user have access to management page
-          Menu.params[Account]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
+          Menu.params[(Account, (OtherAccountsJson, ManagementURLParams))]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
           Menu.params[((List[ModeratedTransaction], View, BankAccount), (TransactionsJson, TransactionsListURLParams))]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,

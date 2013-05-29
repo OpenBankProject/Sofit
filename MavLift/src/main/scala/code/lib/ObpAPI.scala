@@ -313,6 +313,8 @@ object ObpJson {
 		  					  IBAN: Option[String],
 		  					  bank: Option[LightBankJson],
 		  					  metadata: Option[OtherAccountMetadataJson])
+		  					  
+  case class OtherAccountsJson(other_accounts: Option[List[OtherAccountJson]])
   
   case class TransactionValueJson(currency: Option[String],
 		  						  amount: Option[String])

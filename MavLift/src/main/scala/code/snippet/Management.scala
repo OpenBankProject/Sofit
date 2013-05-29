@@ -42,9 +42,18 @@ import net.liftweb.common.Full
 import net.liftweb.common.Empty
 import code.widgets.tableSorter.{CustomTableSorter, DisableSorting, Sorting, Sorter}
 import net.liftweb.http.js.JsCmd
+import code.lib.ObpJson.OtherAccountsJson
+import code.lib.ObpJson.OtherAccountJson
 
-class Management(currentAccount : Account) {
+case class ManagementURLParams(bankId: String, accountId: String)
 
+class Management(params : (Account, (OtherAccountsJson, ManagementURLParams))) {
+
+  val currentAccount : Account = params._1
+  val otherAccountsJson = params._2._1
+  
+  val urlParams = params._2._2
+  
   val headers = (0, Sorter("text")) :: (5, DisableSorting()) :: (6, DisableSorting()) :: Nil
   val sortList = (0, Sorting.ASC) :: Nil
 
@@ -110,42 +119,48 @@ class Management(currentAccount : Account) {
         Noop
       }, defaultValue)
     }
+    
+    val otherAccountJsons : List[OtherAccountJson] = otherAccountsJson.other_accounts.getOrElse(Nil).
+      sortBy[String](oAcc => oAcc.holder.flatMap(_.name).getOrElse(""))
 
-    currentAccount.otherAccounts.objs.sortBy(_.holder.get).flatMap(other => {
+    otherAccountJsons.zip(currentAccount.otherAccounts.objs.sortBy(_.holder.get)).flatMap {
+      case (oAccJson, other) => {
+        
+        val account = oAccJson.holder.flatMap(_.name).getOrElse("")
+        val publicAlias = oAccJson.metadata.flatMap(_.public_alias).getOrElse("")
+        val privateAlias = oAccJson.metadata.flatMap(_.private_alias).getOrElse("")
+        val moreInfo = oAccJson.metadata.flatMap(_.more_info).getOrElse("")
+        val website = oAccJson.metadata.flatMap(_.URL).getOrElse("")
+        val openCorporates = oAccJson.metadata.flatMap(_.open_corporates_URL).getOrElse("")
+        val imageURL = oAccJson.metadata.flatMap(_.image_URL).getOrElse("")
 
-      val account = other.holder.get
-      val publicAlias = other.publicAlias.get
-      val privateAlias = other.privateAlias.get
-      val moreInfo = other.moreInfo.get
-      val website = other.url.get
-      val openCorporates = other.openCorporatesUrl.get
-      val imageURL = other.imageUrl.get
+        val accountSelector = ".account *" #> account
 
-      val accountSelector = ".account *" #> account
+        val accountId = ".account [id]" #> other.id.get.toString
 
-      val accountId = ".account [id]" #> other.id.get.toString
+        val publicSelector = ".public *" #> editablePublicAlias(publicAlias, account)
 
-      val publicSelector = ".public *" #> editablePublicAlias(publicAlias, account)
+        val privateSelector = ".private *" #> editablePrivateAlias(privateAlias, account)
 
-      val privateSelector = ".private *" #> editablePrivateAlias(privateAlias, account)
+        val websiteSelector = ".website *" #> editableUrl(website, account)
 
-      val websiteSelector = ".website *" #> editableUrl(website, account)
+        val openCorporatesSelector = ".open_corporates *" #> editableOpenCorporatesUrl(openCorporates, account)
 
-      val openCorporatesSelector = ".open_corporates *" #> editableOpenCorporatesUrl(openCorporates, account)
+        val moreInfoSelector = ".information *" #> editableMoreInfo(moreInfo, account)
 
-      val moreInfoSelector = ".information *" #> editableMoreInfo(moreInfo, account)
+        val imageURLSelector = ".imageURL *" #> editableImageUrl(imageURL, account)
 
-      val imageURLSelector = ".imageURL *" #> editableImageUrl(imageURL, account)
-
-      (accountSelector &
-        accountId &
-       publicSelector &
-       privateSelector &
-       websiteSelector &
-       openCorporatesSelector &
-       moreInfoSelector &
-       imageURLSelector).apply(xhtml)
-    })
+        (accountSelector &
+          accountId &
+          publicSelector &
+          privateSelector &
+          websiteSelector &
+          openCorporatesSelector &
+          moreInfoSelector &
+          imageURLSelector).apply(xhtml)
+      }
+    }
+      
   }
 
 }
