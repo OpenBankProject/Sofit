@@ -44,15 +44,17 @@ import code.widgets.tableSorter.{CustomTableSorter, DisableSorting, Sorting, Sor
 import net.liftweb.http.js.JsCmd
 import code.lib.ObpJson.OtherAccountsJson
 import code.lib.ObpJson.OtherAccountJson
+import code.lib.ObpDelete
+import code.lib.ObpPost
+import code.lib.ObpPut
+import net.liftweb.json.JsonDSL._
 
 case class ManagementURLParams(bankId: String, accountId: String)
 
-class Management(params : (Account, (OtherAccountsJson, ManagementURLParams))) {
+class Management(params : (OtherAccountsJson, ManagementURLParams)) {
 
-  val currentAccount : Account = params._1
-  val otherAccountsJson = params._2._1
-  
-  val urlParams = params._2._2
+  val otherAccountsJson = params._1
+  val urlParams = params._2
   
   val headers = (0, Sorter("text")) :: (5, DisableSorting()) :: (6, DisableSorting()) :: Nil
   val sortList = (0, Sorting.ASC) :: Nil
@@ -65,55 +67,64 @@ class Management(params : (Account, (OtherAccountsJson, ManagementURLParams))) {
 
   def showAll(xhtml: NodeSeq) : NodeSeq = {
 
-    def getMostUpToDateOtherAccount(holder: String) = {
-      currentAccount.otherAccounts.objs.find(o => {
-        o.holder.get.equals(holder)
-      })
+    def editablePublicAlias(initialValue : String, holder: String, otherAccountId: String) = {
+      apiEditable(initialValue, holder, "alias", "public_alias", otherAccountId, "Public Alias")
     }
 
-    def editablePublicAlias(initialValue : String, holder: String) = {
-      def alterPublicAlias = (oAccount: OtherAccount, newValue: String) => oAccount.publicAlias(newValue)
-      editable(initialValue, holder, alterPublicAlias, "Public Alias")
+    def editablePrivateAlias(initialValue : String, holder: String, otherAccountId: String) = {
+      apiEditable(initialValue, holder, "alias", "private_alias", otherAccountId, "Private Alias")
     }
 
-    def editablePrivateAlias(initialValue : String, holder: String) = {
-      def alterPrivateAlias = (oAccount: OtherAccount, newValue: String) => oAccount.privateAlias(newValue)
-      editable(initialValue, holder, alterPrivateAlias, "Private Alias")
+    def editableImageUrl(initialValue : String, holder: String, otherAccountId: String) = {
+      apiEditable(initialValue, holder, "image_URL", "image_url", otherAccountId, "Image URL")
     }
 
-    def editableImageUrl(initialValue : String, holder: String) = {
-      def alterImageUrl = (oAccount: OtherAccount, newValue: String) => oAccount.imageUrl(newValue)
-      editable(initialValue, holder, alterImageUrl, "Image URL")
+    def editableUrl(initialValue : String, holder: String, otherAccountId: String) = {
+      apiEditable(initialValue, holder, "URL", "url", otherAccountId, "Website")
     }
 
-    def editableUrl(initialValue : String, holder: String) = {
-      def alterUrl = (oAccount: OtherAccount, newValue: String) => oAccount.url(newValue)
-      editable(initialValue, holder, alterUrl, "Website")
+    def editableMoreInfo(initialValue : String, holder: String, otherAccountId: String) = {
+      apiEditable(initialValue, holder, "more_info", "more_info", otherAccountId, "Information")
     }
 
-    def editableMoreInfo(initialValue : String, holder: String) = {
-      def moreInfo = (oAccount: OtherAccount, newValue: String) => oAccount.moreInfo(newValue)
-      editable(initialValue, holder, moreInfo, "Information")
+    def editableOpenCorporatesUrl(initialValue : String, holder: String, otherAccountId: String) = {
+      apiEditable(initialValue, holder, "open_corporates_URL", "open_corporates_url", otherAccountId, "Open Corporates URL")
     }
 
-    def editableOpenCorporatesUrl(initialValue : String, holder: String) = {
-      def openCorporatesUrl = (oAccount: OtherAccount, newValue: String) => oAccount.openCorporatesUrl(newValue)
-      editable(initialValue, holder, openCorporatesUrl, "Open Corporates URL")
-    }
-
-    def editable(
+    /**
+     * TODO: If there are a lot of CustomEditables on a page, and lots of these pages open, that creates
+     * a lot of closures to exist on the server. It would be good to refactor this to only require one function
+     * per page on the server.
+     */
+    def apiEditable(
       initialValue: String,
       holder: String,
-      alterOtherAccount: (OtherAccount, String) => OtherAccount,
+      jsonKey: String,
+      apiProperty: String,
+      otherAccountId: String,
       defaultValue: String ) = {
       var currentValue = initialValue
+      var exists = !currentValue.isEmpty
 
+      def json() : JValue = (jsonKey -> currentValue)
+        
       def saveValue() = {
-        val otherAcc = getMostUpToDateOtherAccount(holder)
-        if(otherAcc.isDefined)
-          alterOtherAccount(otherAcc.get, currentValue).save
+        if(currentValue.isEmpty) {
+          //Send a delete
+          ObpDelete("/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
+          exists = false
+        } else {
+          if(exists) {
+            ObpPut("/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
+                json())
+          } else {
+            ObpPost("/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
+                json())
+            exists = true
+          }
+        }
       }
-
+      
       CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{
         saveValue()
         Noop
@@ -123,8 +134,8 @@ class Management(params : (Account, (OtherAccountsJson, ManagementURLParams))) {
     val otherAccountJsons : List[OtherAccountJson] = otherAccountsJson.other_accounts.getOrElse(Nil).
       sortBy[String](oAcc => oAcc.holder.flatMap(_.name).getOrElse(""))
 
-    otherAccountJsons.zip(currentAccount.otherAccounts.objs.sortBy(_.holder.get)).flatMap {
-      case (oAccJson, other) => {
+    otherAccountJsons.flatMap {
+      oAccJson => {
         
         val account = oAccJson.holder.flatMap(_.name).getOrElse("")
         val publicAlias = oAccJson.metadata.flatMap(_.public_alias).getOrElse("")
@@ -133,25 +144,27 @@ class Management(params : (Account, (OtherAccountsJson, ManagementURLParams))) {
         val website = oAccJson.metadata.flatMap(_.URL).getOrElse("")
         val openCorporates = oAccJson.metadata.flatMap(_.open_corporates_URL).getOrElse("")
         val imageURL = oAccJson.metadata.flatMap(_.image_URL).getOrElse("")
-
+        val accountId = oAccJson.id.getOrElse("")
+        
+        
         val accountSelector = ".account *" #> account
 
-        val accountId = ".account [id]" #> other.id.get.toString
+        val accountIdSelector = ".account [id]" #> accountId
 
-        val publicSelector = ".public *" #> editablePublicAlias(publicAlias, account)
+        val publicSelector = ".public *" #> editablePublicAlias(publicAlias, account, accountId)
 
-        val privateSelector = ".private *" #> editablePrivateAlias(privateAlias, account)
+        val privateSelector = ".private *" #> editablePrivateAlias(privateAlias, account, accountId)
 
-        val websiteSelector = ".website *" #> editableUrl(website, account)
+        val websiteSelector = ".website *" #> editableUrl(website, account, accountId)
 
-        val openCorporatesSelector = ".open_corporates *" #> editableOpenCorporatesUrl(openCorporates, account)
+        val openCorporatesSelector = ".open_corporates *" #> editableOpenCorporatesUrl(openCorporates, account, accountId)
 
-        val moreInfoSelector = ".information *" #> editableMoreInfo(moreInfo, account)
+        val moreInfoSelector = ".information *" #> editableMoreInfo(moreInfo, account, accountId)
 
-        val imageURLSelector = ".imageURL *" #> editableImageUrl(imageURL, account)
+        val imageURLSelector = ".imageURL *" #> editableImageUrl(imageURL, account, accountId)
 
         (accountSelector &
-          accountId &
+          accountIdSelector &
           publicSelector &
           privateSelector &
           websiteSelector &

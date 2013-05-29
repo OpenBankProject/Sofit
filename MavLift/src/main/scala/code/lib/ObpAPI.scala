@@ -156,6 +156,64 @@ object ObpPost {
   }
 }
 
+//TODO: Almost identical to ObpPost --> refactor
+object ObpPut {
+  implicit val formats = DefaultFormats
+
+  def apply(apiPath: String, json : JValue): Box[JValue] = {
+    tryo {
+      val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
+      val credentials = OAuthClient.getCredential(provider)
+      val apiUrl = provider.apiBaseUrl
+      val url = new URL(apiUrl + apiPath)
+      //bleh
+      val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
+      request.setDoOutput(true)
+      request.setRequestMethod("PUT")
+      request.setRequestProperty("Content-Type", "application/json")
+      request.setRequestProperty("Accept", "application/json")
+      
+      //sign the request if we have some credentials to sign it with
+      credentials.foreach(c => c.consumer.sign(request))
+      
+      //Set the request body
+      val output = request.getOutputStream()
+      val body = compact(render(json)).getBytes()
+      output.write(body)
+      output.flush()
+      output.close()
+      
+      request.connect()
+
+      val status = request.getResponseCode()
+
+      //bleh
+      val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
+      val reader = new BufferedReader(new InputStreamReader(inputStream))
+      val builder = new StringBuilder()
+      var line = ""
+      def readLines() {
+        line = reader.readLine()
+        if (line != null) {
+          builder.append(line + "\n")
+          readLines()
+        }
+      }
+      readLines()
+      reader.close();
+      val result = builder.toString();
+
+      status match {
+        case 200 | 201 => parse(result)
+        case code => {
+          throw new Exception("Bad response code (" + code + ") from server: " + result) //bleh -> converts to Failure due to the tryo
+        }
+      }
+    }
+  }
+}
+
+
 object ObpDelete {
   implicit val formats = DefaultFormats
   
@@ -307,7 +365,8 @@ object ObpJson {
 		  							  physical_location: Option[LocationJson])		  					 
 		  					 
   //TODO: Why can't an other account have more than one holder?	  					 
-  case class OtherAccountJson(holder: Option[HolderJson],
+  case class OtherAccountJson(id: Option[String],
+                              holder: Option[HolderJson],
 		  					  number: Option[String],
 		  					  kind: Option[String],
 		  					  IBAN: Option[String],
