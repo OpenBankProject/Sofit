@@ -128,51 +128,54 @@ class MongoDBLocalStorage extends LocalStorage {
     val uuid = id
     val otherAccountMetadata =
       new OtherBankAccountMetadata(
-        oAcc.publicAlias.get,
-        oAcc.privateAlias.get,
-        oAcc.moreInfo.get,
-        oAcc.url.get,
-        oAcc.imageUrl.get,
-        oAcc.openCorporatesUrl.get,
-        oAcc.corporateLocation.get,
-        oAcc.physicalLocation.get,
-        (text => {
+        publicAlias = oAcc.publicAlias.get,
+        privateAlias = oAcc.privateAlias.get,
+        moreInfo = oAcc.moreInfo.get,
+        url = oAcc.url.get,
+        imageURL = oAcc.imageUrl.get,
+        openCorporatesURL = oAcc.openCorporatesUrl.get,
+        corporateLocations = oAcc.corporateLocation.get,
+        physicalLocations = oAcc.physicalLocation.get,
+        addMoreInfo = (text => {
           oAcc.moreInfo(text).save
           //the save method does not return a Boolean to inform about the saving state,
           //so we a true
           true
         }),
-        (text => {
+        addURL = (text => {
           oAcc.url(text).save
           //the save method does not return a Boolean to inform about the saving state,
           //so we a true
           true
         }),
-        (text => {
+        addImageURL = (text => {
           oAcc.imageUrl(text).save
           //the save method does not return a Boolean to inform about the saving state,
           //so we a true
           true
-        }),(text => {
+        }),
+        addOpenCorporatesURL = (text => {
           oAcc.openCorporatesUrl(text).save
           //the save method does not return a Boolean to inform about the saving state,
           //so we a true
           true
         }),
-        oAcc.addCorporateLocation _,
-        oAcc.addPhysicalLocation _,
-        (alias => {
+        addCorporateLocation = oAcc.addCorporateLocation,
+        addPhysicalLocation = oAcc.addPhysicalLocation,
+        addPublicAlias = (alias => {
           oAcc.publicAlias(alias).save
           //the save method does not return a Boolean to inform about the saving state,
           //so we a true
           true
         }),
-        (alias => {
+        addPrivateAlias = (alias => {
           oAcc.privateAlias(alias).save
           //the save method does not return a Boolean to inform about the saving state,
           //so we a true
           true
-        })
+        }),
+        deleteCorporateLocation = oAcc.deleteCorporateLocation,
+        deletePhysicalLocation = oAcc.deletePhysicalLocation
       )
     val otherAccount = new OtherBankAccount(
         id = oAcc.id.is.toString,
@@ -411,52 +414,54 @@ class MongoDBLocalStorage extends LocalStorage {
 
             val metadata =
               new OtherBankAccountMetadata(
-                otherAccount.publicAlias.get,
-                otherAccount.privateAlias.get,
-                otherAccount.moreInfo.get,
-                otherAccount.url.get,
-                otherAccount.imageUrl.get,
-                otherAccount.openCorporatesUrl.get,
-                otherAccount.corporateLocation.get,
-                otherAccount.physicalLocation.get,
-                (text => {
+                publicAlias = otherAccount.publicAlias.get,
+                privateAlias = otherAccount.privateAlias.get,
+                moreInfo = otherAccount.moreInfo.get,
+                url = otherAccount.url.get,
+                imageURL = otherAccount.imageUrl.get,
+                openCorporatesURL = otherAccount.openCorporatesUrl.get,
+                corporateLocations = otherAccount.corporateLocation.get,
+                physicalLocations = otherAccount.physicalLocation.get,
+                addMoreInfo = (text => {
                   otherAccount.moreInfo(text).save
                   //the save method does not return a Boolean to inform about the saving state,
                   //so we a true
                   true
                 }),
-                (text => {
+                addURL = (text => {
                   otherAccount.url(text).save
                   //the save method does not return a Boolean to inform about the saving state,
                   //so we a true
                   true
                 }),
-                (text => {
+                addImageURL = (text => {
                   otherAccount.imageUrl(text).save
                   //the save method does not return a Boolean to inform about the saving state,
                   //so we a true
                   true
                 }),
-                (text => {
+                addOpenCorporatesURL = (text => {
                   otherAccount.openCorporatesUrl(text).save
                   //the save method does not return a Boolean to inform about the saving state,
                   //so we a true
                   true
                 }),
-                otherAccount.addCorporateLocation _,
-                otherAccount.addPhysicalLocation _,
-                (alias => {
+                addCorporateLocation = otherAccount.addCorporateLocation,
+                addPhysicalLocation = otherAccount.addPhysicalLocation,
+                addPublicAlias = (alias => {
                   otherAccount.publicAlias(alias).save
                   //the save method does not return a Boolean to inform about the saving state,
                   //so we a true
                   true
                 }),
-                (alias => {
+                addPrivateAlias = (alias => {
                   otherAccount.privateAlias(alias).save
                   //the save method does not return a Boolean to inform about the saving state,
                   //so we a true
                   true
-                })
+                }),
+                deleteCorporateLocation = otherAccount.deleteCorporateLocation,
+                deletePhysicalLocation = otherAccount.deletePhysicalLocation
               )
 
             val otherBankAccount =
@@ -492,52 +497,54 @@ class MongoDBLocalStorage extends LocalStorage {
 
           val metadata =
             new OtherBankAccountMetadata(
-              otherAccount.publicAlias.get,
-              otherAccount.privateAlias.get,
-              otherAccount.moreInfo.get,
-              otherAccount.url.get,
-              otherAccount.imageUrl.get,
-              otherAccount.openCorporatesUrl.get,
-              otherAccount.corporateLocation.get,
-              otherAccount.physicalLocation.get,
-              (text => {
+              publicAlias = otherAccount.publicAlias.get,
+              privateAlias = otherAccount.privateAlias.get,
+              moreInfo = otherAccount.moreInfo.get,
+              url = otherAccount.url.get,
+              imageURL = otherAccount.imageUrl.get,
+              openCorporatesURL = otherAccount.openCorporatesUrl.get,
+              corporateLocations = otherAccount.corporateLocation.get,
+              physicalLocations = otherAccount.physicalLocation.get,
+              addMoreInfo = (text => {
                 otherAccount.moreInfo(text).save
                 //the save method does not return a Boolean to inform about the saving state,
                 //so we a true
                 true
               }),
-              (text => {
+              addURL = (text => {
                 otherAccount.url(text).save
                 //the save method does not return a Boolean to inform about the saving state,
                 //so we a true
                 true
               }),
-              (text => {
+              addImageURL = (text => {
                 otherAccount.imageUrl(text).save
                 //the save method does not return a Boolean to inform about the saving state,
                 //so we a true
                 true
               }),
-              (text => {
+              addOpenCorporatesURL = (text => {
                 otherAccount.openCorporatesUrl(text).save
                 //the save method does not return a Boolean to inform about the saving state,
                 //so we a true
                 true
               }),
-              otherAccount.addCorporateLocation _,
-              otherAccount.addPhysicalLocation _,
-              (alias => {
+              addCorporateLocation = otherAccount.addCorporateLocation _,
+              addPhysicalLocation = otherAccount.addPhysicalLocation _,
+              addPublicAlias = (alias => {
                 otherAccount.publicAlias(alias).save
                 //the save method does not return a Boolean to inform about the saving state,
                 //so we a true
                 true
               }),
-              (alias => {
+              addPrivateAlias = (alias => {
                 otherAccount.privateAlias(alias).save
                 //the save method does not return a Boolean to inform about the saving state,
                 //so we a true
                 true
-              })
+              }),
+              deleteCorporateLocation = otherAccount.deleteCorporateLocation,
+              deletePhysicalLocation = otherAccount.deletePhysicalLocation
             )
 
           val otherBankAccount =
