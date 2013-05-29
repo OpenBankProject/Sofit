@@ -725,6 +725,21 @@ class API1_2Test extends ServerSetup{
     makePutRequest(request, write(corpLocationJson))
   }
 
+  def deleteCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").DELETE <@(consumer, token)
+    makeDeleteRequest(request)
+  }
+
+  def deleteCorporateLocationForOneOtherBankAccountWithoutToken(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location"
+    makeDeleteRequest(request)
+  }
+
+  def deleteCorporateLocationForOneOtherBankAccountWithWrongUser(bankId : String, accountId : String, viewId : String, otherBankAccountId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").DELETE <@(consumer, token3)
+    makeDeleteRequest(request)
+  }
+
 
   /************************ the tests ************************/
   feature("base line URL works"){
@@ -2859,6 +2874,71 @@ class API1_2Test extends ServerSetup{
       putReply.code should equal (400)
       And("we should get an error message")
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We delete the corporate location for one specific other bank"){
+    scenario("we will delete the corporate location for one random other bank account") {
+      Given("We will use an access token and will set a corporate location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 204 code")
+      deleteReply.code should equal (204)
+      And("the corporate location should be null")
+      val locationAfterDelete = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should equal (null)
+    }
+
+    scenario("we will not delete the corporate location for a random other bank account due to a missing token") {
+      Given("We will not use an access token and will set a corporate location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteCorporateLocationForOneOtherBankAccountWithoutToken(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      And("the corporate location should not be null")
+      val locationAfterDelete = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should not equal (null)
+    }
+
+    scenario("we will not delete the corporate location for a random other bank account because the user does not have enough privileges") {
+      Given("We will use an access token and will set a corporate location first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteCorporateLocationForOneOtherBankAccountWithWrongUser(bankId, bankAccount.id, view, otherBankAccount.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      And("the corporate location should not be null")
+      val locationAfterDelete = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
+      locationAfterDelete should not equal (null)
+    }
+
+    scenario("we will not delete the corporate location for a random other bank account because the account does not exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val randomLoc = randomLocation
+      When("the delete request is sent")
+      val deleteReply = deleteCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
     }
   }
 }
