@@ -628,7 +628,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
           addCorpLocation <- Box(metadata.addCorporateLocation) ?~ {"the view " + viewId + "does not allow adding a corporate location"}
           openCorpLocation <- tryo{(json.extract[CorporateLocationJSON])} ?~ {"wrong JSON format"}
-          if(addCorpLocation(u.id_, view.id, now, openCorpLocation.corporate_location.longitude, openCorpLocation.corporate_location.latitude))
+          if(addCorpLocation(u.id_, view.id, (now:TimeSpan), openCorpLocation.corporate_location.longitude, openCorpLocation.corporate_location.latitude))
         } yield {
             val successJson = SuccessMessage("corporate location added")
             successJsonResponse(Extraction.decompose(successJson), 201)

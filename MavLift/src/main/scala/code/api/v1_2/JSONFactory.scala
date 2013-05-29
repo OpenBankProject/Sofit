@@ -347,6 +347,13 @@ object JSONFactory{
     )
   }
 
+  def createLocationPlainJSON(lat: Double, lon: Double) : LocationPlainJSON = {
+    new LocationPlainJSON(
+      latitude = lat,
+      longitude = lon
+      )
+  }
+
   def createTransactionMetadataJSON(metadata : ModeratedTransactionMetadata) : TransactionMetadataJSON = {
     new TransactionMetadataJSON(
       narrative = stringOptionOrNull(metadata.ownerComment),
