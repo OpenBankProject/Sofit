@@ -182,12 +182,6 @@ class Boot extends Loggable{
     {
       val bankUrl = URLParameters(0)
       val accountUrl = URLParameters(1)
-      val account = for {
-        account <- LocalStorage.getAccount(bankUrl,accountUrl) ?~ {"account " + accountUrl + " not found for bank " + bankUrl}
-        user <- OBPUser.currentUser  ?~ {"user not found when attempting to access account " + account + " of bank " + bankUrl}
-        bankAccount <- BankAccount(bankUrl, accountUrl) ?~ {"account " + account + " not found for bank " + bankUrl}
-        if(user.hasMangementAccess(bankAccount))
-      } yield account
 
         logAndReturnResult {
           for {
