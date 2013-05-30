@@ -741,6 +741,60 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
         }
     }
   })
+  
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: Nil JsonGet json => {
+      user =>
+        
+      def asInt(s: Box[String], default: Int): Int = {
+        s match {
+          case Full(str) => tryo { str.toInt } getOrElse default
+          case _ => default
+        }
+      }
+      
+      val limit = asInt(json.header("obp_limit"), 50)
+      val offset = asInt(json.header("obp_offset"), 0)
+      
+       /**
+       * sortBy is currently disabled as it would open up a security hole:
+       *
+       * sortBy as currently implemented will take in a parameter that searches on the mongo field names. The issue here
+       * is that it will sort on the true value, and not the moderated output. So if a view is supposed to return an alias name
+       * rather than the true value, but someone uses sortBy on the other bank account name/holder, not only will the returned data
+       * have the wrong order, but information about the true account holder name will be exposed due to its position in the sorted order
+       *
+       * This applies to all fields that can have their data concealed... which in theory will eventually be most/all
+       *
+       */
+      //val sortBy = json.header("obp_sort_by")
+      val sortBy = None
+      val sortDirection = OBPOrder(json.header("obp_sort_by"))
+      val fromDate = tryo{dateFormat.parse(json.header("obp_from_date") getOrElse "")}.map(OBPFromDate(_))
+      val toDate = tryo{dateFormat.parse(json.header("obp_to_date") getOrElse "")}.map(OBPToDate(_))
+
+      def getTransactions(bankAccount: BankAccount, view: View, user: Option[User]) = {
+        if(bankAccount.authorizedAccess(view, user)) {
+          val basicParams = List(OBPLimit(limit),
+                          OBPOffset(offset),
+                          OBPOrdering(sortBy, sortDirection))
+
+          val params : List[OBPQueryParam] = fromDate.toList ::: toDate.toList ::: basicParams
+          bankAccount.getModeratedTransactions(params: _*)(view.moderate)
+        } else Nil
+      }
+      
+       for {
+        bankAccount <- BankAccount(bankId, accountId)
+        view <- View.fromUrl(viewId) //TODO: This will have to change if we implement custom view names for different accounts
+      } yield {
+        val ts = getTransactions(bankAccount, view, user)
+        val json = JSONFactory.createTransactionsJSON(ts)
+        successJsonResponse(Extraction.decompose(json))
+      }
+      
+    }
+  })
 
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "transaction" :: Nil JsonGet json => {

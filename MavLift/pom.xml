@@ -160,24 +160,51 @@
 		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
 			<plugins>
-			<plugin>
-				<!-- add src/main/java to source dirs -->
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>add-source</goal>
-						</goals>
-						<configuration>
-							<sources>
-								<source>src/main/java</source>
-							</sources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+			    <plugin>
+			  		<groupId>org.apache.maven.plugins</groupId>
+			  		<artifactId>maven-surefire-plugin</artifactId>
+			  		<version>2.7</version>
+					  <configuration>
+					    <skipTests>true</skipTests>
+					  </configuration>
+				  </plugin>
+		      	<plugin>
+			        <!-- enable the scalatest plugin -->
+			  		<groupId>org.scalatest</groupId>
+			  		<artifactId>maven-scalatest-plugin</artifactId>
+			  		<version>1.0-SNAPSHOT</version>
+			  		<configuration>
+			    		<reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+			    		<junitxml>.</junitxml>
+			    		<filereports>WDF TestSuite.txt</filereports>
+			  		</configuration>
+			  		<executions>
+			    		<execution>
+			      		<id>test</id>
+			      		<goals>
+			        		<goal>test</goal>
+			      		</goals>
+			    		</execution>
+			  		</executions>
+				</plugin>
+				<plugin>
+					<!-- add src/main/java to source dirs -->
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>build-helper-maven-plugin</artifactId>
+					<executions>
+						<execution>
+							<phase>generate-sources</phase>
+							<goals>
+								<goal>add-source</goal>
+							</goals>
+							<configuration>
+								<sources>
+									<source>src/main/java</source>
+								</sources>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
 				<plugin>
 					<groupId>org.scala-tools</groupId>
 					<artifactId>maven-scala-plugin</artifactId>
