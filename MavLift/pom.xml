@@ -177,6 +177,7 @@
 			    		<reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
 			    		<junitxml>.</junitxml>
 			    		<filereports>WDF TestSuite.txt</filereports>
+			    		<argLine>-Drun.mode=test</argLine>
 			  		</configuration>
 			  		<executions>
 			    		<execution>
