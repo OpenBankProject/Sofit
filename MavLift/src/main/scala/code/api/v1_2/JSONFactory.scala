@@ -165,6 +165,8 @@ case class TransactionMetadataJSON(
   images : List[TransactionImageJSON],
   where : LocationJSON
 )
+case class TransactionsJSON(
+  transactions: List[TransactionJSON])
 case class TransactionJSON(
   id : String,
   this_account : ThisAccountJSON,
@@ -180,7 +182,8 @@ case class TransactionImageJSON(
   label : String,
   URL : String,
   date : Date,
-  user : UserJSON)
+  user : UserJSON
+)
 case class PostTransactionImageJSON(
   label : String,
   URL : String
@@ -290,6 +293,10 @@ object JSONFactory{
       viewsAvailable,
       stringOptionOrNull(account.bankPermalink)
     )
+  }
+  
+  def createTransactionsJSON(transactions: List[ModeratedTransaction]) : TransactionsJSON = {
+    new TransactionsJSON(transactions.map(createTransactionJSON))
   }
 
   def createTransactionJSON(transaction : ModeratedTransaction) : TransactionJSON = {
