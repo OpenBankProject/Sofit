@@ -26,7 +26,7 @@
 		<repository>
 			<id>scala-tools.releases</id>
 			<name>Scala-Tools Dependencies Repository for Releases</name>
-			<url>http://scala-tools.org/repo-releases</url>
+			<url>https://oss.sonatype.org/content/groups/scala-tools/</url>
 		</repository>
     <repository>
       <id>java.net.maven2</id>
@@ -36,16 +36,16 @@
 		<repository>
 			<id>scala-tools.snapshots</id>
 			<name>Scala-Tools Dependencies Repository for Snapshots</name>
-			<url>http://scala-tools.org/repo-snapshots</url>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
 		</repository>
 	</repositories>
 
 	<pluginRepositories>
-		<pluginRepository>
-			<id>scala-tools.releases</id>
-			<name>Scala-Tools Plugins Repository for Releases</name>
-			<url>http://scala-tools.org/repo-releases</url>
-		</pluginRepository>
+    <pluginRepository>
+      <id>org.sonatype.oss.groups.public</id>
+	  <name>Sonatype Public</name>
+      <url>https://oss.sonatype.org/content/groups/public</url>
+    </pluginRepository>
 	</pluginRepositories>
 
 	<dependencies>
