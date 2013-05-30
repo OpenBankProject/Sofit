@@ -169,10 +169,8 @@ class Boot extends Loggable{
             b <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
             v <- View.fromUrl(viewName) ?~ { "view " + viewName + " not found for account " + account + " and bank " + bank }
             if (b.authorizedAccess(v, OBPUser.currentUser))
-            transactionsJson <- Full(new TransactionsJson(Some(Nil))) //TODO: Get this from the API
-            /*TODO: This api call needs to be implemented:
-             * transactionsJson <- ObpGet("/banks/" + bank + "/accounts/" + account + "/" + viewName +
-              "/transactions").flatMap(x => x.extractOpt[TransactionsJson])*/
+            transactionsJson <- ObpGet("/banks/" + bank + "/accounts/" + account + "/" + viewName +
+              "/transactions").flatMap(x => x.extractOpt[TransactionsJson])
           } yield {
             ((b.getModeratedTransactions(v.moderate), v, b), (transactionsJson, transactionsURLParams))
           }
