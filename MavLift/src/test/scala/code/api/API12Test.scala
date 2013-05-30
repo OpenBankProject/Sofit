@@ -175,6 +175,12 @@ class API1_2Test extends ServerSetup{
   object PostOpenCorporatesURL extends Tag("postOpenCorporatesURL")
   object PutOpenCorporatesURL extends Tag("putOpenCorporatesURL")
   object DeleteOpenCorporatesURL extends Tag("deleteOpenCorporatesURL")
+  object PostCorporateLocation extends Tag("postCorporateLocation")
+  object PutCorporateLocation extends Tag("putCorporateLocation")
+  object DeleteCorporateLocation extends Tag("deleteCorporateLocation")
+  object PostPhysicalLocation extends Tag("postPhysicalLocation")
+  object PutPhysicalLocation extends Tag("putPhysicalLocation")
+  object DeletePhysicalLocation extends Tag("deletePhysicalLocation")
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =
@@ -2828,7 +2834,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We post the corporate location for one specific other bank"){
-    scenario("we will post the corporate location for one random other bank account") {
+    scenario("we will post the corporate location for one random other bank account", API1_2, PostCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2846,7 +2852,7 @@ class API1_2Test extends ServerSetup{
       randomLoc.longitude should equal (location.longitude)
     }
 
-    scenario("we will not post the corporate location for a random other bank account due to a missing token") {
+    scenario("we will not post the corporate location for a random other bank account due to a missing token", API1_2, PostCorporateLocation) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2861,7 +2867,7 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not post the corporate location for one random other bank account because the coordinates don't exist") {
+    scenario("we will not post the corporate location for one random other bank account because the coordinates don't exist", API1_2, PostCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2876,7 +2882,7 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not post the corporate location for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not post the corporate location for a random other bank account because the user does not have enough privileges", API1_2, PostCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2891,7 +2897,7 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not post the corporate location for a random other bank account because the view does not exist") {
+    scenario("we will not post the corporate location for a random other bank account because the view does not exist", API1_2, PostCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2906,7 +2912,7 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not post the corporate location for a random other bank account because the account does not exist") {
+    scenario("we will not post the corporate location for a random other bank account because the account does not exist", API1_2, PostCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2922,7 +2928,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We update the corporate location for one specific other bank"){
-    scenario("we will update the corporate location for one random other bank account") {
+    scenario("we will update the corporate location for one random other bank account", API1_2, PutCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2940,7 +2946,7 @@ class API1_2Test extends ServerSetup{
       randomLoc.longitude should equal (location.longitude)
     }
 
-    scenario("we will not update the corporate location for one random other bank account because the coordinates don't exist") {
+    scenario("we will not update the corporate location for one random other bank account because the coordinates don't exist", API1_2, PutCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2955,7 +2961,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the corporate location for a random other bank account due to a missing token") {
+    scenario("we will not update the corporate location for a random other bank account due to a missing token", API1_2, PutCorporateLocation) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2970,7 +2976,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the corporate location for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not update the corporate location for a random other bank account because the user does not have enough privileges", API1_2, PutCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2985,7 +2991,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the corporate location for a random other bank account because the account does not exist") {
+    scenario("we will not update the corporate location for a random other bank account because the account does not exist", API1_2, PutCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3001,7 +3007,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We delete the corporate location for one specific other bank"){
-    scenario("we will delete the corporate location for one random other bank account") {
+    scenario("we will delete the corporate location for one random other bank account", API1_2, DeleteCorporateLocation) {
       Given("We will use an access token and will set a corporate location first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3018,7 +3024,7 @@ class API1_2Test extends ServerSetup{
       locationAfterDelete should equal (null)
     }
 
-    scenario("we will not delete the corporate location for a random other bank account due to a missing token") {
+    scenario("we will not delete the corporate location for a random other bank account due to a missing token", API1_2, DeleteCorporateLocation) {
       Given("We will not use an access token and will set a corporate location first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3035,7 +3041,7 @@ class API1_2Test extends ServerSetup{
       locationAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the corporate location for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not delete the corporate location for a random other bank account because the user does not have enough privileges", API1_2, DeleteCorporateLocation) {
       Given("We will use an access token and will set a corporate location first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3052,7 +3058,7 @@ class API1_2Test extends ServerSetup{
       locationAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the corporate location for a random other bank account because the account does not exist") {
+    scenario("we will not delete the corporate location for a random other bank account because the account does not exist", API1_2, DeleteCorporateLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3066,7 +3072,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We post the physical location for one specific other bank"){
-    scenario("we will post the physical location for one random other bank account") {
+    scenario("we will post the physical location for one random other bank account", API1_2, PostPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3084,7 +3090,7 @@ class API1_2Test extends ServerSetup{
       randomLoc.longitude should equal (location.longitude)
     }
 
-    scenario("we will not post the physical location for one random other bank account because the coordinates don't exist") {
+    scenario("we will not post the physical location for one random other bank account because the coordinates don't exist", API1_2, PostPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3099,7 +3105,7 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not post the physical location for a random other bank account due to a missing token") {
+    scenario("we will not post the physical location for a random other bank account due to a missing token", API1_2, PostPhysicalLocation) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3114,7 +3120,7 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not post the physical location for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not post the physical location for a random other bank account because the user does not have enough privileges", API1_2, PostPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3129,7 +3135,7 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not post the physical location for a random other bank account because the view does not exist") {
+    scenario("we will not post the physical location for a random other bank account because the view does not exist", API1_2, PostPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3144,7 +3150,7 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not post the physical location for a random other bank account because the account does not exist") {
+    scenario("we will not post the physical location for a random other bank account because the account does not exist", API1_2, PostPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3160,7 +3166,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We update the physical location for one specific other bank"){
-    scenario("we will update the physical location for one random other bank account") {
+    scenario("we will update the physical location for one random other bank account", API1_2, PutPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3178,7 +3184,7 @@ class API1_2Test extends ServerSetup{
       randomLoc.longitude should equal (location.longitude)
     }
 
-    scenario("we will not update the physical location for one random other bank account because the coordinates don't exist") {
+    scenario("we will not update the physical location for one random other bank account because the coordinates don't exist", API1_2, PutPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3193,7 +3199,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the physical location for a random other bank account due to a missing token") {
+    scenario("we will not update the physical location for a random other bank account due to a missing token", API1_2, PutPhysicalLocation) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3208,7 +3214,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the physical location for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not update the physical location for a random other bank account because the user does not have enough privileges", API1_2, PutPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3223,7 +3229,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the physical location for a random other bank account because the account does not exist") {
+    scenario("we will not update the physical location for a random other bank account because the account does not exist", API1_2, PutPhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3239,7 +3245,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We delete the physical location for one specific other bank"){
-    scenario("we will delete the physical location for one random other bank account") {
+    scenario("we will delete the physical location for one random other bank account", API1_2, DeletePhysicalLocation) {
       Given("We will use an access token and will set a physical location first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3256,7 +3262,7 @@ class API1_2Test extends ServerSetup{
       locationAfterDelete should equal (null)
     }
 
-    scenario("we will not delete the physical location for a random other bank account due to a missing token") {
+    scenario("we will not delete the physical location for a random other bank account due to a missing token", API1_2, DeletePhysicalLocation) {
       Given("We will not use an access token and will set a physical location first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3273,7 +3279,7 @@ class API1_2Test extends ServerSetup{
       locationAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the physical location for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not delete the physical location for a random other bank account because the user does not have enough privileges", API1_2, DeletePhysicalLocation) {
       Given("We will use an access token and will set a physical location first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3290,7 +3296,7 @@ class API1_2Test extends ServerSetup{
       locationAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the physical location for a random other bank account because the account does not exist") {
+    scenario("we will not delete the physical location for a random other bank account because the account does not exist", API1_2, DeletePhysicalLocation) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
