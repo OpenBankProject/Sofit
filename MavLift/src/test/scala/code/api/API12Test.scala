@@ -184,12 +184,11 @@ class API1_2Test extends ServerSetup{
 
   def randomLocation : LocationPlainJSON = {
     def sign = {
-      val b = Random.nextBoolean
-      if(b) 1
+      if(Random.nextBoolean) 1
       else -1
     }
     val longitude = Random.nextInt(180)*sign*Random.nextDouble
-    val latitude = Random.nextInt(180)*sign*Random.nextDouble
+    val latitude = Random.nextInt(90)*sign*Random.nextDouble
     JSONFactory.createLocationPlainJSON(latitude, longitude)
   }
 
@@ -2823,6 +2822,21 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
+    scenario("we will not post the corporate location for one random other bank account because the coordinates don't exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      var randomLoc = JSONFactory.createLocationPlainJSON(400,200)
+      When("the request is sent")
+      val postReply = postCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
     scenario("we will not post the corporate location for a random other bank account because the user does not have enough privileges") {
       Given("We will use an access token")
       val bankId = randomBank
@@ -2885,6 +2899,21 @@ class API1_2Test extends ServerSetup{
       val location = getCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
       randomLoc.latitude should equal (location.latitude)
       randomLoc.longitude should equal (location.longitude)
+    }
+
+    scenario("we will not update the corporate location for one random other bank account because the coordinates don't exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      var randomLoc = JSONFactory.createLocationPlainJSON(400,200)
+      When("the request is sent")
+      val putReply = updateCorporateLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
     scenario("we will not update the corporate location for a random other bank account due to a missing token") {
@@ -3016,6 +3045,21 @@ class API1_2Test extends ServerSetup{
       randomLoc.longitude should equal (location.longitude)
     }
 
+    scenario("we will not post the physical location for one random other bank account because the coordinates don't exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      var randomLoc = JSONFactory.createLocationPlainJSON(400,200)
+      When("the request is sent")
+      val postReply = postPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
     scenario("we will not post the physical location for a random other bank account due to a missing token") {
       Given("We will not use an access token")
       val bankId = randomBank
@@ -3093,6 +3137,21 @@ class API1_2Test extends ServerSetup{
       val location = getPhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id)
       randomLoc.latitude should equal (location.latitude)
       randomLoc.longitude should equal (location.longitude)
+    }
+
+    scenario("we will not update the physical location for one random other bank account because the coordinates don't exist") {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
+      var randomLoc = JSONFactory.createLocationPlainJSON(400,200)
+      When("the request is sent")
+      val putReply = updatePhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, otherBankAccount.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
     scenario("we will not update the physical location for a random other bank account due to a missing token") {
