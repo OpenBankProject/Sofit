@@ -267,8 +267,8 @@ class ModeratedOtherBankAccountMetadata(
   val addPhysicalLocation : Option[(String, Long, Date, Double, Double) => Boolean],
   val addPublicAlias : Option[(String) => Boolean],
   val addPrivateAlias : Option[(String) => Boolean],
-  val deleteCorporateLocation : Option[(Long) => Unit],
-  val deletePhysicalLocation : Option[(Long) => Unit]
+  val deleteCorporateLocation : Option[(Long) => Boolean],
+  val deletePhysicalLocation : Option[(Long) => Boolean]
 )
 
 object ModeratedOtherBankAccountMetadata {

@@ -124,7 +124,7 @@ class OtherBankAccountMetadata(
   /**
   * @param: viewId
   */
-  val deleteCorporateLocation : (Long) => Unit,
+  val deleteCorporateLocation : (Long) => Boolean,
   /**
   * @param: userId
   * @param: viewId
@@ -136,7 +136,7 @@ class OtherBankAccountMetadata(
   /**
   * @param: viewId
   */
-  val deletePhysicalLocation : (Long) => Unit,
+  val deletePhysicalLocation : (Long) => Boolean,
   val addPublicAlias : (String) => Boolean,
   val addPrivateAlias : (String) => Boolean
 )

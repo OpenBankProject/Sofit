@@ -170,12 +170,11 @@ class OtherAccount private() extends MongoRecord[OtherAccount] with ObjectIdPk[O
                 geoLatitude(latitude)
 
     //before to save the geo tag we need to be sure there is only one per view
-    //so we look if there is allready a tag with the same view (viewId)
-    val tags = corporateLocation.get.find(geoTag => geoTag.viewID equals viewId) match {
-      case Some(tag) => {
-        //if true remplace it with the new one
+    //so we look if there is already a tag with the same view (viewId)
+    val tags = corporateLocation.get.find(geoTag => geoTag.viewID.get == viewId) match {
+      case Some(tag) =>
+        //if true replace it with the new one
         newTag :: corporateLocation.get.diff(Seq(tag))
-      }
       case _ =>
         //else just add this one
         newTag :: corporateLocation.get
@@ -184,15 +183,15 @@ class OtherAccount private() extends MongoRecord[OtherAccount] with ObjectIdPk[O
     true
   }
 
-  def deleteCorporateLocation(viewId: Long):Unit = {
-    val location :Option[OBPGeoTag] = corporateLocation.get.find(
-      loc=>{loc.viewId ==viewId})
+  def deleteCorporateLocation(viewId: Long):Boolean = {
+    val location :Option[OBPGeoTag] = corporateLocation.get.find(loc=>{loc.viewId == viewId})
     location match {
       case Some(l) => {
         val newCorporateLocation = corporateLocation.get.diff(Seq(l))
         corporateLocation(newCorporateLocation).save
+        true
       }
-      case None =>
+      case None => false
     }
   }
 
@@ -219,15 +218,15 @@ class OtherAccount private() extends MongoRecord[OtherAccount] with ObjectIdPk[O
     true
   }
 
-    def deletePhysicalLocation(viewId: Long):Unit = {
-    val location :Option[OBPGeoTag] = physicalLocation.get.find(
-      loc=>{loc.viewId ==viewId})
+  def deletePhysicalLocation(viewId: Long):Boolean = {
+    val location :Option[OBPGeoTag] = physicalLocation.get.find(loc=>{loc.viewId ==viewId})
     location match {
       case Some(l) => {
         val newPhysicalLocation = physicalLocation.get.diff(Seq(l))
         physicalLocation(newPhysicalLocation).save
+      true
       }
-      case None =>
+      case None => false
     }
   }
 
