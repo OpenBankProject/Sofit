@@ -202,7 +202,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
                 ".transaction_image [src]" #> images(0).imageUrl.toString &
                 {
                   if (images(0).description.nonEmpty)
-                    ".transaction_image [alt]" #> images(0).description                  
+                    ".transaction_image [alt]" #> images(0).description
                   else NOOP_SELECTOR
                 }
               }
@@ -249,7 +249,7 @@ class OBPTransactionSnippet (filteredTransactionsAndView : (List[ModeratedTransa
     var narrative = transaction.metadata.get.ownerComment.getOrElse("").toString
     CustomEditable.editable(narrative, SHtml.text(narrative, narrative = _), () => {
       //save the narrative
-      transaction.metadata.get.saveOwnerComment match {
+      transaction.metadata.get.addOwnerComment match {
         case Some(f) => f.apply(narrative)
         case _ =>
       }

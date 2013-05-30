@@ -741,21 +741,21 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
         }
     }
   })
-  
+
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: Nil JsonGet json => {
       user =>
-        
+
       def asInt(s: Box[String], default: Int): Int = {
         s match {
           case Full(str) => tryo { str.toInt } getOrElse default
           case _ => default
         }
       }
-      
+
       val limit = asInt(json.header("obp_limit"), 50)
       val offset = asInt(json.header("obp_offset"), 0)
-      
+
        /**
        * sortBy is currently disabled as it would open up a security hole:
        *
@@ -783,7 +783,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           bankAccount.getModeratedTransactions(params: _*)(view.moderate)
         } else Nil
       }
-      
+
        for {
         bankAccount <- BankAccount(bankId, accountId)
         view <- View.fromUrl(viewId) //TODO: This will have to change if we implement custom view names for different accounts
@@ -792,7 +792,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
         val json = JSONFactory.createTransactionsJSON(ts)
         successJsonResponse(Extraction.decompose(json))
       }
-      
+
     }
   })
 
@@ -810,6 +810,70 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     }
   })
 
+   oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "narrative" :: Nil JsonGet json => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          narrative <- Box(metadata.ownerComment) ?~ { "view " + viewId + " does not authorize narrative access" }
+        } yield {
+          val narrativeJson = JSONFactory.createTransactionNarrativeJson(narrative)
+          successJsonResponse(Extraction.decompose(narrativeJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "narrative" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          narrativeJson <- tryo{json.extract[TransactionNarrativeJSON]} ?~ {"wrong json format"}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
+          addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow adding a narrative"}
+        } yield {
+          addNarrative(narrativeJson.narrative)
+          val successJson = SuccessMessage("narrative added")
+          successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "narrative" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          narrativeJson <- tryo{json.extract[TransactionNarrativeJSON]} ?~ {"wrong json format"}
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
+          addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow updating a narrative"}
+        } yield {
+          addNarrative(narrativeJson.narrative)
+          val successJson = SuccessMessage("narrative updated")
+          successJsonResponse(Extraction.decompose(successJson))
+
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "narrative" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          //view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow deleting the narrative"}
+        } yield {
+          addNarrative("")
+          noContentJsonResponse
+        }
+    }
+  })
+
+
+
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonGet json => {
       user =>
@@ -823,7 +887,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     }
   })
 
-oauthServe(apiPrefix {
+  oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
       user =>
         for {
@@ -838,6 +902,7 @@ oauthServe(apiPrefix {
         }
     }
   })
+
   oauthServe(apiPrefix {
     //post a tag
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {

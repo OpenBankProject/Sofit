@@ -92,7 +92,7 @@ object ModeratedTransaction {
 
 class ModeratedTransactionMetadata(
   val ownerComment : Option[String],
-  val saveOwnerComment : Option[(String => Unit)],
+  val addOwnerComment : Option[(String => Unit)],
   val comments : Option[List[Comment]],
   val addComment: Option[(String, Long, String, Date) => Comment],
   val tags : Option[List[Tag]],

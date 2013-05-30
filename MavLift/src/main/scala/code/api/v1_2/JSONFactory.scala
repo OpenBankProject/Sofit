@@ -233,6 +233,9 @@ case class LocationPlainJSON(
   latitude : Double,
   longitude : Double
 )
+case class TransactionNarrativeJSON(
+  narrative : String
+)
 
 object JSONFactory{
   def stringOrNull(text : String) =
@@ -294,7 +297,7 @@ object JSONFactory{
       stringOptionOrNull(account.bankPermalink)
     )
   }
-  
+
   def createTransactionsJSON(transactions: List[ModeratedTransaction]) : TransactionsJSON = {
     new TransactionsJSON(transactions.map(createTransactionJSON))
   }
@@ -510,4 +513,9 @@ object JSONFactory{
   def createAliasJSON(alias: String): AliasJSON = {
     AliasJSON(stringOrNull(alias))
   }
+
+  def createTransactionNarrativeJson(narrative: String): TransactionNarrativeJSON = {
+    TransactionNarrativeJSON(stringOrNull(narrative))
+  }
+
 }
