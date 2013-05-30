@@ -20,10 +20,13 @@ import java.util.Date
 import net.liftweb.http.RequestVar
 import code.lib.ObpJson._
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
+import java.text.SimpleDateFormat
+
+case class Header(key: String, value: String)
 
 object ObpAPI {
   implicit val formats = DefaultFormats
-  
+  val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
   /**
    * The request vars ensure that for one page load, the same API call isn't
    * made multiple times
@@ -35,6 +38,23 @@ object ObpAPI {
       case Full(a) => Full(a)
       case _ => ObpGet("/banks").flatMap(_.extractOpt[BanksJson])
     }
+  }
+  
+  trait SortDirection {
+    val value : String
+  }
+  object ASC extends SortDirection { val value = "ASC" }
+  object DESC extends SortDirection { val value = "DESC" }
+  
+  def transactions(bankId: String, accountId: String, viewId: String, limit: Option[Int],
+      offset: Option[Int], fromDate: Option[Date], toDate: Option[Date], sortDirection: Option[SortDirection]) : Box[TransactionsJson]= {
+    
+    val headers : List[Header] = limit.map(l => Header("obp_limit", l.toString)).toList ::: offset.map(o => Header("obp_offset", o.toString)).toList :::
+      fromDate.map(f => Header("obp_from_date", dateFormat.format(f))).toList ::: toDate.map(t => Header("obp_to_date", dateFormat.format(t))).toList :::
+      sortDirection.map(s => Header("obp_sort_direction", s.value)).toList ::: Nil
+    
+    ObpGet("/banks/" + bankId + "/accounts/" + accountId + "/" + viewId +
+              "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson])
   }
   
    /**
@@ -253,7 +273,7 @@ object ObpGet {
   implicit val formats = DefaultFormats
   
   //Ah, dispatch does have oauth support. It would be nicer to use dispatch! -E.S.
-  def apply(apiPath: String): Box[JValue] = {
+  def apply(apiPath: String, headers : List[Header] = Nil): Box[JValue] = {
     tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
       val credentials = OAuthClient.getCredential(provider)
@@ -264,6 +284,8 @@ object ObpGet {
       request.setRequestMethod("GET")
       request.setRequestProperty("Content-Type", "application/json")
       request.setRequestProperty("Accept", "application/json")
+      
+      headers.foreach(header => request.setRequestProperty(header.key, header.value))
 
       //sign the request if we have some credentials to sign it with
       credentials.foreach(c => c.consumer.sign(request))

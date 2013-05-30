@@ -59,6 +59,7 @@ import code.snippet.TransactionsListURLParams
 import code.snippet.CommentsURLParams
 import code.snippet.ManagementURLParams
 import code.lib.ObpJson.OtherAccountsJson
+import code.lib.ObpAPI
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -169,8 +170,7 @@ class Boot extends Loggable{
             b <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
             v <- View.fromUrl(viewName) ?~ { "view " + viewName + " not found for account " + account + " and bank " + bank }
             if (b.authorizedAccess(v, OBPUser.currentUser))
-            transactionsJson <- ObpGet("/banks/" + bank + "/accounts/" + account + "/" + viewName +
-              "/transactions").flatMap(x => x.extractOpt[TransactionsJson])
+            transactionsJson <- ObpAPI.transactions(bank, account, viewName, Some(100000), Some(0), None, None, None) //TODO: Pagination
           } yield {
             ((b.getModeratedTransactions(v.moderate), v, b), (transactionsJson, transactionsURLParams))
           }
