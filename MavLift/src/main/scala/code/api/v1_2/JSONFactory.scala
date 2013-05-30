@@ -180,7 +180,8 @@ case class TransactionImageJSON(
   label : String,
   URL : String,
   date : Date,
-  user : UserJSON)
+  user : UserJSON
+)
 case class PostTransactionImageJSON(
   label : String,
   URL : String

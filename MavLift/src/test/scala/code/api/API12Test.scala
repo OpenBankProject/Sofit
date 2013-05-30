@@ -25,7 +25,7 @@ import code.model.TokenType._
 import code.api.test.{ServerSetup, APIResponse}
 import code.model.dataAccess.{OBPUser, Privilege, HostedAccount, Account}
 
-@RunWith(classOf[JUnitRunner])
+
 class API1_2Test extends ServerSetup{
 
   val v1_2Request = baseRequest / "obp" / "v1.2"
@@ -136,6 +136,45 @@ class API1_2Test extends ServerSetup{
   //Note: for the moment we have a limited number of views, so the following list contains permalinks of all the views except Full, Base and Public.
   val possibleViewsPermalinks = List("team", "board", "authorities", "our-network", "owner")
   val possibleViewsPermalinksAllowingViewPrivilige = List("team", "board", "authorities", "owner")
+
+  /************************* test tags ************************/
+
+  object CurrentTest extends Tag("currentScenario")
+  object API1_2 extends Tag("api1.2")
+  object APIInfo extends Tag("apiInfo")
+  object GetHostedBanks extends Tag("hostedBanks")
+  object GetHostedBank extends Tag("getHostedBank")
+  object GetBankAccounts extends Tag("getBankAccounts")
+  object GetPublicBankAccounts extends Tag("getPublicBankAccounts")
+  object GetPrivateBankAccounts extends Tag("getPrivateBankAccounts")
+  object GetBankAccount extends Tag("getBankAccount")
+  object GetPermissions extends Tag("getPermissions")
+  object GetPermission extends Tag("getPermission")
+  object PostPermission extends Tag("postPermission")
+  object DeletePermission extends Tag("deletePermission")
+  object GetOtherBankAccounts extends Tag("getOtherBankAccounts")
+  object GetOtherBankAccount extends Tag("getOtherBankAccount")
+  object GetOtherBankAccountMetadata extends Tag("getOtherBankAccountMetadata")
+  object GetPublicAlias extends Tag("getPublicAlias")
+  object PostPublicAlias extends Tag("postPublicAlias")
+  object PutPublicAlias extends Tag("putPublicAlias")
+  object DeletePublicAlias extends Tag("deletePublicAlias")
+  object GetPrivateAlias extends Tag("getPrivateAlias")
+  object PostPrivateAlias extends Tag("postPrivateAlias")
+  object PutPrivateAlias extends Tag("putPrivateAlias")
+  object DeletePrivateAlias extends Tag("deletePrivateAlias")
+  object PostMoreInfo extends Tag("postMoreInfo")
+  object PutMoreInfo extends Tag("putMoreInfo")
+  object DeleteMoreInfo extends Tag("deleteMoreInfo")
+  object PostURL extends Tag("postURL")
+  object PutURL extends Tag("putURL")
+  object DeleteURL extends Tag("deleteURL")
+  object PostImageURL extends Tag("postImageURL")
+  object PutImageURL extends Tag("putImageURL")
+  object DeleteImageURL extends Tag("DeleteImageURL")
+  object PostOpenCorporatesURL extends Tag("postOpenCorporatesURL")
+  object PutOpenCorporatesURL extends Tag("putOpenCorporatesURL")
+  object DeleteOpenCorporatesURL extends Tag("deleteOpenCorporatesURL")
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =
@@ -798,7 +837,7 @@ class API1_2Test extends ServerSetup{
 
 /************************ the tests ************************/
   feature("base line URL works"){
-    scenario("we get the api information") {
+    scenario("we get the api information", API1_2, APIInfo) {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getAPIInfo
@@ -811,7 +850,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Information about the hosted banks"){
-    scenario("we get the hosted banks information") {
+    scenario("we get the hosted banks information", API1_2, GetHostedBanks) {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getBanksInfo
@@ -825,7 +864,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Information about one hosted bank"){
-    scenario("we get the hosted bank information") {
+    scenario("we get the hosted bank information", API1_2, GetHostedBank) {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getBankInfo(randomBank)
@@ -835,7 +874,7 @@ class API1_2Test extends ServerSetup{
       bankInfo.id.nonEmpty should equal (true)
     }
 
-    scenario("we don't get the hosted bank information") {
+    scenario("we don't get the hosted bank information", API1_2, GetHostedBank) {
       Given("We will not use an access token and request a random bankId")
       When("the request is sent")
       val reply = getBankInfo(Helpers.randomString(5))
@@ -847,7 +886,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Information about all the bank accounts"){
-    scenario("we get only the public bank accounts") {
+    scenario("we get only the public bank accounts", API1_2, GetBankAccounts) {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getBankAccounts(randomBank)
@@ -865,7 +904,7 @@ class API1_2Test extends ServerSetup{
       })
 
     }
-    scenario("we get the bank accounts the user have access to") {
+    scenario("we get the bank accounts the user have access to", API1_2, GetBankAccounts) {
       Given("We will use an access token")
       When("the request is sent")
       val reply = getBankAccountsWithToken(randomBank)
@@ -881,7 +920,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Information about the public bank accounts"){
-    scenario("we get the public bank accounts") {
+    scenario("we get the public bank accounts", API1_2, GetPublicBankAccounts) {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getPublicAccounts(randomBank)
@@ -901,7 +940,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Information about the private bank accounts"){
-    scenario("we get the private bank accounts") {
+    scenario("we get the private bank accounts", API1_2, GetPrivateBankAccounts) {
       Given("We will use an access token")
       When("the request is sent")
       val reply = getPrivateAccounts(randomBank)
@@ -914,7 +953,7 @@ class API1_2Test extends ServerSetup{
         a.views_available.nonEmpty should equal (true)
       })
     }
-    scenario("we don't get the private bank accounts") {
+    scenario("we don't get the private bank accounts", API1_2, GetPrivateBankAccounts) {
       Given("We will not use an access token")
       When("the request is sent")
       val reply = getPrivateAccountsWithOutToken(randomBank)
@@ -926,7 +965,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Information about a bank account"){
-    scenario("we get data without using an access token") {
+    scenario("we get data without using an access token", API1_2, GetBankAccount) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPublicAccount(bankId)
@@ -943,7 +982,7 @@ class API1_2Test extends ServerSetup{
       publicAccountDetails.views_available.nonEmpty should equal (true)
     }
 
-    scenario("we get data by using an access token") {
+    scenario("we get data by using an access token", API1_2, GetBankAccount) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -962,7 +1001,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Information about the permissions of a specific bank account"){
-    scenario("we will get one bank account permissions by using an access token") {
+    scenario("we will get one bank account permissions by using an access token", API1_2, GetPermissions) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -973,7 +1012,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[PermissionsJSON]
     }
 
-    scenario("we will not get one bank account permissions") {
+    scenario("we will not get one bank account permissions", API1_2, GetPermissions) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -985,7 +1024,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get one bank account permissions by using an other access token") {
+    scenario("we will not get one bank account permissions by using an other access token", API1_2, GetPermissions) {
       Given("We will use an access token, but that does not grant owner view")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -999,7 +1038,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Information about the permissions of a specific user on a specific bank account"){
-    scenario("we will get the permissions by using an access token") {
+    scenario("we will get the permissions by using an access token", API1_2, GetPermission) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1013,7 +1052,7 @@ class API1_2Test extends ServerSetup{
       viewsInfo.views.foreach(v => v.id.nonEmpty should equal (true))
     }
 
-    scenario("we will not get the permissions of a specific user") {
+    scenario("we will not get the permissions of a specific user", API1_2, GetPermission) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1026,7 +1065,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the permissions of a random user") {
+    scenario("we will not get the permissions of a random user", API1_2, GetPermission) {
       Given("We will use an access token with random user id")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1040,7 +1079,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Grant a user access to a view on a bank account"){
-    scenario("we will grant a user access to a view on an bank account") {
+    scenario("we will grant a user access to a view on an bank account", API1_2, PostPermission) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1053,7 +1092,7 @@ class API1_2Test extends ServerSetup{
       viewInfo.id.nonEmpty should equal (true)
     }
 
-    scenario("we cannot grant a user access to a view on an bank account because the user does not exist") {
+    scenario("we cannot grant a user access to a view on an bank account because the user does not exist", API1_2, PostPermission) {
       Given("We will use an access token with a random user Id")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1065,7 +1104,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we cannot grant a user access to a view on an bank account because the view does not exist") {
+    scenario("we cannot grant a user access to a view on an bank account because the view does not exist", API1_2, PostPermission) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1077,7 +1116,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we cannot grant a user access to a view on an bank account because the user does not have owner view access") {
+    scenario("we cannot grant a user access to a view on an bank account because the user does not have owner view access", API1_2, PostPermission) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1091,7 +1130,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Revoke a user access to a view on a bank account"){
-    scenario("we will revoke the access of a user to a view on an bank account") {
+    scenario("we will revoke the access of a user to a view on an bank account", API1_2, DeletePermission) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1101,7 +1140,7 @@ class API1_2Test extends ServerSetup{
       reply.code should equal (204)
     }
 
-    scenario("we cannot revoke the access to a user that does not exist") {
+    scenario("we cannot revoke the access to a user that does not exist", API1_2, DeletePermission) {
       Given("We will use an access token with a random user Id")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1111,7 +1150,7 @@ class API1_2Test extends ServerSetup{
       reply.code should equal (400)
     }
 
-    scenario("we cannot revoke a user access to a view on an bank account because the view does not exist") {
+    scenario("we cannot revoke a user access to a view on an bank account because the view does not exist", API1_2, DeletePermission) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1121,7 +1160,7 @@ class API1_2Test extends ServerSetup{
       reply.code should equal (400)
     }
 
-    scenario("we cannot revoke a user access to a view on an bank account because the user does not have owner view access") {
+    scenario("we cannot revoke a user access to a view on an bank account because the user does not have owner view access", API1_2, DeletePermission) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1133,7 +1172,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We get the list of the other bank accounts linked with a bank account"){
-    scenario("we will get the other bank accounts of a bank account") {
+    scenario("we will get the other bank accounts of a bank account", API1_2, GetOtherBankAccounts) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1148,7 +1187,7 @@ class API1_2Test extends ServerSetup{
       )
     }
 
-    scenario("we will not get the other bank accounts of a bank account due to missing access token") {
+    scenario("we will not get the other bank accounts of a bank account due to missing access token", API1_2, GetOtherBankAccounts) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1160,7 +1199,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the other bank accounts of a bank account because the user does not have enough privileges") {
+    scenario("we will not get the other bank accounts of a bank account because the user does not have enough privileges", API1_2, GetOtherBankAccounts) {
       Given("We will use an access token ")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1172,7 +1211,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the other bank accounts of a bank account because the view does not exist") {
+    scenario("we will not get the other bank accounts of a bank account because the view does not exist", API1_2, GetOtherBankAccounts) {
       Given("We will use an access token ")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1186,7 +1225,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We get one specific other bank account among the other accounts "){
-    scenario("we will get one random other bank account of a bank account") {
+    scenario("we will get one random other bank account of a bank account", API1_2, GetOtherBankAccount) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1201,7 +1240,7 @@ class API1_2Test extends ServerSetup{
       accountJson.id.nonEmpty should equal (true)
     }
 
-    scenario("we will not get one random other bank account of a bank account due to a missing token") {
+    scenario("we will not get one random other bank account of a bank account due to a missing token", API1_2, GetOtherBankAccount) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1215,7 +1254,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get one random other bank account of a bank account because the user does not have enough privileges") {
+    scenario("we will not get one random other bank account of a bank account because the user does not have enough privileges", API1_2, GetOtherBankAccount) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1229,7 +1268,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get one random other bank account of a bank account because the view does not exist") {
+    scenario("we will not get one random other bank account of a bank account because the view does not exist", API1_2, GetOtherBankAccount) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1242,7 +1281,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get one random other bank account of a bank account because the account does not exist") {
+    scenario("we will not get one random other bank account of a bank account because the account does not exist", API1_2, GetOtherBankAccount) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1256,8 +1295,8 @@ class API1_2Test extends ServerSetup{
     }
   }
 
-  feature("We get the metadata of one specific other bank account among the other accounts "){
-    scenario("we will get the metadata of one random other bank account") {
+  feature("We get the metadata of one specific other bank account among the other accounts"){
+    scenario("we will get the metadata of one random other bank account", API1_2, GetOtherBankAccountMetadata) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1271,7 +1310,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[OtherAccountMetadataJSON]
     }
 
-    scenario("we will not get the metadata of one random other bank account due to a missing token") {
+    scenario("we will not get the metadata of one random other bank account due to a missing token", API1_2, GetOtherBankAccountMetadata) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1285,7 +1324,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the metadata of one random other bank account because the user does not have enough privileges") {
+    scenario("we will not get the metadata of one random other bank account because the user does not have enough privileges", API1_2, GetOtherBankAccountMetadata) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1299,7 +1338,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the metadata of one random other bank account because the view does not exist") {
+    scenario("we will not get the metadata of one random other bank account because the view does not exist", API1_2, GetOtherBankAccountMetadata) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1313,7 +1352,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the metadata of one random other bank account because the account does not exist") {
+    scenario("we will not get the metadata of one random other bank account because the account does not exist", API1_2, GetOtherBankAccountMetadata) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1328,7 +1367,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We get the public alias of one specific other bank account among the other accounts "){
-    scenario("we will get the public alias of one random other bank account") {
+    scenario("we will get the public alias of one random other bank account", API1_2, GetPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1341,7 +1380,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[AliasJSON]
     }
 
-    scenario("we will not get the public alias of one random other bank account due to a missing token") {
+    scenario("we will not get the public alias of one random other bank account due to a missing token", API1_2, GetPublicAlias) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1355,7 +1394,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the public alias of one random other bank account because the user does not have enough privileges") {
+    scenario("we will not get the public alias of one random other bank account because the user does not have enough privileges", API1_2, GetPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1369,7 +1408,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the public alias of one random other bank account because the view does not exist") {
+    scenario("we will not get the public alias of one random other bank account because the view does not exist", API1_2, GetPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1383,7 +1422,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the public alias of one random other bank account because the account does not exist") {
+    scenario("we will not get the public alias of one random other bank account because the account does not exist", API1_2, GetPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1399,7 +1438,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We post a public alias for one specific other bank"){
-    scenario("we will post a public alias for one random other bank account") {
+    scenario("we will post a public alias for one random other bank account", API1_2, PostPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1417,7 +1456,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not post a public alias for a random other bank account due to a missing token") {
+    scenario("we will not post a public alias for a random other bank account due to a missing token", API1_2, PostPublicAlias) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1436,7 +1475,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should not equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not post a public alias for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not post a public alias for a random other bank account because the user does not have enough privileges", API1_2, PostPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1455,7 +1494,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should not equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not post a public alias for a random other bank account because the view does not exist") {
+    scenario("we will not post a public alias for a random other bank account because the view does not exist", API1_2, PostPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1474,7 +1513,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should not equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not post a public alias for a random other bank account because the account does not exist") {
+    scenario("we will not post a public alias for a random other bank account because the account does not exist", API1_2, PostPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1490,7 +1529,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We update the public alias for one specific other bank"){
-    scenario("we will update the public alias for one random other bank account") {
+    scenario("we will update the public alias for one random other bank account", API1_2, PutPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1508,7 +1547,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not update the public alias for a random other bank account due to a missing token") {
+    scenario("we will not update the public alias for a random other bank account due to a missing token", API1_2, PutPublicAlias) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1527,7 +1566,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should not equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not update the public alias for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not update the public alias for a random other bank account because the user does not have enough privileges", API1_2, PutPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1542,7 +1581,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the public alias for a random other bank account because the account does not exist") {
+    scenario("we will not update the public alias for a random other bank account because the account does not exist", API1_2, PutPublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1558,7 +1597,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We delete the public alias for one specific other bank"){
-    scenario("we will delete the public alias for one random other bank account") {
+    scenario("we will delete the public alias for one random other bank account", API1_2, DeletePublicAlias) {
       Given("We will use an access token and will set an alias first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1575,7 +1614,7 @@ class API1_2Test extends ServerSetup{
       val theAliasAfterTheDelete : AliasJSON = getReply.body.extract[AliasJSON]
       theAliasAfterTheDelete.alias should equal (null)
     }
-    scenario("we will not delete the public alias for a random other bank account due to a missing token") {
+    scenario("we will not delete the public alias for a random other bank account due to a missing token", API1_2, DeletePublicAlias) {
       Given("We will not use an access token and will set an alias first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1592,7 +1631,7 @@ class API1_2Test extends ServerSetup{
       val theAliasAfterTheDelete : AliasJSON = getReply.body.extract[AliasJSON]
       theAliasAfterTheDelete.alias should not equal (null)
     }
-    scenario("we will not delete the public alias for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not delete the public alias for a random other bank account because the user does not have enough privileges", API1_2, DeletePublicAlias) {
       Given("We will use an access token and will set an alias first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1609,7 +1648,7 @@ class API1_2Test extends ServerSetup{
       val theAliasAfterTheDelete : AliasJSON = getReply.body.extract[AliasJSON]
       theAliasAfterTheDelete.alias should not equal (null)
     }
-    scenario("we will not delete the public alias for a random other bank account because the account does not exist") {
+    scenario("we will not delete the public alias for a random other bank account because the account does not exist", API1_2, DeletePublicAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1623,7 +1662,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We get the private alias of one specific other bank account among the other accounts "){
-    scenario("we will get the private alias of one random other bank account") {
+    scenario("we will get the private alias of one random other bank account", API1_2, GetPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1636,7 +1675,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[AliasJSON]
     }
 
-    scenario("we will not get the private alias of one random other bank account due to a missing token") {
+    scenario("we will not get the private alias of one random other bank account due to a missing token", API1_2, GetPrivateAlias) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1650,7 +1689,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the private alias of one random other bank account because the user does not have enough privileges") {
+    scenario("we will not get the private alias of one random other bank account because the user does not have enough privileges", API1_2, GetPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1664,7 +1703,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the private alias of one random other bank account because the view does not exist") {
+    scenario("we will not get the private alias of one random other bank account because the view does not exist", API1_2, GetPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1678,7 +1717,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the private alias of one random other bank account because the account does not exist") {
+    scenario("we will not get the private alias of one random other bank account because the account does not exist", API1_2, GetPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1694,7 +1733,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We post a private alias for one specific other bank"){
-    scenario("we will post a private alias for one random other bank account") {
+    scenario("we will post a private alias for one random other bank account", API1_2, PostPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1712,7 +1751,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not post a private alias for a random other bank account due to a missing token") {
+    scenario("we will not post a private alias for a random other bank account due to a missing token", API1_2, PostPrivateAlias) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1731,7 +1770,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should not equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not post a private alias for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not post a private alias for a random other bank account because the user does not have enough privileges", API1_2, PostPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1750,7 +1789,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should not equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not post a private alias for a random other bank account because the view does not exist") {
+    scenario("we will not post a private alias for a random other bank account because the view does not exist", API1_2, PostPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1769,7 +1808,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should not equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not post a private alias for a random other bank account because the account does not exist") {
+    scenario("we will not post a private alias for a random other bank account because the account does not exist", API1_2, PostPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1785,7 +1824,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We update the private alias for one specific other bank"){
-    scenario("we will update the private alias for one random other bank account") {
+    scenario("we will update the private alias for one random other bank account", API1_2, PutPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1803,7 +1842,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not update the private alias for a random other bank account due to a missing token") {
+    scenario("we will not update the private alias for a random other bank account due to a missing token", API1_2, PutPrivateAlias) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1822,7 +1861,7 @@ class API1_2Test extends ServerSetup{
       randomAlias should not equal (theAliasAfterThePost.alias)
     }
 
-    scenario("we will not update the private alias for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not update the private alias for a random other bank account because the user does not have enough privileges", API1_2, PutPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1837,7 +1876,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the private alias for a random other bank account because the account does not exist") {
+    scenario("we will not update the private alias for a random other bank account because the account does not exist", API1_2, PutPrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1853,7 +1892,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We delete the private alias for one specific other bank"){
-    scenario("we will delete the private alias for one random other bank account") {
+    scenario("we will delete the private alias for one random other bank account", API1_2, DeletePrivateAlias) {
       Given("We will use an access token and will set an alias first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1870,7 +1909,7 @@ class API1_2Test extends ServerSetup{
       val theAliasAfterTheDelete : AliasJSON = getReply.body.extract[AliasJSON]
       theAliasAfterTheDelete.alias should equal (null)
     }
-    scenario("we will not delete the private alias for a random other bank account due to a missing token") {
+    scenario("we will not delete the private alias for a random other bank account due to a missing token", API1_2, DeletePrivateAlias) {
       Given("We will not use an access token and will set an alias first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1887,7 +1926,7 @@ class API1_2Test extends ServerSetup{
       val theAliasAfterTheDelete : AliasJSON = getReply.body.extract[AliasJSON]
       theAliasAfterTheDelete.alias should not equal (null)
     }
-    scenario("we will not delete the private alias for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not delete the private alias for a random other bank account because the user does not have enough privileges", API1_2, DeletePrivateAlias) {
       Given("We will use an access token and will set an alias first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1904,7 +1943,7 @@ class API1_2Test extends ServerSetup{
       val theAliasAfterTheDelete : AliasJSON = getReply.body.extract[AliasJSON]
       theAliasAfterTheDelete.alias should not equal (null)
     }
-    scenario("we will not delete the private alias for a random other bank account because the account does not exist") {
+    scenario("we will not delete the private alias for a random other bank account because the account does not exist", API1_2, DeletePrivateAlias) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1918,7 +1957,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We post more information for one specific other bank"){
-    scenario("we will post more information for one random other bank account") {
+    scenario("we will post more information for one random other bank account", API1_2, PostMoreInfo) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1935,7 +1974,7 @@ class API1_2Test extends ServerSetup{
       randomInfo should equal (moreInfo)
     }
 
-    scenario("we will not post more information for a random other bank account due to a missing token") {
+    scenario("we will not post more information for a random other bank account due to a missing token", API1_2, PostMoreInfo) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1953,7 +1992,7 @@ class API1_2Test extends ServerSetup{
       randomInfo should not equal (moreInfo)
     }
 
-    scenario("we will not post more information for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not post more information for a random other bank account because the user does not have enough privileges", API1_2, PostMoreInfo) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1971,7 +2010,7 @@ class API1_2Test extends ServerSetup{
       randomInfo should not equal (moreInfo)
     }
 
-    scenario("we will not post more information for a random other bank account because the view does not exist") {
+    scenario("we will not post more information for a random other bank account because the view does not exist", API1_2, PostMoreInfo) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1989,7 +2028,7 @@ class API1_2Test extends ServerSetup{
       randomInfo should not equal (moreInfo)
     }
 
-    scenario("we will not post more information for a random other bank account because the account does not exist") {
+    scenario("we will not post more information for a random other bank account because the account does not exist", API1_2, PostMoreInfo) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2005,7 +2044,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We update the information for one specific other bank"){
-    scenario("we will update the information for one random other bank account") {
+    scenario("we will update the information for one random other bank account", API1_2, PutMoreInfo) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2022,7 +2061,7 @@ class API1_2Test extends ServerSetup{
       randomInfo should equal (moreInfo)
     }
 
-    scenario("we will not update the information for a random other bank account due to a missing token") {
+    scenario("we will not update the information for a random other bank account due to a missing token", API1_2, PutMoreInfo) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2040,7 +2079,7 @@ class API1_2Test extends ServerSetup{
       randomInfo should not equal (moreInfo)
     }
 
-    scenario("we will not update the information for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not update the information for a random other bank account because the user does not have enough privileges", API1_2, PutMoreInfo) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2055,7 +2094,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the information for a random other bank account because the account does not exist") {
+    scenario("we will not update the information for a random other bank account because the account does not exist", API1_2, PutMoreInfo) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2071,7 +2110,7 @@ class API1_2Test extends ServerSetup{
   }
 
  feature("We delete the information for one specific other bank"){
-    scenario("we will delete the information for one random other bank account") {
+    scenario("we will delete the information for one random other bank account", API1_2, DeleteMoreInfo) {
       Given("We will use an access token and will set an info first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2088,7 +2127,7 @@ class API1_2Test extends ServerSetup{
       infoAfterDelete should equal (null)
     }
 
-    scenario("we will not delete the information for a random other bank account due to a missing token") {
+    scenario("we will not delete the information for a random other bank account due to a missing token", API1_2, DeleteMoreInfo) {
       Given("We will not use an access token and will set an info first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2105,7 +2144,7 @@ class API1_2Test extends ServerSetup{
       infoAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the information for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not delete the information for a random other bank account because the user does not have enough privileges", API1_2, DeleteMoreInfo) {
       Given("We will use an access token and will set an info first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2122,7 +2161,7 @@ class API1_2Test extends ServerSetup{
       infoAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the information for a random other bank account because the account does not exist") {
+    scenario("we will not delete the information for a random other bank account because the account does not exist", API1_2, DeleteMoreInfo) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2136,7 +2175,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We post the url for one specific other bank"){
-    scenario("we will post the url for one random other bank account") {
+    scenario("we will post the url for one random other bank account", API1_2, PostURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2153,7 +2192,7 @@ class API1_2Test extends ServerSetup{
       randomURL should equal (url)
     }
 
-    scenario("we will not post the url for a random other bank account due to a missing token") {
+    scenario("we will not post the url for a random other bank account due to a missing token", API1_2, PostURL) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2171,7 +2210,7 @@ class API1_2Test extends ServerSetup{
       randomURL should not equal (url)
     }
 
-    scenario("we will not post the url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not post the url for a random other bank account because the user does not have enough privileges", API1_2, PostURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2189,7 +2228,7 @@ class API1_2Test extends ServerSetup{
       randomURL should not equal (url)
     }
 
-    scenario("we will not post the url for a random other bank account because the view does not exist") {
+    scenario("we will not post the url for a random other bank account because the view does not exist", API1_2, PostURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2207,7 +2246,7 @@ class API1_2Test extends ServerSetup{
       randomURL should not equal (url)
     }
 
-    scenario("we will not post the url for a random other bank account because the account does not exist") {
+    scenario("we will not post the url for a random other bank account because the account does not exist", API1_2, PostURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2223,7 +2262,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We update the url for one specific other bank"){
-    scenario("we will update the url for one random other bank account") {
+    scenario("we will update the url for one random other bank account", API1_2, PutURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2240,7 +2279,7 @@ class API1_2Test extends ServerSetup{
       randomURL should equal (url)
     }
 
-    scenario("we will not update the url for a random other bank account due to a missing token") {
+    scenario("we will not update the url for a random other bank account due to a missing token", API1_2, PutURL) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2258,7 +2297,7 @@ class API1_2Test extends ServerSetup{
       randomURL should not equal (url)
     }
 
-    scenario("we will not update the url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not update the url for a random other bank account because the user does not have enough privileges", API1_2, PutURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2273,7 +2312,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the url for a random other bank account because the account does not exist") {
+    scenario("we will not update the url for a random other bank account because the account does not exist", API1_2, PutURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2289,7 +2328,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We delete the url for one specific other bank"){
-    scenario("we will delete the url for one random other bank account") {
+    scenario("we will delete the url for one random other bank account", API1_2, DeleteURL) {
       Given("We will use an access token and will set an open corporates url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2306,7 +2345,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should equal (null)
     }
 
-    scenario("we will not delete the url for a random other bank account due to a missing token") {
+    scenario("we will not delete the url for a random other bank account due to a missing token", API1_2, DeleteURL) {
       Given("We will not use an access token and will set an open corporates url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2323,7 +2362,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not delete the url for a random other bank account because the user does not have enough privileges", API1_2, DeleteURL) {
       Given("We will use an access token and will set an open corporates url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2340,7 +2379,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the url for a random other bank account because the account does not exist") {
+    scenario("we will not delete the url for a random other bank account because the account does not exist", API1_2, DeleteURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2354,7 +2393,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We post the image url for one specific other bank"){
-    scenario("we will post the image url for one random other bank account") {
+    scenario("we will post the image url for one random other bank account", API1_2, PostImageURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2371,7 +2410,7 @@ class API1_2Test extends ServerSetup{
       randomImageURL should equal (url)
     }
 
-    scenario("we will not post the image url for a random other bank account due to a missing token") {
+    scenario("we will not post the image url for a random other bank account due to a missing token", API1_2, PostImageURL) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2389,7 +2428,7 @@ class API1_2Test extends ServerSetup{
       randomImageURL should not equal (url)
     }
 
-    scenario("we will not post the image url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not post the image url for a random other bank account because the user does not have enough privileges", API1_2, PostImageURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2407,7 +2446,7 @@ class API1_2Test extends ServerSetup{
       randomImageURL should not equal (url)
     }
 
-    scenario("we will not post the image url for a random other bank account because the view does not exist") {
+    scenario("we will not post the image url for a random other bank account because the view does not exist", API1_2, PostImageURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2425,7 +2464,7 @@ class API1_2Test extends ServerSetup{
       randomImageURL should not equal (url)
     }
 
-    scenario("we will not post the image url for a random other bank account because the account does not exist") {
+    scenario("we will not post the image url for a random other bank account because the account does not exist", API1_2, PostImageURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2441,7 +2480,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We update the image url for one specific other bank"){
-    scenario("we will update the image url for one random other bank account") {
+    scenario("we will update the image url for one random other bank account", API1_2, PutImageURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2458,7 +2497,7 @@ class API1_2Test extends ServerSetup{
       randomImageURL should equal (url)
     }
 
-    scenario("we will not update the image url for a random other bank account due to a missing token") {
+    scenario("we will not update the image url for a random other bank account due to a missing token", API1_2, PutImageURL) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2476,7 +2515,7 @@ class API1_2Test extends ServerSetup{
       randomImageURL should not equal (url)
     }
 
-    scenario("we will not update the image url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not update the image url for a random other bank account because the user does not have enough privileges", API1_2, PutImageURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2491,7 +2530,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the image url for a random other bank account because the account does not exist") {
+    scenario("we will not update the image url for a random other bank account because the account does not exist", API1_2, PutImageURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2507,7 +2546,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We delete the image url for one specific other bank"){
-    scenario("we will delete the image url for one random other bank account") {
+    scenario("we will delete the image url for one random other bank account", API1_2, DeleteImageURL) {
       Given("We will use an access token and will set a url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2524,7 +2563,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should equal (null)
     }
 
-    scenario("we will not delete the image url for a random other bank account due to a missing token") {
+    scenario("we will not delete the image url for a random other bank account due to a missing token", API1_2, DeleteImageURL) {
       Given("We will not use an access token and will set a url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2541,7 +2580,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the image url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not delete the image url for a random other bank account because the user does not have enough privileges", API1_2, DeleteImageURL) {
       Given("We will use an access token and will set a url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2558,7 +2597,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the image url for a random other bank account because the account does not exist") {
+    scenario("we will not delete the image url for a random other bank account because the account does not exist", API1_2, DeleteImageURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2572,7 +2611,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We post the open corporates url for one specific other bank"){
-    scenario("we will post the open corporates url for one random other bank account") {
+    scenario("we will post the open corporates url for one random other bank account", API1_2, PostOpenCorporatesURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2589,7 +2628,7 @@ class API1_2Test extends ServerSetup{
       randomURL should equal (url)
     }
 
-    scenario("we will not post the open corporates url for a random other bank account due to a missing token") {
+    scenario("we will not post the open corporates url for a random other bank account due to a missing token", API1_2, PostOpenCorporatesURL) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2607,7 +2646,7 @@ class API1_2Test extends ServerSetup{
       randomURL should not equal (url)
     }
 
-    scenario("we will not post the open corporates url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not post the open corporates url for a random other bank account because the user does not have enough privileges", API1_2, PostOpenCorporatesURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2625,7 +2664,7 @@ class API1_2Test extends ServerSetup{
       randomURL should not equal (url)
     }
 
-    scenario("we will not post the open corporates url for a random other bank account because the view does not exist") {
+    scenario("we will not post the open corporates url for a random other bank account because the view does not exist", API1_2, PostOpenCorporatesURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2643,7 +2682,7 @@ class API1_2Test extends ServerSetup{
       randomURL should not equal (url)
     }
 
-    scenario("we will not post the open corporates url for a random other bank account because the account does not exist") {
+    scenario("we will not post the open corporates url for a random other bank account because the account does not exist", API1_2, PostOpenCorporatesURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2659,7 +2698,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We update the open corporates url for one specific other bank"){
-    scenario("we will update the open corporates url for one random other bank account") {
+    scenario("we will update the open corporates url for one random other bank account", API1_2, PutOpenCorporatesURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2676,7 +2715,7 @@ class API1_2Test extends ServerSetup{
       randomURL should equal (url)
     }
 
-    scenario("we will not update the open corporates url for a random other bank account due to a missing token") {
+    scenario("we will not update the open corporates url for a random other bank account due to a missing token", API1_2, PutOpenCorporatesURL) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2694,7 +2733,7 @@ class API1_2Test extends ServerSetup{
       randomURL should not equal (url)
     }
 
-    scenario("we will not update the open corporates url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not update the open corporates url for a random other bank account because the user does not have enough privileges", API1_2, PutOpenCorporatesURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2709,7 +2748,7 @@ class API1_2Test extends ServerSetup{
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not update the open corporates url for a random other bank account because the account does not exist") {
+    scenario("we will not update the open corporates url for a random other bank account because the account does not exist", API1_2, PutOpenCorporatesURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2725,7 +2764,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("We delete the open corporates url for one specific other bank"){
-    scenario("we will delete the open corporates url for one random other bank account") {
+    scenario("we will delete the open corporates url for one random other bank account", API1_2, DeleteOpenCorporatesURL) {
       Given("We will use an access token and will set an open corporates url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2742,7 +2781,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should equal (null)
     }
 
-    scenario("we will not delete the open corporates url for a random other bank account due to a missing token") {
+    scenario("we will not delete the open corporates url for a random other bank account due to a missing token", API1_2, DeleteOpenCorporatesURL) {
       Given("We will not use an access token and will set an open corporates url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2759,7 +2798,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the open corporates url for a random other bank account because the user does not have enough privileges") {
+    scenario("we will not delete the open corporates url for a random other bank account because the user does not have enough privileges", API1_2, DeleteOpenCorporatesURL) {
       Given("We will use an access token and will set an open corporates url first")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -2776,7 +2815,7 @@ class API1_2Test extends ServerSetup{
       urlAfterDelete should not equal (null)
     }
 
-    scenario("we will not delete the open corporates url for a random other bank account because the account does not exist") {
+    scenario("we will not delete the open corporates url for a random other bank account because the account does not exist", API1_2, DeleteOpenCorporatesURL) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
