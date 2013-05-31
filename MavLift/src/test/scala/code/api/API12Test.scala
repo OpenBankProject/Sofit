@@ -182,6 +182,10 @@ class API1_2Test extends ServerSetup{
   object PutPhysicalLocation extends Tag("putPhysicalLocation")
   object DeletePhysicalLocation extends Tag("deletePhysicalLocation")
   object GetNarrative extends Tag("getNarrative")
+  object PostNarrative extends Tag("postNarrative")
+  object PutNarrative extends Tag("putNarrative")
+  object DeleteNarrative extends Tag("deleteNarrative")
+
 
 
   /********************* API test methods ********************/
@@ -872,6 +876,56 @@ class API1_2Test extends ServerSetup{
     makeGetRequest(request)
   }
 
+  def postNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").POST <@(consumer,token)
+    val narrativeJson = TransactionNarrativeJSON(narrative)
+    makePostRequest(request, write(narrativeJson))
+  }
+
+  def postNarrativeForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative"
+    val narrativeJson = TransactionNarrativeJSON(narrative)
+    makePostRequest(request, write(narrativeJson))
+  }
+
+  def postNarrativeForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").POST <@(consumer,token3)
+    val narrativeJson = TransactionNarrativeJSON(narrative)
+    makePostRequest(request, write(narrativeJson))
+  }
+
+  def updateNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").PUT <@(consumer, token)
+    val narrativeJson = TransactionNarrativeJSON(narrative)
+    makePutRequest(request, write(narrativeJson))
+  }
+
+  def updateNarrativeForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative"
+    val narrativeJson = TransactionNarrativeJSON(narrative)
+    makePutRequest(request, write(narrativeJson))
+  }
+
+  def updateNarrativeForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").PUT <@(consumer, token3)
+    val narrativeJson = TransactionNarrativeJSON(narrative)
+    makePutRequest(request, write(narrativeJson))
+  }
+
+  def deleteNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").DELETE <@(consumer, token)
+    makeDeleteRequest(request)
+  }
+
+  def deleteNarrativeForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative"
+    makeDeleteRequest(request)
+  }
+
+  def deleteNarrativeForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").DELETE <@(consumer, token3)
+    makeDeleteRequest(request)
+  }
 
 /************************ the tests ************************/
   feature("base line URL works"){
@@ -3340,7 +3394,7 @@ class API1_2Test extends ServerSetup{
     }
   }
 
-  feature("We get the narrative of one specific transaction among the other accounts "){
+  feature("We get the narrative of one random transaction"){
     scenario("we will get the narrative of one random transaction", API1_2, GetNarrative) {
       Given("We will use an access token")
       val bankId = randomBank
@@ -3354,7 +3408,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[TransactionNarrativeJSON]
     }
 
-    scenario("we will not get the narrative of one specific transaction due to a missing token", API1_2, GetNarrative) {
+    scenario("we will not get the narrative of one random transaction due to a missing token", API1_2, GetNarrative) {
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3368,7 +3422,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the narrative of one specific transaction because the user does not have enough privileges", API1_2, GetNarrative) {
+    scenario("we will not get the narrative of one random transaction because the user does not have enough privileges", API1_2, GetNarrative) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3382,7 +3436,7 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the narrative of one specific transaction because the view does not exist", API1_2, GetNarrative) {
+    scenario("we will not get the narrative of one random transaction because the view does not exist", API1_2, GetNarrative) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -3396,18 +3450,249 @@ class API1_2Test extends ServerSetup{
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
 
-    scenario("we will not get the narrative of one specific transaction because the transaction does not exist", API1_2, GetNarrative) {
+    scenario("we will not get the narrative of one random transaction because the transaction does not exist", API1_2, GetNarrative) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val view = randomViewPermalink
       When("the request is sent")
-      println("===============================")
       val reply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
       reply.code should equal (400)
       And("we should get an error message")
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We post the narrative for one random transaction"){
+    scenario("we will post the narrative for one random transaction", API1_2, PostNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val randomNarrative = Helpers.randomString(20)
+      val postReply = postNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      Then("we should get a 200 code")
+      postReply.code should equal (200)
+      postReply.body.extract[SuccessMessage]
+      And("the narrative should be changed")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theNarrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      randomNarrative should equal (theNarrativeAfterThePost.narrative)
+    }
+
+    scenario("we will not post the narrative for one random transaction due to a missing token", API1_2, PostNarrative) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomNarrative = Helpers.randomString(20)
+      When("the request is sent")
+      val postReply = postNarrativeForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the narrative should not be changed")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theNarrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      randomNarrative should not equal (theNarrativeAfterThePost.narrative)
+    }
+
+    scenario("we will not post the narrative for one random transaction because the user does not have enough privileges", API1_2, PostNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomNarrative = Helpers.randomString(20)
+      When("the request is sent")
+      val postReply = postNarrativeForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the narrative should not be changed")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theNarrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      randomNarrative should not equal (theNarrativeAfterThePost.narrative)
+    }
+
+    scenario("we will not post the narrative for one random transaction because the view does not exist", API1_2, PostNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomNarrative = Helpers.randomString(20)
+      When("the request is sent")
+      val postReply = postNarrativeForOneTransaction(bankId, bankAccount.id, Helpers.randomString(5), transaction.id, randomNarrative)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the narrative should not be changed")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theNarrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      randomNarrative should not equal (theNarrativeAfterThePost.narrative)
+    }
+
+    scenario("we will not post the narrative for one random transaction because the transaction does not exist", API1_2, PostNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val randomNarrative = Helpers.randomString(20)
+      When("the request is sent")
+      val postReply = postNarrativeForOneTransaction(bankId, bankAccount.id, view, Helpers.randomString(5), randomNarrative)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We update the narrative for one random transaction"){
+    scenario("we will the narrative for one random transaction", API1_2, PutNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val randomNarrative = Helpers.randomString(20)
+      val putReply = updateNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      Then("we should get a 200 code")
+      putReply.code should equal (200)
+      putReply.body.extract[SuccessMessage]
+      And("the narrative should be changed")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val narrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      randomNarrative should equal (narrativeAfterThePost.narrative)
+    }
+
+    scenario("we will not update the narrative for one random transaction due to a missing token", API1_2, PutNarrative) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomNarrative = Helpers.randomString(20)
+      When("the request is sent")
+      val putReply = updateNarrativeForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the alias should not be changed")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val narrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      randomNarrative should not equal (narrativeAfterThePost.narrative)
+    }
+
+    scenario("we will not update the narrative for one random transaction because the user does not have enough privileges", API1_2, PutNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomNarrative = Helpers.randomString(20)
+      When("the request is sent")
+      val putReply = updateNarrativeForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the alias should not be changed")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val narrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      randomNarrative should not equal (narrativeAfterThePost.narrative)
+    }
+
+    scenario("we will not update the narrative for one random transaction because the transaction does not exist", API1_2, PutNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transactionId = Helpers.randomString(5)
+      val randomNarrative = Helpers.randomString(20)
+      When("the request is sent")
+      val putReply = updateNarrativeForOneTransaction(bankId, bankAccount.id, view, transactionId, randomNarrative)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We delete the narrative for one random transaction"){
+    scenario("we will delete the narrative for one random transaction", API1_2, DeleteNarrative) {
+      Given("We will use an access token and will set a narrative first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomNarrative = Helpers.randomString(20)
+      postNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      When("the delete request is sent")
+      val deleteReply = deleteNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 204 code")
+      deleteReply.code should equal (204)
+      And("the narrative should be null")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val narrativeAfterTheDelete : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      narrativeAfterTheDelete.narrative should equal (null)
+    }
+
+    scenario("we will not delete narrative for one random transaction due to a missing token", API1_2, DeleteNarrative) {
+      Given("We will not use an access token and will set a narrative first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomNarrative = Helpers.randomString(20)
+      postNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      When("the delete request is sent")
+      val deleteReply = deleteNarrativeForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      And("the public narrative should not be null")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val narrativeAfterTheDelete : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      narrativeAfterTheDelete.narrative should not equal (null)
+    }
+
+    scenario("we will not delete the narrative for one random transaction because the user does not have enough privileges", API1_2, DeleteNarrative) {
+      Given("We will use an access token and will set a narrative first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomNarrative = Helpers.randomString(20)
+      postNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomNarrative)
+      When("the delete request is sent")
+      val deleteReply = deleteNarrativeForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      And("the narrative should not be null")
+      val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val narrativeAfterTheDelete : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
+      narrativeAfterTheDelete.narrative should not equal (null)
+    }
+
+    scenario("we will not delete the narrative for one random transaction because the account does not exist", API1_2, DeleteNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "owner"
+      val randomNarrative = Helpers.randomString(20)
+      When("the delete request is sent")
+      val deleteReply = deleteNarrativeForOneTransaction(bankId, bankAccount.id, view, Helpers.randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
     }
   }
 }
