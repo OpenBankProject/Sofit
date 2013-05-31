@@ -152,6 +152,11 @@ class TransactionMetadata(
   * @param: datePosted
   */
   val addComment : (String,Long, String, Date) => Comment,
+  /**
+  * @param: commentId
+  */
+  val deleteComment : (String) => Unit,
+
   val tags: List[Tag],
   /**
   * @param: userId

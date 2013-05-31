@@ -902,6 +902,33 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
   })
 
   oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments":: commentId :: Nil JsonDelete _ => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          comments <- Box(metadata.comments) ?~ { "view " + viewId + " does not authorize comments access" }
+          deleted <- Box(metadata.deleteComment)?~ { "view " + viewId + " does not authorize deleting comments" }
+        } yield {
+          deleted(commentId)
+          successJsonResponse(204)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "tags" :: Nil JsonGet json => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          tags <- Box(metadata.tags) ?~ { "view " + viewId + " does not authorize tag access" }
+        } yield {
+          val json = JSONFactory.createTransactionTagsJSON(tags)
+          successJsonResponse(Extraction.decompose(json))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
     //post a tag
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionID :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
 

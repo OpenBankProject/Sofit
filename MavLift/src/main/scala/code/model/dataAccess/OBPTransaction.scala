@@ -204,6 +204,16 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     comment
   }
 
+  def deleteComment(id : String) = {
+    OBPComment.find(id) match {
+      case Full(comment) => {
+        if(comment.delete_!)
+          obp_comments(obp_comments.get.diff(Seq(new ObjectId(id)))).save
+      }
+      case _ =>
+    }
+  }
+
   def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
     val newTag = OBPGeoTag.createRecord.
                 userId(userId).

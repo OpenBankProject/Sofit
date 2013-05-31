@@ -199,7 +199,11 @@ case class TransactionTagJSON(
   id : String,
   value : String,
   date : Date,
-  user : UserJSON)
+  user : UserJSON
+)
+case class TransactionTagsJSON(
+  tags: List[TransactionTagJSON]
+)
 case class TransactionCommentJSON(
   id : String,
   value : String,
@@ -338,6 +342,10 @@ object JSONFactory{
       date = image.datePosted,
       user = createUserJSON(image.postedBy)
     )
+  }
+
+  def createTransactionTagsJSON(tags : List[Tag]) : TransactionTagsJSON = {
+    new TransactionTagsJSON(tags.map(createTransactionTagJSON))
   }
 
   def createTransactionTagJSON(tag : Tag) : TransactionTagJSON = {

@@ -95,6 +95,7 @@ class ModeratedTransactionMetadata(
   val addOwnerComment : Option[(String => Unit)],
   val comments : Option[List[Comment]],
   val addComment: Option[(String, Long, String, Date) => Comment],
+  val deleteComment: Option[(String) => Unit],
   val tags : Option[List[Tag]],
   val addTag : Option[(String, Long, String, Date) => Tag],
   //TODO: rename the field to deleteTag once this class as one unique deleteTag function
@@ -125,6 +126,7 @@ class ModeratedTransactionMetadata(
       deleteFunc(tagId)
     }
   }
+
 
   @deprecated //This should be removed once SoFi is split from the API
   def deleteImage = deleteImageFunc

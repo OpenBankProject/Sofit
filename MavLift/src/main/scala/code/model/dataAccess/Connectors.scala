@@ -193,6 +193,7 @@ class MongoDBLocalStorage extends LocalStorage {
       (text => env.narrative(text).save),
       env.obp_comments.objs,
       env.addComment,
+      env.deleteComment,
       env.tags.objs,
       env.addTag,
       env.deleteTag,

@@ -131,6 +131,7 @@ trait View {
   //writing access
   def canEditOwnerComment: Boolean
   def canAddComments : Boolean
+  def canDeleteComments: Boolean
   def canAddTag : Boolean
   def canDeleteTag : Boolean
   def canAddImage : Boolean
@@ -157,6 +158,11 @@ trait View {
             Some(transaction.metadata.comments.filter(comment => comment.viewId==id))
           else None
         val addCommentFunc= if(canAddComments) Some(transaction.metadata.addComment) else None
+        val deleteCommentFunc =
+            if(canDeleteComments)
+              Some(transaction.metadata.deleteComment)
+            else
+              None
         val addOwnerCommentFunc:Option[String=> Unit] = if (canEditOwnerComment) Some(transaction.metadata.addOwnerComment) else None
         val tags =
           if(canSeeTags)
@@ -202,6 +208,7 @@ trait View {
             addOwnerCommentFunc,
             comments,
             addCommentFunc,
+            deleteCommentFunc,
             tags,
             addTagFunc,
             deleteTagFunc,
@@ -532,6 +539,7 @@ class BaseView extends View {
   //writing access
   def canEditOwnerComment = false
   def canAddComments = false
+  def canDeleteComments = false
   def canAddTag = false
   def canDeleteTag = false
   def canAddImage = false
@@ -618,6 +626,7 @@ class FullView extends View {
   //writing access
   def canEditOwnerComment = true
   def canAddComments = true
+  def canDeleteComments = true
   def canAddTag = true
   def canDeleteTag = true
   def canAddImage = true
@@ -723,6 +732,7 @@ object Public extends BaseView {
           None,
           Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
           Some(transaction.metadata.addComment),
+          Some(transaction.metadata.deleteComment),
           Some(transaction.metadata.tags.filter(_.viewId==id)),
           Some(transaction.metadata.addTag),
           Some(transaction.metadata.deleteTag),
@@ -851,6 +861,7 @@ object OurNetwork extends BaseView {
           None,
           Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
           Some(transaction.metadata.addComment),
+          Some(transaction.metadata.deleteComment),
           Some(transaction.metadata.tags.filter(_.viewId==id)),
           Some(transaction.metadata.addTag),
           Some(transaction.metadata.deleteTag),
