@@ -872,8 +872,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     }
   })
 
-
-
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonGet json => {
       user =>

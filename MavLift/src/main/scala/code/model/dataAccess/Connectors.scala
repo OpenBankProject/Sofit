@@ -375,7 +375,8 @@ class MongoDBLocalStorage extends LocalStorage {
     for{
       bank <- HostedBank.find("permalink",bankPermalink)
       account  <- bank.getAccount(accountPermalink)
-      ifTransactionsIsInAccount <- Full(account.transactionsForAccount.put("_id").is(new ObjectId(id)).get)
+      objectId <- tryo{new ObjectId(id)} ?~ {"Transaction "+id+" not found"}
+      ifTransactionsIsInAccount <- Full(account.transactionsForAccount.put("_id").is(objectId).get)
       envelope <- OBPEnvelope.find(ifTransactionsIsInAccount)
     } yield createTransaction(envelope,account)
   }

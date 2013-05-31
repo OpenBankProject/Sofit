@@ -166,7 +166,8 @@ case class TransactionMetadataJSON(
   where : LocationJSON
 )
 case class TransactionsJSON(
-  transactions: List[TransactionJSON])
+  transactions: List[TransactionJSON]
+)
 case class TransactionJSON(
   id : String,
   this_account : ThisAccountJSON,

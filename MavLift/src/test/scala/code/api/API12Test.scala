@@ -181,6 +181,8 @@ class API1_2Test extends ServerSetup{
   object PostPhysicalLocation extends Tag("postPhysicalLocation")
   object PutPhysicalLocation extends Tag("putPhysicalLocation")
   object DeletePhysicalLocation extends Tag("deletePhysicalLocation")
+  object GetNarrative extends Tag("getNarrative")
+
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =
@@ -235,6 +237,12 @@ class API1_2Test extends ServerSetup{
     val longitude = Random.nextInt(180)*sign*Random.nextDouble
     val latitude = Random.nextInt(90)*sign*Random.nextDouble
     JSONFactory.createLocationPlainJSON(latitude, longitude)
+  }
+
+  def randomTransaction(bankId : String, accountId : String, viewId: String) : TransactionJSON = {
+    val transactionsJson = getTransactions(bankId, accountId, viewId).body.extract[TransactionsJSON].transactions
+    val randomPosition = Random.nextInt(transactionsJson.size)
+    transactionsJson(randomPosition)
   }
 
   def getAPIInfo : h.HttpPackage[APIResponse] = {
@@ -839,6 +847,31 @@ class API1_2Test extends ServerSetup{
     makeDeleteRequest(request)
   }
 
+  def getTransactions(bankId : String, accountId : String, viewId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" <@(consumer,token)
+    makeGetRequest(request)
+  }
+
+  def getTransaction(bankId : String, accountId : String, viewId : String, transactionId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "transaction" <@(consumer,token)
+    makeGetRequest(request)
+  }
+
+  def getNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative" <@(consumer, token)
+    makeGetRequest(request)
+  }
+
+  def getNarrativeForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative"
+    makeGetRequest(request)
+  }
+
+  def getNarrativeForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative" <@(consumer, token3)
+    makeGetRequest(request)
+  }
+
 
 /************************ the tests ************************/
   feature("base line URL works"){
@@ -907,8 +940,8 @@ class API1_2Test extends ServerSetup{
           v => v.is_public should equal (true)
         )
       })
-
     }
+
     scenario("we get the bank accounts the user have access to", API1_2, GetBankAccounts) {
       Given("We will use an access token")
       When("the request is sent")
@@ -1432,7 +1465,6 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val view = randomViewPermalink
-      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
       When("the request is sent")
       val reply = getThePublicAliasForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
@@ -1727,7 +1759,6 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val view = randomViewPermalink
-      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
       When("the request is sent")
       val reply = getThePrivateAliasForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
@@ -3306,6 +3337,77 @@ class API1_2Test extends ServerSetup{
       val deleteReply = deletePhysicalLocationForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
+    }
+  }
+
+  feature("We get the narrative of one specific transaction among the other accounts "){
+    scenario("we will get the narrative of one random transaction", API1_2, GetNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 200 code")
+      reply.code should equal (200)
+      reply.body.extract[TransactionNarrativeJSON]
+    }
+
+    scenario("we will not get the narrative of one specific transaction due to a missing token", API1_2, GetNarrative) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getNarrativeForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the narrative of one specific transaction because the user does not have enough privileges", API1_2, GetNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getNarrativeForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the narrative of one specific transaction because the view does not exist", API1_2, GetNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getNarrativeForOneTransaction(bankId, bankAccount.id, Helpers.randomString(5), transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the narrative of one specific transaction because the transaction does not exist", API1_2, GetNarrative) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      When("the request is sent")
+      println("===============================")
+      val reply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, Helpers.randomString(5))
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
   }
 }
