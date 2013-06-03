@@ -156,62 +156,106 @@ class Boot extends Loggable{
       result
     }
 
-    def getTransactionsAndView(URLParameters: List[String]): Box[((List[ModeratedTransaction], View, BankAccount), (TransactionsJson, TransactionsListURLParams))] =
+    //getTransactionsAndView can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
+    object transactionsMemo extends RequestVar[Box[Box[((TransactionsJson, AccountJson, TransactionsListURLParams))]]](Empty)
+    
+    def getTransactions(URLParameters: List[String]): Box[(TransactionsJson, AccountJson, TransactionsListURLParams)] =
       {
-        val bank = URLParameters(0)
-        val account = URLParameters(1)
-        val viewName = URLParameters(2)
 
-        val transactionsURLParams = TransactionsListURLParams(bankId = bank, accountId = account, viewId = viewName)
-
-        logAndReturnResult {
-
-          for {
-            b <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
-            v <- View.fromUrl(viewName) ?~ { "view " + viewName + " not found for account " + account + " and bank " + bank }
-            if (b.authorizedAccess(v, OBPUser.currentUser))
-            transactionsJson <- ObpAPI.transactions(bank, account, viewName, Some(100000), Some(0), None, None, None) //TODO: Pagination
-          } yield {
-            ((b.getModeratedTransactions(v.moderate), v, b), (transactionsJson, transactionsURLParams))
-          }
-
-        }
-      }
-
-    def getAccount(URLParameters : List[String]) =
-    {
-      val bankUrl = URLParameters(0)
-      val accountUrl = URLParameters(1)
-
-      val urlParams = ManagementURLParams(bankUrl, accountUrl)
-      
-        logAndReturnResult {
-          for {
-            otherAccountsJson <- ObpGet("/banks/" + bankUrl + "/accounts/" + accountUrl + "/owner/" + "other_accounts").flatMap(x => x.extractOpt[OtherAccountsJson])
-          } yield (otherAccountsJson, urlParams)
-        }
-    }
-    def getTransaction(URLParameters: List[String]) =
-      {
-        if (URLParameters.length == 4) {
+        def calculateTransactions() = {
           val bank = URLParameters(0)
           val account = URLParameters(1)
-          val transactionID = URLParameters(2)
-          val viewName = URLParameters(3)
+          val viewName = URLParameters(2)
 
-          val transactionJson = ObpGet("/banks/" + bank + "/accounts/" + account + "/" + viewName +
-            "/transactions/" + transactionID + "/transaction").flatMap(x => x.extractOpt[TransactionJson])
+          val transactionsURLParams = TransactionsListURLParams(bankId = bank, accountId = account, viewId = viewName)
 
-          val commentsURLParams = CommentsURLParams(bankId = bank, accountId = account, transactionId = transactionID, viewId = viewName)
+          val result = logAndReturnResult {
 
-          logAndReturnResult {
             for {
-              tJson <- transactionJson
-            } yield (tJson, commentsURLParams)
+              b <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
+              v <- View.fromUrl(viewName) ?~ { "view " + viewName + " not found for account " + account + " and bank " + bank }
+              if (b.authorizedAccess(v, OBPUser.currentUser))
+              //TODO: Pagination: This is not totally trivial, since the transaction list groups by date and 2 pages may have some transactions on the same date
+              transactionsJson <- ObpAPI.transactions(bank, account, viewName, Some(10000), Some(0), None, None, None)
+              accountJson <- ObpAPI.account(bank, account, viewName) //TODO: Execute this request and the one above in parallel
+            } yield {
+              (transactionsJson, accountJson, transactionsURLParams)
+            }
+
+          }
+
+          transactionsMemo.set(Full(result))
+          result
+        }
+    
+        transactionsMemo.get match {
+          case Full(something) => something
+          case _ => calculateTransactions()
+        }
+        
+      }
+
+    //getAccount can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
+    object accountMemo extends RequestVar[Box[Box[(code.lib.ObpJson.OtherAccountsJson, code.snippet.ManagementURLParams)]]](Empty)
+    
+    def getAccount(URLParameters : List[String]) =
+    {
+
+        def calculateAccount() = {
+          val bankUrl = URLParameters(0)
+          val accountUrl = URLParameters(1)
+
+          val urlParams = ManagementURLParams(bankUrl, accountUrl)
+
+          val result = logAndReturnResult {
+            for {
+              otherAccountsJson <- ObpGet("/banks/" + bankUrl + "/accounts/" + accountUrl + "/owner/" + "other_accounts").flatMap(x => x.extractOpt[OtherAccountsJson])
+            } yield (otherAccountsJson, urlParams)
           }
           
-        } else
-          Empty
+          accountMemo.set(Full(result))
+          result
+        }
+      
+      accountMemo.get match {
+        case Full(something) => something
+        case _ => calculateAccount()
+      }
+    }
+    
+    //getTransaction can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
+    object transactionMemo extends RequestVar[Box[Box[(code.lib.ObpJson.TransactionJson, code.snippet.CommentsURLParams)]]](Empty)
+    def getTransaction(URLParameters: List[String]) =
+      {
+
+        def calculateTransaction() = {
+          if (URLParameters.length == 4) {
+            val bank = URLParameters(0)
+            val account = URLParameters(1)
+            val transactionID = URLParameters(2)
+            val viewName = URLParameters(3)
+
+            val transactionJson = ObpGet("/banks/" + bank + "/accounts/" + account + "/" + viewName +
+              "/transactions/" + transactionID + "/transaction").flatMap(x => x.extractOpt[TransactionJson])
+
+            val commentsURLParams = CommentsURLParams(bankId = bank, accountId = account, transactionId = transactionID, viewId = viewName)
+
+            val result = logAndReturnResult {
+              for {
+                tJson <- transactionJson
+              } yield (tJson, commentsURLParams)
+            }
+            
+            transactionMemo.set(Full(result))
+            result
+          } else
+            Empty
+        }
+          
+        transactionMemo.get match {
+          case Full(something) => something
+          case _ => calculateTransaction()
+        }
       }
     // Build SiteMap
     val sitemap = List(
@@ -239,7 +283,7 @@ class Boot extends Loggable{
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
-          Menu.params[((List[ModeratedTransaction], View, BankAccount), (TransactionsJson, TransactionsListURLParams))]("Bank Account", "bank accounts", getTransactionsAndView _ ,  t => List("") )
+          Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
 
           Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )

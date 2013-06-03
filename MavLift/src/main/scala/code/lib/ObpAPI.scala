@@ -46,6 +46,9 @@ object ObpAPI {
   object ASC extends SortDirection { val value = "ASC" }
   object DESC extends SortDirection { val value = "DESC" }
   
+  /**
+   * @return Json for transactions of a particular bank account
+   */
   def transactions(bankId: String, accountId: String, viewId: String, limit: Option[Int],
       offset: Option[Int], fromDate: Option[Date], toDate: Option[Date], sortDirection: Option[SortDirection]) : Box[TransactionsJson]= {
     
@@ -55,6 +58,10 @@ object ObpAPI {
     
     ObpGet("/banks/" + bankId + "/accounts/" + accountId + "/" + viewId +
               "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson])
+  }
+  
+  def account(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
+    ObpGet("/banks/" + bankId + "/accounts/" + accountId + "/" + viewId + "/account").flatMap(x => x.extractOpt[AccountJson])
   }
   
    /**
@@ -346,6 +353,7 @@ object ObpJson {
 		  		  is_public: Option[Boolean])
 		  		  
   case class AccountJson(id: Option[String],
+                     label: Option[String],
 		  			 number: Option[String],
 		  			 owners: Option[List[UserJson]],
 		  			 `type`: Option[String],
