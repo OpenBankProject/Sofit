@@ -726,21 +726,21 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         }
     }
   })
-  
+
   oauthServe(apiPrefix {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: Nil JsonGet json => {
       user =>
-        
+
       def asInt(s: Box[String], default: Int): Int = {
         s match {
           case Full(str) => tryo { str.toInt } getOrElse default
           case _ => default
         }
       }
-      
+
       val limit = asInt(json.header("obp_limit"), 50)
       val offset = asInt(json.header("obp_offset"), 0)
-      
+
        /**
        * sortBy is currently disabled as it would open up a security hole:
        *
@@ -768,7 +768,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           bankAccount.getModeratedTransactions(params: _*)(view.moderate)
         } else Nil
       }
-      
+
        for {
         bankAccount <- BankAccount(bankId, accountId)
         view <- View.fromUrl(viewId) //TODO: This will have to change if we implement custom view names for different accounts
@@ -777,7 +777,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         val json = JSONFactory.createTransactionsJSON(ts)
         successJsonResponse(Extraction.decompose(json))
       }
-      
+
     }
   })
 

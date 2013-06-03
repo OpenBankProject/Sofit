@@ -303,7 +303,7 @@ class MongoDBLocalStorage extends LocalStorage {
     val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
     val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
 
-    val query = "SELECT " + hostedId + ", " + hostedAccId +
+    val query = "SELECT DISTINCT " + hostedId + ", " + hostedAccId +
           " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
           " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
             " AND " + "( " + privilegeUserId + " = " + userId + ")" +
@@ -338,7 +338,7 @@ class MongoDBLocalStorage extends LocalStorage {
     val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
     val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
 
-    val query = "SELECT " + hostedId + ", " + hostedAccId +
+    val query = "SELECT DISTINCT " + hostedId + ", " + hostedAccId +
           " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
           " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
             " AND " + "( " + privilegeUserId + " = " + userId + ")" +
@@ -351,10 +351,10 @@ class MongoDBLocalStorage extends LocalStorage {
 
     val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
     val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
-
     val bankObjectId = new ObjectId(bankID)
     def sameBank(account : Account) : Boolean =
       account.bankID.get == bankObjectId
+
     Account.findAll(mongoIds).filter(sameBank).map(Account.toBankAccount)
   }
 
