@@ -17,11 +17,13 @@ import _root_.net.liftweb.json.JsonAST.{JValue, JObject}
 import org.mortbay.jetty.nio.SelectChannelConnector
 import net.liftweb.json.NoTypeHints
 import net.liftweb.json.JsonDSL._
-import scala.util.Random
+import scala.util.Random._
 import net.liftweb.mapper.By
+import java.util.Date
 
-import code.model.{Consumer => OBPConsumer, Token => OBPToken}
 import code.model.TokenType._
+import code.model.{Consumer => OBPConsumer, Token => OBPToken}
+import code.model.dataAccess.{OBPUser, Privilege, HostedAccount}
 import code.api.test.{ServerSetup, APIResponse}
 import code.model.dataAccess.{OBPUser, Privilege, HostedAccount, Account}
 
@@ -52,22 +54,21 @@ class API1_2Test extends ServerSetup{
       lastName(Helpers.randomString(10)).
       saveMe
 
-  Account.findAll.foreach(account => {
-    HostedAccount.create.accountID(account.id.get.toString).save
-  })
-
-  HostedAccount.findAll().foreach(bankAccount => {
-    Privilege.create.
-    account(bankAccount).
-    ownerPermission(true).
-    mangementPermission(true).
-    authoritiesPermission(true).
-    boardPermission(true).
-    teamPermission(true).
-    ourNetworkPermission(true).
-    user(user1).
-    save
-  })
+  override def specificSetup() ={
+    //give to user1 all the privileges on all the accounts
+    HostedAccount.findAll.foreach(bankAccount => {
+      Privilege.create.
+      account(bankAccount).
+      ownerPermission(true).
+      mangementPermission(true).
+      authoritiesPermission(true).
+      boardPermission(true).
+      teamPermission(true).
+      ourNetworkPermission(true).
+      user(user1).
+      save
+    })
+  }
 
   lazy val testToken =
     OBPToken.create.
@@ -194,58 +195,59 @@ class API1_2Test extends ServerSetup{
   val errorAPIResponse = new APIResponse(400,emptyJSON)
 
   def randomViewPermalink : String = {
-    val randomPosition = Random.nextInt(possibleViewsPermalinks.size)
+    val randomPosition = nextInt(possibleViewsPermalinks.size)
     possibleViewsPermalinks(randomPosition)
   }
 
   def randomViewPermalinkAllowingViewPrivilige : String = {
-    val randomPosition = Random.nextInt(possibleViewsPermalinksAllowingViewPrivilige.size)
+    val randomPosition = nextInt(possibleViewsPermalinksAllowingViewPrivilige.size)
     possibleViewsPermalinksAllowingViewPrivilige(randomPosition)
   }
 
   def randomBank : String = {
     val banksJson = getBanksInfo.body.extract[BanksJSON]
-    val randomPosition = Random.nextInt(banksJson.banks.size)
+    val randomPosition = nextInt(banksJson.banks.size)
     val bank = banksJson.banks(randomPosition)
     bank.id
   }
 
   def randomPublicAccount(bankId : String) : AccountJSON = {
     val accountsJson = getPublicAccounts(bankId).body.extract[AccountsJSON].accounts
-    val randomPosition = Random.nextInt(accountsJson.size)
+    val randomPosition = nextInt(accountsJson.size)
     accountsJson(randomPosition)
   }
 
   def randomPrivateAccount(bankId : String) : AccountJSON = {
     val accountsJson = getPrivateAccounts(bankId).body.extract[AccountsJSON].accounts
-    val randomPosition = Random.nextInt(accountsJson.size)
+    val randomPosition = nextInt(accountsJson.size)
     accountsJson(randomPosition)
   }
 
   def randomAccountPermission(bankId : String, accountId : String) : PermissionJSON = {
     val persmissionsInfo = getAccountPermissions(bankId, accountId).body.extract[PermissionsJSON]
-    val randomPermission = Random.nextInt(persmissionsInfo.permissions.size)
+    val randomPermission = nextInt(persmissionsInfo.permissions.size)
     persmissionsInfo.permissions(randomPermission)
   }
 
   def randomOtherBankAccount(bankId : String, accountId : String, viewId : String): OtherAccountJSON = {
     val otherAccounts = getTheOtherBankAccounts(bankId, accountId, viewId).body.extract[OtherAccountsJSON].other_accounts
-    otherAccounts(Random.nextInt(otherAccounts.size))
+    otherAccounts(nextInt(otherAccounts.size))
   }
 
   def randomLocation : LocationPlainJSON = {
     def sign = {
-      if(Random.nextBoolean) 1
+      val b = nextBoolean
+      if(b) 1
       else -1
     }
-    val longitude = Random.nextInt(180)*sign*Random.nextDouble
-    val latitude = Random.nextInt(90)*sign*Random.nextDouble
+    val longitude = nextInt(180)*sign*nextDouble
+    val latitude = nextInt(90)*sign*nextDouble
     JSONFactory.createLocationPlainJSON(latitude, longitude)
   }
 
   def randomTransaction(bankId : String, accountId : String, viewId: String) : TransactionJSON = {
     val transactionsJson = getTransactions(bankId, accountId, viewId).body.extract[TransactionsJSON].transactions
-    val randomPosition = Random.nextInt(transactionsJson.size)
+    val randomPosition = nextInt(transactionsJson.size)
     transactionsJson(randomPosition)
   }
 
@@ -994,8 +996,8 @@ class API1_2Test extends ServerSetup{
           v => v.is_public should equal (true)
         )
       })
-    }
 
+    }
     scenario("we get the bank accounts the user have access to", API1_2, GetBankAccounts) {
       Given("We will use an access token")
       When("the request is sent")
@@ -1061,7 +1063,7 @@ class API1_2Test extends ServerSetup{
       Given("We will not use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPublicAccount(bankId)
-      val randomPosition = Random.nextInt(bankAccount.views_available.size)
+      val randomPosition = nextInt(bankAccount.views_available.size)
       val view = bankAccount.views_available.toList(randomPosition)
       When("the request is sent")
       val reply = getPublicBankAccountDetails(bankId, bankAccount.id, view.id)
@@ -1078,7 +1080,7 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
-      val randomPosition = Random.nextInt(bankAccount.views_available.size)
+      val randomPosition = nextInt(bankAccount.views_available.size)
       val view = bankAccount.views_available.toList(randomPosition)
       When("the request is sent")
       val reply = getPrivateBankAccountDetails(bankId, bankAccount.id, view.id)
@@ -1519,6 +1521,7 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val view = randomViewPermalink
+      val otherBankAccount = randomOtherBankAccount(bankId, bankAccount.id, view)
       When("the request is sent")
       val reply = getThePublicAliasForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
@@ -1813,6 +1816,7 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val view = randomViewPermalink
+     
       When("the request is sent")
       val reply = getThePrivateAliasForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
