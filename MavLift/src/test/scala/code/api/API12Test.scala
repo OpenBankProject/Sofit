@@ -186,7 +186,7 @@ class API1_2Test extends ServerSetup{
   object PostNarrative extends Tag("postNarrative")
   object PutNarrative extends Tag("putNarrative")
   object DeleteNarrative extends Tag("deleteNarrative")
-
+  object GetComments extends Tag("getComments")
 
 
   /********************* API test methods ********************/
@@ -927,6 +927,21 @@ class API1_2Test extends ServerSetup{
   def deleteNarrativeForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").DELETE <@(consumer, token3)
     makeDeleteRequest(request)
+  }
+
+  def getCommentsForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments" <@(consumer, token)
+    makeGetRequest(request)
+  }
+
+  def getCommentsForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments"
+    makeGetRequest(request)
+  }
+
+  def getCommentsForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments" <@(consumer, token3)
+    makeGetRequest(request)
   }
 
 /************************ the tests ************************/
@@ -1816,7 +1831,7 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val view = randomViewPermalink
-     
+
       When("the request is sent")
       val reply = getThePrivateAliasForOneOtherBankAccount(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
@@ -3697,6 +3712,76 @@ class API1_2Test extends ServerSetup{
       val deleteReply = deleteNarrativeForOneTransaction(bankId, bankAccount.id, view, Helpers.randomString(5))
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
+    }
+  }
+
+  feature("We get the comments of one random transaction"){
+    scenario("we will get the comments of one random transaction", API1_2, GetComments) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getCommentsForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 200 code")
+      reply.code should equal (200)
+      reply.body.extract[TransactionCommentsJSON]
+    }
+
+    scenario("we will not get the comments of one random transaction due to a missing token", API1_2, GetComments) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getCommentsForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the comments of one random transaction because the user does not have enough privileges", API1_2, GetComments) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getCommentsForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the comments of one random transaction because the view does not exist", API1_2, GetComments) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getCommentsForOneTransaction(bankId, bankAccount.id, Helpers.randomString(5), transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the comments of one random transaction because the transaction does not exist", API1_2, GetComments) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      When("the request is sent")
+      val reply = getCommentsForOneTransaction(bankId, bankAccount.id, view, Helpers.randomString(5))
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
   }
 }
