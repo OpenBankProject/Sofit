@@ -213,6 +213,9 @@ case class TransactionCommentJSON(
 case class TransactionCommentsJSON(
   comments: List[TransactionCommentJSON]
 )
+case class TransactionWhereJSON(
+  where: LocationJSON
+)
 case class AliasJSON(
   alias: String
 )
@@ -523,7 +526,7 @@ object JSONFactory{
     AliasJSON(stringOrNull(alias))
   }
 
-  def createTransactionNarrativeJson(narrative: String): TransactionNarrativeJSON = {
+  def createTransactionNarrativeJSON(narrative: String): TransactionNarrativeJSON = {
     TransactionNarrativeJSON(stringOrNull(narrative))
   }
 

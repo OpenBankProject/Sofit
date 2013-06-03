@@ -105,7 +105,8 @@ class ModeratedTransactionMetadata(
   //TODO: rename the field to deleteImage once this class as one unique deleteImage function
   val deleteImageFunc  : Option[String => Unit],
   val whereTag : Option[GeoTag],
-  val addWhereTag : Option[(String, Long, Date, Double, Double) => Boolean]
+  val addWhereTag : Option[(String, Long, Date, Double, Double) => Boolean],
+  val deleteWhereTag : Option[(Long) => Boolean]
 ){
 
   @deprecated //TODO:This should be removed once SoFi is split from the API

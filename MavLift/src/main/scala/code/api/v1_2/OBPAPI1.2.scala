@@ -211,7 +211,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
         } yield {
             val views = JSONFactory.createViewsJSON(userPermission.views)
             successJsonResponse(Extraction.decompose(views))
-          }
+        }
     }
   })
 
@@ -817,7 +817,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           narrative <- Box(metadata.ownerComment) ?~ { "view " + viewId + " does not authorize narrative access" }
         } yield {
-          val narrativeJson = JSONFactory.createTransactionNarrativeJson(narrative)
+          val narrativeJson = JSONFactory.createTransactionNarrativeJSON(narrative)
           successJsonResponse(Extraction.decompose(narrativeJson))
         }
     }
@@ -1002,6 +1002,72 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           deleted <- Box(metadata.deleteImage(imageId, user, bankAccount))
         } yield {
           noContentJsonResponse
+        }
+    }
+  })
+
+  oauthServe(apiPrefix {
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "where" :: Nil JsonGet json => {
+      user =>
+        for {
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          where <- Box(metadata.whereTag) ?~ { "view " + viewId + " does not authorize where tag access" }
+        } yield {
+          val json = JSONFactory.createLocationJSON(where)
+          successJsonResponse(Extraction.decompose(json))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "where" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          addWhereTag <- Box(metadata.addWhereTag) ?~ {"the view " + viewId + "does not allow adding a where tag"}
+          whereJson <- tryo{(json.extract[TransactionWhereJSON])} ?~ {"wrong JSON format"}
+          correctCoordinates <- checkIfLocationPossible(whereJson.where.latitude, whereJson.where.longitude)
+          if(addWhereTag(u.id_, view.id, now, whereJson.where.longitude, whereJson.where.latitude))
+        } yield {
+            val successJson = SuccessMessage("where tag added")
+            successJsonResponse(Extraction.decompose(successJson), 201)
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "where" :: Nil JsonPut json -> _ => {
+      user =>
+        for {
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          addWhereTag <- Box(metadata.addWhereTag) ?~ {"the view " + viewId + "does not allow updating a where tag"}
+          whereJson <- tryo{(json.extract[TransactionWhereJSON])} ?~ {"wrong JSON format"}
+          correctCoordinates <- checkIfLocationPossible(whereJson.where.latitude, whereJson.where.longitude)
+         if(addWhereTag(u.id_, view.id, now, whereJson.where.longitude, whereJson.where.latitude))
+        } yield {
+            val successJson = SuccessMessage("where tag updated")
+            successJsonResponse(Extraction.decompose(successJson))
+        }
+    }
+  })
+
+  oauthServe(apiPrefix{
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "where" :: Nil JsonDelete _ => {
+      user =>
+        for {
+          u <- user
+          view <- View.fromUrl(viewId)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
+          deleted <- Box(metadata.deleteWhereTag)
+        } yield {
+            if(deleted(view.id))
+              noContentJsonResponse
+            else
+              errorJsonResponse("Delete not completed")
         }
     }
   })

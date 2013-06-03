@@ -190,5 +190,16 @@ class TransactionMetadata(
   * @param: latitude
   */
   val whereTags : List[GeoTag],
-  val addWhereTag : (String, Long, Date, Double, Double) => Boolean
+  /**
+  * @param: userId
+  * @param: viewId
+  * @param: datePosted
+  * @param: longitude
+  * @param: latitude
+  */
+  val addWhereTag : (String, Long, Date, Double, Double) => Boolean,
+  /**
+  * @param: viewId
+  */
+  val deleteWhereTag : (Long) => Boolean
 )
