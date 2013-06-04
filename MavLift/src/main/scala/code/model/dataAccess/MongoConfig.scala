@@ -43,10 +43,10 @@ object AdminDb extends MongoIdentifier {
 object MongoConfig {
   def init: Unit = {
     val srvr = new ServerAddress(
-       Props.get("mongo.host", "obp_mongod"),
+       Props.get("mongo.host", "localhost"),
        Props.getInt("mongo.port", 27017)
     )
-    MongoDB.defineDb(DefaultMongoIdentifier, new Mongo(srvr), "OBP006")
+    MongoDB.defineDb(DefaultMongoIdentifier, new Mongo(srvr), Props.get("mongo.dbName", "OBP006"))
     MongoDB.defineDb(AdminDb, new Mongo(srvr), "admin")
   }
 }

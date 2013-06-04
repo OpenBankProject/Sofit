@@ -630,7 +630,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
                   metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
                   narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
                   narrativeSetted <- isFieldAlreadySet(narrative)
-                  addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
+                  addNarrativeFunc <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
                 } yield addNarrativeFunc
 
               addNarrativeFunc match {
@@ -670,7 +670,7 @@ object OBPAPI1_1 extends RestHelper with Loggable {
               val addNarrativeFunc = for {
                   metadata <- moderatedTransactionMetadata(bankId,accountId,viewId,transactionID,user)
                   narrative <- Box(metadata.ownerComment) ?~ {"view " + viewId + " does not authorize narrative access"}
-                  addNarrativeFunc <- Box(metadata.saveOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
+                  addNarrativeFunc <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not authorize narrative edit"}
                 } yield addNarrativeFunc
 
               addNarrativeFunc match {

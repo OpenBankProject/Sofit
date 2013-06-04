@@ -160,13 +160,14 @@ case class TransactionDetailsJSON(
 )
 case class TransactionMetadataJSON(
   narrative : String,
-  comments : List[TransactionCommentJSON],
-  tags : List[TransactionTagJSON],
-  images : List[TransactionImageJSON],
+  comments : TransactionCommentsJSON,
+  tags : TransactionTagsJSON,
+  images : TransactionImagesJSON,
   where : LocationJSON
 )
 case class TransactionsJSON(
-  transactions: List[TransactionJSON])
+  transactions: List[TransactionJSON]
+)
 case class TransactionJSON(
   id : String,
   this_account : ThisAccountJSON,
@@ -189,7 +190,7 @@ case class PostTransactionImageJSON(
   URL : String
 )
 case class PostTransactionCommentJSON(
-    value: String
+  value: String
 )
 case class PostTransactionTagJSON(
   value : String
@@ -198,7 +199,11 @@ case class TransactionTagJSON(
   id : String,
   value : String,
   date : Date,
-  user : UserJSON)
+  user : UserJSON
+)
+case class TransactionTagsJSON(
+  tags: List[TransactionTagJSON]
+)
 case class TransactionCommentJSON(
   id : String,
   value : String,
@@ -207,6 +212,9 @@ case class TransactionCommentJSON(
 )
 case class TransactionCommentsJSON(
   comments: List[TransactionCommentJSON]
+)
+case class TransactionWhereJSON(
+  where: LocationJSON
 )
 case class AliasJSON(
   alias: String
@@ -233,7 +241,9 @@ case class LocationPlainJSON(
   latitude : Double,
   longitude : Double
 )
-
+case class TransactionNarrativeJSON(
+  narrative : String
+)
 object JSONFactory{
   def stringOrNull(text : String) =
     if(text.isEmpty)
@@ -294,7 +304,7 @@ object JSONFactory{
       stringOptionOrNull(account.bankPermalink)
     )
   }
-  
+
   def createTransactionsJSON(transactions: List[ModeratedTransaction]) : TransactionsJSON = {
     new TransactionsJSON(transactions.map(createTransactionJSON))
   }
@@ -309,7 +319,7 @@ object JSONFactory{
       )
   }
 
-  def createTransactionCommentsJson(comments : List[Comment]) : TransactionCommentsJSON = {
+  def createTransactionCommentsJSON(comments : List[Comment]) : TransactionCommentsJSON = {
     new TransactionCommentsJSON(comments.map(createTransactionCommentJSON))
   }
 
@@ -322,7 +332,7 @@ object JSONFactory{
     )
   }
 
-  def createTransactionImagesJson(images : List[TransactionImage]) : TransactionImagesJSON = {
+  def createTransactionImagesJSON(images : List[TransactionImage]) : TransactionImagesJSON = {
     new TransactionImagesJSON(images.map(createTransactionImageJSON))
   }
 
@@ -334,6 +344,10 @@ object JSONFactory{
       date = image.datePosted,
       user = createUserJSON(image.postedBy)
     )
+  }
+
+  def createTransactionTagsJSON(tags : List[Tag]) : TransactionTagsJSON = {
+    new TransactionTagsJSON(tags.map(createTransactionTagJSON))
   }
 
   def createTransactionTagJSON(tag : Tag) : TransactionTagJSON = {
@@ -362,11 +376,15 @@ object JSONFactory{
   }
 
   def createTransactionMetadataJSON(metadata : ModeratedTransactionMetadata) : TransactionMetadataJSON = {
+    val images = metadata.images match {
+      case Some(i) => createTransactionImagesJSON(i)
+      case _ => null
+    }
     new TransactionMetadataJSON(
       narrative = stringOptionOrNull(metadata.ownerComment),
-      comments = metadata.comments.map(cs => cs.map(createTransactionCommentJSON)).getOrElse(null),
-      tags = metadata.tags.map(ts => ts.map(createTransactionTagJSON)).getOrElse(null),
-      images = metadata.images.map(is => is.map(createTransactionImageJSON)).getOrElse(null),
+      comments = metadata.comments.map(createTransactionCommentsJSON).getOrElse(null),
+      tags = metadata.tags.map(createTransactionTagsJSON).getOrElse(null),
+      images = images,
       where = metadata.whereTag.map(createLocationJSON).getOrElse(null)
     )
   }
@@ -510,4 +528,9 @@ object JSONFactory{
   def createAliasJSON(alias: String): AliasJSON = {
     AliasJSON(stringOrNull(alias))
   }
+
+  def createTransactionNarrativeJSON(narrative: String): TransactionNarrativeJSON = {
+    TransactionNarrativeJSON(stringOrNull(narrative))
+  }
+
 }

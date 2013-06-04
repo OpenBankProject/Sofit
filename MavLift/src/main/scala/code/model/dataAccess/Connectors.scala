@@ -193,6 +193,7 @@ class MongoDBLocalStorage extends LocalStorage {
       (text => env.narrative(text).save),
       env.obp_comments.objs,
       env.addComment,
+      env.deleteComment,
       env.tags.objs,
       env.addTag,
       env.deleteTag,
@@ -200,7 +201,8 @@ class MongoDBLocalStorage extends LocalStorage {
       env.addImage,
       env.deleteImage,
       env.whereTags.get,
-      env.addWhereTag
+      env.addWhereTag,
+      env.deleteWhereTag
     )
     val transactionType = transaction.details.get.type_en.get
     val amount = transaction.details.get.value.get.amount.get
@@ -303,7 +305,7 @@ class MongoDBLocalStorage extends LocalStorage {
     val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
     val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
 
-    val query = "SELECT " + hostedId + ", " + hostedAccId +
+    val query = "SELECT DISTINCT " + hostedId + ", " + hostedAccId +
           " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
           " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
             " AND " + "( " + privilegeUserId + " = " + userId + ")" +
@@ -338,7 +340,7 @@ class MongoDBLocalStorage extends LocalStorage {
     val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
     val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
 
-    val query = "SELECT " + hostedId + ", " + hostedAccId +
+    val query = "SELECT DISTINCT " + hostedId + ", " + hostedAccId +
           " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
           " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
             " AND " + "( " + privilegeUserId + " = " + userId + ")" +
@@ -351,10 +353,10 @@ class MongoDBLocalStorage extends LocalStorage {
 
     val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
     val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
-
     val bankObjectId = new ObjectId(bankID)
     def sameBank(account : Account) : Boolean =
       account.bankID.get == bankObjectId
+
     Account.findAll(mongoIds).filter(sameBank).map(Account.toBankAccount)
   }
 
@@ -375,7 +377,8 @@ class MongoDBLocalStorage extends LocalStorage {
     for{
       bank <- HostedBank.find("permalink",bankPermalink)
       account  <- bank.getAccount(accountPermalink)
-      ifTransactionsIsInAccount <- Full(account.transactionsForAccount.put("_id").is(new ObjectId(id)).get)
+      objectId <- tryo{new ObjectId(id)} ?~ {"Transaction "+id+" not found"}
+      ifTransactionsIsInAccount <- Full(account.transactionsForAccount.put("_id").is(objectId).get)
       envelope <- OBPEnvelope.find(ifTransactionsIsInAccount)
     } yield createTransaction(envelope,account)
   }

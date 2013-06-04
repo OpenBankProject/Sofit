@@ -92,19 +92,21 @@ object ModeratedTransaction {
 
 class ModeratedTransactionMetadata(
   val ownerComment : Option[String],
-  val saveOwnerComment : Option[(String => Unit)],
+  val addOwnerComment : Option[(String => Unit)],
   val comments : Option[List[Comment]],
   val addComment: Option[(String, Long, String, Date) => Comment],
+  val deleteComment: Option[(String) => Box[Unit]],
   val tags : Option[List[Tag]],
   val addTag : Option[(String, Long, String, Date) => Tag],
   //TODO: rename the field to deleteTag once this class as one unique deleteTag function
-  val deleteTagFunc : Option[(String) => Unit],
+  private val deleteTagFunc : Option[(String) => Box[Unit]],
   val images : Option[List[TransactionImage]],
   val addImage : Option[(String, Long, String, Date, URL) => TransactionImage],
   //TODO: rename the field to deleteImage once this class as one unique deleteImage function
   val deleteImageFunc  : Option[String => Unit],
   val whereTag : Option[GeoTag],
-  val addWhereTag : Option[(String, Long, Date, Double, Double) => Boolean]
+  val addWhereTag : Option[(String, Long, Date, Double, Double) => Boolean],
+  val deleteWhereTag : Option[(Long) => Boolean]
 ){
 
   @deprecated //TODO:This should be removed once SoFi is split from the API
@@ -118,13 +120,14 @@ class ModeratedTransactionMetadata(
       tagList <- Box(tags) ?~ { "You must be able to see tags in order to delete them"}
       tag <- Box(tagList.find(tag => tag.id_ == tagId)) ?~ {"Tag with id " + tagId + "not found for this transaction"}
       deleteFunc <- if(tag.postedBy == user || bankAccount.authorizedAccess(Owner, user))
-    	              Box(deleteTagFunc) ?~ "Deleting tags not permitted for this view"
+    	               Box(deleteTagFunc) ?~ "Deleting tags not permitted for this view"
                     else
                       Failure("deleting tags not permitted for the current user")
+      tagIsDeleted <- deleteFunc(tagId)
     } yield {
-      deleteFunc(tagId)
     }
   }
+
 
   @deprecated //This should be removed once SoFi is split from the API
   def deleteImage = deleteImageFunc
