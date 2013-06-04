@@ -55,11 +55,11 @@ class Nav {
 
   val url = S.uri.split("/", 0)
   val accountJson : Option[AccountJson]= {
-    if (url.size > 4) {
+    if (url.size > 5) {
       val bankId = url(2)
       val accountId = url(4)
-      //TODO: Get AccountJson
-      None
+      val viewId = url(5)
+      ObpAPI.account(bankId, accountId, viewId)
     } else {
       None
     }
@@ -75,46 +75,13 @@ class Nav {
   def views: net.liftweb.util.CssSel = {
     val url = S.uri.split("/", 0)
     if (url.size > 4) {
-      ".navItem *" #> {
+      ".navitem *" #> {
         viewJsons.map(viewJson => {
           val viewUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/" + viewJson.id.getOrElse("")
           ".navlink [href]" #> viewUrl &
           ".navlink *" #> viewJson.short_name.getOrElse("") &
           ".navlink [class+]" #> markIfSelected(viewUrl)
         })
-      } //TODO Test the above and remove the stuff below
-      OBPUser.currentUser match {
-        case Full(user) => {
-          val bankAccount = BankAccount(url(2), url(4))
-          val viewsListBox = for {
-            b <- bankAccount
-          } yield user.permittedViews(b)
-          val viewsList = viewsListBox getOrElse Nil
-          if (viewsList.size > 0)
-            ".navitem *" #> {
-              viewsList.toList.map(view => {
-                val viewUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/" + view.permalink
-                ".navlink [href]" #> { viewUrl } &
-                  ".navlink *" #> view.name &
-                  ".navlink [class+]" #> markIfSelected(viewUrl)
-              })
-            }
-          else
-            eraseMenu
-        }
-        case _ => LocalStorage.getAccount(url(2), url(4)) match {
-          case Full(account) => if (account.anonAccess.is)
-            ".navitem *" #> {
-              val anoymousUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/public"
-              ".navlink [href]" #> { anoymousUrl } &
-                ".navlink *" #> "Public" &
-                ".navlink [class+]" #> markIfSelected(anoymousUrl)
-            }
-          else
-            eraseMenu
-          case _ => eraseMenu
-        }
-
       }
     } else
       eraseMenu
