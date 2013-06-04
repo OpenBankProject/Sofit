@@ -133,7 +133,7 @@ object ObpPost {
   def apply(apiPath: String, json : JValue): Box[JValue] = {
     tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
-      val credentials = OAuthClient.getCredential(provider)
+      val credentials = OAuthClient.getAuthorizedCredential(provider)
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
@@ -190,7 +190,7 @@ object ObpPut {
   def apply(apiPath: String, json : JValue): Box[JValue] = {
     tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
-      val credentials = OAuthClient.getCredential(provider)
+      val credentials = OAuthClient.getAuthorizedCredential(provider)
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
@@ -250,7 +250,7 @@ object ObpDelete {
   def apply(apiPath: String): Boolean = {
     val worked = tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
-      val credentials = OAuthClient.getCredential(provider)
+      val credentials = OAuthClient.getAuthorizedCredential(provider)
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
@@ -283,7 +283,7 @@ object ObpGet {
   def apply(apiPath: String, headers : List[Header] = Nil): Box[JValue] = {
     tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
-      val credentials = OAuthClient.getCredential(provider)
+      val credentials = OAuthClient.getAuthorizedCredential(provider)
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh

@@ -125,8 +125,28 @@ object OAuthClient extends Loggable {
 
   val defaultProvider = OBPDemo
   
-  def getCredential(provider : Provider) : Option[Credential] = {
-    credentials.find(_.provider == provider)
+  def getAuthorizedCredential(provider : Provider) : Option[Credential] = {
+    credentials.find(_.provider == provider).filter(_.readyToSign)
+  }
+  
+  def replaceCredential(provider : Provider) : Credential = {
+    credentials.find(_.provider == provider) match {
+      case Some(c) => {
+        val newCredentials = credentials.get.filterNot(_ == c)
+        val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
+        val credential = Credential(provider, consumer, false)
+        
+        credentials.set(credential :: newCredentials)
+        credential
+      }
+      case None => {
+        val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
+        val credential = Credential(provider, consumer, false)
+        
+        credentials.set(credential :: credentials.get)
+        credential
+      }
+    }
   }
   
   def getOrCreateCredential(provider : Provider) : Credential = {
@@ -167,7 +187,7 @@ object OAuthClient extends Loggable {
   def getAuthUrl(provider : Provider) : String = {
     mostRecentLoginAttemptProvider.set(Full(provider))
     
-    val credential = getOrCreateCredential(provider)
+    val credential = replaceCredential(provider)
     provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
   }
   
