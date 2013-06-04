@@ -263,13 +263,16 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     tag
   }
 
-  def deleteTag(id : String) = {
+  def deleteTag(id : String) : Box[Unit] = {
     OBPTag.find(id) match {
       case Full(tag) => {
-        if(tag.delete_!)
+        if(tag.delete_!){
           tags(tags.get.diff(Seq(new ObjectId(id)))).save
+          Full()
+        }
+        else Failure("Delete not completed")
       }
-      case _ =>
+      case _ => Failure("Tag "+id+" not found")
     }
   }
 

@@ -191,6 +191,7 @@ class API1_2Test extends ServerSetup{
   object DeleteComment extends Tag("deleteComment")
   object GetTags extends Tag("getTags")
   object PostTag extends Tag("postTag")
+  object DeleteTag extends Tag("deleteTag")
 
 
   /********************* API test methods ********************/
@@ -1006,6 +1007,21 @@ class API1_2Test extends ServerSetup{
   def postTagForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, tag: PostTransactionTagJSON) : h.HttpPackage[APIResponse] = {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags").POST <@(consumer,token3)
     makePostRequest(request, write(tag))
+  }
+
+  def deleteTagForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, tagId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" / tagId).DELETE <@(consumer, token)
+    makeDeleteRequest(request)
+  }
+
+  def deleteTagForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, tagId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" / tagId
+    makeDeleteRequest(request)
+  }
+
+  def deleteTagForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, tagId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" / tagId).DELETE <@(consumer, token3)
+    makeDeleteRequest(request)
   }
 
 /************************ the tests ************************/
@@ -4184,4 +4200,64 @@ class API1_2Test extends ServerSetup{
       postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
   }
+
+  feature("We delete a tag for one random transaction"){
+    scenario("we will delete a tag for one random transaction", API1_2, DeleteTag) {
+      Given("We will use an access token and will set a tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, postedTag.id)
+      Then("we should get a 204 code")
+      deleteReply.code should equal (204)
+    }
+
+    scenario("we will not delete a tag for one random transaction due to a missing token", API1_2, DeleteTag) {
+      Given("We will not use an access token and will set a tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, postedTag.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a tag for one random transaction because the user does not have enough privileges", API1_2, DeleteTag) {
+      Given("We will use an access token and will set a tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedTag.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a tag for one random transaction because the tag does not exist", API1_2, DeleteTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+  }
+
 }

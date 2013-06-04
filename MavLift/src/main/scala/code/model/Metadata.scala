@@ -168,7 +168,7 @@ class TransactionMetadata(
   /**
   * @param: tagId
   */
-  val deleteTag : (String) => Unit,
+  val deleteTag : (String) => Box[Unit],
   val images : List[TransactionImage],
   /**
   * @param: userId

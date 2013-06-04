@@ -99,7 +99,7 @@ class ModeratedTransactionMetadata(
   val tags : Option[List[Tag]],
   val addTag : Option[(String, Long, String, Date) => Tag],
   //TODO: rename the field to deleteTag once this class as one unique deleteTag function
-  val deleteTagFunc : Option[(String) => Unit],
+  private val deleteTagFunc : Option[(String) => Box[Unit]],
   val images : Option[List[TransactionImage]],
   val addImage : Option[(String, Long, String, Date, URL) => TransactionImage],
   //TODO: rename the field to deleteImage once this class as one unique deleteImage function
@@ -120,11 +120,11 @@ class ModeratedTransactionMetadata(
       tagList <- Box(tags) ?~ { "You must be able to see tags in order to delete them"}
       tag <- Box(tagList.find(tag => tag.id_ == tagId)) ?~ {"Tag with id " + tagId + "not found for this transaction"}
       deleteFunc <- if(tag.postedBy == user || bankAccount.authorizedAccess(Owner, user))
-    	              Box(deleteTagFunc) ?~ "Deleting tags not permitted for this view"
+    	               Box(deleteTagFunc) ?~ "Deleting tags not permitted for this view"
                     else
                       Failure("deleting tags not permitted for the current user")
+      tagIsDeleted <- deleteFunc(tagId)
     } yield {
-      deleteFunc(tagId)
     }
   }
 

@@ -1004,9 +1004,9 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           bankAccount <- BankAccount(bankId, accountId)
-          deleted <- Box(metadata.deleteTag(tagId, user, bankAccount))
+          deleted <- metadata.deleteTag(tagId, user, bankAccount)
         } yield {
-          successJsonResponse(204)
+          noContentJsonResponse
         }
     }
   })

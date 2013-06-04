@@ -130,8 +130,8 @@ trait View {
 
   //writing access
   def canEditOwnerComment: Boolean
-  def canAddComments : Boolean
-  def canDeleteComments: Boolean
+  def canAddComment : Boolean
+  def canDeleteComment: Boolean
   def canAddTag : Boolean
   def canDeleteTag : Boolean
   def canAddImage : Boolean
@@ -158,9 +158,9 @@ trait View {
           if (canSeeComments)
             Some(transaction.metadata.comments.filter(comment => comment.viewId==id))
           else None
-        val addCommentFunc= if(canAddComments) Some(transaction.metadata.addComment) else None
+        val addCommentFunc= if(canAddComment) Some(transaction.metadata.addComment) else None
         val deleteCommentFunc =
-            if(canDeleteComments)
+            if(canDeleteComment)
               Some(transaction.metadata.deleteComment)
             else
               None
@@ -547,8 +547,8 @@ class BaseView extends View {
 
   //writing access
   def canEditOwnerComment = false
-  def canAddComments = false
-  def canDeleteComments = false
+  def canAddComment = false
+  def canDeleteComment = false
   def canAddTag = false
   def canDeleteTag = false
   def canAddImage = false
@@ -635,8 +635,8 @@ class FullView extends View {
 
   //writing access
   def canEditOwnerComment = true
-  def canAddComments = true
-  def canDeleteComments = true
+  def canAddComment = true
+  def canDeleteComment = true
   def canAddTag = true
   def canDeleteTag = true
   def canAddImage = true
