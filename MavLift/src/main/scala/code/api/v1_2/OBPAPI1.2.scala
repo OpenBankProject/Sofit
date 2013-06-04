@@ -878,7 +878,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
         } yield {
           addNarrative(narrativeJson.narrative)
           val successJson = SuccessMessage("narrative added")
-          successJsonResponse(Extraction.decompose(successJson))
+          successJsonResponse(Extraction.decompose(successJson), 201)
         }
     }
   })
@@ -897,7 +897,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           addNarrative(narrativeJson.narrative)
           val successJson = SuccessMessage("narrative updated")
           successJsonResponse(Extraction.decompose(successJson))
-
         }
     }
   })
@@ -1038,7 +1037,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
           postedImage <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
         } yield {
-          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)))
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)),201)
         }
     }
   })

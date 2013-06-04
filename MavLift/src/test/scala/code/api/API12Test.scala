@@ -1042,6 +1042,36 @@ class API1_2Test extends ServerSetup{
     makeGetRequest(request)
   }
 
+  def postImageForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, image: PostTransactionImageJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images").POST <@(consumer,token)
+    makePostRequest(request, write(image))
+  }
+
+  def postImageForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, image: PostTransactionImageJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images"
+    makePostRequest(request, write(image))
+  }
+
+  def postImageForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, image: PostTransactionImageJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images").POST <@(consumer,token3)
+    makePostRequest(request, write(image))
+  }
+
+  def deleteImageForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, imageId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" / imageId).DELETE <@(consumer, token)
+    makeDeleteRequest(request)
+  }
+
+  def deleteImageForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, imageId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" / imageId
+    makeDeleteRequest(request)
+  }
+
+  def deleteImageForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, imageId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" / imageId).DELETE <@(consumer, token3)
+    makeDeleteRequest(request)
+  }
+
 /************************ the tests ************************/
   feature("base line URL works"){
     scenario("we get the api information", API1_2, APIInfo) {
@@ -3591,8 +3621,8 @@ class API1_2Test extends ServerSetup{
       When("the request is sent")
       val randomNarrative = randomString(20)
       val postReply = postNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomNarrative)
-      Then("we should get a 200 code")
-      postReply.code should equal (200)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
       postReply.body.extract[SuccessMessage]
       And("the narrative should be added")
       val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
@@ -4345,6 +4375,168 @@ class API1_2Test extends ServerSetup{
       reply.code should equal (400)
       And("we should get an error message")
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We post an image for one random transaction"){
+    scenario("we will post an image for one random transaction", API1_2, PostImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
+      postReply.body.extract[TransactionImageJSON]
+      And("the image should be added")
+      val getReply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theImagesAfterThePost = getReply.body.extract[TransactionImagesJSON].images
+      theImagesAfterThePost.find(_.URL == randomImage.URL).get
+    }
+
+    scenario("we will not post an image for one random transaction due to a missing token", API1_2, PostImage) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      When("the request is sent")
+      val postReply = postImageForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, randomImage)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the image should not be added")
+      val getReply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theImagesAfterThePost = getReply.body.extract[TransactionImagesJSON].images
+      val notFound = theImagesAfterThePost.find(_.URL == randomImage.URL) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post an image for one random transaction because the user does not have enough privileges", API1_2, PostImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+       val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      When("the request is sent")
+      val postReply = postImageForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, randomImage)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the image should not be added")
+      val getReply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theImagesAfterThePost = getReply.body.extract[TransactionImagesJSON].images
+      val notFound = theImagesAfterThePost.find(_.URL == randomImage.URL) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post an image for one random transaction because the view does not exist", API1_2, PostImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+       val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      When("the request is sent")
+      val postReply = postImageForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id, randomImage)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the image should not be added")
+      val getReply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theImagesAfterThePost = getReply.body.extract[TransactionImagesJSON].images
+      val notFound = theImagesAfterThePost.find(_.URL == randomImage.URL) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post an image for one random transaction because the transaction does not exist", API1_2, PostImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      When("the request is sent")
+      val postReply = postImageForOneTransaction(bankId, bankAccount.id, view, randomString(5), randomImage)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We delete an image for one random transaction"){
+    scenario("we will delete an image for one random transaction", API1_2, DeleteImage) {
+      Given("We will use an access token and will set an image first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, postedImage.id)
+      Then("we should get a 204 code")
+      deleteReply.code should equal (204)
+    }
+
+    scenario("we will not delete an image for one random transaction due to a missing token", API1_2, DeleteImage) {
+      Given("We will not use an access token and will set an image first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the user does not have enough privileges", API1_2, DeleteImage) {
+      Given("We will use an access token and will set an image first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the image does not exist", API1_2, DeleteImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
     }
   }
 }
