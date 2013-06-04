@@ -204,13 +204,16 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     comment
   }
 
-  def deleteComment(id : String) = {
+  def deleteComment(id : String) : Box[Unit]= {
     OBPComment.find(id) match {
       case Full(comment) => {
-        if(comment.delete_!)
+        if(comment.delete_!){
           obp_comments(obp_comments.get.diff(Seq(new ObjectId(id)))).save
+          Full()
+        }
+        else Failure("Delete not completed")
       }
-      case _ =>
+      case _ => Failure("Comment "+id+" not found")
     }
   }
 

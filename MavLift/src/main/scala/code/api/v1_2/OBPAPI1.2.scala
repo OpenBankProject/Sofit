@@ -925,7 +925,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           comments <- Box(metadata.comments) ?~ { "view " + viewId + " does not authorize comments access" }
         } yield {
-          val json = JSONFactory.createTransactionCommentsJson(comments)
+          val json = JSONFactory.createTransactionCommentsJSON(comments)
           successJsonResponse(Extraction.decompose(json))
         }
     }
@@ -936,14 +936,14 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
       user =>
         for {
-          commentJson <- tryo{json.extract[PostTransactionCommentJSON]}
+          commentJson <- tryo{json.extract[PostTransactionCommentJSON]} ?~ {"wrong json format"}
           u <- user
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
           addCommentFunc <- Box(metadata.addComment) ?~ {"view " + viewId + " does not authorize adding comments"}
           postedComment <- Full(addCommentFunc(u.id_, view.id, commentJson.value, now))
         } yield {
-          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionCommentJSON(postedComment)))
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionCommentJSON(postedComment)),201)
         }
     }
   })
@@ -956,9 +956,9 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           comments <- Box(metadata.comments) ?~ { "view " + viewId + " does not authorize comments access" }
           deleted <- Box(metadata.deleteComment)?~ { "view " + viewId + " does not authorize deleting comments" }
+          delete <- deleted(commentId)
         } yield {
-          deleted(commentId)
-          successJsonResponse(204)
+          noContentJsonResponse
         }
     }
   })
@@ -1019,7 +1019,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           images <- Box(metadata.images) ?~ { "view " + viewId + " does not authorize images access" }
         } yield {
-          val json = JSONFactory.createTransactionImagesJson(images)
+          val json = JSONFactory.createTransactionImagesJSON(images)
           successJsonResponse(Extraction.decompose(json))
         }
     }
@@ -1111,7 +1111,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
   })
 
   oauthServe(apiPrefix{
-  //delete where
+  //delete where tag
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "where" :: Nil JsonDelete _ => {
       user =>
         for {

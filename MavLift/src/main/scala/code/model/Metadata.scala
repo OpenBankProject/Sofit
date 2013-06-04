@@ -155,7 +155,7 @@ class TransactionMetadata(
   /**
   * @param: commentId
   */
-  val deleteComment : (String) => Unit,
+  val deleteComment : (String) => Box[Unit],
 
   val tags: List[Tag],
   /**
