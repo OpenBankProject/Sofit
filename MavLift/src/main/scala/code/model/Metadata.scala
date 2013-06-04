@@ -124,7 +124,7 @@ class OtherBankAccountMetadata(
   /**
   * @param: viewId
   */
-  val deleteCorporateLocation : (Long) => Unit,
+  val deleteCorporateLocation : (Long) => Boolean,
   /**
   * @param: userId
   * @param: viewId
@@ -136,7 +136,7 @@ class OtherBankAccountMetadata(
   /**
   * @param: viewId
   */
-  val deletePhysicalLocation : (Long) => Unit,
+  val deletePhysicalLocation : (Long) => Boolean,
   val addPublicAlias : (String) => Boolean,
   val addPrivateAlias : (String) => Boolean
 )
@@ -152,6 +152,11 @@ class TransactionMetadata(
   * @param: datePosted
   */
   val addComment : (String,Long, String, Date) => Comment,
+  /**
+  * @param: commentId
+  */
+  val deleteComment : (String) => Box[Unit],
+
   val tags: List[Tag],
   /**
   * @param: userId
@@ -163,7 +168,7 @@ class TransactionMetadata(
   /**
   * @param: tagId
   */
-  val deleteTag : (String) => Unit,
+  val deleteTag : (String) => Box[Unit],
   val images : List[TransactionImage],
   /**
   * @param: userId
@@ -185,5 +190,16 @@ class TransactionMetadata(
   * @param: latitude
   */
   val whereTags : List[GeoTag],
-  val addWhereTag : (String, Long, Date, Double, Double) => Boolean
+  /**
+  * @param: userId
+  * @param: viewId
+  * @param: datePosted
+  * @param: longitude
+  * @param: latitude
+  */
+  val addWhereTag : (String, Long, Date, Double, Double) => Boolean,
+  /**
+  * @param: viewId
+  */
+  val deleteWhereTag : (Long) => Boolean
 )

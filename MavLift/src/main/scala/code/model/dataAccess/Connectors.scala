@@ -193,6 +193,7 @@ class MongoDBLocalStorage extends LocalStorage {
       (text => env.narrative(text).save),
       env.obp_comments.objs,
       env.addComment,
+      env.deleteComment,
       env.tags.objs,
       env.addTag,
       env.deleteTag,
@@ -200,7 +201,8 @@ class MongoDBLocalStorage extends LocalStorage {
       env.addImage,
       env.deleteImage,
       env.whereTags.get,
-      env.addWhereTag
+      env.addWhereTag,
+      env.deleteWhereTag
     )
     val transactionType = transaction.details.get.type_en.get
     val amount = transaction.details.get.value.get.amount.get
@@ -375,7 +377,8 @@ class MongoDBLocalStorage extends LocalStorage {
     for{
       bank <- HostedBank.find("permalink",bankPermalink)
       account  <- bank.getAccount(accountPermalink)
-      ifTransactionsIsInAccount <- Full(account.transactionsForAccount.put("_id").is(new ObjectId(id)).get)
+      objectId <- tryo{new ObjectId(id)} ?~ {"Transaction "+id+" not found"}
+      ifTransactionsIsInAccount <- Full(account.transactionsForAccount.put("_id").is(objectId).get)
       envelope <- OBPEnvelope.find(ifTransactionsIsInAccount)
     } yield createTransaction(envelope,account)
   }

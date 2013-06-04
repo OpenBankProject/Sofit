@@ -130,13 +130,15 @@ trait View {
 
   //writing access
   def canEditOwnerComment: Boolean
-  def canAddComments : Boolean
+  def canAddComment : Boolean
+  def canDeleteComment: Boolean
   def canAddTag : Boolean
   def canDeleteTag : Boolean
   def canAddImage : Boolean
   def canDeleteImage : Boolean
   def canAddWhereTag : Boolean
   def canSeeWhereTag : Boolean
+  def canDeleteWhereTag : Boolean
 
   // In the future we can add a method here to allow someone to show only transactions over a certain limit
 
@@ -156,7 +158,12 @@ trait View {
           if (canSeeComments)
             Some(transaction.metadata.comments.filter(comment => comment.viewId==id))
           else None
-        val addCommentFunc= if(canAddComments) Some(transaction.metadata.addComment) else None
+        val addCommentFunc= if(canAddComment) Some(transaction.metadata.addComment) else None
+        val deleteCommentFunc =
+            if(canDeleteComment)
+              Some(transaction.metadata.deleteComment)
+            else
+              None
         val addOwnerCommentFunc:Option[String=> Unit] = if (canEditOwnerComment) Some(transaction.metadata.addOwnerComment) else None
         val tags =
           if(canSeeTags)
@@ -184,17 +191,24 @@ trait View {
           if(canDeleteImage) Some(transaction.metadata.deleteImage)
           else None
 
+          val whereTag =
+          if(canSeeWhereTag)
+            transaction.metadata.whereTags.find(tag => tag.viewId == id)
+          else
+            None
+
         val addWhereTagFunc : Option[(String, Long, Date, Double, Double) => Boolean] =
           if(canAddWhereTag)
             Some(transaction.metadata.addWhereTag)
           else
             Empty
 
-        val whereTag =
-          if(canSeeWhereTag)
-            transaction.metadata.whereTags.find(tag => tag.viewId == id)
+        val deleteWhereTagFunc : Option[(Long) => Boolean] =
+          if (canDeleteWhereTag)
+            Some(transaction.metadata.deleteWhereTag)
           else
-            None
+            Empty
+
 
         new Some(
           new ModeratedTransactionMetadata(
@@ -202,6 +216,7 @@ trait View {
             addOwnerCommentFunc,
             comments,
             addCommentFunc,
+            deleteCommentFunc,
             tags,
             addTagFunc,
             deleteTagFunc,
@@ -209,7 +224,8 @@ trait View {
             addImageFunc,
             deleteImageFunc,
             whereTag,
-            addWhereTagFunc
+            addWhereTagFunc,
+            deleteWhereTagFunc
         ))
       }
       else
@@ -531,13 +547,15 @@ class BaseView extends View {
 
   //writing access
   def canEditOwnerComment = false
-  def canAddComments = false
+  def canAddComment = false
+  def canDeleteComment = false
   def canAddTag = false
   def canDeleteTag = false
   def canAddImage = false
   def canDeleteImage = false
-  def canAddWhereTag = false
   def canSeeWhereTag = false
+  def canAddWhereTag = false
+  def canDeleteWhereTag = false
 }
 
 class FullView extends View {
@@ -617,13 +635,15 @@ class FullView extends View {
 
   //writing access
   def canEditOwnerComment = true
-  def canAddComments = true
+  def canAddComment = true
+  def canDeleteComment = true
   def canAddTag = true
   def canDeleteTag = true
   def canAddImage = true
   def canDeleteImage = true
-  def canAddWhereTag = true
   def canSeeWhereTag = true
+  def canAddWhereTag = true
+  def canDeleteWhereTag = true
 }
 
 
@@ -723,6 +743,7 @@ object Public extends BaseView {
           None,
           Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
           Some(transaction.metadata.addComment),
+          Some(transaction.metadata.deleteComment),
           Some(transaction.metadata.tags.filter(_.viewId==id)),
           Some(transaction.metadata.addTag),
           Some(transaction.metadata.deleteTag),
@@ -730,7 +751,8 @@ object Public extends BaseView {
           Some(transaction.metadata.addImage),
           Some(transaction.metadata.deleteImage),
           transaction.metadata.whereTags.find(tag => tag.viewId == id),
-          Some(transaction.metadata.addWhereTag)
+          Some(transaction.metadata.addWhereTag),
+          Some(transaction.metadata.deleteWhereTag)
       ))
 
     val transactionType = Some(transaction.transactionType)
@@ -851,6 +873,7 @@ object OurNetwork extends BaseView {
           None,
           Some(transaction.metadata.comments.filter(comment => comment.viewId==id)),
           Some(transaction.metadata.addComment),
+          Some(transaction.metadata.deleteComment),
           Some(transaction.metadata.tags.filter(_.viewId==id)),
           Some(transaction.metadata.addTag),
           Some(transaction.metadata.deleteTag),
@@ -858,7 +881,8 @@ object OurNetwork extends BaseView {
           Some(transaction.metadata.addImage),
           Some(transaction.metadata.deleteImage),
           transaction.metadata.whereTags.find(tag => tag.viewId == id),
-          Some(transaction.metadata.addWhereTag)
+          Some(transaction.metadata.addWhereTag),
+          Some(transaction.metadata.deleteWhereTag)
       ))
     val transactionType = Some(transaction.transactionType)
     val transactionAmount = Some(transaction.amount)

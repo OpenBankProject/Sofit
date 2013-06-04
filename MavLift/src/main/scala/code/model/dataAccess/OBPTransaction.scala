@@ -204,6 +204,19 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     comment
   }
 
+  def deleteComment(id : String) : Box[Unit]= {
+    OBPComment.find(id) match {
+      case Full(comment) => {
+        if(comment.delete_!){
+          obp_comments(obp_comments.get.diff(Seq(new ObjectId(id)))).save
+          Full()
+        }
+        else Failure("Delete not completed")
+      }
+      case _ => Failure("Comment "+id+" not found")
+    }
+  }
+
   def addWhereTag(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
     val newTag = OBPGeoTag.createRecord.
                 userId(userId).
@@ -228,6 +241,18 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     true
   }
 
+  def deleteWhereTag(viewId : Long):Boolean = {
+    val where :Option[OBPGeoTag] = whereTags.get.find(loc=>{loc.viewId ==viewId})
+    where match {
+      case Some(w) => {
+        val newWhereTags = whereTags.get.diff(Seq(w))
+        whereTags(newWhereTags).save
+      true
+      }
+      case None => false
+    }
+  }
+
   def addTag(userId: String, viewId : Long, value: String, datePosted : Date) : Tag = {
     val tag = OBPTag.createRecord.
       userId(userId).
@@ -238,13 +263,16 @@ class OBPEnvelope private() extends MongoRecord[OBPEnvelope] with ObjectIdPk[OBP
     tag
   }
 
-  def deleteTag(id : String) = {
+  def deleteTag(id : String) : Box[Unit] = {
     OBPTag.find(id) match {
       case Full(tag) => {
-        if(tag.delete_!)
+        if(tag.delete_!){
           tags(tags.get.diff(Seq(new ObjectId(id)))).save
+          Full()
+        }
+        else Failure("Delete not completed")
       }
-      case _ =>
+      case _ => Failure("Tag "+id+" not found")
     }
   }
 
