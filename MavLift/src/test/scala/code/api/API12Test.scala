@@ -192,6 +192,9 @@ class API1_2Test extends ServerSetup{
   object GetTags extends Tag("getTags")
   object PostTag extends Tag("postTag")
   object DeleteTag extends Tag("deleteTag")
+  object GetImages extends Tag("getImages")
+  object PostImage extends Tag("postImage")
+  object DeleteImage extends Tag("deleteImage")
 
 
   /********************* API test methods ********************/
@@ -1022,6 +1025,21 @@ class API1_2Test extends ServerSetup{
   def deleteTagForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, tagId : String) : h.HttpPackage[APIResponse] = {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" / tagId).DELETE <@(consumer, token3)
     makeDeleteRequest(request)
+  }
+
+  def getImagesForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" <@(consumer, token)
+    makeGetRequest(request)
+  }
+
+  def getImagesForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images"
+    makeGetRequest(request)
+  }
+
+  def getImagesForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" <@(consumer, token3)
+    makeGetRequest(request)
   }
 
 /************************ the tests ************************/
@@ -4260,4 +4278,73 @@ class API1_2Test extends ServerSetup{
     }
   }
 
+  feature("We get the images of one random transaction"){
+    scenario("we will get the images of one random transaction", API1_2, GetImages) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 200 code")
+      reply.code should equal (200)
+      reply.body.extract[TransactionImagesJSON]
+    }
+
+    scenario("we will not get the images of one random transaction due to a missing token", API1_2, GetImages) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getImagesForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the images of one random transaction because the user does not have enough privileges", API1_2, GetImages) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getImagesForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the images of one random transaction because the view does not exist", API1_2, GetImages) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getImagesForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the images of one random transaction because the transaction does not exist", API1_2, GetImages) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      When("the request is sent")
+      val reply = getImagesForOneTransaction(bankId, bankAccount.id, view, randomString(5))
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
 }
