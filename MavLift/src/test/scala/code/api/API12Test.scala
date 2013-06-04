@@ -190,6 +190,7 @@ class API1_2Test extends ServerSetup{
   object PostComment extends Tag("postComment")
   object DeleteComment extends Tag("deleteComment")
   object GetTags extends Tag("getTags")
+  object PostTag extends Tag("postTag")
 
 
   /********************* API test methods ********************/
@@ -990,6 +991,21 @@ class API1_2Test extends ServerSetup{
   def getTagsForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
     val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" <@(consumer, token3)
     makeGetRequest(request)
+  }
+
+  def postTagForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, tag: PostTransactionTagJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags").POST <@(consumer,token)
+    makePostRequest(request, write(tag))
+  }
+
+  def postTagForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, tag: PostTransactionTagJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags"
+    makePostRequest(request, write(tag))
+  }
+
+  def postTagForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, tag: PostTransactionTagJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags").POST <@(consumer,token3)
+    makePostRequest(request, write(tag))
   }
 
 /************************ the tests ************************/
@@ -4063,6 +4079,109 @@ class API1_2Test extends ServerSetup{
       reply.code should equal (400)
       And("we should get an error message")
       reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We post a tag for one random transaction"){
+    scenario("we will post a tag for one random transaction", API1_2, PostTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
+      postReply.body.extract[TransactionTagJSON]
+      And("the tag should be added")
+      val getReply = getTagsForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theTagsAfterThePost = getReply.body.extract[TransactionTagsJSON].tags
+      theTagsAfterThePost.find(_.value == randomTag.value).get
+    }
+
+    scenario("we will not post a tag for one random transaction due to a missing token", API1_2, PostTag) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      When("the request is sent")
+      val postReply = postTagForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, randomTag)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the tag should not be added")
+      val getReply = getTagsForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theTagsAfterThePost = getReply.body.extract[TransactionTagsJSON].tags
+      val notFound = theTagsAfterThePost.find(_.value == randomTag.value) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post a tag for one random transaction because the user does not have enough privileges", API1_2, PostTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+       val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      When("the request is sent")
+      val postReply = postTagForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, randomTag)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the tag should not be added")
+      val getReply = getTagsForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theTagsAfterThePost = getReply.body.extract[TransactionTagsJSON].tags
+      val notFound = theTagsAfterThePost.find(_.value == randomTag.value) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post a tag for one random transaction because the view does not exist", API1_2, PostTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+       val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      When("the request is sent")
+      val postReply = postTagForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id, randomTag)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the tag should not be added")
+      val getReply = getTagsForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theTagsAfterThePost = getReply.body.extract[TransactionTagsJSON].tags
+      val notFound = theTagsAfterThePost.find(_.value == randomTag.value) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post a tag for one random transaction because the transaction does not exist", API1_2, PostTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      When("the request is sent")
+      val postReply = postTagForOneTransaction(bankId, bankAccount.id, view, randomString(5), randomTag)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
   }
 }

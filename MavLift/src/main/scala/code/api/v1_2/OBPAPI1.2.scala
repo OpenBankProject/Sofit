@@ -990,7 +990,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           addTagFunc <- Box(metadata.addTag) ?~ {"view " + viewId + " does not authorize adding tags"}
           postedTag <- Full(addTagFunc(u.id_, view.id, tagJson.value, now))
         } yield {
-          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionTagJSON(postedTag)))
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionTagJSON(postedTag)), 201)
         }
     }
   })
