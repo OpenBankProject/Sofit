@@ -1066,7 +1066,8 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           where <- Box(metadata.whereTag) ?~ { "view " + viewId + " does not authorize where tag access" }
         } yield {
           val json = JSONFactory.createLocationJSON(where)
-          successJsonResponse(Extraction.decompose(json))
+          val whereJson = TransactionWhereJSON(json)
+          successJsonResponse(Extraction.decompose(whereJson))
         }
     }
   })
@@ -1099,7 +1100,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addWhereTag <- Box(metadata.addWhereTag) ?~ {"the view " + viewId + "does not allow updating a where tag"}
-          whereJson <- tryo{(json.extract[TransactionWhereJSON])} ?~ {"wrong JSON format"}
+          whereJson <- tryo{(json.extract[PostTransactionWhereJSON])} ?~ {"wrong JSON format"}
           correctCoordinates <- checkIfLocationPossible(whereJson.where.latitude, whereJson.where.longitude)
          if(addWhereTag(u.id_, view.id, now, whereJson.where.longitude, whereJson.where.latitude))
         } yield {
