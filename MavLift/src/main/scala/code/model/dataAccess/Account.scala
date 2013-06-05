@@ -43,7 +43,7 @@ import net.liftweb.mongodb.record.field.ObjectIdRefField
 import net.liftweb.mongodb.record.field.MongoJsonObjectListField
 import net.liftweb.mongodb.record.field.DateField
 import net.liftweb.common.{ Box, Empty, Full, Failure }
-import net.liftweb.mongodb.record.field.BsonRecordListField
+import net.liftweb.mongodb.record.field.BsonRecordField
 import net.liftweb.mongodb.record.{ BsonRecord, BsonMetaRecord }
 import net.liftweb.record.field.{ StringField, BooleanField, DecimalField }
 import net.liftweb.mongodb.{Limit, Skip}
@@ -157,9 +157,8 @@ class OtherAccount private() extends MongoRecord[OtherAccount] with ObjectIdPk[O
   object openCorporatesUrl extends StringField(this, 100) {
     override def optional_? = true
   }
-  //we store a list of geo tags, one per view
-  object corporateLocation extends BsonRecordListField(this, OBPGeoTag)
-  object physicalLocation extends BsonRecordListField(this, OBPGeoTag)
+  object corporateLocation extends BsonRecordField(this, OBPGeoTag)
+  object physicalLocation extends BsonRecordField(this, OBPGeoTag)
 
   def addCorporateLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
     val newTag = OBPGeoTag.createRecord.
@@ -168,31 +167,14 @@ class OtherAccount private() extends MongoRecord[OtherAccount] with ObjectIdPk[O
                 date(datePosted).
                 geoLongitude(longitude).
                 geoLatitude(latitude)
-
-    //before to save the geo tag we need to be sure there is only one per view
-    //so we look if there is already a tag with the same view (viewId)
-    val tags = corporateLocation.get.find(geoTag => geoTag.viewID.get == viewId) match {
-      case Some(tag) =>
-        //if true replace it with the new one
-        newTag :: corporateLocation.get.diff(Seq(tag))
-      case _ =>
-        //else just add this one
-        newTag :: corporateLocation.get
-    }
-    corporateLocation(tags).save
+    corporateLocation(newTag).save
     true
   }
 
-  def deleteCorporateLocation(viewId: Long):Boolean = {
-    val location :Option[OBPGeoTag] = corporateLocation.get.find(loc=>{loc.viewId == viewId})
-    location match {
-      case Some(l) => {
-        val newCorporateLocation = corporateLocation.get.diff(Seq(l))
-        corporateLocation(newCorporateLocation).save
-        true
-      }
-      case None => false
-    }
+  def deleteCorporateLocation : Boolean = {
+    corporateLocation.clear
+    this.save
+    true
   }
 
   def addPhysicalLocation(userId: String, viewId : Long, datePosted : Date, longitude : Double, latitude : Double) : Boolean = {
@@ -202,32 +184,14 @@ class OtherAccount private() extends MongoRecord[OtherAccount] with ObjectIdPk[O
                 date(datePosted).
                 geoLongitude(longitude).
                 geoLatitude(latitude)
-
-    //before to save the geo tag we need to be sure there is only one per view
-    //so we look if there is allready a tag with the same view (viewId)
-    val tags = physicalLocation.get.find(geoTag => geoTag.viewID equals viewId) match {
-      case Some(tag) => {
-        //if true remplace it with the new one
-        newTag :: physicalLocation.get.diff(Seq(tag))
-      }
-      case _ =>
-        //else just add this one
-        newTag :: physicalLocation.get
-    }
-    physicalLocation(tags).save
+    physicalLocation(newTag).save
     true
   }
 
-  def deletePhysicalLocation(viewId: Long):Boolean = {
-    val location :Option[OBPGeoTag] = physicalLocation.get.find(loc=>{loc.viewId ==viewId})
-    location match {
-      case Some(l) => {
-        val newPhysicalLocation = physicalLocation.get.diff(Seq(l))
-        physicalLocation(newPhysicalLocation).save
-      true
-      }
-      case None => false
-    }
+  def deletePhysicalLocation : Boolean = {
+    physicalLocation.clear
+    this.save
+    true
   }
 
 }

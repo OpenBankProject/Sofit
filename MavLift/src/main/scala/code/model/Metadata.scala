@@ -106,8 +106,8 @@ class OtherBankAccountMetadata(
   val url : String,
   val imageURL : String,
   val openCorporatesURL : String,
-  val corporateLocations : List[GeoTag],
-  val physicalLocations : List[GeoTag],
+  val corporateLocation : GeoTag,
+  val physicalLocation : GeoTag,
   val addMoreInfo : (String) => Boolean,
   val addURL : (String) => Boolean,
   val addImageURL : (String) => Boolean,
@@ -121,10 +121,7 @@ class OtherBankAccountMetadata(
   * @param: latitude
   */
   val addCorporateLocation : (String, Long, Date, Double, Double) => Boolean,
-  /**
-  * @param: viewId
-  */
-  val deleteCorporateLocation : (Long) => Boolean,
+  val deleteCorporateLocation : () => Boolean,
   /**
   * @param: userId
   * @param: viewId
@@ -133,10 +130,7 @@ class OtherBankAccountMetadata(
   * @param: latitude
   */
   val addPhysicalLocation : (String, Long, Date, Double, Double) => Boolean,
-  /**
-  * @param: viewId
-  */
-  val deletePhysicalLocation : (Long) => Boolean,
+  val deletePhysicalLocation : () => Boolean,
   val addPublicAlias : (String) => Boolean,
   val addPrivateAlias : (String) => Boolean
 )
