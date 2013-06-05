@@ -134,8 +134,8 @@ class MongoDBLocalStorage extends LocalStorage {
         url = oAcc.url.get,
         imageURL = oAcc.imageUrl.get,
         openCorporatesURL = oAcc.openCorporatesUrl.get,
-        corporateLocations = oAcc.corporateLocation.get,
-        physicalLocations = oAcc.physicalLocation.get,
+        corporateLocation = oAcc.corporateLocation.get,
+        physicalLocation = oAcc.physicalLocation.get,
         addMoreInfo = (text => {
           oAcc.moreInfo(text).save
           //the save method does not return a Boolean to inform about the saving state,
@@ -174,8 +174,8 @@ class MongoDBLocalStorage extends LocalStorage {
           //so we a true
           true
         }),
-        deleteCorporateLocation = oAcc.deleteCorporateLocation,
-        deletePhysicalLocation = oAcc.deletePhysicalLocation
+        deleteCorporateLocation = oAcc.deleteCorporateLocation _,
+        deletePhysicalLocation = oAcc.deletePhysicalLocation _
       )
     val otherAccount = new OtherBankAccount(
         id = oAcc.id.is.toString,
@@ -423,8 +423,8 @@ class MongoDBLocalStorage extends LocalStorage {
                 url = otherAccount.url.get,
                 imageURL = otherAccount.imageUrl.get,
                 openCorporatesURL = otherAccount.openCorporatesUrl.get,
-                corporateLocations = otherAccount.corporateLocation.get,
-                physicalLocations = otherAccount.physicalLocation.get,
+                corporateLocation = otherAccount.corporateLocation.get,
+                physicalLocation = otherAccount.physicalLocation.get,
                 addMoreInfo = (text => {
                   otherAccount.moreInfo(text).save
                   //the save method does not return a Boolean to inform about the saving state,
@@ -463,8 +463,8 @@ class MongoDBLocalStorage extends LocalStorage {
                   //so we a true
                   true
                 }),
-                deleteCorporateLocation = otherAccount.deleteCorporateLocation,
-                deletePhysicalLocation = otherAccount.deletePhysicalLocation
+                deleteCorporateLocation = otherAccount.deleteCorporateLocation _,
+                deletePhysicalLocation = otherAccount.deletePhysicalLocation _
               )
 
             val otherBankAccount =
@@ -506,8 +506,8 @@ class MongoDBLocalStorage extends LocalStorage {
               url = otherAccount.url.get,
               imageURL = otherAccount.imageUrl.get,
               openCorporatesURL = otherAccount.openCorporatesUrl.get,
-              corporateLocations = otherAccount.corporateLocation.get,
-              physicalLocations = otherAccount.physicalLocation.get,
+              corporateLocation = otherAccount.corporateLocation.get,
+              physicalLocation = otherAccount.physicalLocation.get,
               addMoreInfo = (text => {
                 otherAccount.moreInfo(text).save
                 //the save method does not return a Boolean to inform about the saving state,
@@ -546,8 +546,8 @@ class MongoDBLocalStorage extends LocalStorage {
                 //so we a true
                 true
               }),
-              deleteCorporateLocation = otherAccount.deleteCorporateLocation,
-              deletePhysicalLocation = otherAccount.deletePhysicalLocation
+              deleteCorporateLocation = otherAccount.deleteCorporateLocation _,
+              deletePhysicalLocation = otherAccount.deletePhysicalLocation _
             )
 
           val otherBankAccount =
