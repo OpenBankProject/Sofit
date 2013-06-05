@@ -1127,4 +1127,21 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
         }
     }
   })
+
+  oauthServe(apiPrefix{
+  //get other account of a transaction
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions":: transactionId :: "other_account" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          transaction <- account.moderatedTransaction(transactionId, view, user)
+          moderatedOtherBankAccount <- transaction.otherBankAccount
+        } yield {
+          val otherBankAccountJson = JSONFactory.createOtherBankAccount(moderatedOtherBankAccount)
+          successJsonResponse(Extraction.decompose(otherBankAccountJson))
+        }
+
+    }
+  })
 }
