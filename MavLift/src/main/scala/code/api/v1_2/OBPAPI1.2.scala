@@ -224,7 +224,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix{
-  //post access for specific user
+  //add access for specific user
     case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonPost json => {
       user =>
         for {
@@ -713,7 +713,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
 def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
-  if(scala.math.abs(lat) < 90 & scala.math.abs(lon) < 180)
+  if(scala.math.abs(lat) <= 90 & scala.math.abs(lon) <= 180)
     Full()
   else
     Failure("Coordinates not possible")
@@ -1080,7 +1080,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addWhereTag <- Box(metadata.addWhereTag) ?~ {"the view " + viewId + "does not allow adding a where tag"}
-          whereJson <- tryo{(json.extract[TransactionWhereJSON])} ?~ {"wrong JSON format"}
+          whereJson <- tryo{(json.extract[PostTransactionWhereJSON])} ?~ {"wrong JSON format"}
           correctCoordinates <- checkIfLocationPossible(whereJson.where.latitude, whereJson.where.longitude)
           if(addWhereTag(u.id_, view.id, now, whereJson.where.longitude, whereJson.where.latitude))
         } yield {
