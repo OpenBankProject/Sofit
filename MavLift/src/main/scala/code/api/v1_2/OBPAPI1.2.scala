@@ -871,14 +871,13 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
       user =>
         for {
           narrativeJson <- tryo{json.extract[TransactionNarrativeJSON]} ?~ {"wrong json format"}
-          u <- user
           view <- View.fromUrl(viewId)
-          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, user)
           addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow adding a narrative"}
         } yield {
           addNarrative(narrativeJson.narrative)
           val successJson = SuccessMessage("narrative added")
-          successJsonResponse(Extraction.decompose(successJson))
+          successJsonResponse(Extraction.decompose(successJson), 201)
         }
     }
   })
@@ -889,9 +888,8 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
       user =>
         for {
           narrativeJson <- tryo{json.extract[TransactionNarrativeJSON]} ?~ {"wrong json format"}
-          u <- user
           view <- View.fromUrl(viewId)
-          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, user)
           addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow updating a narrative"}
         } yield {
           addNarrative(narrativeJson.narrative)
@@ -907,7 +905,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "narrative" :: Nil JsonDelete _ => {
       user =>
         for {
-          //view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow deleting the narrative"}
         } yield {
@@ -1038,7 +1035,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
           postedImage <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
         } yield {
-          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)))
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)), 201)
         }
     }
   })
