@@ -3591,8 +3591,8 @@ class API1_2Test extends ServerSetup{
       When("the request is sent")
       val randomNarrative = randomString(20)
       val postReply = postNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomNarrative)
-      Then("we should get a 200 code")
-      postReply.code should equal (200)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
       postReply.body.extract[SuccessMessage]
       And("the narrative should be added")
       val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
