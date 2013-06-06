@@ -585,12 +585,22 @@ class MongoDBLocalStorage extends LocalStorage {
       case Full(acc) => {
         val privileges = Privilege.findAll(By(Privilege.account, acc.id.get))
         val permissions : List[Box[Permission]] = privileges.map( p => {
-            p.user.obj.map(u => {
-                new Permission(
-                  u,
-                  u.permittedViews(account).toList
-                )
-              })
+            if(
+              p.ourNetworkPermission.get != false
+              | p.teamPermission.get != false
+              | p.boardPermission.get != false
+              | p.authoritiesPermission.get != false
+              | p.ownerPermission.get != false
+              | p.mangementPermission.get != false
+            )
+              p.user.obj.map(u => {
+                  new Permission(
+                    u,
+                    u.permittedViews(account).toList
+                  )
+                })
+            else
+              Empty
           })
         Full(permissions.flatten)
       }
