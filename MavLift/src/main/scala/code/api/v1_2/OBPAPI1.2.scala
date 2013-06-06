@@ -964,10 +964,9 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments":: commentId :: Nil JsonDelete _ => {
       user =>
         for {
+          account <- BankAccount(bankId, accountId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          comments <- Box(metadata.comments) ?~ { "view " + viewId + " does not authorize comments access" }
-          deleted <- Box(metadata.deleteComment)?~ { "view " + viewId + " does not authorize deleting comments" }
-          delete <- deleted(commentId)
+          delete <- metadata.deleteComment(commentId, user, account)
         } yield {
           noContentJsonResponse
         }
@@ -1012,7 +1011,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
 
       user =>
         for {
-          view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           bankAccount <- BankAccount(bankId, accountId)
           deleted <- metadata.deleteTag(tagId, user, bankAccount)
@@ -1060,7 +1058,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
       user =>
         for {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          view <- View.fromUrl(viewId)
           bankAccount <- BankAccount(bankId, accountId)
           deleted <- Box(metadata.deleteImage(imageId, user, bankAccount))
         } yield {

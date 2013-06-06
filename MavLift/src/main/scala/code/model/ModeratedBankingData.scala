@@ -95,7 +95,7 @@ class ModeratedTransactionMetadata(
   val addOwnerComment : Option[(String => Unit)],
   val comments : Option[List[Comment]],
   val addComment: Option[(String, Long, String, Date) => Comment],
-  val deleteComment: Option[(String) => Box[Unit]],
+  private val deleteComment: Option[(String) => Box[Unit]],
   val tags : Option[List[Tag]],
   val addTag : Option[(String, Long, String, Date) => Tag],
   //TODO: rename the field to deleteTag once this class as one unique deleteTag function
@@ -103,7 +103,7 @@ class ModeratedTransactionMetadata(
   val images : Option[List[TransactionImage]],
   val addImage : Option[(String, Long, String, Date, URL) => TransactionImage],
   //TODO: rename the field to deleteImage once this class as one unique deleteImage function
-  val deleteImageFunc  : Option[String => Unit],
+  private val deleteImageFunc  : Option[String => Unit],
   val whereTag : Option[GeoTag],
   val addWhereTag : Option[(String, Long, Date, Double, Double) => Boolean],
   val deleteWhereTag : Option[(Long) => Boolean]
@@ -149,17 +149,17 @@ class ModeratedTransactionMetadata(
   }
 
   def deleteComment(commentId: String, user: Option[User],bankAccount: BankAccount) : Box[Unit] = {
-  for {
-    commentList <- Box(images) ?~ {"You must be able to see comments in order to delete them"}
-    comment <- Box(commentList.find(comment => comment.id_ == commentId)) ?~ {"Comment with id "+commentId+" not found for this transaction"}
-    deleteFunc <- if(comment.postedBy == user || bankAccount.authorizedAccess(Owner, user))
-                  Box(deleteComment) ?~ "Deleting comments not permitted for this view"
-                else
-                  Failure("Deleting comments not permitted for the current user")
-  } yield {
-    deleteFunc(commentId)
+    for {
+      commentList <- Box(comments) ?~ {"You must be able to see comments in order to delete them"}
+      comment <- Box(commentList.find(comment => comment.id_ == commentId)) ?~ {"Comment with id "+commentId+" not found for this transaction"}
+      deleteFunc <- if(comment.postedBy == user || bankAccount.authorizedAccess(Owner, user))
+                    Box(deleteComment) ?~ "Deleting comments not permitted for this view"
+                  else
+                    Failure("Deleting comments not permitted for the current user")
+    } yield {
+      deleteFunc(commentId)
+    }
   }
-}
 }
 
 
