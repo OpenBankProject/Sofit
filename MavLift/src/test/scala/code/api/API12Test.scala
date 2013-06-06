@@ -47,7 +47,7 @@ class API1_2Test extends ServerSetup{
 
   lazy val user1 =
     OBPUser.create.
-      email("testuser1@exemple.com").
+      email("testuser1@example.com").
       password(randomString(10)).
       validated(true).
       firstName(randomString(10)).
@@ -74,7 +74,7 @@ class API1_2Test extends ServerSetup{
     OBPToken.create.
     tokenType(Access).
     consumerId(testConsumer.id).
-    userId(user1.id.get.toString).
+    userId(user1.email).
     key(randomString(40).toLowerCase).
     secret(randomString(40).toLowerCase).
     duration(tokenDuration).
@@ -87,7 +87,7 @@ class API1_2Test extends ServerSetup{
   // create a user for test purposes
   lazy val user2 =
     OBPUser.create.
-      email("testuser2@exemple.com").
+      email("testuser2@example.com").
       password(randomString(10)).
       validated(true).
       firstName(randomString(10)).
@@ -99,7 +99,7 @@ class API1_2Test extends ServerSetup{
     OBPToken.create.
     tokenType(Access).
     consumerId(testConsumer.id).
-    userId(user2.id.get.toString).
+    userId(user2.email).
     key(randomString(40).toLowerCase).
     secret(randomString(40).toLowerCase).
     duration(tokenDuration).
@@ -112,7 +112,7 @@ class API1_2Test extends ServerSetup{
   // create a user for test purposes
   lazy val user3 =
     OBPUser.create.
-      email("testuser3@exemple.com").
+      email("testuser3@example.com").
       password(randomString(10)).
       validated(true).
       firstName(randomString(10)).
@@ -124,7 +124,7 @@ class API1_2Test extends ServerSetup{
     OBPToken.create.
     tokenType(Access).
     consumerId(testConsumer.id).
-    userId(user3.id.get.toString).
+    userId(user3.email).
     key(randomString(40).toLowerCase).
     secret(randomString(40).toLowerCase).
     duration(tokenDuration).
@@ -1250,8 +1250,9 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val permission = randomAccountPermission(bankId, bankAccount.id)
+      val userID = urlEncode(permission.user.id)
       When("the request is sent")
-      val reply = getUserAccountPermission(bankId, bankAccount.id, permission.user.id)
+      val reply = getUserAccountPermission(bankId, bankAccount.id, userID)
       Then("we should get a 200 ok code")
       reply.code should equal (200)
       val viewsInfo = reply.body.extract[ViewsJSON]
@@ -1264,8 +1265,9 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val permission = randomAccountPermission(bankId, bankAccount.id)
+      val userID = urlEncode(permission.user.id)
       When("the request is sent")
-      val reply = getUserAccountPermissionWithoutToken(bankId, bankAccount.id, permission.user.id)
+      val reply = getUserAccountPermissionWithoutToken(bankId, bankAccount.id, userID)
       Then("we should get a 400 code")
       reply.code should equal (400)
       And("we should get an error message")
@@ -1286,12 +1288,13 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Grant a user access to a view on a bank account"){
-    scenario("we will grant a user access to a view on an bank account", API1_2, PostPermission) {
+    scenario("we will grant a user access to a view on an bank account", API1_2, PostPermission, CurrentTest) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       When("the request is sent")
-      val reply = grantUserAccessToView(bankId, bankAccount.id, user2.id.get.toString, randomViewPermalink)
+      val userId = urlEncode(user2.email)
+      val reply = grantUserAccessToView(bankId, bankAccount.id, userId, randomViewPermalink)
       Then("we should get a 201 ok code")
       reply.code should equal (201)
       val viewInfo = reply.body.extract[ViewJSON]
@@ -1315,8 +1318,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = grantUserAccessToView(bankId, bankAccount.id, user2.id.get.toString, randomString(5))
+      val reply = grantUserAccessToView(bankId, bankAccount.id, userId, randomString(5))
       Then("we should get a 400 ok code")
       reply.code should equal (400)
       And("we should get an error message")
@@ -1327,8 +1331,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = grantUserAccessToViewWithWrongUser(bankId, bankAccount.id, user2.id.get.toString, randomViewPermalink)
+      val reply = grantUserAccessToViewWithWrongUser(bankId, bankAccount.id, userId, randomViewPermalink)
       Then("we should get a 400 ok code")
       reply.code should equal (400)
       And("we should get an error message")
@@ -1341,8 +1346,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = revokeUserAccessToView(bankId, bankAccount.id, user2.id.get.toString, randomViewPermalink)
+      val reply = revokeUserAccessToView(bankId, bankAccount.id, userId, randomViewPermalink)
       Then("we should get a 204 no content code")
       reply.code should equal (204)
     }
@@ -1361,8 +1367,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = revokeUserAccessToView(bankId, bankAccount.id, user2.id.get.toString, randomString(5))
+      val reply = revokeUserAccessToView(bankId, bankAccount.id, userId, randomString(5))
       Then("we should get a 400 ok code")
       reply.code should equal (400)
     }
@@ -1371,8 +1378,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = revokeUserAccessToViewWithoutOwnerAccess(bankId, bankAccount.id, user2.id.get.toString, randomViewPermalink)
+      val reply = revokeUserAccessToViewWithoutOwnerAccess(bankId, bankAccount.id, userId, randomViewPermalink)
       Then("we should get a 400 ok code")
       reply.code should equal (400)
     }

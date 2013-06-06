@@ -288,76 +288,93 @@ class MongoDBLocalStorage extends LocalStorage {
   */
   def getNonPublicBankAccounts(user : User) :  List[BankAccount] = {
 
-    val hostedAccountTable = HostedAccount._dbTableNameLC
-    val privilegeTable = Privilege._dbTableNameLC
-    val userTable = OBPUser._dbTableNameLC
+    user match {
+      case u : OBPUser => {
+        val hostedAccountTable = HostedAccount._dbTableNameLC
+        val privilegeTable = Privilege._dbTableNameLC
+        val userTable = OBPUser._dbTableNameLC
 
-    val hostedId = hostedAccountTable + "." + HostedAccount.id.dbColumnName
-    val hostedAccId = hostedAccountTable + "." + HostedAccount.accountID.dbColumnName
-    val privilegeAccId = privilegeTable + "." + Privilege.account.dbColumnName
-    val privilegeUserId = privilegeTable + "." + Privilege.user.dbColumnName
-    val userId = user.id_
+        val hostedId = hostedAccountTable + "." + HostedAccount.id.dbColumnName
+        val hostedAccId = hostedAccountTable + "." + HostedAccount.accountID.dbColumnName
+        val privilegeAccId = privilegeTable + "." + Privilege.account.dbColumnName
+        val privilegeUserId = privilegeTable + "." + Privilege.user.dbColumnName
+        val userId = user.id_
 
-    val ourNetworkPrivilege = privilegeTable + "." + Privilege.ourNetworkPermission.dbColumnName
-    val teamPrivilege = privilegeTable + "." + Privilege.teamPermission.dbColumnName
-    val boardPrivilege = privilegeTable + "." + Privilege.boardPermission.dbColumnName
-    val authoritiesPrivilege = privilegeTable + "." + Privilege.authoritiesPermission.dbColumnName
-    val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
-    val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
+        val ourNetworkPrivilege = privilegeTable + "." + Privilege.ourNetworkPermission.dbColumnName
+        val teamPrivilege = privilegeTable + "." + Privilege.teamPermission.dbColumnName
+        val boardPrivilege = privilegeTable + "." + Privilege.boardPermission.dbColumnName
+        val authoritiesPrivilege = privilegeTable + "." + Privilege.authoritiesPermission.dbColumnName
+        val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
+        val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
 
-    val query = "SELECT DISTINCT " + hostedId + ", " + hostedAccId +
-          " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
-          " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
-            " AND " + "( " + privilegeUserId + " = " + userId + ")" +
-            " AND " + "( " + ourNetworkPrivilege + " = true" +
-              " OR " + teamPrivilege + " = true" +
-              " OR " + boardPrivilege + " = true" +
-              " OR " + authoritiesPrivilege + " = true" +
-              " OR " + managementPrivilege + " = true" +
-              " OR " + ownerPrivilege + " = true)"
+        val query = "SELECT DISTINCT " + hostedId + ", " + hostedAccId +
+              " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
+              " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
+                " AND " + "( " + privilegeUserId + " = " + userId + ")" +
+                " AND " + "( " + ourNetworkPrivilege + " = true" +
+                  " OR " + teamPrivilege + " = true" +
+                  " OR " + boardPrivilege + " = true" +
+                  " OR " + authoritiesPrivilege + " = true" +
+                  " OR " + managementPrivilege + " = true" +
+                  " OR " + ownerPrivilege + " = true)"
 
-    val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
-    val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
+        val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
+        val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
 
-    Account.findAll(mongoIds).map(Account.toBankAccount)
+        Account.findAll(mongoIds).map(Account.toBankAccount)
+      }
+      case u: User => {
+          logger.error("OBPUser instance not found, could not execute the SQL query ")
+          List()
+      }
+    }
   }
+
   def getNonPublicBankAccounts(user : User, bankID : String) :  List[BankAccount] = {
 
-    val hostedAccountTable = HostedAccount._dbTableNameLC
-    val privilegeTable = Privilege._dbTableNameLC
-    val userTable = OBPUser._dbTableNameLC
+    user match {
+      case u : OBPUser => {
+        val hostedAccountTable = HostedAccount._dbTableNameLC
+        val privilegeTable = Privilege._dbTableNameLC
+        val userTable = OBPUser._dbTableNameLC
 
-    val hostedId = hostedAccountTable + "." + HostedAccount.id.dbColumnName
-    val hostedAccId = hostedAccountTable + "." + HostedAccount.accountID.dbColumnName
-    val privilegeAccId = privilegeTable + "." + Privilege.account.dbColumnName
-    val privilegeUserId = privilegeTable + "." + Privilege.user.dbColumnName
-    val userId = user.id_
+        val hostedId = hostedAccountTable + "." + HostedAccount.id.dbColumnName
+        val hostedAccId = hostedAccountTable + "." + HostedAccount.accountID.dbColumnName
+        val privilegeAccId = privilegeTable + "." + Privilege.account.dbColumnName
+        val privilegeUserId = privilegeTable + "." + Privilege.user.dbColumnName
+        val userId = u.id.get.toString
 
-    val ourNetworkPrivilege = privilegeTable + "." + Privilege.ourNetworkPermission.dbColumnName
-    val teamPrivilege = privilegeTable + "." + Privilege.teamPermission.dbColumnName
-    val boardPrivilege = privilegeTable + "." + Privilege.boardPermission.dbColumnName
-    val authoritiesPrivilege = privilegeTable + "." + Privilege.authoritiesPermission.dbColumnName
-    val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
-    val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
+        val ourNetworkPrivilege = privilegeTable + "." + Privilege.ourNetworkPermission.dbColumnName
+        val teamPrivilege = privilegeTable + "." + Privilege.teamPermission.dbColumnName
+        val boardPrivilege = privilegeTable + "." + Privilege.boardPermission.dbColumnName
+        val authoritiesPrivilege = privilegeTable + "." + Privilege.authoritiesPermission.dbColumnName
+        val ownerPrivilege = privilegeTable + "." + Privilege.ownerPermission.dbColumnName
+        val managementPrivilege = privilegeTable + "." + Privilege.mangementPermission.dbColumnName
 
-    val query = "SELECT DISTINCT " + hostedId + ", " + hostedAccId +
-          " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
-          " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
-            " AND " + "( " + privilegeUserId + " = " + userId + ")" +
-            " AND " + "( " + ourNetworkPrivilege + " = true" +
-              " OR " + teamPrivilege + " = true" +
-              " OR " + boardPrivilege + " = true" +
-              " OR " + authoritiesPrivilege + " = true" +
-              " OR " + managementPrivilege + " = true" +
-              " OR " + ownerPrivilege + " = true)"
+        val query = "SELECT DISTINCT " + hostedId + ", " + hostedAccId +
+              " FROM " + hostedAccountTable + ", " + privilegeTable + ", " + userTable +
+              " WHERE " + "( " + hostedId + " = " + privilegeAccId + ")" +
+                " AND " + "( " + privilegeUserId + " = " + userId + ")" +
+                " AND " + "( " + ourNetworkPrivilege + " = true" +
+                  " OR " + teamPrivilege + " = true" +
+                  " OR " + boardPrivilege + " = true" +
+                  " OR " + authoritiesPrivilege + " = true" +
+                  " OR " + managementPrivilege + " = true" +
+                  " OR " + ownerPrivilege + " = true)"
 
-    val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
-    val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
-    val bankObjectId = new ObjectId(bankID)
-    def sameBank(account : Account) : Boolean =
-      account.bankID.get == bankObjectId
+        val moreThanAnon = HostedAccount.findAllByInsecureSql(query, IHaveValidatedThisSQL("everett", "nov. 15 2012"))
+        val mongoIds = moreThanAnon.map(hAcc => new ObjectId(hAcc.accountID.get))
+        val bankObjectId = new ObjectId(bankID)
+        def sameBank(account : Account) : Boolean =
+          account.bankID.get == bankObjectId
 
-    Account.findAll(mongoIds).filter(sameBank).map(Account.toBankAccount)
+        Account.findAll(mongoIds).filter(sameBank).map(Account.toBankAccount)
+      }
+      case u : User => {
+        logger.error("OBPUser instance not found, could not execute the SQL query ")
+        List()
+      }
+    }
   }
 
   //check if the bank and the accounts exist in the database
@@ -388,15 +405,8 @@ class MongoDBLocalStorage extends LocalStorage {
   def getAllPublicAccounts() : List[BankAccount] = Account.findAll("anonAccess", true) map Account.toBankAccount
 
   def getUser(id : String) : Box[User] =
-    tryo{
-      id.toLong
-    } match {
-      case Full(idInLong) => {
-        OBPUser.find(By(OBPUser.id,idInLong)) match {
-          case Full(u) => Full(u)
-          case _ => Failure("user " + id + " not found")
-        }
-      }
+    OBPUser.find(By(OBPUser.email,id)) match {
+      case Full(u) => Full(u)
       case _ => Failure("user " + id + " not found")
     }
 
@@ -588,31 +598,44 @@ class MongoDBLocalStorage extends LocalStorage {
     }
   }
   def addPermission(bankAccountId : String, view : View, user : User) : Box[Boolean] = {
-    for{
-      userId <- tryo{user.id_.toLong}
-      bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
-    } yield {
-        val privilege = Privilege.create.
-          user(userId).
-          account(bankAccount)
-        setPrivilegeFromView(privilege, view, true)
-        privilege.save
-      }
-  }
-  def revokePermission(bankAccountId : String, view : View, user : User) : Box[Boolean] = {
-    for{
-      userId <- tryo{user.id_.toLong}
-      bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
-    } yield {
-        Privilege.find(By(Privilege.user, userId), By(Privilege.account, bankAccount)) match {
-          case Full(privilege) => {
-            setPrivilegeFromView(privilege, view, false)
+    user match {
+      case u: OBPUser =>
+        for{
+          bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
+        } yield {
+            val privilege =
+              Privilege.create.
+              user(u.id).
+              account(bankAccount)
+            setPrivilegeFromView(privilege, view, true)
             privilege.save
           }
-          //there is no privilege to this user, so there is nothing to revoke
-          case _ => true
-        }
+      case u: User => {
+          logger.error("OBPUser instance not found, could not grant access ")
+          Empty
       }
+    }
+  }
+  def revokePermission(bankAccountId : String, view : View, user : User) : Box[Boolean] = {
+    user match {
+      case user:OBPUser =>
+        for{
+          bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
+        } yield {
+            Privilege.find(By(Privilege.user, user.id), By(Privilege.account, bankAccount)) match {
+              case Full(privilege) => {
+                setPrivilegeFromView(privilege, view, false)
+                privilege.save
+              }
+              //there is no privilege to this user, so there is nothing to revoke
+              case _ => true
+            }
+          }
+      case u: User => {
+        logger.error("OBPUser instance not found, could not revoke access ")
+        Empty
+      }
+    }
   }
   private def setPrivilegeFromView(privilege : Privilege, view : View, value : Boolean ) = {
     view match {
