@@ -906,7 +906,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "narrative" :: Nil JsonDelete _ => {
       user =>
         for {
-          //view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow deleting the narrative"}
         } yield {
@@ -1046,7 +1045,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
       user =>
         for {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          view <- View.fromUrl(viewId)
           bankAccount <- BankAccount(bankId, accountId)
           deleted <- Box(metadata.deleteImage(imageId, user, bankAccount))
         } yield {
