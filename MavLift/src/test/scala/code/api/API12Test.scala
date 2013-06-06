@@ -149,6 +149,7 @@ class API1_2Test extends ServerSetup{
   object GetPublicBankAccounts extends Tag("getPublicBankAccounts")
   object GetPrivateBankAccounts extends Tag("getPrivateBankAccounts")
   object GetBankAccount extends Tag("getBankAccount")
+  object GetViews extends Tag("getViews")
   object GetPermissions extends Tag("getPermissions")
   object GetPermission extends Tag("getPermission")
   object PostPermission extends Tag("postPermission")
@@ -313,6 +314,21 @@ class API1_2Test extends ServerSetup{
 
   def getPrivateBankAccountDetails(bankId : String, accountId : String, viewId : String) : h.HttpPackage[APIResponse] = {
     val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "account" <@(consumer,token)
+    makeGetRequest(request)
+  }
+
+  def getAccountViews(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "views" <@(consumer,token)
+    makeGetRequest(request)
+  }
+
+  def getAccountViewsWithoutToken(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "views"
+    makeGetRequest(request)
+  }
+
+  def getAccountViewsWithoutOwnerAccess(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "views" <@(consumer,token3)
     makeGetRequest(request)
   }
 
@@ -1343,6 +1359,43 @@ class API1_2Test extends ServerSetup{
       privateAccountDetails.id.nonEmpty should equal (true)
       privateAccountDetails.bank_id.nonEmpty should equal (true)
       privateAccountDetails.views_available.nonEmpty should equal (true)
+    }
+  }
+
+  feature("List of the views of specific bank account"){
+    scenario("We will get the list of the available views on a bank account", API1_2, GetViews) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      When("the request is sent")
+      val reply = getAccountViews(bankId, bankAccount.id)
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+      reply.body.extract[ViewsJSON]
+    }
+
+    scenario("We will not get the list of the available views on a bank account due to missing token", API1_2, GetViews) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      When("the request is sent")
+      val reply = getAccountViewsWithoutToken(bankId, bankAccount.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("We will not get the list of the available views on a bank account due to insufficient privileges", API1_2, GetViews) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      When("the request is sent")
+      val reply = getAccountViewsWithoutOwnerAccess(bankId, bankAccount.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
     }
   }
 

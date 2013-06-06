@@ -673,6 +673,7 @@ object View {
     ("links" -> viewsJson)
   }
 }
+
 object Team extends FullView {
   override def id = 3
   override def name = "Team"

@@ -106,9 +106,14 @@ trait LocalStorage extends Loggable {
   def getNonPublicBankAccounts(user : User) :  List[BankAccount]
   def getNonPublicBankAccounts(user : User, bankID : String) :  List[BankAccount]
   def permissions(account : BankAccount) : Box[List[Permission]]
+  def views(bankAccountID : String) : Box[List[View]]
 }
 
 class MongoDBLocalStorage extends LocalStorage {
+
+  private val availableViews = List(Team, Board, Authorities, Public, OurNetwork, Owner, Management)
+
+
   private def createTransaction(env: OBPEnvelope, theAccount: Account): Transaction = {
     import net.liftweb.json.JsonDSL._
     val transaction: OBPTransaction = env.obp_transaction.get
@@ -607,6 +612,7 @@ class MongoDBLocalStorage extends LocalStorage {
       case _ => Failure("Could not find the hostedAccount", Empty, Empty)
     }
   }
+
   def addPermission(bankAccountId : String, view : View, user : User) : Box[Boolean] = {
     user match {
       case u: OBPUser =>
@@ -655,7 +661,7 @@ class MongoDBLocalStorage extends LocalStorage {
         } yield {
             Privilege.find(By(Privilege.user, user.id), By(Privilege.account, bankAccount)) match {
               case Full(privilege) => {
-                List(OurNetwork, Team, Board, Authorities, Owner, Management).foreach({view =>
+                availableViews.foreach({view =>
                   setPrivilegeFromView(privilege, view, false)
                 })
                 privilege.save
@@ -678,6 +684,10 @@ class MongoDBLocalStorage extends LocalStorage {
       case Authorities => privilege.authoritiesPermission(value)
       case Owner => privilege.ownerPermission(value)
       case Management => privilege.mangementPermission(value)
+      case _ =>
     }
+  }
+  def views(bankAccountID : String) : Box[List[View]] = {
+    Full(availableViews)
   }
 }

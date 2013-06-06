@@ -193,6 +193,21 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix {
+  //get the available views on an bank account
+    case "banks" :: bankId :: "accounts" :: accountId :: "views" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          u <- user ?~ "user not found"
+          views <- account views u
+        } yield {
+            val viewsJSON = JSONFactory.createViewsJSON(views)
+            successJsonResponse(Extraction.decompose(viewsJSON))
+          }
+    }
+  })
+
+  oauthServe(apiPrefix {
   //get access
     case "banks" :: bankId :: "accounts" :: accountId :: "users" :: Nil JsonGet json => {
       user =>

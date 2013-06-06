@@ -230,8 +230,15 @@ class BankAccount(
       Failure("user : " + user.emailAddress + " don't have access to owner view on account " + id, Empty, Empty)
   }
 
-
-
+  def views(user : User) : Box[List[View]] = {
+    //check if the user have access to the owner view in this the account
+    if(authorizedAccess(Owner,Full(user)))
+      for{
+        isRevoked <- LocalStorage.views(id) ?~ "could not get the views"
+      } yield isRevoked
+    else
+      Failure("user : " + user.emailAddress + " don't have access to owner view on account " + id, Empty, Empty)
+  }
 
   /**
   * @param the view that we want test the access to
