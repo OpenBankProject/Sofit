@@ -60,6 +60,7 @@ import code.snippet.CommentsURLParams
 import code.snippet.ManagementURLParams
 import code.lib.ObpJson.OtherAccountsJson
 import code.lib.ObpAPI
+import code.snippet.PermissionsUrlParams
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -148,7 +149,7 @@ class Boot extends Loggable{
       }
     }
     
-    def logAndReturnResult[T](result : Box[T]) : Box[T] = {
+    def logOrReturnResult[T](result : Box[T]) : Box[T] = {
       result match {
         case Failure(msg, _, _) => logger.info("Problem getting url " + tryo{S.uri} + ": " + msg)
         case _ => //do nothing
@@ -169,7 +170,7 @@ class Boot extends Loggable{
 
           val transactionsURLParams = TransactionsListURLParams(bankId = bank, accountId = account, viewId = viewName)
 
-          val result = logAndReturnResult {
+          val result = logOrReturnResult {
 
             for {
               b <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
@@ -207,7 +208,7 @@ class Boot extends Loggable{
 
           val urlParams = ManagementURLParams(bankUrl, accountUrl)
 
-          val result = logAndReturnResult {
+          val result = logOrReturnResult {
             for {
               otherAccountsJson <- ObpGet("/banks/" + bankUrl + "/accounts/" + accountUrl + "/owner/" + "other_accounts").flatMap(x => x.extractOpt[OtherAccountsJson])
             } yield (otherAccountsJson, urlParams)
@@ -240,7 +241,7 @@ class Boot extends Loggable{
 
             val commentsURLParams = CommentsURLParams(bankId = bank, accountId = account, transactionId = transactionID, viewId = viewName)
 
-            val result = logAndReturnResult {
+            val result = logOrReturnResult {
               for {
                 tJson <- transactionJson
               } yield (tJson, commentsURLParams)
@@ -257,16 +258,26 @@ class Boot extends Loggable{
           case _ => calculateTransaction()
         }
       }
+
+    def getPermissions(URLParameters: List[String]): Box[(PermissionsJson, PermissionsUrlParams)] = {
+      if (URLParameters.length == 2) {
+        val bank = URLParameters(0)
+        val account = URLParameters(1)
+
+        logOrReturnResult {
+          for {
+            permissionsJson <- ObpGet("/banks/" + bank + "/accounts/" + account + "/users").flatMap(x => x.extractOpt[PermissionsJson])
+          } yield (permissionsJson, PermissionsUrlParams(bank, account))
+        }
+      } else Empty
+    }
+    
     // Build SiteMap
     val sitemap = List(
           Menu.i("Home") / "index",
           Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
             OAuthClient.handleCallback()
           }),
-          Menu.i("Privilege Admin") / "admin" / "privilege"  >> TestAccess(() => {
-            check(OBPUser.loggedIn_?)
-          }) >> LocGroup("admin")
-          	submenus(Privilege.menus : _*),
           Menu.i("Consumer Admin") / "admin" / "consumers" >> LocGroup("admin")
           	submenus(Consumer.menus : _*),
           Menu("Consumer Registration", "Developers") / "consumer-registration",
@@ -282,7 +293,18 @@ class Boot extends Loggable{
 
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
-
+          
+          Menu.params[(PermissionsJson, PermissionsUrlParams)]("Create Permission", "create permissions", getPermissions _ , x => List("")) 
+          / "permissions" / "banks" / * / "accounts" / * / "create" ,/*>> TestAccess(() => {
+            //TODO
+            Empty
+          }),*/
+          
+          Menu.params[(PermissionsJson, PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,/*>> TestAccess(() => {
+            //TODO
+            Empty
+          }),*/
+          
           Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
 

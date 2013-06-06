@@ -77,6 +77,21 @@ object ObpAPI {
     ObpPost(addCommentUrl, addCommentJson).flatMap(_.extractOpt[TransactionCommentJson])
   }
   
+  def addPermission(bankId: String, accountId: String, userId : String, viewId: String) = {
+    val grantPermissionUrl = "/banks/" + bankId + "/accounts/" + accountId + "/users/" + userId + "/views/" + viewId
+    ObpPost(grantPermissionUrl, new JObject(Nil))
+  }
+  
+  def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
+    val removePermissionUrl = "/banks/" + bankId + "/accounts/" + accountId + "/users/" + userId + "/views/" + viewId
+    ObpDelete(removePermissionUrl)
+  }
+  
+  def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
+    val removeAllPermissionsUrl = "/banks/" + bankId + "/accounts/" + accountId + "/users/" + userId
+    ObpDelete(removeAllPermissionsUrl)
+  }
+  
   /**
    * @return The jsons for the tags that were were successfully added
    */
@@ -459,4 +474,8 @@ object ObpJson {
   }
   
   case class TransactionsJson(transactions: Option[List[TransactionJson]])
+  
+  case class PermissionJson(user: Option[UserJson], views: Option[List[ViewJson]])
+  
+  case class PermissionsJson(permissions : Option[List[PermissionJson]])
 }
