@@ -4270,6 +4270,21 @@ class API1_2Test extends ServerSetup{
       deleteReply.code should equal (400)
     }
 
+    scenario("we will not delete a comment for one random transaction because the user did not post the comment", API1_2, DeleteComment) {
+      Given("We will use an access token and will set a comment first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "public"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomComment = PostTransactionCommentJSON(randomString(20))
+      val postedReply = postCommentForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomComment)
+      val postedComment = postedReply.body.extract[TransactionCommentJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteCommentForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedComment.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
     scenario("we will not delete a comment for one random transaction because the comment does not exist", API1_2, DeleteComment) {
       Given("We will use an access token")
       val bankId = randomBank
@@ -4278,6 +4293,36 @@ class API1_2Test extends ServerSetup{
       val transaction = randomTransaction(bankId, bankAccount.id, view)
       When("the delete request is sent")
       val deleteReply = deleteCommentForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a comment for one random transaction because the transaction does not exist", API1_2, DeleteComment) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomComment = PostTransactionCommentJSON(randomString(20))
+      val postedReply = postCommentForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomComment)
+      val postedComment = postedReply.body.extract[TransactionCommentJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteCommentForOneTransaction(bankId, bankAccount.id, view, randomString(5), postedComment.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a comment for one random transaction because the view does not exist", API1_2, DeleteComment) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomComment = PostTransactionCommentJSON(randomString(20))
+      val postedReply = postCommentForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomComment)
+      val postedComment = postedReply.body.extract[TransactionCommentJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteCommentForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id, postedComment.id)
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
     }
@@ -4502,6 +4547,21 @@ class API1_2Test extends ServerSetup{
       deleteReply.code should equal (400)
     }
 
+    scenario("we will not delete a tag for one random transaction because the user did not post the tag", API1_2, DeleteTag) {
+      Given("We will use an access token and will set a tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "public"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedTag.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
     scenario("we will not delete a tag for one random transaction because the tag does not exist", API1_2, DeleteTag) {
       Given("We will use an access token")
       val bankId = randomBank
@@ -4510,6 +4570,36 @@ class API1_2Test extends ServerSetup{
       val transaction = randomTransaction(bankId, bankAccount.id, view)
       When("the delete request is sent")
       val deleteReply = deleteTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a tag for one random transaction because the transaction does not exist", API1_2, DeleteTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransaction(bankId, bankAccount.id, view, randomString(5), postedTag.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a tag for one random transaction because the view does not exist", API1_2, DeleteTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id,  postedTag.id)
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
     }
@@ -4734,6 +4824,21 @@ class API1_2Test extends ServerSetup{
       deleteReply.code should equal (400)
     }
 
+    scenario("we will not delete an image for one random transaction because the user did not post the image", API1_2, DeleteImage) {
+      Given("We will use an access token and will set an image first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "public"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
     scenario("we will not delete an image for one random transaction because the image does not exist", API1_2, DeleteImage) {
       Given("We will use an access token")
       val bankId = randomBank
@@ -4742,6 +4847,36 @@ class API1_2Test extends ServerSetup{
       val transaction = randomTransaction(bankId, bankAccount.id, view)
       When("the delete request is sent")
       val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the transaction does not exist", API1_2, DeleteImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, view, randomString(5), postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the view does not exist", API1_2, DeleteImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id, postedImage.id)
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
     }
