@@ -224,7 +224,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix{
-  //post access for specific user
+  //add access for specific user
     case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonPost json => {
       user =>
         for {
@@ -704,7 +704,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
           deleted <- Box(metadata.deleteCorporateLocation)
         } yield {
-          if(deleted())
+          if(deleted(view.id))
             noContentJsonResponse
           else
             errorJsonResponse("Delete not completed")
@@ -713,7 +713,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
 def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
-  if(scala.math.abs(lat) < 90 & scala.math.abs(lon) < 180)
+  if(scala.math.abs(lat) <= 90 & scala.math.abs(lon) <= 180)
     Full()
   else
     Failure("Coordinates not possible")
@@ -773,7 +773,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
           deleted <- Box(metadata.deletePhysicalLocation)
         } yield {
-            if(deleted())
+            if(deleted(view.id))
               noContentJsonResponse
             else
               errorJsonResponse("Delete not completed")
@@ -871,8 +871,9 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
       user =>
         for {
           narrativeJson <- tryo{json.extract[TransactionNarrativeJSON]} ?~ {"wrong json format"}
+          u <- user
           view <- View.fromUrl(viewId)
-          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, user)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
           addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow adding a narrative"}
         } yield {
           addNarrative(narrativeJson.narrative)
@@ -888,14 +889,14 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
       user =>
         for {
           narrativeJson <- tryo{json.extract[TransactionNarrativeJSON]} ?~ {"wrong json format"}
+          u <- user
           view <- View.fromUrl(viewId)
-          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, user)
+          metadata <- moderatedTransactionMetadata(bankId, accountId, view.permalink, transactionId, Full(u))
           addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow updating a narrative"}
         } yield {
           addNarrative(narrativeJson.narrative)
           val successJson = SuccessMessage("narrative updated")
           successJsonResponse(Extraction.decompose(successJson))
-
         }
     }
   })
@@ -1035,7 +1036,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
           postedImage <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
         } yield {
-          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)), 201)
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)),201)
         }
     }
   })
@@ -1064,7 +1065,8 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           where <- Box(metadata.whereTag) ?~ { "view " + viewId + " does not authorize where tag access" }
         } yield {
           val json = JSONFactory.createLocationJSON(where)
-          successJsonResponse(Extraction.decompose(json))
+          val whereJson = TransactionWhereJSON(json)
+          successJsonResponse(Extraction.decompose(whereJson))
         }
     }
   })
@@ -1078,7 +1080,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addWhereTag <- Box(metadata.addWhereTag) ?~ {"the view " + viewId + "does not allow adding a where tag"}
-          whereJson <- tryo{(json.extract[TransactionWhereJSON])} ?~ {"wrong JSON format"}
+          whereJson <- tryo{(json.extract[PostTransactionWhereJSON])} ?~ {"wrong JSON format"}
           correctCoordinates <- checkIfLocationPossible(whereJson.where.latitude, whereJson.where.longitude)
           if(addWhereTag(u.id_, view.id, now, whereJson.where.longitude, whereJson.where.latitude))
         } yield {
@@ -1097,7 +1099,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addWhereTag <- Box(metadata.addWhereTag) ?~ {"the view " + viewId + "does not allow updating a where tag"}
-          whereJson <- tryo{(json.extract[TransactionWhereJSON])} ?~ {"wrong JSON format"}
+          whereJson <- tryo{(json.extract[PostTransactionWhereJSON])} ?~ {"wrong JSON format"}
           correctCoordinates <- checkIfLocationPossible(whereJson.where.latitude, whereJson.where.longitude)
          if(addWhereTag(u.id_, view.id, now, whereJson.where.longitude, whereJson.where.latitude))
         } yield {
@@ -1122,6 +1124,23 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
             else
               errorJsonResponse("Delete not completed")
         }
+    }
+  })
+
+  oauthServe(apiPrefix{
+  //get other account of a transaction
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions":: transactionId :: "other_account" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          transaction <- account.moderatedTransaction(transactionId, view, user)
+          moderatedOtherBankAccount <- transaction.otherBankAccount
+        } yield {
+          val otherBankAccountJson = JSONFactory.createOtherBankAccount(moderatedOtherBankAccount)
+          successJsonResponse(Extraction.decompose(otherBankAccountJson))
+        }
+
     }
   })
 }

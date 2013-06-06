@@ -140,14 +140,29 @@ class ModeratedTransactionMetadata(
       imageList <- Box(images) ?~ { "You must be able to see images in order to delete them"}
       image <- Box(imageList.find(image => image.id_ == imageId)) ?~ {"Image with id " + imageId + "not found for this transaction"}
       deleteFunc <- if(image.postedBy == user || bankAccount.authorizedAccess(Owner, user))
-    	              Box(deleteImageFunc) ?~ "Deleting images not permitted for this view"
+    	                Box(deleteImageFunc) ?~ "Deleting images not permitted for this view"
                     else
-                      Failure("deleting images not permitted for the current user")
+                      Failure("Deleting images not permitted for the current user")
     } yield {
       deleteFunc(imageId)
     }
   }
+
+  def deleteComment(commentId: String, user: Option[User],bankAccount: BankAccount) : Box[Unit] = {
+  for {
+    commentList <- Box(images) ?~ {"You must be able to see comments in order to delete them"}
+    comment <- Box(commentList.find(comment => comment.id_ == commentId)) ?~ {"Comment with id "+commentId+" not found for this transaction"}
+    deleteFunc <- if(comment.postedBy == user || bankAccount.authorizedAccess(Owner, user))
+                  Box(deleteComment) ?~ "Deleting comments not permitted for this view"
+                else
+                  Failure("Deleting comments not permitted for the current user")
+  } yield {
+    deleteFunc(commentId)
+  }
 }
+}
+
+
 
 object ModeratedTransactionMetadata {
   implicit def moderatedTransactionMetadata2Json(mTransactionMeta: ModeratedTransactionMetadata) : JObject = {

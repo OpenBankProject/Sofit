@@ -216,6 +216,9 @@ case class TransactionCommentsJSON(
 case class TransactionWhereJSON(
   where: LocationJSON
 )
+case class PostTransactionWhereJSON(
+  where: LocationPlainJSON
+)
 case class AliasJSON(
   alias: String
 )
