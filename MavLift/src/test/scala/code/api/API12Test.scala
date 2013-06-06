@@ -153,6 +153,7 @@ class API1_2Test extends ServerSetup{
   object GetPermission extends Tag("getPermission")
   object PostPermission extends Tag("postPermission")
   object DeletePermission extends Tag("deletePermission")
+  object DeletePermissions extends Tag("deletePermissions")
   object GetOtherBankAccounts extends Tag("getOtherBankAccounts")
   object GetOtherBankAccount extends Tag("getOtherBankAccount")
   object GetOtherBankAccountMetadata extends Tag("getOtherBankAccountMetadata")
@@ -357,6 +358,16 @@ class API1_2Test extends ServerSetup{
 
   def revokeUserAccessToViewWithoutOwnerAccess(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).DELETE.<@(consumer,token3)
+    makeDeleteRequest(request)
+  }
+
+  def revokeUserAccessToAllViews(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId ).DELETE.<@(consumer,token)
+    makeDeleteRequest(request)
+  }
+
+  def revokeUserAccessToAllViewsWithoutOwnerAccess(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId ).DELETE.<@(consumer,token3)
     makeDeleteRequest(request)
   }
 
@@ -1416,7 +1427,7 @@ class API1_2Test extends ServerSetup{
   }
 
   feature("Grant a user access to a view on a bank account"){
-    scenario("we will grant a user access to a view on an bank account", API1_2, PostPermission, CurrentTest) {
+    scenario("we will grant a user access to a view on an bank account", API1_2, PostPermission) {
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
@@ -1513,7 +1524,39 @@ class API1_2Test extends ServerSetup{
       reply.code should equal (400)
     }
   }
+  feature("Revoke a user access to all the views on a bank account"){
+    scenario("we will revoke the access of a user to all the views on an bank account", API1_2, DeletePermissions) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
+      When("the request is sent")
+      val reply = revokeUserAccessToAllViews(bankId, bankAccount.id, userId)
+      Then("we should get a 204 no content code")
+      reply.code should equal (204)
+    }
 
+    scenario("we cannot revoke the access to a user that does not exist", API1_2, DeletePermissions) {
+      Given("We will use an access token with a random user Id")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      When("the request is sent")
+      val reply = revokeUserAccessToAllViews(bankId, bankAccount.id, randomString(5))
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
+
+    scenario("we cannot revoke a user access to a view on an bank account because the user does not have owner view access", API1_2, DeletePermissions) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
+      When("the request is sent")
+      val reply = revokeUserAccessToAllViewsWithoutOwnerAccess(bankId, bankAccount.id, userId)
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
+  }
   feature("We get the list of the other bank accounts linked with a bank account"){
     scenario("we will get the other bank accounts of a bank account", API1_2, GetOtherBankAccounts) {
       Given("We will use an access token")

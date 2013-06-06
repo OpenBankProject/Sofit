@@ -214,6 +214,26 @@ class BankAccount(
   }
 
   /**
+  *
+  * @param a user that want to revoke an other user access to a view
+  * @param the id of the other user that we want revoke access
+  * @return a Full(true) if everything is okay, a Failure otherwise
+  */
+  def revokeAllPermission(user : User, otherUserId : String) : Box[Boolean] = {
+    //check if the user have access to the owner view in this the account
+    if(authorizedAccess(Owner,Full(user)))
+      for{
+        otherUser <- User.findById(otherUserId) //check if the userId corresponds to a user
+        isRevoked <- LocalStorage.revokeAllPermission(id, otherUser) ?~ "could not revoke the privilege"
+      } yield isRevoked
+    else
+      Failure("user : " + user.emailAddress + " don't have access to owner view on account " + id, Empty, Empty)
+  }
+
+
+
+
+  /**
   * @param the view that we want test the access to
   * @param the user that we want to see if he has access to the view or not
   * @return true if the user is allowed to access this view, false otherwise

@@ -241,13 +241,26 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix{
-  //delete access for specific user
+  //delete access for specific user to one view
     case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonDelete json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
           u <- user ?~ "user not found"
           isRevoked <- account revokePermission(u, viewId, userId)
+          if(isRevoked)
+        } yield noContentJsonResponse
+    }
+  })
+
+  oauthServe(apiPrefix{
+  //delete access for specific user to all the views
+    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: Nil JsonDelete json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          u <- user ?~ "user not found"
+          isRevoked <- account revokeAllPermission(u, userId)
           if(isRevoked)
         } yield noContentJsonResponse
     }

@@ -647,6 +647,29 @@ class MongoDBLocalStorage extends LocalStorage {
       }
     }
   }
+  def revokeAllPermission(bankAccountId : String, user : User) : Box[Boolean] = {
+    user match {
+      case user:OBPUser =>
+        for{
+          bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
+        } yield {
+            Privilege.find(By(Privilege.user, user.id), By(Privilege.account, bankAccount)) match {
+              case Full(privilege) => {
+                List(OurNetwork, Team, Board, Authorities, Owner, Management).foreach({view =>
+                  setPrivilegeFromView(privilege, view, false)
+                })
+                privilege.save
+              }
+              //there is no privilege to this user, so there is nothing to revoke
+              case _ => true
+            }
+          }
+      case u: User => {
+        logger.error("OBPUser instance not found, could not revoke access ")
+        Empty
+      }
+    }
+  }
   private def setPrivilegeFromView(privilege : Privilege, view : View, value : Boolean ) = {
     view match {
       case OurNetwork => privilege.ourNetworkPermission(value)
