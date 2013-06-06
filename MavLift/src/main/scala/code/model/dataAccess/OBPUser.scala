@@ -54,7 +54,7 @@ import net.liftweb.json.JsonAST.JObject
  */
 class OBPUser extends MegaProtoUser[OBPUser] with User{
   def getSingleton = OBPUser // what's the "meta" server
-  def id_ = id.is.toString
+  def id_ = emailAddress
   def emailAddress = email.get
   def theFirstName : String = firstName.get
   def theLastName : String = lastName.get
