@@ -583,7 +583,7 @@ class MongoDBLocalStorage extends LocalStorage {
 
     HostedAccount.find(By(HostedAccount.accountID,account.id)) match {
       case Full(acc) => {
-        val privileges =  Privilege.findAll(By(Privilege.account, acc.id.get))
+        val privileges = Privilege.findAll(By(Privilege.account, acc.id.get))
         val permissions : List[Box[Permission]] = privileges.map( p => {
             p.user.obj.map(u => {
                 new Permission(

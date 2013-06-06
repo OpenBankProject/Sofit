@@ -704,7 +704,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
           deleted <- Box(metadata.deleteCorporateLocation)
         } yield {
-          if(deleted(view.id))
+          if(deleted())
             noContentJsonResponse
           else
             errorJsonResponse("Delete not completed")
@@ -773,7 +773,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
           deleted <- Box(metadata.deletePhysicalLocation)
         } yield {
-            if(deleted(view.id))
+            if(deleted())
               noContentJsonResponse
             else
               errorJsonResponse("Delete not completed")
