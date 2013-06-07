@@ -121,4 +121,9 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, PermissionsUr
     }
 
   }
+  
+  def addPermissionLink = {
+    //TODO: Should generate this url instead of hardcode it
+    "* [href]" #> {S.uri + "/create"}
+  }
 }

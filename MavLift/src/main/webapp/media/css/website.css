@@ -869,3 +869,9 @@ a.otherAccountLinkForAlias{
 	width: 400px;
 	padding: 5px;
 }
+
+#add-permission {
+	display: inline-block;
+	margin-top: 10px;
+	margin-bottom: 20px;
+}
