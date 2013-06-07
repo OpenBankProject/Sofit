@@ -5250,7 +5250,7 @@ class API1_2Test extends ServerSetup{
       Then("we should get a 204 code")
       deleteReply.code should equal (204)
       And("the where should be null")
-      // TO DO: (3 scenarios)
+      // TODO: (3 scenarios)
       // val locationAfterDelete = getWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id).body.extract[TransactionWhereJSON]
       // locationAfterDelete.where should equal (null)
     }
@@ -5283,6 +5283,20 @@ class API1_2Test extends ServerSetup{
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
       // And("the where should not be null")
+    }
+
+    scenario("we will not delete the where for one random transaction because the user did not post the geo tag", API1_2, DeleteWhere) {
+      Given("We will use an access token and will set a where tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "public"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteWhereForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
     }
 
     scenario("we will not delete the where for a random transaction because the transaction does not exist", API1_2, DeleteWhere) {
