@@ -68,7 +68,7 @@ object CreatePermissionForm extends Loggable {
       
       "name=owner" #> SHtml.checkbox(owner, owner = _) &
       "name=management" #> SHtml.checkbox(management, management = _) &
-      "name=ourNetwork" #> SHtml.checkbox(ournetwork, ournetwork = _) &
+      "name=ournetwork" #> SHtml.checkbox(ournetwork, ournetwork = _) &
       "name=team" #> SHtml.checkbox(team, team = _) &
       "name=board" #> SHtml.checkbox(board, board = _) &
       "name=authorities" #> SHtml.checkbox(authorities, authorities = _) &
