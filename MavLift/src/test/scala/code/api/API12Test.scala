@@ -47,7 +47,7 @@ class API1_2Test extends ServerSetup{
 
   lazy val user1 =
     OBPUser.create.
-      email("testuser1@exemple.com").
+      email("testuser1@example.com").
       password(randomString(10)).
       validated(true).
       firstName(randomString(10)).
@@ -74,7 +74,7 @@ class API1_2Test extends ServerSetup{
     OBPToken.create.
     tokenType(Access).
     consumerId(testConsumer.id).
-    userId(user1.id.get.toString).
+    userId(user1.email).
     key(randomString(40).toLowerCase).
     secret(randomString(40).toLowerCase).
     duration(tokenDuration).
@@ -87,7 +87,7 @@ class API1_2Test extends ServerSetup{
   // create a user for test purposes
   lazy val user2 =
     OBPUser.create.
-      email("testuser2@exemple.com").
+      email("testuser2@example.com").
       password(randomString(10)).
       validated(true).
       firstName(randomString(10)).
@@ -99,7 +99,7 @@ class API1_2Test extends ServerSetup{
     OBPToken.create.
     tokenType(Access).
     consumerId(testConsumer.id).
-    userId(user2.id.get.toString).
+    userId(user2.email).
     key(randomString(40).toLowerCase).
     secret(randomString(40).toLowerCase).
     duration(tokenDuration).
@@ -112,7 +112,7 @@ class API1_2Test extends ServerSetup{
   // create a user for test purposes
   lazy val user3 =
     OBPUser.create.
-      email("testuser3@exemple.com").
+      email("testuser3@example.com").
       password(randomString(10)).
       validated(true).
       firstName(randomString(10)).
@@ -124,7 +124,7 @@ class API1_2Test extends ServerSetup{
     OBPToken.create.
     tokenType(Access).
     consumerId(testConsumer.id).
-    userId(user3.id.get.toString).
+    userId(user3.email).
     key(randomString(40).toLowerCase).
     secret(randomString(40).toLowerCase).
     duration(tokenDuration).
@@ -149,10 +149,12 @@ class API1_2Test extends ServerSetup{
   object GetPublicBankAccounts extends Tag("getPublicBankAccounts")
   object GetPrivateBankAccounts extends Tag("getPrivateBankAccounts")
   object GetBankAccount extends Tag("getBankAccount")
+  object GetViews extends Tag("getViews")
   object GetPermissions extends Tag("getPermissions")
   object GetPermission extends Tag("getPermission")
   object PostPermission extends Tag("postPermission")
   object DeletePermission extends Tag("deletePermission")
+  object DeletePermissions extends Tag("deletePermissions")
   object GetOtherBankAccounts extends Tag("getOtherBankAccounts")
   object GetOtherBankAccount extends Tag("getOtherBankAccount")
   object GetOtherBankAccountMetadata extends Tag("getOtherBankAccountMetadata")
@@ -182,6 +184,8 @@ class API1_2Test extends ServerSetup{
   object PostPhysicalLocation extends Tag("postPhysicalLocation")
   object PutPhysicalLocation extends Tag("putPhysicalLocation")
   object DeletePhysicalLocation extends Tag("deletePhysicalLocation")
+  object GetTransactions extends Tag("getTransactions")
+  object GetTransaction extends Tag("getTransaction")
   object GetNarrative extends Tag("getNarrative")
   object PostNarrative extends Tag("postNarrative")
   object PutNarrative extends Tag("putNarrative")
@@ -195,7 +199,11 @@ class API1_2Test extends ServerSetup{
   object GetImages extends Tag("getImages")
   object PostImage extends Tag("postImage")
   object DeleteImage extends Tag("deleteImage")
-
+  object GetWhere extends Tag("getWhere")
+  object PostWhere extends Tag("postWhere")
+  object PutWhere extends Tag("putWhere")
+  object DeleteWhere extends Tag("deleteWhere")
+  object GetTransactionAccount extends Tag("getTransactionAccount")
 
   /********************* API test methods ********************/
   val emptyJSON : JObject =
@@ -248,8 +256,8 @@ class API1_2Test extends ServerSetup{
       if(b) 1
       else -1
     }
-    val longitude = nextInt(180)*sign*nextDouble
-    val latitude = nextInt(90)*sign*nextDouble
+    val longitude : Double = nextInt(180)*sign*nextDouble
+    val latitude : Double = nextInt(90)*sign*nextDouble
     JSONFactory.createLocationPlainJSON(latitude, longitude)
   }
 
@@ -309,6 +317,21 @@ class API1_2Test extends ServerSetup{
     makeGetRequest(request)
   }
 
+  def getAccountViews(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "views" <@(consumer,token)
+    makeGetRequest(request)
+  }
+
+  def getAccountViewsWithoutToken(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "views"
+    makeGetRequest(request)
+  }
+
+  def getAccountViewsWithoutOwnerAccess(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "views" <@(consumer,token3)
+    makeGetRequest(request)
+  }
+
   def getAccountPermissions(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
     val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users" <@(consumer,token)
     makeGetRequest(request)
@@ -351,6 +374,16 @@ class API1_2Test extends ServerSetup{
 
   def revokeUserAccessToViewWithoutOwnerAccess(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
     val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).DELETE.<@(consumer,token3)
+    makeDeleteRequest(request)
+  }
+
+  def revokeUserAccessToAllViews(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId ).DELETE.<@(consumer,token)
+    makeDeleteRequest(request)
+  }
+
+  def revokeUserAccessToAllViewsWithoutOwnerAccess(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId ).DELETE.<@(consumer,token3)
     makeDeleteRequest(request)
   }
 
@@ -871,6 +904,16 @@ class API1_2Test extends ServerSetup{
     makeGetRequest(request)
   }
 
+  def getTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "transaction"
+    makeGetRequest(request)
+  }
+
+  def getTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String): h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "transaction" <@(consumer,token3)
+    makeGetRequest(request)
+  }
+
   def getNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
     val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative" <@(consumer, token)
     makeGetRequest(request)
@@ -1042,6 +1085,118 @@ class API1_2Test extends ServerSetup{
     makeGetRequest(request)
   }
 
+  def postImageForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, image: PostTransactionImageJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images").POST <@(consumer,token)
+    makePostRequest(request, write(image))
+  }
+
+  def postImageForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, image: PostTransactionImageJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images"
+    makePostRequest(request, write(image))
+  }
+
+  def postImageForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, image: PostTransactionImageJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images").POST <@(consumer,token3)
+    makePostRequest(request, write(image))
+  }
+
+  def deleteImageForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, imageId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" / imageId).DELETE <@(consumer, token)
+    makeDeleteRequest(request)
+  }
+
+  def deleteImageForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, imageId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" / imageId
+    makeDeleteRequest(request)
+  }
+
+  def deleteImageForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, imageId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" / imageId).DELETE <@(consumer, token3)
+    makeDeleteRequest(request)
+  }
+
+  def getWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where" <@(consumer, token)
+    makeGetRequest(request)
+  }
+
+  def getWhereForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where"
+    makeGetRequest(request)
+  }
+
+  def getWhereForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where" <@(consumer, token3)
+    makeGetRequest(request)
+  }
+
+  def postWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").POST <@(consumer,token)
+    val whereJson = PostTransactionWhereJSON(where)
+    makePostRequest(request, write(whereJson))
+  }
+
+  def postWhereForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where"
+    val whereJson = PostTransactionWhereJSON(where)
+    makePostRequest(request, write(whereJson))
+  }
+
+  def postWhereForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").POST <@(consumer,token3)
+    val whereJson = PostTransactionWhereJSON(where)
+    makePostRequest(request, write(whereJson))
+  }
+
+  def updateWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").PUT <@(consumer, token)
+    val whereJson = PostTransactionWhereJSON(where)
+    makePutRequest(request, write(whereJson))
+  }
+
+  def updateWhereForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where"
+    val whereJson = PostTransactionWhereJSON(where)
+    makePutRequest(request, write(whereJson))
+  }
+
+  def updateWhereForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").PUT <@(consumer, token3)
+    val whereJson = PostTransactionWhereJSON(where)
+    makePutRequest(request, write(whereJson))
+  }
+
+  def deleteWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").DELETE <@(consumer, token)
+    makeDeleteRequest(request)
+  }
+
+  def deleteWhereForOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where"
+    makeDeleteRequest(request)
+  }
+
+  def deleteWhereForOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").DELETE <@(consumer, token3)
+    makeDeleteRequest(request)
+  }
+
+  def getTheOtherBankAccountOfOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "other_account" <@(consumer, token)
+    makeGetRequest(request)
+  }
+
+  def getTheOtherBankAccountOfOneTransactionWithoutToken(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "other_account"
+    makeGetRequest(request)
+  }
+
+  def getTheOtherBankAccountOfOneTransactionWithWrongUser(bankId : String, accountId : String, viewId : String, transactionId : String) : h.HttpPackage[APIResponse] = {
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "other_account" <@(consumer, token3)
+    makeGetRequest(request)
+  }
+
+
 /************************ the tests ************************/
   feature("base line URL works"){
     scenario("we get the api information", API1_2, APIInfo) {
@@ -1207,6 +1362,43 @@ class API1_2Test extends ServerSetup{
     }
   }
 
+  feature("List of the views of specific bank account"){
+    scenario("We will get the list of the available views on a bank account", API1_2, GetViews) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      When("the request is sent")
+      val reply = getAccountViews(bankId, bankAccount.id)
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+      reply.body.extract[ViewsJSON]
+    }
+
+    scenario("We will not get the list of the available views on a bank account due to missing token", API1_2, GetViews) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      When("the request is sent")
+      val reply = getAccountViewsWithoutToken(bankId, bankAccount.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("We will not get the list of the available views on a bank account due to insufficient privileges", API1_2, GetViews) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      When("the request is sent")
+      val reply = getAccountViewsWithoutOwnerAccess(bankId, bankAccount.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
   feature("Information about the permissions of a specific bank account"){
     scenario("we will get one bank account permissions by using an access token", API1_2, GetPermissions) {
       Given("We will use an access token")
@@ -1250,8 +1442,9 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val permission = randomAccountPermission(bankId, bankAccount.id)
+      val userID = urlEncode(permission.user.id)
       When("the request is sent")
-      val reply = getUserAccountPermission(bankId, bankAccount.id, permission.user.id)
+      val reply = getUserAccountPermission(bankId, bankAccount.id, userID)
       Then("we should get a 200 ok code")
       reply.code should equal (200)
       val viewsInfo = reply.body.extract[ViewsJSON]
@@ -1264,8 +1457,9 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       val permission = randomAccountPermission(bankId, bankAccount.id)
+      val userID = urlEncode(permission.user.id)
       When("the request is sent")
-      val reply = getUserAccountPermissionWithoutToken(bankId, bankAccount.id, permission.user.id)
+      val reply = getUserAccountPermissionWithoutToken(bankId, bankAccount.id, userID)
       Then("we should get a 400 code")
       reply.code should equal (400)
       And("we should get an error message")
@@ -1291,7 +1485,8 @@ class API1_2Test extends ServerSetup{
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
       When("the request is sent")
-      val reply = grantUserAccessToView(bankId, bankAccount.id, user2.id.get.toString, randomViewPermalink)
+      val userId = urlEncode(user2.email)
+      val reply = grantUserAccessToView(bankId, bankAccount.id, userId, randomViewPermalink)
       Then("we should get a 201 ok code")
       reply.code should equal (201)
       val viewInfo = reply.body.extract[ViewJSON]
@@ -1315,8 +1510,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = grantUserAccessToView(bankId, bankAccount.id, user2.id.get.toString, randomString(5))
+      val reply = grantUserAccessToView(bankId, bankAccount.id, userId, randomString(5))
       Then("we should get a 400 ok code")
       reply.code should equal (400)
       And("we should get an error message")
@@ -1327,8 +1523,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = grantUserAccessToViewWithWrongUser(bankId, bankAccount.id, user2.id.get.toString, randomViewPermalink)
+      val reply = grantUserAccessToViewWithWrongUser(bankId, bankAccount.id, userId, randomViewPermalink)
       Then("we should get a 400 ok code")
       reply.code should equal (400)
       And("we should get an error message")
@@ -1341,8 +1538,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = revokeUserAccessToView(bankId, bankAccount.id, user2.id.get.toString, randomViewPermalink)
+      val reply = revokeUserAccessToView(bankId, bankAccount.id, userId, randomViewPermalink)
       Then("we should get a 204 no content code")
       reply.code should equal (204)
     }
@@ -1361,8 +1559,9 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = revokeUserAccessToView(bankId, bankAccount.id, user2.id.get.toString, randomString(5))
+      val reply = revokeUserAccessToView(bankId, bankAccount.id, userId, randomString(5))
       Then("we should get a 400 ok code")
       reply.code should equal (400)
     }
@@ -1371,13 +1570,46 @@ class API1_2Test extends ServerSetup{
       Given("We will use an access token")
       val bankId = randomBank
       val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
       When("the request is sent")
-      val reply = revokeUserAccessToViewWithoutOwnerAccess(bankId, bankAccount.id, user2.id.get.toString, randomViewPermalink)
+      val reply = revokeUserAccessToViewWithoutOwnerAccess(bankId, bankAccount.id, userId, randomViewPermalink)
       Then("we should get a 400 ok code")
       reply.code should equal (400)
     }
   }
+  feature("Revoke a user access to all the views on a bank account"){
+    scenario("we will revoke the access of a user to all the views on an bank account", API1_2, DeletePermissions) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
+      When("the request is sent")
+      val reply = revokeUserAccessToAllViews(bankId, bankAccount.id, userId)
+      Then("we should get a 204 no content code")
+      reply.code should equal (204)
+    }
 
+    scenario("we cannot revoke the access to a user that does not exist", API1_2, DeletePermissions) {
+      Given("We will use an access token with a random user Id")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      When("the request is sent")
+      val reply = revokeUserAccessToAllViews(bankId, bankAccount.id, randomString(5))
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
+
+    scenario("we cannot revoke a user access to a view on an bank account because the user does not have owner view access", API1_2, DeletePermissions) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user2.email)
+      When("the request is sent")
+      val reply = revokeUserAccessToAllViewsWithoutOwnerAccess(bankId, bankAccount.id, userId)
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+    }
+  }
   feature("We get the list of the other bank accounts linked with a bank account"){
     scenario("we will get the other bank accounts of a bank account", API1_2, GetOtherBankAccounts) {
       Given("We will use an access token")
@@ -3511,6 +3743,115 @@ class API1_2Test extends ServerSetup{
     }
   }
 
+  feature("Information about all the transaction"){
+    scenario("we get all the transactions of one random (private) bank account", API1_2, GetTransactions) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      When("the request is sent")
+      val reply = getTransactions(bankId,bankAccount.id,view)
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+      val transactions = reply.body.extract[TransactionsJSON]
+    }
+
+    scenario("we do not get transactions of one random bank account, because the account doesn't exist", API1_2, GetTransactions) {
+      Given("We will use an access token")
+      When("the request is sent")
+      val bankId = randomBank
+      val view = randomViewPermalink
+      val reply = getTransactions(bankId,randomString(5),view)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+
+    scenario("we do not get transactions of one random bank account, because the view doesn't exist", API1_2, GetTransactions) {
+      Given("We will use an access token")
+      When("the request is sent")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val reply = getTransactions(bankId,bankAccount.id,randomString(5))
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+  }
+
+  feature("Information about a transaction"){
+    scenario("we get transaction data by using an access token", API1_2, GetTransaction) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTransaction(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 200 ok code")
+      reply.code should equal (200)
+      reply.body.extract[TransactionJSON]
+    }
+
+    scenario("we will not get transaction data due to a missing token", API1_2, GetTransaction) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+
+    scenario("we will not get transaction data because user does not have enough privileges", API1_2, GetTransaction) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+
+    scenario("we will not get transaction data because the account does not exist", API1_2, GetTransaction) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTransactionWithoutToken(bankId, randomString(5), view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+
+    scenario("we will not get transaction data because the view does not exist", API1_2, GetTransaction) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTransactionWithoutToken(bankId, bankAccount.id, randomString(5), transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+
+    scenario("we will not get transaction data because the transaction does not exist", API1_2, GetTransaction) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      When("the request is sent")
+      val reply = getTransactionWithoutToken(bankId, bankAccount.id, view, randomString(5))
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+    }
+
+  }
+
   feature("We get the narrative of one random transaction"){
     scenario("we will get the narrative of one random transaction", API1_2, GetNarrative) {
       Given("We will use an access token")
@@ -3591,8 +3932,8 @@ class API1_2Test extends ServerSetup{
       When("the request is sent")
       val randomNarrative = randomString(20)
       val postReply = postNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomNarrative)
-      Then("we should get a 200 code")
-      postReply.code should equal (200)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
       postReply.body.extract[SuccessMessage]
       And("the narrative should be added")
       val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
@@ -3704,7 +4045,7 @@ class API1_2Test extends ServerSetup{
       putReply.code should equal (400)
       And("we should get an error message")
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
-      And("the alias should not be changed")
+      And("the narrative should not be changed")
       val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
       val narrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
       randomNarrative should not equal (narrativeAfterThePost.narrative)
@@ -3723,7 +4064,7 @@ class API1_2Test extends ServerSetup{
       putReply.code should equal (400)
       And("we should get an error message")
       putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
-      And("the alias should not be changed")
+      And("the narrative should not be changed")
       val getReply = getNarrativeForOneTransaction(bankId, bankAccount.id, view, transaction.id)
       val narrativeAfterThePost : TransactionNarrativeJSON = getReply.body.extract[TransactionNarrativeJSON]
       randomNarrative should not equal (narrativeAfterThePost.narrative)
@@ -4033,6 +4374,21 @@ class API1_2Test extends ServerSetup{
       deleteReply.code should equal (400)
     }
 
+    scenario("we will not delete a comment for one random transaction because the user did not post the comment", API1_2, DeleteComment) {
+      Given("We will use an access token and will set a comment first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "public"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomComment = PostTransactionCommentJSON(randomString(20))
+      val postedReply = postCommentForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomComment)
+      val postedComment = postedReply.body.extract[TransactionCommentJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteCommentForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedComment.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
     scenario("we will not delete a comment for one random transaction because the comment does not exist", API1_2, DeleteComment) {
       Given("We will use an access token")
       val bankId = randomBank
@@ -4041,6 +4397,36 @@ class API1_2Test extends ServerSetup{
       val transaction = randomTransaction(bankId, bankAccount.id, view)
       When("the delete request is sent")
       val deleteReply = deleteCommentForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a comment for one random transaction because the transaction does not exist", API1_2, DeleteComment) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomComment = PostTransactionCommentJSON(randomString(20))
+      val postedReply = postCommentForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomComment)
+      val postedComment = postedReply.body.extract[TransactionCommentJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteCommentForOneTransaction(bankId, bankAccount.id, view, randomString(5), postedComment.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a comment for one random transaction because the view does not exist", API1_2, DeleteComment) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomComment = PostTransactionCommentJSON(randomString(20))
+      val postedReply = postCommentForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomComment)
+      val postedComment = postedReply.body.extract[TransactionCommentJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteCommentForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id, postedComment.id)
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
     }
@@ -4265,6 +4651,21 @@ class API1_2Test extends ServerSetup{
       deleteReply.code should equal (400)
     }
 
+    scenario("we will not delete a tag for one random transaction because the user did not post the tag", API1_2, DeleteTag) {
+      Given("We will use an access token and will set a tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "public"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedTag.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
     scenario("we will not delete a tag for one random transaction because the tag does not exist", API1_2, DeleteTag) {
       Given("We will use an access token")
       val bankId = randomBank
@@ -4273,6 +4674,36 @@ class API1_2Test extends ServerSetup{
       val transaction = randomTransaction(bankId, bankAccount.id, view)
       When("the delete request is sent")
       val deleteReply = deleteTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a tag for one random transaction because the transaction does not exist", API1_2, DeleteTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransaction(bankId, bankAccount.id, view, randomString(5), postedTag.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete a tag for one random transaction because the view does not exist", API1_2, DeleteTag) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomTag = PostTransactionTagJSON(randomString(5))
+      val postedReply = postTagForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomTag)
+      val postedTag = postedReply.body.extract[TransactionTagJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteTagForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id,  postedTag.id)
       Then("we should get a 400 code")
       deleteReply.code should equal (400)
     }
@@ -4341,6 +4772,611 @@ class API1_2Test extends ServerSetup{
       val view = randomViewPermalink
       When("the request is sent")
       val reply = getImagesForOneTransaction(bankId, bankAccount.id, view, randomString(5))
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We post an image for one random transaction"){
+    scenario("we will post an image for one random transaction", API1_2, PostImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
+      postReply.body.extract[TransactionImageJSON]
+      And("the image should be added")
+      val getReply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theImagesAfterThePost = getReply.body.extract[TransactionImagesJSON].images
+      theImagesAfterThePost.find(_.URL == randomImage.URL).get
+    }
+
+    scenario("we will not post an image for one random transaction due to a missing token", API1_2, PostImage) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      When("the request is sent")
+      val postReply = postImageForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, randomImage)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the image should not be added")
+      val getReply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theImagesAfterThePost = getReply.body.extract[TransactionImagesJSON].images
+      val notFound = theImagesAfterThePost.find(_.URL == randomImage.URL) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post an image for one random transaction because the user does not have enough privileges", API1_2, PostImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+       val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      When("the request is sent")
+      val postReply = postImageForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, randomImage)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the image should not be added")
+      val getReply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theImagesAfterThePost = getReply.body.extract[TransactionImagesJSON].images
+      val notFound = theImagesAfterThePost.find(_.URL == randomImage.URL) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post an image for one random transaction because the view does not exist", API1_2, PostImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+       val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      When("the request is sent")
+      val postReply = postImageForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id, randomImage)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+      And("the image should not be added")
+      val getReply = getImagesForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      val theImagesAfterThePost = getReply.body.extract[TransactionImagesJSON].images
+      val notFound = theImagesAfterThePost.find(_.URL == randomImage.URL) match {
+        case None => true
+        case Some(_) => false
+      }
+      notFound should equal (true)
+    }
+
+    scenario("we will not post an image for one random transaction because the transaction does not exist", API1_2, PostImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      When("the request is sent")
+      val postReply = postImageForOneTransaction(bankId, bankAccount.id, view, randomString(5), randomImage)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We delete an image for one random transaction"){
+    scenario("we will delete an image for one random transaction", API1_2, DeleteImage) {
+      Given("We will use an access token and will set an image first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, postedImage.id)
+      Then("we should get a 204 code")
+      deleteReply.code should equal (204)
+    }
+
+    scenario("we will not delete an image for one random transaction due to a missing token", API1_2, DeleteImage) {
+      Given("We will not use an access token and will set an image first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the user does not have enough privileges", API1_2, DeleteImage) {
+      Given("We will use an access token and will set an image first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the user did not post the image", API1_2, DeleteImage) {
+      Given("We will use an access token and will set an image first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "public"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the image does not exist", API1_2, DeleteImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the transaction does not exist", API1_2, DeleteImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, view, randomString(5), postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete an image for one random transaction because the view does not exist", API1_2, DeleteImage) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomImage = PostTransactionImageJSON(randomString(5),"http://www.mysuperimage.com")
+      val postedReply = postImageForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomImage)
+      val postedImage = postedReply.body.extract[TransactionImageJSON]
+      When("the delete request is sent")
+      val deleteReply = deleteImageForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id, postedImage.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+  }
+
+  feature("We get the where of one random transaction"){
+    scenario("we will get the where of one random transaction", API1_2, GetWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalinkAllowingViewPrivilige
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the request is sent")
+      val reply = getWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 200 code")
+      reply.code should equal (200)
+    }
+
+    scenario("we will not get the where of one random transaction due to a missing token", API1_2, GetWhere) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the request is sent")
+      val reply = getWhereForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the where of one random transaction because the user does not have enough privileges", API1_2, GetWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the request is sent")
+      val reply = getWhereForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the where of one random transaction because the view does not exist", API1_2, GetWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the request is sent")
+      val reply = getWhereForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the where of one random transaction because the transaction does not exist", API1_2, GetWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      When("the request is sent")
+      val reply = getWhereForOneTransaction(bankId, bankAccount.id, view, randomString(5))
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We post the where for one random transaction"){
+    scenario("we will post the where for one random transaction", API1_2, PostWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      Then("we should get a 201 code")
+      postReply.code should equal (201)
+      postReply.body.extract[SuccessMessage]
+      And("the where should be posted")
+      val location = getWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id).body.extract[TransactionWhereJSON]
+      randomLoc.latitude should equal (location.where.latitude)
+      randomLoc.longitude should equal (location.where.longitude)
+    }
+
+    scenario("we will not post the where for one random transaction because the coordinates don't exist", API1_2, PostWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      var randomLoc = JSONFactory.createLocationPlainJSON(400,200)
+      When("the request is sent")
+      val postReply = postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the where for a random transaction due to a missing token", API1_2, PostWhere) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postWhereForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the where for a random transaction because the user does not have enough privileges", API1_2, PostWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postWhereForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the where for a random transaction because the view does not exist", API1_2, PostWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply =  postWhereForOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id, randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not post the where for a random transaction because the transaction does not exist", API1_2, PostWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val postReply = postWhereForOneTransaction(bankId, bankAccount.id, view, randomString(5), randomLoc)
+      Then("we should get a 400 code")
+      postReply.code should equal (400)
+      And("we should get an error message")
+      postReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We update the where for one random transaction"){
+    scenario("we will update the where for one random transaction", API1_2, PutWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val randomLoc = randomLocation
+      val putReply = updateWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      Then("we should get a 200 code")
+      putReply.code should equal (200)
+      putReply.body.extract[SuccessMessage]
+      And("the where should be changed")
+      val location = getWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id).body.extract[TransactionWhereJSON]
+      randomLoc.latitude should equal (location.where.latitude)
+      randomLoc.longitude should equal (location.where.longitude)
+    }
+
+    scenario("we will not update the where for one random transaction because the coordinates don't exist", API1_2, PutWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      var randomLoc = JSONFactory.createLocationPlainJSON(400,200)
+      When("the request is sent")
+      val putReply = updateWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not update the where for a random transaction due to a missing token", API1_2, PutWhere) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      var randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updateWhereForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not update the where for a random transaction because the user does not have enough privileges", API1_2, PutWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updateWhereForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not update the where for a random transaction because the transaction does not exist", API1_2, PutWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val randomLoc = randomLocation
+      When("the request is sent")
+      val putReply = updateWhereForOneTransaction(bankId, bankAccount.id, view, randomString(5), randomLoc)
+      Then("we should get a 400 code")
+      putReply.code should equal (400)
+      And("we should get an error message")
+      putReply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
+  feature("We delete the where for one random transaction"){
+    scenario("we will delete the where for one random transaction", API1_2, DeleteWhere) {
+      Given("We will use an access token and will set a where tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 204 code")
+      deleteReply.code should equal (204)
+      And("the where should be null")
+      // TODO: (3 scenarios)
+      // val locationAfterDelete = getWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id).body.extract[TransactionWhereJSON]
+      // locationAfterDelete.where should equal (null)
+    }
+
+    scenario("we will not delete the where for a random transaction due to a missing token", API1_2, DeleteWhere) {
+      Given("We will not use an access token and will set a where tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteWhereForOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      // And("the where should not be null")
+    }
+
+    scenario("we will not delete the where for a random transaction because the user does not have enough privileges", API1_2, DeleteWhere) {
+      Given("We will use an access token and will set a where tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteWhereForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+      // And("the where should not be null")
+    }
+
+    scenario("we will not delete the where for one random transaction because the user did not post the geo tag", API1_2, DeleteWhere) {
+      Given("We will use an access token and will set a where tag first")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = "public"
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      val randomLoc = randomLocation
+      postWhereForOneTransaction(bankId, bankAccount.id, view, transaction.id, randomLoc)
+      When("the delete request is sent")
+      val deleteReply = deleteWhereForOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+
+    scenario("we will not delete the where for a random transaction because the transaction does not exist", API1_2, DeleteWhere) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val randomLoc = randomLocation
+      When("the delete request is sent")
+      val deleteReply = deleteWhereForOneTransaction(bankId, bankAccount.id, view, randomString(5))
+      Then("we should get a 400 code")
+      deleteReply.code should equal (400)
+    }
+  }
+
+  feature("We get the other bank account of a transaction "){
+    scenario("we will get the other bank account of a random transaction", API1_2, GetTransactionAccount) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTheOtherBankAccountOfOneTransaction(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 200 code")
+      reply.code should equal (200)
+      val accountJson = reply.body.extract[OtherAccountJSON]
+      And("some fields should not be empty")
+      accountJson.id.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get the other bank account of a random transaction due to a missing token", API1_2, GetTransactionAccount) {
+      Given("We will not use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTheOtherBankAccountOfOneTransactionWithoutToken(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get get the other bank account of a random transaction because the user does not have enough privileges", API1_2, GetTransactionAccount) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTheOtherBankAccountOfOneTransactionWithWrongUser(bankId, bankAccount.id, view, transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get get the other bank account of a random transaction because the view does not exist", API1_2, GetTransactionAccount) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      val transaction = randomTransaction(bankId, bankAccount.id, view)
+      When("the request is sent")
+      val reply = getTheOtherBankAccountOfOneTransaction(bankId, bankAccount.id, randomString(5), transaction.id)
+      Then("we should get a 400 code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we will not get get the other bank account of a random transaction because the transaction does not exist", API1_2, GetTransactionAccount) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val view = randomViewPermalink
+      When("the request is sent")
+      val reply = getTheOtherBankAccount(bankId, bankAccount.id, view, randomString(5))
       Then("we should get a 400 code")
       reply.code should equal (400)
       And("we should get an error message")

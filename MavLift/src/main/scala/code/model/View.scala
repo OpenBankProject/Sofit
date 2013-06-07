@@ -308,7 +308,7 @@ trait View {
     if (canSeeTransactionOtherBankAccount)
     {
       //other account data
-      var otherAccountId = otherBankAccount.id
+      val otherAccountId = otherBankAccount.id
       val otherAccountLabel: AccountName = {
         val realName = otherBankAccount.label
         if (usePublicAliasIfOneExists) {
@@ -349,14 +349,14 @@ trait View {
           val openCorporatesUrl =
             if (canSeeOpenCorporatesUrl) Some(otherBankAccount.metadata.openCorporatesURL)
             else None
-          val corporateLocation =
+          val corporateLocation : Option[GeoTag] =
             if(canSeeCorporateLocation)
-              otherBankAccount.metadata.corporateLocations.find(tag => tag.viewId == id)
+              Some(otherBankAccount.metadata.corporateLocation)
             else
               None
-          val physicalLocation =
+          val physicalLocation : Option[GeoTag] =
             if(canSeePhysicalLocation)
-              otherBankAccount.metadata.physicalLocations.find(tag => tag.viewId == id)
+              Some(otherBankAccount.metadata.physicalLocation)
             else
               None
           val addMoreInfo =
@@ -414,7 +414,7 @@ trait View {
               Some(otherBankAccount.metadata.deleteCorporateLocation)
             else
               None
-          val deletePhysicalLocation =
+          val deletePhysicalLocation=
             if(canDeletePhysicalLocation)
               Some(otherBankAccount.metadata.deletePhysicalLocation)
             else
@@ -673,6 +673,7 @@ object View {
     ("links" -> viewsJson)
   }
 }
+
 object Team extends FullView {
   override def id = 3
   override def name = "Team"
@@ -812,8 +813,8 @@ object Public extends BaseView {
       val url = if (isPublicAlias) None else Some(otherAccount.metadata.url)
       val imageUrl = if (isPublicAlias) None else Some(otherAccount.metadata.imageURL)
       val openCorporatesUrl = if (isPublicAlias) None else Some(otherAccount.metadata.openCorporatesURL)
-      val corporateLocation = if (isPublicAlias) None else otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id)
-      val physicalLocation = if (isPublicAlias) None else otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id)
+      val corporateLocation = if (isPublicAlias) None else Some(otherAccount.metadata.corporateLocation)
+      val physicalLocation = if (isPublicAlias) None else Some(otherAccount.metadata.physicalLocation)
 
       Some(
         new ModeratedOtherBankAccountMetadata(
@@ -928,8 +929,8 @@ object OurNetwork extends BaseView {
         Some(otherAccount.metadata.url),
         Some(otherAccount.metadata.imageURL),
         Some(otherAccount.metadata.openCorporatesURL),
-        otherAccount.metadata.corporateLocations.find(tag => tag.viewId == id),
-        otherAccount.metadata.physicalLocations.find(tag => tag.viewId == id),
+        Some(otherAccount.metadata.corporateLocation),
+        Some(otherAccount.metadata.physicalLocation),
         Some(otherAccount.metadata.publicAlias),
         Some(otherAccount.metadata.privateAlias),
         None,

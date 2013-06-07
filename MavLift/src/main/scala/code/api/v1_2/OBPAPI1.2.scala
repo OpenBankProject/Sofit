@@ -193,6 +193,21 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix {
+  //get the available views on an bank account
+    case "banks" :: bankId :: "accounts" :: accountId :: "views" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          u <- user ?~ "user not found"
+          views <- account views u
+        } yield {
+            val viewsJSON = JSONFactory.createViewsJSON(views)
+            successJsonResponse(Extraction.decompose(viewsJSON))
+          }
+    }
+  })
+
+  oauthServe(apiPrefix {
   //get access
     case "banks" :: bankId :: "accounts" :: accountId :: "users" :: Nil JsonGet json => {
       user =>
@@ -224,7 +239,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix{
-  //post access for specific user
+  //add access for specific user
     case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonPost json => {
       user =>
         for {
@@ -241,13 +256,26 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix{
-  //delete access for specific user
+  //delete access for specific user to one view
     case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonDelete json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
           u <- user ?~ "user not found"
           isRevoked <- account revokePermission(u, viewId, userId)
+          if(isRevoked)
+        } yield noContentJsonResponse
+    }
+  })
+
+  oauthServe(apiPrefix{
+  //delete access for specific user to all the views
+    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: Nil JsonDelete json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          u <- user ?~ "user not found"
+          isRevoked <- account revokeAllPermission(u, userId)
           if(isRevoked)
         } yield noContentJsonResponse
     }
@@ -704,7 +732,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
           deleted <- Box(metadata.deleteCorporateLocation)
         } yield {
-          if(deleted(view.id))
+          if(deleted())
             noContentJsonResponse
           else
             errorJsonResponse("Delete not completed")
@@ -713,7 +741,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
 def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
-  if(scala.math.abs(lat) < 90 & scala.math.abs(lon) < 180)
+  if(scala.math.abs(lat) <= 90 & scala.math.abs(lon) <= 180)
     Full()
   else
     Failure("Coordinates not possible")
@@ -773,7 +801,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           metadata <- Box(otherBankAccount.metadata) ?~ {"the view " + viewId + "does not allow metadata access"}
           deleted <- Box(metadata.deletePhysicalLocation)
         } yield {
-            if(deleted(view.id))
+            if(deleted())
               noContentJsonResponse
             else
               errorJsonResponse("Delete not completed")
@@ -878,7 +906,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
         } yield {
           addNarrative(narrativeJson.narrative)
           val successJson = SuccessMessage("narrative added")
-          successJsonResponse(Extraction.decompose(successJson))
+          successJsonResponse(Extraction.decompose(successJson), 201)
         }
     }
   })
@@ -897,7 +925,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           addNarrative(narrativeJson.narrative)
           val successJson = SuccessMessage("narrative updated")
           successJsonResponse(Extraction.decompose(successJson))
-
         }
     }
   })
@@ -907,7 +934,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "narrative" :: Nil JsonDelete _ => {
       user =>
         for {
-          //view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addNarrative <- Box(metadata.addOwnerComment) ?~ {"view " + viewId + " does not allow deleting the narrative"}
         } yield {
@@ -953,10 +979,9 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "comments":: commentId :: Nil JsonDelete _ => {
       user =>
         for {
+          account <- BankAccount(bankId, accountId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          comments <- Box(metadata.comments) ?~ { "view " + viewId + " does not authorize comments access" }
-          deleted <- Box(metadata.deleteComment)?~ { "view " + viewId + " does not authorize deleting comments" }
-          delete <- deleted(commentId)
+          delete <- metadata.deleteComment(commentId, user, account)
         } yield {
           noContentJsonResponse
         }
@@ -1001,7 +1026,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
 
       user =>
         for {
-          view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           bankAccount <- BankAccount(bankId, accountId)
           deleted <- metadata.deleteTag(tagId, user, bankAccount)
@@ -1038,7 +1062,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           url <- tryo{new URL(imageJson.URL)} ?~! "Could not parse url string as a valid URL"
           postedImage <- Full(addImageFunc(u.id_, view.id, imageJson.label, now, url))
         } yield {
-          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)))
+          successJsonResponse(Extraction.decompose(JSONFactory.createTransactionImageJSON(postedImage)),201)
         }
     }
   })
@@ -1049,7 +1073,6 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
       user =>
         for {
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          view <- View.fromUrl(viewId)
           bankAccount <- BankAccount(bankId, accountId)
           deleted <- Box(metadata.deleteImage(imageId, user, bankAccount))
         } yield {
@@ -1067,7 +1090,8 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           where <- Box(metadata.whereTag) ?~ { "view " + viewId + " does not authorize where tag access" }
         } yield {
           val json = JSONFactory.createLocationJSON(where)
-          successJsonResponse(Extraction.decompose(json))
+          val whereJson = TransactionWhereJSON(json)
+          successJsonResponse(Extraction.decompose(whereJson))
         }
     }
   })
@@ -1081,7 +1105,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addWhereTag <- Box(metadata.addWhereTag) ?~ {"the view " + viewId + "does not allow adding a where tag"}
-          whereJson <- tryo{(json.extract[TransactionWhereJSON])} ?~ {"wrong JSON format"}
+          whereJson <- tryo{(json.extract[PostTransactionWhereJSON])} ?~ {"wrong JSON format"}
           correctCoordinates <- checkIfLocationPossible(whereJson.where.latitude, whereJson.where.longitude)
           if(addWhereTag(u.id_, view.id, now, whereJson.where.longitude, whereJson.where.latitude))
         } yield {
@@ -1100,7 +1124,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
           addWhereTag <- Box(metadata.addWhereTag) ?~ {"the view " + viewId + "does not allow updating a where tag"}
-          whereJson <- tryo{(json.extract[TransactionWhereJSON])} ?~ {"wrong JSON format"}
+          whereJson <- tryo{(json.extract[PostTransactionWhereJSON])} ?~ {"wrong JSON format"}
           correctCoordinates <- checkIfLocationPossible(whereJson.where.latitude, whereJson.where.longitude)
          if(addWhereTag(u.id_, view.id, now, whereJson.where.longitude, whereJson.where.latitude))
         } yield {
@@ -1115,16 +1139,33 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "where" :: Nil JsonDelete _ => {
       user =>
         for {
-          u <- user
+          bankAccount <- BankAccount(bankId, accountId)
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          deleted <- Box(metadata.deleteWhereTag)
+          deleted <- metadata.deleteWhereTag(view.id, user, bankAccount)
         } yield {
-            if(deleted(view.id))
+            if(deleted)
               noContentJsonResponse
             else
               errorJsonResponse("Delete not completed")
         }
+    }
+  })
+
+  oauthServe(apiPrefix{
+  //get other account of a transaction
+    case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions":: transactionId :: "other_account" :: Nil JsonGet json => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          view <- View.fromUrl(viewId)
+          transaction <- account.moderatedTransaction(transactionId, view, user)
+          moderatedOtherBankAccount <- transaction.otherBankAccount
+        } yield {
+          val otherBankAccountJson = JSONFactory.createOtherBankAccount(moderatedOtherBankAccount)
+          successJsonResponse(Extraction.decompose(otherBankAccountJson))
+        }
+
     }
   })
 }

@@ -50,6 +50,7 @@ import net.liftweb.util.Schedule
 import net.liftweb.mongodb.BsonDSL._
 import net.liftweb.http.js.jquery.JqJsCmds
 import code.snippet.OAuthAuthorisation
+import net.liftweb.util.Helpers
 import javax.mail.{ Authenticator, PasswordAuthentication }
 import net.liftweb.sitemap.Loc.EarlyResponse
 import code.lib.OAuthClient
@@ -338,6 +339,8 @@ class Boot extends Loggable{
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
       new Html5Properties(r.userAgent))
+
+    LiftRules.explicitlyParsedSuffixes = Helpers.knownSuffixes &~ (Set("com"))
 
     // Make a transaction span the whole HTTP request
     S.addAround(DB.buildLoanWrapper)
