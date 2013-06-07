@@ -98,23 +98,21 @@ class ModeratedTransactionMetadata(
   private val deleteComment: Option[(String) => Box[Unit]],
   val tags : Option[List[Tag]],
   val addTag : Option[(String, Long, String, Date) => Tag],
-  //TODO: rename the field to deleteTag once this class as one unique deleteTag function
   private val deleteTagFunc : Option[(String) => Box[Unit]],
   val images : Option[List[TransactionImage]],
   val addImage : Option[(String, Long, String, Date, URL) => TransactionImage],
-  //TODO: rename the field to deleteImage once this class as one unique deleteImage function
   private val deleteImageFunc  : Option[String => Unit],
   val whereTag : Option[GeoTag],
   val addWhereTag : Option[(String, Long, Date, Double, Double) => Boolean],
-  val deleteWhereTag : Option[(Long) => Boolean]
+  private val deleteWhereTag : Option[(Long) => Boolean]
 ){
 
   @deprecated //TODO:This should be removed once SoFi is split from the API
   def deleteTag = deleteTagFunc
 
-   /**
-   * @return Full if deleting the tag worked, or a failure message if it didn't
-   */
+  /**
+  * @return Full if deleting the tag worked, or a failure message if it didn't
+  */
   def deleteTag(tagId : String, user: Option[User], bankAccount : BankAccount) : Box[Unit] = {
     for {
       tagList <- Box(tags) ?~ { "You must be able to see tags in order to delete them"}
@@ -133,8 +131,8 @@ class ModeratedTransactionMetadata(
   def deleteImage = deleteImageFunc
 
   /**
-   * @return Full if deleting the image worked, or a failure message if it didn't
-   */
+  * @return Full if deleting the image worked, or a failure message if it didn't
+  */
   def deleteImage(imageId : String, user: Option[User], bankAccount : BankAccount) : Box[Unit] = {
     for {
       imageList <- Box(images) ?~ { "You must be able to see images in order to delete them"}
@@ -158,6 +156,18 @@ class ModeratedTransactionMetadata(
                     Failure("Deleting comments not permitted for the current user")
     } yield {
       deleteFunc(commentId)
+    }
+  }
+
+  def deleteWhereTag(viewId: Long, user: Option[User],bankAccount: BankAccount) : Box[Boolean] = {
+    for {
+      whereTag <- Box(whereTag) ?~ {"You must be able to see the where tag in order to delete it"}
+      deleteFunc <- if(whereTag.postedBy == user || bankAccount.authorizedAccess(Owner, user))
+                      Box(deleteWhereTag) ?~ "Deleting tag is not permitted for this view"
+                    else
+                      Failure("Deleting tags not permitted for the current user")
+    } yield {
+      deleteFunc(viewId)
     }
   }
 }

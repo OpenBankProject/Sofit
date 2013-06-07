@@ -1139,12 +1139,12 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
     case "banks" :: bankId :: "accounts" :: accountId :: viewId :: "transactions" :: transactionId :: "metadata" :: "where" :: Nil JsonDelete _ => {
       user =>
         for {
-          u <- user
+          bankAccount <- BankAccount(bankId, accountId)
           view <- View.fromUrl(viewId)
           metadata <- moderatedTransactionMetadata(bankId, accountId, viewId, transactionId, user)
-          deleted <- Box(metadata.deleteWhereTag)
+          deleted <- metadata.deleteWhereTag(view.id, user, bankAccount)
         } yield {
-            if(deleted(view.id))
+            if(deleted)
               noContentJsonResponse
             else
               errorJsonResponse("Delete not completed")

@@ -123,7 +123,7 @@ class Account extends MongoRecord[Account] with ObjectIdPk[Account] {
 object Account extends Account with MongoMetaRecord[Account] {
   def toBankAccount(account: Account): BankAccount = {
     val iban = if (account.iban.toString.isEmpty) None else Some(account.iban.toString)
-    var bankAccount =
+    val bankAccount =
       new BankAccount(
         account.id.toString,
         Set(new AccountOwner("", account.holder.toString)),

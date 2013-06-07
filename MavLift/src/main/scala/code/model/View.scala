@@ -308,7 +308,7 @@ trait View {
     if (canSeeTransactionOtherBankAccount)
     {
       //other account data
-      var otherAccountId = otherBankAccount.id
+      val otherAccountId = otherBankAccount.id
       val otherAccountLabel: AccountName = {
         val realName = otherBankAccount.label
         if (usePublicAliasIfOneExists) {

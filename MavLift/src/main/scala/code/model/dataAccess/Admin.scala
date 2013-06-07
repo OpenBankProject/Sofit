@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -53,9 +53,9 @@ class Admin extends MegaProtoUser[Admin] {
 }
 
 object Admin extends Admin with MetaMegaProtoUser[Admin]{
-  
+
   override def dbTableName = "admins" // define the DB table name
-    
+
   override def screenWrap = Full(<lift:surround with="default" at="content">
              <lift:bind /></lift:surround>)
   // define the order fields will appear in forms and output
@@ -64,17 +64,17 @@ object Admin extends Admin with MetaMegaProtoUser[Admin]{
 
   // comment this line out to require email validations
   override def skipEmailValidation = true
-  
+
   //Keep track of the referer on login
   object loginReferer extends SessionVar("/")
 
   //This is where the user gets redirected to after login
   override def homePage = {
-    var ret = loginReferer.is
+    val ret = loginReferer.is
     loginReferer.remove()
     ret
   }
-  
+
   override def loginXhtml = {
     import net.liftweb.http.TemplateFinder
     import net.liftweb.http.js.JsCmds.Noop
@@ -82,27 +82,27 @@ object Admin extends Admin with MetaMegaProtoUser[Admin]{
         "form [action]" #> {S.uri} &
         "#loginText * " #> {S.??("log.in")} &
         "#emailAddressText * " #> {S.??("email.address")} &
-        "#passwordText * " #> {S.??("password")} &  
+        "#passwordText * " #> {S.??("password")} &
         "#recoverPasswordLink * " #> {
           "a [href]" #> {lostPasswordPath.mkString("/", "/", "")} &
           "a *" #> {S.??("recover.password")}
-        } 
+        }
       })
       SHtml.span(loginXml getOrElse NodeSeq.Empty,Noop)
-  } 
+  }
 
   //disable the sign up page
   override def createUserMenuLoc = Empty
-  
+
   // the admin edit page
-  override def editUserMenuLoc = Empty 
-  
+  override def editUserMenuLoc = Empty
+
   //Set the login referer
   override def login = {
     for(
-      r <- S.referer 
+      r <- S.referer
       if loginReferer.is.equals("/")
     ) loginReferer.set(r)
     super.login
-  }  
+  }
 }
