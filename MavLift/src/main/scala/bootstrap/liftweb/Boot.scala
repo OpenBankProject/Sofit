@@ -259,7 +259,7 @@ class Boot extends Loggable{
         }
       }
 
-    def getPermissions(URLParameters: List[String]): Box[(PermissionsJson, PermissionsUrlParams)] = {
+    def getPermissions(URLParameters: List[String]): Box[(PermissionsJson, AccountJson, PermissionsUrlParams)] = {
       if (URLParameters.length == 2) {
         val bank = URLParameters(0)
         val account = URLParameters(1)
@@ -267,7 +267,8 @@ class Boot extends Loggable{
         logOrReturnResult {
           for {
             permissionsJson <- ObpGet("/banks/" + bank + "/accounts/" + account + "/users").flatMap(x => x.extractOpt[PermissionsJson])
-          } yield (permissionsJson, PermissionsUrlParams(bank, account))
+            accountJson <- ObpAPI.account(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
+          } yield (permissionsJson, accountJson, PermissionsUrlParams(bank, account))
         }
       } else Empty
     }
@@ -294,13 +295,13 @@ class Boot extends Loggable{
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
           
-          Menu.params[(PermissionsJson, PermissionsUrlParams)]("Create Permission", "create permissions", getPermissions _ , x => List("")) 
+          Menu.params[(PermissionsJson, AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getPermissions _ , x => List("")) 
           / "permissions" / "banks" / * / "accounts" / * / "create" ,/*>> TestAccess(() => {
             //TODO
             Empty
           }),*/
           
-          Menu.params[(PermissionsJson, PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,/*>> TestAccess(() => {
+          Menu.params[(PermissionsJson, AccountJson, PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,/*>> TestAccess(() => {
             //TODO
             Empty
           }),*/

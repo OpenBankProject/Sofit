@@ -21,6 +21,7 @@ import net.liftweb.http.RequestVar
 import code.lib.ObpJson._
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import java.text.SimpleDateFormat
+import net.liftweb.common.Loggable
 
 case class Header(key: String, value: String)
 
@@ -82,13 +83,23 @@ object ObpAPI {
     ObpPost(grantPermissionUrl, new JObject(Nil))
   }
   
+  def addPermissions(bankId: String, accountId: String, userId: String, viewIds : List[String]) : Box[JValue] = {
+    val addPermissionsUrl = "??"
+    val json = viewIds.map(viewId => {
+      //TODO: Use the right json format
+      new JObject(Nil)
+    })
+    
+    ObpPost(addPermissionsUrl, json)
+  }
+  
   def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
     val removePermissionUrl = "/banks/" + bankId + "/accounts/" + accountId + "/users/" + userId + "/views/" + viewId
     ObpDelete(removePermissionUrl)
   }
   
   def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
-    val removeAllPermissionsUrl = "/banks/" + bankId + "/accounts/" + accountId + "/users/" + userId
+    val removeAllPermissionsUrl = "/banks/" + bankId + "/accounts/" + accountId + "/users/" + userId + "/views"
     ObpDelete(removeAllPermissionsUrl)
   }
   
@@ -142,7 +153,9 @@ object ObpAPI {
   }
 }
 
-object ObpPost {
+case class ObpError(error :String)
+
+object ObpPost extends Loggable {
   implicit val formats = DefaultFormats
 
   def apply(apiPath: String, json : JValue): Box[JValue] = {
@@ -191,7 +204,13 @@ object ObpPost {
       status match {
         case 200 | 201 => parse(result)
         case code => {
-          throw new Exception("Bad response code (" + code + ") from server: " + result) //bleh -> converts to Failure due to the tryo
+          logger.info("Bad response code (" + code + ") from server: " + result)
+          val errorMsg = tryo{parse(result).extract[ObpError]}
+          
+          errorMsg match {
+            case Full(e) => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
+            case _ => throw new Exception("Error")
+          }
         }
       }
     }
@@ -199,7 +218,7 @@ object ObpPost {
 }
 
 //TODO: Almost identical to ObpPost --> refactor
-object ObpPut {
+object ObpPut extends Loggable {
   implicit val formats = DefaultFormats
 
   def apply(apiPath: String, json : JValue): Box[JValue] = {
@@ -248,7 +267,13 @@ object ObpPut {
       status match {
         case 200 | 201 => parse(result)
         case code => {
-          throw new Exception("Bad response code (" + code + ") from server: " + result) //bleh -> converts to Failure due to the tryo
+          logger.info("Bad response code (" + code + ") from server: " + result)
+          val errorMsg = tryo{parse(result).extract[ObpError]}
+          
+          errorMsg match {
+            case Full(e) => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
+            case _ => throw new Exception("Error")
+          }
         }
       }
     }
@@ -256,7 +281,7 @@ object ObpPut {
 }
 
 
-object ObpDelete {
+object ObpDelete extends Loggable {
   implicit val formats = DefaultFormats
   
   /**
@@ -279,10 +304,34 @@ object ObpDelete {
       request.connect()
 
       val status = request.getResponseCode()
+      
+      //bleh
+      val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
+      val reader = new BufferedReader(new InputStreamReader(inputStream))
+      val builder = new StringBuilder()
+      var line = ""
+      def readLines() {
+        line = reader.readLine()
+        if (line != null) {
+          builder.append(line + "\n")
+          readLines()
+        }
+      }
+      readLines()
+      reader.close();
+      val result = builder.toString();
 
       status match {
         case 200 | 204 => true
-        case _ => false
+        case code => {
+          logger.info("Bad response code (" + code + ") from server: " + result)
+          val errorMsg = tryo{parse(result).extract[ObpError]}
+          
+          errorMsg match {
+            case Full(e) => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
+            case _ => throw new Exception("Error")
+          }
+        }
       }
     }
     
@@ -290,7 +339,7 @@ object ObpDelete {
   }
 }
 
-object ObpGet {
+object ObpGet extends Loggable {
   
   implicit val formats = DefaultFormats
   
@@ -334,7 +383,13 @@ object ObpGet {
       status match {
         case 200 => parse(result)
         case code => {
-          throw new Exception("Bad response code (" + code + ") from server: " + result) //bleh -> converts to Failure due to the tryo
+          logger.info("Bad response code (" + code + ") from server: " + result)
+          val errorMsg = tryo{parse(result).extract[ObpError]}
+          
+          errorMsg match {
+            case Full(e) => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
+            case _ => throw new Exception("Error")
+          }
         }
       }
     }

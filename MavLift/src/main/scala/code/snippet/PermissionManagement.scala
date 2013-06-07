@@ -18,19 +18,24 @@ import net.liftweb.util.CssSel
 import net.liftweb.http.js.JsCmds.Replace
 import scala.xml.NodeSeq
 import net.liftweb.http.js.jquery.JqJsCmds.FadeOut
+import net.liftweb.http.js.JsCmd
+import net.liftweb.http.js.JsCmds.SetHtml
+import scala.xml.Text
+import net.liftweb.http.js.jquery.JqJsCmds.Show
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
 
 case class PermissionsUrlParams(bankId : String, accountId: String)
 case class ClickJson(userId: String, checked: Boolean, viewId : String)
 
-class PermissionManagement(params : (PermissionsJson, PermissionsUrlParams)) extends Loggable {
+class PermissionManagement(params : (PermissionsJson, AccountJson, PermissionsUrlParams)) extends Loggable {
   
   val permissionsJson = params._1
-  val urlParams = params._2
+  val accountJson = params._2
+  val urlParams = params._3
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
   
   implicit val formats = DefaultFormats
   
-  //"""test"'"''"test"""
   def rowId(userId: String) = "permission_row_" + userId
   
   val clickAjax = SHtml.ajaxCall(JsRaw("permissionsCheckBoxCallback(this)"), checkBoxClick)
@@ -73,7 +78,7 @@ class PermissionManagement(params : (PermissionsJson, PermissionsUrlParams)) ext
     
     val permissionExists = (for {
       views <- permission.views
-    } yield {
+    }yield {
       views.exists(_.id == (Some(view)))
     }).getOrElse(false)
     
@@ -87,34 +92,33 @@ class PermissionManagement(params : (PermissionsJson, PermissionsUrlParams)) ext
     userIdData #> userId &
     viewIdData #> view
   }
-  
+
+  def accountInfo = ".account-label *" #> accountJson.label.getOrElse("---")
+
   def manage = {
+
     permissionsJson.permissions match {
       case None => "* *" #> "No permissions exist"
       case Some(ps) => {
         ".callback-script" #> Script(checkBoxJsFunc) &
-        ".row" #> {
-          ps.map(permission => {
-            val userId = permission.user.flatMap(_.id).getOrElse("")
-            
-            "* [id]" #>  rowId(userId) &
-            ".user *" #> permission.user.flatMap(_.display_name).getOrElse("") &
-            checkBox(permission, "owner", userId) &
-            checkBox(permission, "management", userId) &
-            checkBox(permission, "our-network", userId) &
-            checkBox(permission, "team", userId) &
-            checkBox(permission, "board", userId) &
-            checkBox(permission, "authorities", userId) &
-            ".remove [data-userid]" #> userId &
-            ".remove [onclick]" #> removeAjax
-          })
-        }
+          ".row" #> {
+            ps.map(permission => {
+              val userId = permission.user.flatMap(_.id).getOrElse("")
+
+              "* [id]" #> rowId(userId) &
+                ".user *" #> permission.user.flatMap(_.display_name).getOrElse("") &
+                checkBox(permission, "owner", userId) &
+                checkBox(permission, "management", userId) &
+                checkBox(permission, "our-network", userId) &
+                checkBox(permission, "team", userId) &
+                checkBox(permission, "board", userId) &
+                checkBox(permission, "authorities", userId) &
+                ".remove [data-userid]" #> userId &
+                ".remove [onclick]" #> removeAjax
+            })
+          }
       }
     }
-  }
-  
-  def createPermission = {
-    "* *" #> "Yo"
-  }
 
+  }
 }

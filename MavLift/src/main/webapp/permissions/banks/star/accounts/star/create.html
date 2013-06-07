@@ -30,7 +30,80 @@ Berlin 13359, Germany
 -->
 <div class="lift:surround?with=default;at=content">
 
-	<div class="lift:PermissionManagement.create">
-	    <div>Add Permission</div>
-	</div>
+	<div class="lift:PermissionManagement.accountInfo">Add Permission to <span class="account-label">Account</span></div>
+	<div id="create-permission-message"></div>
+	
+	<form method="post" class="lift:form.ajax">
+	    <table class="lift:CreatePermissionForm create_class" id="create_page">
+      
+        <tbody>
+      
+        <tr>
+          <td>
+            <span>User email</span>
+          </td>
+          <td>
+            <input name="email" type="text" value="">
+          </td>
+        </tr>
+      
+        <tr>
+          <td>
+            Owner
+          </td>
+          <td>
+            <input name="owner" value="true" type="checkbox">
+          </td>
+        </tr>
+      
+        <tr>
+          <td>
+            Management
+          </td>
+          <td>
+            <input name="management" value="true" type="checkbox">
+          </td>
+        </tr>
+      
+        <tr>
+          <td>
+            Our Network
+          </td>
+          <td>
+            <input name="our-network" value="true" type="checkbox">
+          </td>
+        </tr>
+      
+        <tr>
+          <td>
+            Team
+          </td>
+          <td>
+            <input name="team" value="true" type="checkbox">
+          </td>
+        </tr>
+      
+        <tr>
+          <td>
+            Board
+          </td>
+          <td>
+            <input name="board" value="true" type="checkbox">
+          </td>
+        </tr>
+      
+        <tr>
+          <td>
+            Authorities
+          </td>
+          <td>
+            <input name="authorities" value="true" type="checkbox">
+          </td>
+        </tr>
+      
+      <tr>
+        <td><input class="create-permission" type="submit" value="Create"></td>
+      </tr>
+    </tbody></table>
+	</form>
 </div>

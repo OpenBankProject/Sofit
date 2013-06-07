@@ -863,3 +863,9 @@ a.otherAccountLinkForAlias{
 	text-decoration: None;
 	color: inherit;
 }
+
+#create-permission-message {
+	color: red;
+	width: 400px;
+	padding: 5px;
+}
