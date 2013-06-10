@@ -88,17 +88,20 @@ class Nav {
   }
 
   def management = {
+    
     val url = S.uri.split("/", 0)
 
-    def getManagement = for {
-      user <- OBPUser.currentUser
-      bankAccount <- BankAccount(url(2), url(4))
-      if (user.hasMangementAccess(bankAccount))
-    } yield {
-      val managementUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/management"
-      ".navlink [href]" #> { managementUrl } &
+    def getManagement = {
+      val views = accountJson.flatMap(_.views_available).flatten
+      //TODO: Determine this in a better way
+      val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
+      
+      if (hasOwnerPermissions) {
+        val managementUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/management"
+        Some(".navlink [href]" #> { managementUrl } &
         ".navlink *" #> "Management" &
-        ".navlink [class+]" #> markIfSelected(managementUrl)
+        ".navlink [class+]" #> markIfSelected(managementUrl))
+      } else None
     }
 
     if (url.size > 4) getManagement getOrElse eraseMenu
