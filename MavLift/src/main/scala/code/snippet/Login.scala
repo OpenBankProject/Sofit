@@ -77,7 +77,7 @@ class Login {
        * Eventually it will end up as different url on the same provider's oauth server. How this will work in practice is
        * yet to be seen... the implementation details in OauthClient may get tricky. 
        */
-      val guestLogin = OBPUser.signUpPath.mkString("/")
+      val guestLogin = OAuthClient.defaultProvider.signupUrl.getOrElse(authUrl)
       JsRaw("jQuery('.provider-name').text('" + provider.name + "')").cmd &
       JsRaw("jQuery('.bank-login').attr('href', '" + authUrl + "')").cmd &
       JsRaw("jQuery('.guest-login').attr('href', '" + guestLogin + "')").cmd &

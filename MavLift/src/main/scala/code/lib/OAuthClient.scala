@@ -56,6 +56,7 @@ sealed trait Provider {
   val requestTokenUrl : String
   val accessTokenUrl : String
   val authorizeUrl : String
+  val signupUrl : Option[String]
   
   /**
    * Can't do oAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
@@ -76,6 +77,7 @@ object OBPDemo extends Provider {
   val requestTokenUrl = baseUrl + "/oauth/initiate"
   val accessTokenUrl = baseUrl + "/oauth/token"
   val authorizeUrl = baseUrl + "/oauth/authorize"
+  val signupUrl = Some(baseUrl + "/user_mgt/sign_up")
   
   val oAuthProvider : OAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
   
