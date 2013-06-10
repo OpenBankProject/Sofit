@@ -147,20 +147,25 @@ class Nav {
   def privilegeAdmin = {
     val url = S.uri.split("/", 0)
 
-    def hide = ".navitem *" #> ""
-    def getPrivilegeAdmin = for {
-      bankAccount <- BankAccount(url(2), url(4))
-      if (OBPUser.hasOwnerPermission(bankAccount))
-      loc <- new SiteMapSingleton().findAndTestLoc("Privilege Admin")
-    } yield {
-      ".navitem *" #> {
-        ".navlink [href]" #> loc.calcDefaultHref &
-          ".navlink *" #> loc.linkText &
-          ".navlink [class+]" #> markIfSelected(loc.calcDefaultHref)
-      }
+    def getPrivilegeAdmin = {
+      val views = accountJson.flatMap(_.views_available).flatten
+      //TODO: Determine this in a better way
+      val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
+      
+      if (hasOwnerPermissions) {
+        val permissionsUrls = "/permissions/banks/" + url(2) + "/accounts/" + url(4)
+        Some(".navitem *" #> {
+        ".navlink [href]" #> permissionsUrls &
+          ".navlink *" #> "Privilege Admin" &
+          ".navlink [class+]" #> markIfSelected(permissionsUrls)
+        })
+      } else None
     }
+    
+    def hide = ".navitem *" #> ""
 
-    if (url.size > 4) getPrivilegeAdmin.getOrElse(hide) else hide
+    if (url.size > 4) getPrivilegeAdmin.getOrElse(hide) 
+    else hide
   }
 
   def markIfSelected(href: String): Box[String] = {
