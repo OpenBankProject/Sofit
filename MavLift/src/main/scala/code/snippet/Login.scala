@@ -32,7 +32,6 @@ Berlin 13359, Germany
 
 package code.snippet
 
-import code.model.dataAccess.{OBPUser,Account}
 import scala.xml.NodeSeq
 import net.liftweb.util.Helpers
 import net.liftweb.util.Helpers._

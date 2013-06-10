@@ -32,7 +32,6 @@ Berlin 13359, Germany
 
 package code.snippet
 import net.liftweb.json.JsonAST._
-import code.model.dataAccess.{Account,OtherAccount}
 import net.liftweb.util.Helpers._
 import scala.xml.NodeSeq
 import scala.xml.Text
