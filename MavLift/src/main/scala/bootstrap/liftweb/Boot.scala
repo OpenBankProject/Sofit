@@ -174,9 +174,6 @@ class Boot extends Loggable{
           val result = logOrReturnResult {
 
             for {
-              b <- BankAccount(bank, account) ?~ { "account " + account + " not found for bank " + bank }
-              v <- View.fromUrl(viewName) ?~ { "view " + viewName + " not found for account " + account + " and bank " + bank }
-              if (b.authorizedAccess(v, OBPUser.currentUser))
               //TODO: Pagination: This is not totally trivial, since the transaction list groups by date and 2 pages may have some transactions on the same date
               transactionsJson <- ObpAPI.transactions(bank, account, viewName, Some(10000), Some(0), None, None, None)
               accountJson <- ObpAPI.account(bank, account, viewName) //TODO: Execute this request and the one above in parallel
