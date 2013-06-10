@@ -35,18 +35,13 @@ import net.liftweb.http.{PaginatorSnippet, StatefulSnippet}
 import java.text.SimpleDateFormat
 import net.liftweb.http._
 import java.util.Calendar
-import code.model.dataAccess.{OBPTransaction,OBPEnvelope,OBPAccount, OtherAccount}
 import xml.NodeSeq
-import com.mongodb.QueryBuilder
-import net.liftweb.mongodb.Limit._
-import net.liftweb.mongodb.Skip._
 import net.liftweb.util.Helpers._
 import net.liftweb.util._
 import scala.xml.Text
 import net.liftweb.common.{Box, Failure, Empty, Full}
 import java.util.Date
 import net.liftweb.http.js.JsCmds.Noop
-import code.model._
 import java.util.Currency
 import code.lib.ObpJson._
 import code.lib._
@@ -321,54 +316,13 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   }
 
   def displayAll = {
-    def orderByDateDescending = (t1: ModeratedTransaction, t2: ModeratedTransaction) => {
-      val date1 = t1.finishDate getOrElse new Date()
-      val date2 = t2.finishDate getOrElse new Date()
-      date1.after(date2)
-    }
-
-    val groupedApiTransactions = apiGroupByDate(transactionsJson.transactions.getOrElse(Nil))
-    
-    "* *" #> groupedApiTransactions.map(apiDaySummary)
+    val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
+    "* *" #> groupedApiTransactions.map(daySummary)
   }
 
-  def hasSameDate(t1: ModeratedTransaction, t2: ModeratedTransaction): Boolean = {
-
-    val date1 = t1.finishDate getOrElse new Date()
-    val date2 = t2.finishDate getOrElse new Date()
-
-    val cal1 = Calendar.getInstance();
-    val cal2 = Calendar.getInstance();
-    cal1.setTime(date1);
-    cal2.setTime(date2);
-
-    //True if the two dates fall on the same day of the same year
-    cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-                  cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
-  }
-
-  /**
-   * Splits a list of Transactions into a list of lists, where each of these new lists
-   * is for one day.
-   *
-   * Example:
-   * 	input : List(Jan 5,Jan 6,Jan 7,Jan 7,Jan 8,Jan 9,Jan 9,Jan 9,Jan 10)
-   * 	output: List(List(Jan 5), List(Jan 6), List(Jan 7,Jan 7),
-   * 				 List(Jan 8), List(Jan 9,Jan 9,Jan 9), List(Jan 10))
-   */
-  def groupByDate(list: List[ModeratedTransaction]): List[List[ModeratedTransaction]] = {
-    list match {
-      case Nil => Nil
-      case h :: Nil => List(list)
-      case h :: t => {
-        //transactions that are identical to the head of the list
-        val matches = list.filter(hasSameDate(h, _))
-        List(matches) ++ groupByDate(list diff matches)
-      }
-    }
-  }
+ 
   
-  def apiHasSameDate(t1: TransactionJson, t2: TransactionJson) : Boolean = {
+  def hasSameDate(t1: TransactionJson, t2: TransactionJson) : Boolean = {
     
     def getDate(t : TransactionJson) : Date = (for {
       details <- t.details
@@ -388,19 +342,19 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
                   cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
   }
   
-  def apiGroupByDate(list : List[TransactionJson]) : List[List[TransactionJson]] = {
+  def groupByDate(list : List[TransactionJson]) : List[List[TransactionJson]] = {
     list match {
       case Nil => Nil
       case h :: Nil => List(list)
       case h :: t => {
         //transactions that are identical to the head of the list
-        val matches = list.filter(apiHasSameDate(h, _))
-        List(matches) ++ apiGroupByDate(list diff matches)
+        val matches = list.filter(hasSameDate(h, _))
+        List(matches) ++ groupByDate(list diff matches)
       }
     }
   }
   
-  def apiDaySummary(transactionsForDay: List[TransactionJson]) = {
+  def daySummary(transactionsForDay: List[TransactionJson]) = {
     val aTransaction = transactionsForDay.last
     val date = aTransaction.details.flatMap(_.completed) match {
       case Some(d) => (new SimpleDateFormat("MMMM dd, yyyy")).format(d)
