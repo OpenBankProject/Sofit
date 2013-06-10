@@ -71,7 +71,6 @@ import code.lib.ObpAPI
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import code.lib.OAuthClient
 import net.liftweb.http.RequestVar
-import code.api.v1_2.TransactionCommentJSON
 
 case class CommentsURLParams(bankId: String, accountId: String, viewId: String, transactionId: String)
 
