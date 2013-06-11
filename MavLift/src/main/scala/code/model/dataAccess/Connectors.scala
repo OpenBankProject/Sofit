@@ -65,12 +65,12 @@ trait LocalStorage extends Loggable {
     rawTransactions.map(moderate)
   }
 
-  def getTransactions(permalink: String, bankPermalink: String, queryParams: OBPQueryParam*) : Box[List[Transaction]] = {
+  private def getTransactions(permalink: String, bankPermalink: String, queryParams: OBPQueryParam*) : Box[List[Transaction]] = {
     val envelopesForAccount = (acc: Account) => acc.envelopes(queryParams: _*)
     getTransactions(permalink, bankPermalink, envelopesForAccount)
   }
 
-  def getTransactions(permalink: String, bankPermalink: String): Box[List[Transaction]] = {
+  private def getTransactions(permalink: String, bankPermalink: String): Box[List[Transaction]] = {
     val envelopesForAccount = (acc: Account) => acc.allEnvelopes
     getTransactions(permalink, bankPermalink, envelopesForAccount)
   }
@@ -100,7 +100,6 @@ trait LocalStorage extends Loggable {
   def getCurrentUser : Box[User]
   def getOtherAccount(accountID : String, otherAccountID : String) : Box[OtherBankAccount]
 
-  def getAllAccounts() : List[BankAccount]
   def getAllPublicAccounts() : List[BankAccount]
   def getPublicBankAccounts(bank : Bank) : List[BankAccount]
   def getNonPublicBankAccounts(user : User) :  List[BankAccount]
@@ -403,8 +402,6 @@ class MongoDBLocalStorage extends LocalStorage {
       envelope <- OBPEnvelope.find(ifTransactionsIsInAccount)
     } yield createTransaction(envelope,account)
   }
-
-  def getAllAccounts() : List[BankAccount] = Account.findAll map Account.toBankAccount
 
   def getAllPublicAccounts() : List[BankAccount] = Account.findAll("anonAccess", true) map Account.toBankAccount
 

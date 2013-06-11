@@ -35,7 +35,6 @@ import scala.math.BigDecimal
 import java.util.Date
 import scala.collection.immutable.Set
 import net.liftweb.json.JsonDSL._
-import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import net.liftweb.json.JObject
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST.JArray
@@ -123,46 +122,23 @@ class BankAccount(
     }
   }
 
-  def transactions(from: Date, to: Date): Set[Transaction] = {
-    throw new NotImplementedException
-  }
-
-  def transaction(id: String): Box[Transaction] = {
-    LocalStorage.getTransaction(id, bankPermalink, permalink)
-  }
   def allowPublicAccess = allowAnnoymousAccess
 
-  def getModeratedTransactions(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction] = {
-   LocalStorage.getModeratedTransactions(permalink, bankPermalink)(moderate)
-  }
-
-  def getModeratedTransactions(queryParams: OBPQueryParam*)(moderate: Transaction => ModeratedTransaction): List[ModeratedTransaction] = {
-    LocalStorage.getModeratedTransactions(permalink, bankPermalink, queryParams: _*)(moderate)
-  }
-
-  def getTransactions(queryParams: OBPQueryParam*) : Box[List[Transaction]] = {
-    LocalStorage.getTransactions(permalink, bankPermalink, queryParams: _*)
-  }
-
-  def getTransactions(bank: String, account: String): Box[List[Transaction]] = {
-   LocalStorage.getTransactions(permalink, bankPermalink)
-  }
-
-  def moderatedTransaction(id: String, view: View, user: Box[User]) : Box[ModeratedTransaction] = {
-    if(authorizedAccess(view, user)) {
-      transaction(id).map(view.moderate)
-    } else Failure("view/transaction not authorized")
-  }
-
-  def moderatedBankAccount(view: View, user: Box[User]) : Box[ModeratedBankAccount] = {
-    if(authorizedAccess(view, user)){
-      view.moderate(this) match {
-        case Some(thisBankAccount) => Full(thisBankAccount)
-        case _ => Failure("could not moderate this bank account id " + id, Empty, Empty)
+  /**
+  * @param the view that we want test the access to
+  * @param the user that we want to see if he has access to the view or not
+  * @return true if the user is allowed to access this view, false otherwise
+  */
+  def authorizedAccess(view: View, user: Option[User]) : Boolean = {
+    view match {
+      case Public => allowPublicAccess
+      case _ => user match {
+        case Some(u) => {
+          u.permittedViews(this).contains(view)
+        }
+        case None => false
       }
     }
-    else
-      Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
   }
 
   /**
@@ -195,7 +171,6 @@ class BankAccount(
       Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
   }
 
-
   /**
   * @param a user that want to grant an other user access to a list views
   * @param the list of views ids that we want to grant access
@@ -214,11 +189,11 @@ class BankAccount(
 
     lazy val viewsFormIds : Box[List[View]] =
       //if no failures then we return the Full views
-    	if(failureList.size == 0)
-    	  Full(viewBoxes.flatten)
+      if(failureList.size == 0)
+        Full(viewBoxes.flatten)
       else
         //we return just the first failure
-    	  failureList.head
+        failureList.head
 
     //check if the user have access to the owner view in this the account
     if(authorizedAccess(Owner,Full(user)))
@@ -255,6 +230,7 @@ class BankAccount(
   * @param the id of the other user that we want revoke access
   * @return a Full(true) if everything is okay, a Failure otherwise
   */
+
   def revokeAllPermission(user : User, otherUserId : String) : Box[Boolean] = {
     //check if the user have access to the owner view in this the account
     if(authorizedAccess(Owner,Full(user)))
@@ -276,22 +252,35 @@ class BankAccount(
       Failure("user : " + user.emailAddress + " don't have access to owner view on account " + id, Empty, Empty)
   }
 
-  /**
-  * @param the view that we want test the access to
-  * @param the user that we want to see if he has access to the view or not
-  * @return true if the user is allowed to access this view, false otherwise
-  */
-  def authorizedAccess(view: View, user: Option[User]) : Boolean = {
+  def moderatedTransaction(id: String, view: View, user: Box[User]) : Box[ModeratedTransaction] = {
+    if(authorizedAccess(view, user)) {
+      LocalStorage.getTransaction(id, bankPermalink, permalink).map(view.moderate)
+    } else Failure("view/transaction not authorized")
+  }
 
-    view match {
-      case Public => allowPublicAccess
-      case _ => user match {
-        case Some(u) => {
-          u.permittedViews(this).contains(view)
-        }
-        case None => false
+  def getModeratedTransactions(user : Box[User], view : View): Box[List[ModeratedTransaction]] = {
+    if(authorizedAccess(view, user))
+      Full(LocalStorage.getModeratedTransactions(permalink, bankPermalink)(view.moderate))
+    else
+      Failure("user don't have access to the " + view.id + "view ")
+  }
+
+  def getModeratedTransactions(user : Box[User], view : View, queryParams: OBPQueryParam*): Box[List[ModeratedTransaction]] = {
+    if(authorizedAccess(view, user))
+      Full(LocalStorage.getModeratedTransactions(permalink, bankPermalink, queryParams: _*)(view.moderate))
+    else
+      Failure("user don't have access to the " + view.id + "view ")
+  }
+
+  def moderatedBankAccount(view: View, user: Box[User]) : Box[ModeratedBankAccount] = {
+    if(authorizedAccess(view, user)){
+      view.moderate(this) match {
+        case Some(thisBankAccount) => Full(thisBankAccount)
+        case _ => Failure("could not moderate this bank account id " + id, Empty, Empty)
       }
     }
+    else
+      Failure("user not allowed to access the " + view.name + " view.", Empty, Empty)
   }
 
   /**
@@ -349,10 +338,6 @@ object BankAccount {
       case Full(account) => Full(Account.toBankAccount(account))
       case _ => Failure("account " + bankAccountPermalink +" not found in bank " + bankpermalink, Empty, Empty)
     }
-  }
-
-  def all : List[BankAccount] = {
-    LocalStorage.getAllAccounts()
   }
 
   def publicAccounts : List[BankAccount] = {

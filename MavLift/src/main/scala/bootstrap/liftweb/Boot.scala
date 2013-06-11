@@ -148,8 +148,8 @@ class Boot extends Loggable{
       val transactionsAndView : Box[(List[ModeratedTransaction], View, BankAccount)] = for {
         b <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
         v <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found for account " + account + " and bank " + bank}
-        if(b.authorizedAccess(v, OBPUser.currentUser))
-      } yield (b.getModeratedTransactions(v.moderate), v, b)
+        transactions <- b.getModeratedTransactions(OBPUser.currentUser, v)
+      } yield (transactions, v, b)
 
       transactionsAndView match {
         case Failure(msg, _, _) => logger.warn("Could not get transactions and view: " + msg)
@@ -177,24 +177,23 @@ class Boot extends Loggable{
     }
     def getTransaction(URLParameters : List[String]) =
     {
-      if(URLParameters.length==4)
-      {
+      if(URLParameters.length==4){
         val bank = URLParameters(0)
         val account = URLParameters(1)
         val transactionID = URLParameters(2)
         val viewName = URLParameters(3)
         val transaction = for{
           bankAccount <- BankAccount(bank, account) ?~ {"account " + account + " not found for bank " + bank}
-          transaction <- bankAccount.transaction(transactionID) ?~ {"transaction " + transactionID + " not found in account " + account + " for bank " + bank}
-          view <- View.fromUrl(viewName) ?~ {"view " + viewName + " not found"}
-          if(bankAccount.authorizedAccess(view, OBPUser.currentUser))
-        } yield (view.moderate(transaction),view)
+          view <- View.fromUrl(viewName)
+          transaction <- bankAccount.moderatedTransaction(transactionID, view, OBPUser.currentUser)
+        } yield (transaction,view)
 
-      transaction match {
-        case Failure(msg, _, _) => logger.info("Could not get transaction: " + msg)
-        case _ => //don't log anything
-      }
-      transaction
+        transaction match {
+          case Failure(msg, _, _) => logger.info("Could not get transaction: " + msg)
+          case _ => //don't log anything
+        }
+
+        transaction
       }
       else
         Empty
