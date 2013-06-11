@@ -588,7 +588,7 @@ class MongoDBLocalStorage extends LocalStorage {
 
     HostedAccount.find(By(HostedAccount.accountID,account.id)) match {
       case Full(acc) => {
-        val privileges = Privilege.findAll(By(Privilege.account, acc.id.get))
+        val privileges = Privilege.findAll(By(Privilege.account, acc.id.get)).sortWith((p1,p2) => p1.updatedAt.get after p2.updatedAt.get)
         val permissions : List[Box[Permission]] = privileges.map( p => {
             if(
               p.ourNetworkPermission.get != false
@@ -654,7 +654,7 @@ class MongoDBLocalStorage extends LocalStorage {
         Empty
       }
     }
-    
+
   }
   def revokePermission(bankAccountId : String, view : View, user : User) : Box[Boolean] = {
     user match {
