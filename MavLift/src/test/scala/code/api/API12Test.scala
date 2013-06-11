@@ -342,69 +342,69 @@ class API1_2Test extends ServerSetup{
   }
 
   def getAccountPermissions(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users" <@(consumer,token)
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions" <@(consumer,token)
     makeGetRequest(request)
   }
 
   def getAccountPermissionsWithoutToken(bankId : String, accountId : String) : h.HttpPackage[APIResponse]= {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users"
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"
     makeGetRequest(request)
   }
 
   def getAccountPermissionsWithoutOwnerAccess(bankId : String, accountId : String) : h.HttpPackage[APIResponse]= {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users" <@(consumer,token2)
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions" <@(consumer,token2)
     makeGetRequest(request)
   }
 
   def getUserAccountPermission(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId <@(consumer,token)
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId <@(consumer,token)
     makeGetRequest(request)
   }
 
   def getUserAccountPermissionWithoutToken(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId
     makeGetRequest(request)
   }
 
   def grantUserAccessToView(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).POST.<@(consumer,token)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).POST.<@(consumer,token)
     makePostRequest(request)
   }
 
   def grantUserAccessToViewWithWrongUser(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).POST.<@(consumer,token3)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).POST.<@(consumer,token3)
     makePostRequest(request)
   }
 
   def grantUserAccessToViews(bankId : String, accountId : String, userId : String, viewIds : List[String]) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views").POST.<@(consumer,token)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").POST.<@(consumer,token)
     val viewsJson = ViewIdsJson(viewIds)
     makePostRequest(request, write(viewsJson))
   }
 
   def grantUserAccessToViewsWithWrongUser(bankId : String, accountId : String, userId : String, viewIds : List[String]) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views").POST.<@(consumer,token3)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").POST.<@(consumer,token3)
     val viewsJson = ViewIdsJson(viewIds)
     makePostRequest(request, write(viewsJson))
   }
 
   def revokeUserAccessToView(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).DELETE.<@(consumer,token)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).DELETE.<@(consumer,token)
     makeDeleteRequest(request)
   }
 
   def revokeUserAccessToViewWithoutOwnerAccess(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).DELETE.<@(consumer,token3)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).DELETE.<@(consumer,token3)
     makeDeleteRequest(request)
   }
 
   def revokeUserAccessToAllViews(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId ).DELETE.<@(consumer,token)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").DELETE.<@(consumer,token)
     makeDeleteRequest(request)
   }
 
   def revokeUserAccessToAllViewsWithoutOwnerAccess(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId ).DELETE.<@(consumer,token3)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" ).DELETE.<@(consumer,token3)
     makeDeleteRequest(request)
   }
 

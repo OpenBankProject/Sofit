@@ -209,7 +209,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix {
   //get access
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: Nil JsonGet json => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: Nil JsonGet json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
@@ -224,7 +224,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix {
   //get access for specific user
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: Nil JsonGet json => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: Nil JsonGet json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
@@ -240,7 +240,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix{
   //add access for specific user to a list of views
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: Nil JsonPost json -> _ => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: "views" :: Nil JsonPost json -> _ => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
@@ -256,7 +256,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix{
   //add access for specific user to a specific view
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonPost json => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: "views" :: viewId :: Nil JsonPost json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
@@ -273,7 +273,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix{
   //delete access for specific user to one view
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonDelete json => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: "views" :: viewId :: Nil JsonDelete json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
@@ -287,7 +287,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix{
     //delete access for specific user to all the views
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: Nil JsonDelete json => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: "views" :: Nil JsonDelete json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
