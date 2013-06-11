@@ -34,8 +34,6 @@ package code.snippet
 
 import net.liftweb.util.Helpers._
 import net.liftweb.common.Full
-import code.model.dataAccess.OBPUser
-import code.model.{User, BankAccount, Public, Owner, Board, Authorities, Team, OurNetwork}
 import net.liftweb.http.SHtml
 import scala.xml.Text
 import net.liftweb.http.js.JsCmds.Noop
@@ -49,6 +47,7 @@ import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json.JBool
 import net.liftweb.common.Loggable
 import code.lib.ObpAPI
+import code.lib.OAuthClient
 
 class AccountsOverview extends Loggable {
 		  		  
@@ -105,7 +104,7 @@ class AccountsOverview extends Loggable {
   }
 
   def authorisedAccounts = {
-    def loggedInSnippet(user: User) = {
+    def loggedInSnippet = {
       
       ".accountList" #> privateAccountJsons.map{case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
@@ -127,10 +126,8 @@ class AccountsOverview extends Loggable {
       ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg"))
     }
 
-    OBPUser.currentUser match {
-      case Full(u) => loggedInSnippet(u)
-      case _ => loggedOutSnippet
-    }
+    if(OAuthClient.loggedInAt(OAuthClient.defaultProvider)) loggedInSnippet //TODO: Support multiple providers
+    else loggedOutSnippet
   }
 
 }
