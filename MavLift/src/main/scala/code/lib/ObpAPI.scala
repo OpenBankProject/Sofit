@@ -61,6 +61,14 @@ object ObpAPI {
               "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson])
   }
   
+  def publicAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
+    ObpGet("/banks/" + bankId + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+  
+  def privateAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
+    ObpGet("/banks/" + bankId + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+  
   def account(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
     ObpGet("/banks/" + bankId + "/accounts/" + accountId + "/" + viewId + "/account").flatMap(x => x.extractOpt[AccountJson])
   }
@@ -435,7 +443,8 @@ object ObpJson {
   
   case class BarebonesAccountJson(id: Option[String],
 		  						  label: Option[String],
-		  						  views_available: Option[List[ViewJson]])
+		  						  views_available: Option[List[ViewJson]],
+		  						  bank_id: Option[String])
 		  						  
   case class HolderJson(name: Option[String],
 		  				is_alias : Option[Boolean])
@@ -533,4 +542,5 @@ object ObpJson {
   case class PermissionJson(user: Option[UserJson], views: Option[List[ViewJson]])
   
   case class PermissionsJson(permissions : Option[List[PermissionJson]])
+  
 }

@@ -42,14 +42,13 @@ import net.liftweb.common.Box
 import net.liftweb.common.Full
 import net.liftweb.common.Empty
 import net.liftweb.sitemap.SiteMapSingleton
-import code.model.dataAccess.{ OBPUser, Account, LocalStorage }
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds._Noop
-import code.model.BankAccount
 import code.lib.ObpJson._
 import code.lib.ObpGet
 import code.lib.ObpAPI
+import code.lib.OAuthClient
 
 class Nav {
 
@@ -175,21 +174,26 @@ class Nav {
   }
 
   def listAccounts = {
-    //TODO: Get all banks, then for each bank, all accounts
     val banksJsonBox = ObpAPI.allBanks
     val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
-    val accountJsons : List[AccountJson] = Nil //TODO: Need to know a view to make this request...
+    val accountJsons : List[BarebonesAccountJson] = bankJsons.flatMap(bankJson => {
+      if(OAuthClient.loggedInAt(OAuthClient.defaultProvider)) {
+        ObpAPI.privateAccounts(bankJson.id.getOrElse("")).flatMap(_.accounts)
+      } else {
+        ObpAPI.publicAccounts(bankJson.id.getOrElse("")).flatMap(_.accounts)
+      }
+    }).flatten
     
-    type AccountId = String
-    type AccountLabel = String
-    val availableAccounts: List[(AccountId, AccountLabel)] = {
-      accountJson.toList.map(accountJson => {
-        val id = accountJson.id.getOrElse("")
-        val label = "TODO" //TODO: How can I get the account label?
-        (id, label)
+    val availableAccounts: List[(String, String)] = ("0", "--> Choose an account") :: {
+      accountJsons.map(accountJson => {
+        val bankId = accountJson.bank_id.getOrElse("")
+        val accountId = accountJson.id.getOrElse("")
+        val label = accountJson.label.getOrElse("")
+        
+        ({bankId + "," + accountId}, {bankId + " - " + label})
       })
     }
-
+    
     def computeDefaultValue: Box[String] =
       {
         val url = S.uri.split("/", 0)
@@ -209,7 +213,7 @@ class Nav {
           val accountId = bankAndAccount(1)
           //TODO : the account may not has an public view, so this redirection would retun a 404
           //a better solution has to be found
-          S.redirectTo("/banks/" + bankId + "/accounts/" + bankId + "/public")
+          S.redirectTo("/banks/" + bankId + "/accounts/" + accountId + "/public")
         }
       }
     
@@ -218,41 +222,6 @@ class Nav {
         case Full("postbank,tesobe") =>
           //For now we're only showing this list of available accounts on the TESOBE account page
           SHtml.ajaxSelect(availableAccounts, computeDefaultValue, redirect _)
-        case _ =>
-          NodeSeq.Empty
-      }
-    } //TODO: Test the above and remove the below if it works
-    
-    var accounts: List[(String, String)] = List()
-    OBPUser.currentUser match {
-      case Full(user) => Account.findAll.map(account => {
-        val bankAccount = Account.toBankAccount(account)
-        if (user.permittedViews(bankAccount).size != 0)
-          accounts ::= (account.bankPermalink + "," + account.permalink, account.bankName + " - " + account.name)
-      })
-      case _ => Account.findAll.map(account =>
-        if (account.anonAccess.is)
-          accounts ::= (account.bankPermalink + "," + account.permalink, account.bankName + " - " + account.name))
-    }
-    accounts ::= ("0", "--> Choose an account")
-    def redirect2(selectValue: String): JsCmd =
-      {
-        val bankAndaccount = selectValue.split(",", 0)
-        if (bankAndaccount.size == 2)
-          if (LocalStorage.correctBankAndAccount(bankAndaccount(0), bankAndaccount(1)))
-            //TODO : the account may not has an public view, so this redirection would retun a 404
-            //a better solution has to be found
-            S.redirectTo("/banks/" + bankAndaccount(0) + "/accounts/" + bankAndaccount(1) + "/public")
-          else
-            _Noop
-        else
-          _Noop
-      }
-    
-    "#accountList *" #> {
-      computeDefaultValue match {
-        case Full("postbank,tesobe") =>
-          SHtml.ajaxSelect(accounts, computeDefaultValue, redirect2 _)
         case _ =>
           NodeSeq.Empty
       }
