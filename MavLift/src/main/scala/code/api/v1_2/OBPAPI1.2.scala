@@ -870,7 +870,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
 
        for {
         bankAccount <- BankAccount(bankId, accountId)
-        view <- View.fromUrl(viewId) //TODO: This will have to change if we implement custom view names for different accounts
+        view <- View.fromUrl(viewId)
       } yield {
         val ts = getTransactions(bankAccount, view, user)
         val json = JSONFactory.createTransactionsJSON(ts)
