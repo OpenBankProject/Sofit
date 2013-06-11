@@ -517,27 +517,21 @@ object OBPAPI1_1 extends RestHelper with Loggable {
       val fromDate = tryo{dateFormat.parse(json.header("obp_from_date") getOrElse "")}.map(OBPFromDate(_))
       val toDate = tryo{dateFormat.parse(json.header("obp_to_date") getOrElse "")}.map(OBPToDate(_))
 
-      def getTransactions(bankAccount: BankAccount, view: View, user: Option[User]) = {
-        if(bankAccount.authorizedAccess(view, user)) {
-          val basicParams = List(OBPLimit(limit),
-                          OBPOffset(offset),
-                          OBPOrdering(sortBy, sortDirection))
+      val basicParams = List(OBPLimit(limit),
+                      OBPOffset(offset),
+                      OBPOrdering(sortBy, sortDirection))
 
-          val params : List[OBPQueryParam] = fromDate.toList ::: toDate.toList ::: basicParams
-          bankAccount.getModeratedTransactions(params: _*)(view.moderate)
-        } else Nil
-      }
+      val params : List[OBPQueryParam] = fromDate.toList ::: toDate.toList ::: basicParams
 
       def transactionsJson(transactions : List[ModeratedTransaction], v : View) : JObject = {
         ("transactions" -> transactions.map(transactionJson))
       }
-
       val response : Box[JsonResponse] = for {
         bankAccount <- BankAccount(bankId, accountId)
-        view <- View.fromUrl(viewId) //TODO: This will have to change if we implement custom view names for different accounts
+        view <- View.fromUrl(viewId)
+        transactions <- bankAccount.getModeratedTransactions(getUser(httpCode,oAuthParameters.get("oauth_token")), view, params: _*)
       } yield {
-        val ts = getTransactions(bankAccount, view, getUser(httpCode,oAuthParameters.get("oauth_token")))
-        JsonResponse(transactionsJson(ts, view),Nil, Nil, 200)
+        JsonResponse(transactionsJson(transactions, view),Nil, Nil, 200)
       }
 
       response getOrElse (JsonResponse(ErrorMessage(message), Nil, Nil, 401)) : LiftResponse

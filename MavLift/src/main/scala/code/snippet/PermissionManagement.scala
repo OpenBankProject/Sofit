@@ -109,7 +109,7 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, PermissionsUr
                 ".user *" #> permission.user.flatMap(_.display_name).getOrElse("") &
                 checkBox(permission, "owner", userId) &
                 checkBox(permission, "management", userId) &
-                checkBox(permission, "ournetwork", userId) &
+                checkBox(permission, "our-network", userId) &
                 checkBox(permission, "team", userId) &
                 checkBox(permission, "board", userId) &
                 checkBox(permission, "authorities", userId) &

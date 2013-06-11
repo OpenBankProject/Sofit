@@ -857,26 +857,21 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
       val fromDate = tryo{dateFormat.parse(json.header("obp_from_date") getOrElse "")}.map(OBPFromDate(_))
       val toDate = tryo{dateFormat.parse(json.header("obp_to_date") getOrElse "")}.map(OBPToDate(_))
 
-      def getTransactions(bankAccount: BankAccount, view: View, user: Option[User]) = {
-        if(bankAccount.authorizedAccess(view, user)) {
-          val basicParams = List(OBPLimit(limit),
-                          OBPOffset(offset),
-                          OBPOrdering(sortBy, sortDirection))
-
-          val params : List[OBPQueryParam] = fromDate.toList ::: toDate.toList ::: basicParams
-          bankAccount.getModeratedTransactions(params: _*)(view.moderate)
-        } else Nil
-      }
-
-       for {
+      val basicParams =
+        List(
+          OBPLimit(limit),
+          OBPOffset(offset),
+          OBPOrdering(sortBy, sortDirection)
+        )
+      val params : List[OBPQueryParam] = fromDate.toList ::: toDate.toList ::: basicParams
+      for {
         bankAccount <- BankAccount(bankId, accountId)
         view <- View.fromUrl(viewId)
+        transactions <- bankAccount.getModeratedTransactions(user, view, params : _*)
       } yield {
-        val ts = getTransactions(bankAccount, view, user)
-        val json = JSONFactory.createTransactionsJSON(ts)
+        val json = JSONFactory.createTransactionsJSON(transactions)
         successJsonResponse(Extraction.decompose(json))
       }
-
     }
   })
 
@@ -887,7 +882,7 @@ def checkIfLocationPossible(lat:Double,lon:Double) : Box[Unit] = {
         for {
           account <- BankAccount(bankId, accountId)
           view <- View.fromUrl(viewId)
-          moderatedTransaction <- account.moderatedTransaction(transactionId, view, user) ?~ "view/transaction not authorized"
+          moderatedTransaction <- account.moderatedTransaction(transactionId, view, user)
         } yield {
             val json = JSONFactory.createTransactionJSON(moderatedTransaction)
             successJsonResponse(Extraction.decompose(json))

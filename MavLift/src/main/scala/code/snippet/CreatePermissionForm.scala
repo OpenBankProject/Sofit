@@ -17,13 +17,12 @@ object CreatePermissionForm extends Loggable {
       val url = S.uri.split("/")
       var email = ""
       var owner = false
-      var management = false
       var ournetwork = false
       var team = false
       var board = false
       var authorities = false
       
-      def permissions = List(PermissionData("owner", owner), PermissionData("management", management), PermissionData("ournetwork", ournetwork),
+      def permissions = List(PermissionData("owner", owner), PermissionData("our-network", ournetwork),
           PermissionData("team", team), PermissionData("board", board), PermissionData("authorities", authorities))
         
       def process(): JsCmd = {
@@ -67,8 +66,7 @@ object CreatePermissionForm extends Loggable {
       }
       
       "name=owner" #> SHtml.checkbox(owner, owner = _) &
-      "name=management" #> SHtml.checkbox(management, management = _) &
-      "name=ournetwork" #> SHtml.checkbox(ournetwork, ournetwork = _) &
+      "name=our-network" #> SHtml.checkbox(ournetwork, ournetwork = _) &
       "name=team" #> SHtml.checkbox(team, team = _) &
       "name=board" #> SHtml.checkbox(board, board = _) &
       "name=authorities" #> SHtml.checkbox(authorities, authorities = _) &
