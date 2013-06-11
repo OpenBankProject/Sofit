@@ -160,9 +160,9 @@ case class TransactionDetailsJSON(
 )
 case class TransactionMetadataJSON(
   narrative : String,
-  comments : TransactionCommentsJSON,
-  tags : TransactionTagsJSON,
-  images : TransactionImagesJSON,
+  comments : List[TransactionCommentJSON],
+  tags :  List[TransactionTagJSON],
+  images :  List[TransactionImageJSON],
   where : LocationJSON
 )
 case class TransactionsJSON(
@@ -369,7 +369,7 @@ object JSONFactory{
 
   def createLocationJSON(location : GeoTag) : LocationJSON = {
     val user = createUserJSON(location.postedBy)
-    //test if the GeoTag is set to its default value 
+    //test if the GeoTag is set to its default value
     if(location.latitude == 0.0 & location.longitude == 0.0 & user == null)
       null
     else
@@ -389,15 +389,11 @@ object JSONFactory{
   }
 
   def createTransactionMetadataJSON(metadata : ModeratedTransactionMetadata) : TransactionMetadataJSON = {
-    val images = metadata.images match {
-      case Some(i) => createTransactionImagesJSON(i)
-      case _ => null
-    }
     new TransactionMetadataJSON(
       narrative = stringOptionOrNull(metadata.ownerComment),
-      comments = metadata.comments.map(createTransactionCommentsJSON).getOrElse(null),
-      tags = metadata.tags.map(createTransactionTagsJSON).getOrElse(null),
-      images = images,
+      comments = metadata.comments.map(_.map(createTransactionCommentJSON)).getOrElse(null),
+      tags = metadata.tags.map(_.map(createTransactionTagJSON)).getOrElse(null),
+      images = metadata.images.map(_.map(createTransactionImageJSON)).getOrElse(null),
       where = metadata.whereTag.map(createLocationJSON).getOrElse(null)
     )
   }
