@@ -153,6 +153,7 @@ class API1_2Test extends ServerSetup{
   object GetPermissions extends Tag("getPermissions")
   object GetPermission extends Tag("getPermission")
   object PostPermission extends Tag("postPermission")
+  object PostPermissions extends Tag("postPermissions")
   object DeletePermission extends Tag("deletePermission")
   object DeletePermissions extends Tag("deletePermissions")
   object GetOtherBankAccounts extends Tag("getOtherBankAccounts")
@@ -267,6 +268,14 @@ class API1_2Test extends ServerSetup{
     transactionsJson(randomPosition)
   }
 
+  def randomViewsIdsToGrant(bankId : String, accountId : String) : List[String]= {
+    //get the view ids of the available views on the bank accounts
+    val viewsIds = getAccountViews(bankId, accountId).body.extract[ViewsJSON].views.map(_.id)
+    //choose randomly some view ids to grant
+    val (viewsIdsToGrant, _) = viewsIds.splitAt(nextInt(viewsIds.size) + 1)
+    viewsIdsToGrant
+  }
+
   def getAPIInfo : h.HttpPackage[APIResponse] = {
     val request = v1_2Request
     makeGetRequest(request)
@@ -333,57 +342,69 @@ class API1_2Test extends ServerSetup{
   }
 
   def getAccountPermissions(bankId : String, accountId : String): h.HttpPackage[APIResponse] = {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users" <@(consumer,token)
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions" <@(consumer,token)
     makeGetRequest(request)
   }
 
   def getAccountPermissionsWithoutToken(bankId : String, accountId : String) : h.HttpPackage[APIResponse]= {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users"
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"
     makeGetRequest(request)
   }
 
   def getAccountPermissionsWithoutOwnerAccess(bankId : String, accountId : String) : h.HttpPackage[APIResponse]= {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users" <@(consumer,token2)
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions" <@(consumer,token2)
     makeGetRequest(request)
   }
 
   def getUserAccountPermission(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId <@(consumer,token)
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId <@(consumer,token)
     makeGetRequest(request)
   }
 
   def getUserAccountPermissionWithoutToken(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
-    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId
+    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId
     makeGetRequest(request)
   }
 
   def grantUserAccessToView(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).POST.<@(consumer,token)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).POST.<@(consumer,token)
     makePostRequest(request)
   }
 
   def grantUserAccessToViewWithWrongUser(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).POST.<@(consumer,token3)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).POST.<@(consumer,token3)
     makePostRequest(request)
   }
 
+  def grantUserAccessToViews(bankId : String, accountId : String, userId : String, viewIds : List[String]) : h.HttpPackage[APIResponse]= {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").POST.<@(consumer,token)
+    val viewsJson = ViewIdsJson(viewIds)
+    makePostRequest(request, write(viewsJson))
+  }
+
+  def grantUserAccessToViewsWithWrongUser(bankId : String, accountId : String, userId : String, viewIds : List[String]) : h.HttpPackage[APIResponse]= {
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").POST.<@(consumer,token3)
+    val viewsJson = ViewIdsJson(viewIds)
+    makePostRequest(request, write(viewsJson))
+  }
+
   def revokeUserAccessToView(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).DELETE.<@(consumer,token)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).DELETE.<@(consumer,token)
     makeDeleteRequest(request)
   }
 
   def revokeUserAccessToViewWithoutOwnerAccess(bankId : String, accountId : String, userId : String, viewId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId / "views" / viewId).DELETE.<@(consumer,token3)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).DELETE.<@(consumer,token3)
     makeDeleteRequest(request)
   }
 
   def revokeUserAccessToAllViews(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId ).DELETE.<@(consumer,token)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").DELETE.<@(consumer,token)
     makeDeleteRequest(request)
   }
 
   def revokeUserAccessToAllViewsWithoutOwnerAccess(bankId : String, accountId : String, userId : String) : h.HttpPackage[APIResponse]= {
-    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "users"/ userId ).DELETE.<@(consumer,token3)
+    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" ).DELETE.<@(consumer,token3)
     makeDeleteRequest(request)
   }
 
@@ -1533,6 +1554,83 @@ class API1_2Test extends ServerSetup{
     }
   }
 
+  feature("Grant a user access to a list of views on a bank account"){
+    scenario("we will grant a user access to a list of views on an bank account", API1_2, PostPermissions) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user3.email)
+      val viewsIdsToGrant = randomViewsIdsToGrant(bankId, bankAccount.id)
+      When("the request is sent")
+      val reply = grantUserAccessToViews(bankId, bankAccount.id, userId, viewsIdsToGrant)
+      Then("we should get a 201 ok code")
+      reply.code should equal (201)
+      val viewsInfo = reply.body.extract[ViewsJSON]
+      And("some fields should not be empty")
+      viewsInfo.views.foreach(v => v.id.nonEmpty should equal (true))
+      And("the granted views should be the same")
+      viewsIdsToGrant.toSet should equal(viewsInfo.views.map(_.id).toSet)
+      //we revoke access to the granted views for the next tests
+      revokeUserAccessToAllViews(bankId, bankAccount.id, userId)
+    }
+
+    scenario("we cannot grant a user access to a list of views on an bank account because the user does not exist", API1_2, PostPermissions) {
+      Given("We will use an access token with a random user Id")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(randomString(5))
+      val viewsIdsToGrant= randomViewsIdsToGrant(bankId, bankAccount.id)
+      When("the request is sent")
+      val reply = grantUserAccessToViews(bankId, bankAccount.id, userId, viewsIdsToGrant)
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we cannot grant a user access to a list of views on an bank account because they don't exist", API1_2, PostPermission) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user3.email)
+      val viewsIdsToGrant= List(randomString(3),randomString(3))
+      When("the request is sent")
+      val reply = grantUserAccessToViews(bankId, bankAccount.id, userId, viewsIdsToGrant)
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we cannot grant a user access to a list of views on an bank account because some views don't exist", API1_2, PostPermission) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user3.email)
+      val viewsIdsToGrant= randomViewsIdsToGrant(bankId, bankAccount.id) ++ List(randomString(3),randomString(3))
+      When("the request is sent")
+      val reply = grantUserAccessToViews(bankId, bankAccount.id, userId, viewsIdsToGrant)
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+
+    scenario("we cannot grant a user access to a list of views on an bank account because the user does not have owner view access", API1_2, PostPermission) {
+      Given("We will use an access token")
+      val bankId = randomBank
+      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+      val userId = urlEncode(user3.email)
+      val viewsIdsToGrant= randomViewsIdsToGrant(bankId, bankAccount.id) ++ List(randomString(3),randomString(3))
+      When("the request is sent")
+      val reply = grantUserAccessToViewsWithWrongUser(bankId, bankAccount.id, userId, viewsIdsToGrant)
+      Then("we should get a 400 ok code")
+      reply.code should equal (400)
+      And("we should get an error message")
+      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+    }
+  }
+
   feature("Revoke a user access to a view on a bank account"){
     scenario("we will revoke the access of a user to a view on an bank account", API1_2, DeletePermission) {
       Given("We will use an access token")
@@ -1610,6 +1708,7 @@ class API1_2Test extends ServerSetup{
       reply.code should equal (400)
     }
   }
+
   feature("We get the list of the other bank accounts linked with a bank account"){
     scenario("we will get the other bank accounts of a bank account", API1_2, GetOtherBankAccounts) {
       Given("We will use an access token")

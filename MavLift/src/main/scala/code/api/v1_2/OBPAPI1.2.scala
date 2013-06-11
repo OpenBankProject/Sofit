@@ -209,7 +209,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix {
   //get access
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: Nil JsonGet json => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: Nil JsonGet json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
@@ -224,13 +224,13 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix {
   //get access for specific user
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: Nil JsonGet json => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: Nil JsonGet json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
           u <- user ?~ "user not found"
           permissions <- account permissions u
-          userPermission <- Box(permissions.find(p => { p.user.id_ == userId})) ?~ {userId +" not found" }
+          userPermission <- Box(permissions.find(p => { p.user.id_ == userId})) ?~ {"None permission found for user "+userId}
         } yield {
             val views = JSONFactory.createViewsJSON(userPermission.views)
             successJsonResponse(Extraction.decompose(views))
@@ -239,8 +239,24 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
   })
 
   oauthServe(apiPrefix{
-  //add access for specific user
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonPost json => {
+  //add access for specific user to a list of views
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: "views" :: Nil JsonPost json -> _ => {
+      user =>
+        for {
+          account <- BankAccount(bankId, accountId)
+          u <- user ?~ "user not found"
+          viewIds <- tryo{json.extract[ViewIdsJson]} ?~ "wrong format JSON"
+          addedViews <- account addPermissions(u, viewIds.views, userId)
+        } yield {
+            val viewJson = JSONFactory.createViewsJSON(addedViews)
+            successJsonResponse(Extraction.decompose(viewJson), 201)
+          }
+    }
+  })
+
+  oauthServe(apiPrefix{
+  //add access for specific user to a specific view
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: "views" :: viewId :: Nil JsonPost json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
@@ -257,7 +273,7 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
 
   oauthServe(apiPrefix{
   //delete access for specific user to one view
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: "views" :: viewId :: Nil JsonDelete json => {
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: "views" :: viewId :: Nil JsonDelete json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)
@@ -268,9 +284,10 @@ object OBPAPI1_2 extends OBPRestHelper with Loggable {
     }
   })
 
+
   oauthServe(apiPrefix{
-  //delete access for specific user to all the views
-    case "banks" :: bankId :: "accounts" :: accountId :: "users" :: userId :: Nil JsonDelete json => {
+    //delete access for specific user to all the views
+    case "banks" :: bankId :: "accounts" :: accountId :: "permissions" :: userId :: "views" :: Nil JsonDelete json => {
       user =>
         for {
           account <- BankAccount(bankId, accountId)

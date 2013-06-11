@@ -247,6 +247,11 @@ case class LocationPlainJSON(
 case class TransactionNarrativeJSON(
   narrative : String
 )
+
+case class ViewIdsJson(
+  views : List[String]
+)
+
 object JSONFactory{
   def stringOrNull(text : String) =
     if(text.isEmpty)
