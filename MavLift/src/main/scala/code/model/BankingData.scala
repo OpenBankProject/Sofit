@@ -195,6 +195,42 @@ class BankAccount(
       Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
   }
 
+
+  /**
+  * @param a user that want to grant an other user access to a list views
+  * @param the list of views ids that we want to grant access
+  * @param the id of the other user that we want grant access
+  * @return a the list of the granted views if everything is okay, a Failure otherwise
+  */
+  def addPermissions(user : User, viewIds : List[String], otherUserId : String) : Box[List[View]] = {
+    //we try to get all the views that correspond to that list of view ids
+    lazy val viewBoxes = viewIds.map(View.fromUrl)
+    //we see if the the is Failures
+    lazy val failureList = viewBoxes.collect(v => {
+      v match {
+        case x : Failure => x
+      }
+    })
+
+    lazy val viewsFormIds : Box[List[View]] =
+      //if no failures then we return the Full views
+    	if(failureList.size == 0)
+    	  Full(viewBoxes.flatten)
+      else
+        //we return just the first failure
+    	  failureList.head
+
+    //check if the user have access to the owner view in this the account
+    if(authorizedAccess(Owner,Full(user)))
+      for{
+        otherUser <- User.findById(otherUserId) //check if the userId corresponds to a user
+        views <- viewsFormIds
+        grantedViews <- LocalStorage.addPermissions(id, views, otherUser) ?~ "could not save the privilege"
+      } yield views
+    else
+      Failure("user : " + user.emailAddress + "don't have access to owner view on account " + id, Empty, Empty)
+  }
+
   /**
   * @param a user that want to revoke an other user access to a view
   * @param the id of the view that we want to revoke access
@@ -224,7 +260,7 @@ class BankAccount(
     if(authorizedAccess(Owner,Full(user)))
       for{
         otherUser <- User.findById(otherUserId) //check if the userId corresponds to a user
-        isRevoked <- LocalStorage.revokeAllPermission(id, otherUser) ?~ "could not revoke the privilege"
+        isRevoked <- LocalStorage.revokeAllPermission(id, otherUser) ?~ "could not revoke the privileges"
       } yield isRevoked
     else
       Failure("user : " + user.emailAddress + " don't have access to owner view on account " + id, Empty, Empty)

@@ -113,7 +113,6 @@ class MongoDBLocalStorage extends LocalStorage {
 
   private val availableViews = List(Team, Board, Authorities, Public, OurNetwork, Owner, Management)
 
-
   private def createTransaction(env: OBPEnvelope, theAccount: Account): Transaction = {
     import net.liftweb.json.JsonDSL._
     val transaction: OBPTransaction = env.obp_transaction.get
@@ -584,6 +583,7 @@ class MongoDBLocalStorage extends LocalStorage {
       case _ => Failure("Bank account id " + accountID + " not found.")
     }
   }
+
   def permissions(account : BankAccount) : Box[List[Permission]] = {
 
     HostedAccount.find(By(HostedAccount.accountID,account.id)) match {
@@ -632,6 +632,30 @@ class MongoDBLocalStorage extends LocalStorage {
       }
     }
   }
+
+  def addPermissions(bankAccountId : String, views : List[View], user : User) : Box[Boolean] ={
+    user match {
+      case u : OBPUser => {
+        for{
+          bankAccount <- HostedAccount.find(By(HostedAccount.accountID, bankAccountId))
+        } yield {
+            val privilege =
+              Privilege.create.
+              user(u.id).
+              account(bankAccount)
+            views.map(v => {
+                setPrivilegeFromView(privilege, v, true)
+            })
+            privilege.save
+          }
+      }
+      case u: User => {
+        logger.error("OBPUser instance not found, could not grant access ")
+        Empty
+      }
+    }
+    
+  }
   def revokePermission(bankAccountId : String, view : View, user : User) : Box[Boolean] = {
     user match {
       case user:OBPUser =>
@@ -653,6 +677,7 @@ class MongoDBLocalStorage extends LocalStorage {
       }
     }
   }
+
   def revokeAllPermission(bankAccountId : String, user : User) : Box[Boolean] = {
     user match {
       case user:OBPUser =>
@@ -676,6 +701,7 @@ class MongoDBLocalStorage extends LocalStorage {
       }
     }
   }
+
   private def setPrivilegeFromView(privilege : Privilege, view : View, value : Boolean ) = {
     view match {
       case OurNetwork => privilege.ourNetworkPermission(value)
