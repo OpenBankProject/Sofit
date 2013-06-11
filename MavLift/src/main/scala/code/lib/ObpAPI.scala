@@ -99,6 +99,10 @@ object ObpAPI {
     ObpPost(addPermissionsUrl, json)
   }
   
+  def getPermissions(bankId: String, accountId : String) : Box[PermissionsJson] = {
+    ObpGet("/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
+  }
+  
   def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
     val removePermissionUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpDelete(removePermissionUrl)

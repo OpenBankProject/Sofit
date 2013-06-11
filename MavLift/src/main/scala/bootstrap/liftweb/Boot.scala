@@ -264,7 +264,7 @@ class Boot extends Loggable{
 
         logOrReturnResult {
           for {
-            permissionsJson <- ObpGet("/banks/" + bank + "/accounts/" + account + "/users").flatMap(x => x.extractOpt[PermissionsJson])
+            permissionsJson <- ObpAPI.getPermissions(bank, account)
             accountJson <- ObpAPI.account(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
           } yield (permissionsJson, accountJson, PermissionsUrlParams(bank, account))
         }
