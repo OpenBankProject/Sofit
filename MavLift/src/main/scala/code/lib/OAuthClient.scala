@@ -135,7 +135,6 @@ object OAuthClient extends Loggable {
 
   def handleCallback(): Box[LiftResponse] = {
 
-    println("recent provider: " + mostRecentLoginAttemptProvider.get)
     val success = for {
       verifier <- S.param("oauth_verifier") ?~ "No oauth verifier found"
       provider <- mostRecentLoginAttemptProvider.get ?~ "No provider found for callback"
@@ -159,7 +158,6 @@ object OAuthClient extends Loggable {
 		  						 
   def getAuthUrl(provider : Provider) : String = {
     mostRecentLoginAttemptProvider.set(Full(provider))
-    println("recent provider: " + mostRecentLoginAttemptProvider.get)
     val credential = replaceCredential(provider)
     provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
   }

@@ -81,9 +81,6 @@ class AccountsOverview extends Loggable {
   
   def publicAccounts = {
 
-    import code.lib.mostRecentLoginAttemptProvider
-    println("oauth provider: " + mostRecentLoginAttemptProvider.get)
-    
     if (publicAccountJsons.size == 0) {
       ".accountList" #> "No public accounts"
     } else {
