@@ -107,7 +107,10 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         }
         
         def aliasSelector = {
-          val hasManagementAccess = false //TODO: Calculate this
+          val hasManagementAccess = {
+            val availableViews = accountJson.views_available.flatten
+            availableViews.exists(view => view.id == Some("owner"))
+          }
 
           def aliasInfo = {
 
