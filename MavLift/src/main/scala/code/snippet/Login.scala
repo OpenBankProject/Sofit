@@ -41,10 +41,6 @@ import net.liftweb.http.SHtml
 import net.liftweb.http.js.jquery.JqJsCmds.Show
 import net.liftweb.http.js.JE.JsRaw
 import code.lib.OAuthClient
-import oauth.signpost.basic.DefaultOAuthProvider
-import code.lib.SofiAPITransition
-import code.lib.SofiAPITransition
-import oauth.signpost.basic.DefaultOAuthConsumer
 import code.lib.OAuthClient
 import net.liftweb.http.js.JsCmds.Noop
 

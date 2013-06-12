@@ -39,17 +39,11 @@ import http._
 import sitemap._
 import Loc._
 import mapper._
-import code.model.dataAccess._
-import code.model.{Nonce, Consumer, Token, Bank, ModeratedTransaction, View, BankAccount}
-import code.api._
 import net.liftweb.util.Helpers._
 import net.liftweb.widgets.tablesorter.TableSorter
 import net.liftweb.json.JsonDSL._
-import code.api.OAuthHandshake
 import net.liftweb.util.Schedule
-import net.liftweb.mongodb.BsonDSL._
 import net.liftweb.http.js.jquery.JqJsCmds
-import code.snippet.OAuthAuthorisation
 import net.liftweb.util.Helpers
 import javax.mail.{ Authenticator, PasswordAuthentication }
 import net.liftweb.sitemap.Loc.EarlyResponse
@@ -69,9 +63,6 @@ import code.snippet.PermissionsUrlParams
  */
 class Boot extends Loggable{
   def boot {
-
-    // This sets up MongoDB config
-    MongoConfig.init
 
     if (!DB.jndiJdbcConnAvailable_?) {
       val driver =
@@ -114,33 +105,6 @@ class Boot extends Loggable{
     }
 
     logger.info("running mode: " + runningMode)
-
-    // Use Lift's Mapper ORM to populate the database
-    // you don't need to use Mapper to use Lift... use
-    // any ORM you want
-    Schemifier.schemify(true, Schemifier.infoF _, OBPUser, Privilege, Admin)
-
-    // where to search snippet
-    LiftRules.addToPackages("code")
-
-    // For some restful stuff
-    LiftRules.statelessDispatchTable.append(v1_0.OBPAPI1_0)
-    LiftRules.statelessDispatchTable.append(v1_1.OBPAPI1_1)
-    LiftRules.statelessDispatchTable.append(v1_2.OBPAPI1_2)
-    LiftRules.statelessDispatchTable.append(ImporterAPI)
-    LiftRules.statelessDispatchTable.append(CashAccountAPI)
-    LiftRules.statelessDispatchTable.append(BankMockAPI)
-
-    //OAuth API call
-    LiftRules.statelessDispatchTable.append(OAuthHandshake)
-
-    //OAuth Mapper
-    Schemifier.schemify(true, Schemifier.infoF _, Nonce)
-    Schemifier.schemify(true, Schemifier.infoF _, Token)
-    Schemifier.schemify(true, Schemifier.infoF _, Consumer)
-    Schemifier.schemify(true, Schemifier.infoF _, HostedAccount)
-    //lunch the scheduler to clean the database from the expired tokens and nonces
-    Schedule.schedule(()=> OAuthAuthorisation.dataBaseCleaner, 2 minutes)
 
     def check(bool: Boolean) : Box[LiftResponse] = {
       if(bool){
@@ -277,45 +241,25 @@ class Boot extends Loggable{
           Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
             OAuthClient.handleCallback()
           }),
-          Menu.i("Consumer Admin") / "admin" / "consumers" >> LocGroup("admin")
-          	submenus(Consumer.menus : _*),
-          Menu("Consumer Registration", "Developers") / "consumer-registration",
-          Menu.i("Metrics") / "metrics",
-          Menu.i("OAuth") / "oauth" / "authorize", //OAuth authorization page
-          Menu.i("Connect") / "connect",
-
-          Menu.i("Banks") / "banks", //no test => list of open banks
-          //list of open banks (banks with a least a bank account with an open account)
-          Menu.param[Bank]("Bank", "bank", LocalStorage.getBank _ ,  bank => bank.id ) / "banks" / * ,
-          //list of open accounts in a specific bank
-          Menu.param[Bank]("Accounts", "accounts", LocalStorage.getBank _ ,  bank => bank.id ) / "banks" / * / "accounts",
-
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
           
           Menu.params[(PermissionsJson, AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getPermissions _ , x => List("")) 
-          / "permissions" / "banks" / * / "accounts" / * / "create" ,/*>> TestAccess(() => {
-            //TODO
-            Empty
-          }),*/
+          / "permissions" / "banks" / * / "accounts" / * / "create" ,
           
-          Menu.params[(PermissionsJson, AccountJson, PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,/*>> TestAccess(() => {
-            //TODO
-            Empty
-          }),*/
-          
+          Menu.params[(PermissionsJson, AccountJson, PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,
+
           Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
 
           Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
           / "banks" / * / "accounts" / * / "transactions" / * / *
     )
+    
+    LiftRules.setSiteMap(SiteMap.build(sitemap.toArray))
 
-    def sitemapMutators = OBPUser.sitemapMutator
-
-    // set the sitemap.  Note if you don't want access control for
-    // each page, just comment this line out.
-    LiftRules.setSiteMapFunc(() => sitemapMutators(SiteMap(sitemap : _*)))
+    LiftRules.addToPackages("code")
+    
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
 
@@ -330,9 +274,6 @@ class Boot extends Loggable{
     // Force the request to be UTF-8
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
 
-    // What is the function to test if a user is logged in?
-    LiftRules.loggedInTest = Full(() => OBPUser.loggedIn_?)
-
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
       new Html5Properties(r.userAgent))
@@ -343,44 +284,6 @@ class Boot extends Loggable{
     S.addAround(DB.buildLoanWrapper)
 
     TableSorter.init
-    /**
-     * A temporary measure to make sure there is an owner for the account, so that someone can set permissions
-     */
-    Account.find(("holder", "MUSIC PICTURES LIMITED")) match{
-      case Full(a) =>
-        HostedAccount.find(By(HostedAccount.accountID,a.id.toString)) match {
-          case Empty => {
-            val hostedAccount = HostedAccount.create.accountID(a.id.toString).saveMe
-            logger.debug("Creating tesobe account user and granting it owner permissions")
-            //create one
-            // val randomPassword = StringHelpers.randomString(12)
-            // println ("The admin password is :"+randomPassword )
-            val userEmail = "tesobe@tesobe.com"
-            val firstName = "tesobe first name"
-            val lastName = "tesobe last name"
-            val theUserOwner = OBPUser.find(By(OBPUser.email, userEmail)).getOrElse(OBPUser.create.email(userEmail).password("123tesobe456").validated(true).firstName(firstName).lastName(lastName).saveMe)
-            Privilege.create.account(hostedAccount).ownerPermission(true).user(theUserOwner).saveMe
-          }
-          case Full(hostedAccount) =>
-            Privilege.find(By(Privilege.account,hostedAccount), By(Privilege.ownerPermission, true)) match{
-              case Empty => {
-                //create one
-                // val randomPassword = StringHelpers.randomString(12)
-                // println ("The admin password is :"+randomPassword )
-                val userEmail = "tesobe@tesobe.com"
-                val firstName = "tesobe first name"
-                val lastName = "tesobe last name"
-                val theUserOwner = OBPUser.find(By(OBPUser.email, userEmail)).getOrElse(OBPUser.create.email(userEmail).password("123tesobe456").validated(true).firstName(firstName).lastName(lastName).saveMe)
-                Privilege.create.account(hostedAccount).ownerPermission(true)
-                  .mangementPermission(true).authoritiesPermission(true).boardPermission(true)
-                  .teamPermission(true).ourNetworkPermission(true).user(theUserOwner).saveMe
-              }
-              case _ => logger.debug("Owner privilege already exists")
-            }
-          case _ => None
-        }
-      case _ => logger.debug("No account found")
-    }
 
   }
 }

@@ -68,7 +68,6 @@ import net.liftweb.common.ParamFailure
 import net.liftweb.util.CssSel
 import code.lib.ObpJson._
 import code.lib.ObpAPI
-import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import code.lib.OAuthClient
 import net.liftweb.http.RequestVar
 

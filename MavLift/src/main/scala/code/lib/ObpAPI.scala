@@ -363,6 +363,7 @@ object ObpGet extends Loggable {
       val credentials = OAuthClient.getAuthorizedCredential(provider)
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
+      
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
       request.setRequestMethod("GET")

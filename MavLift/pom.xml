@@ -5,10 +5,10 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.tesobe</groupId>
-	<artifactId>Open_Bank</artifactId>
+	<artifactId>Social_Finance</artifactId>
 	<version>1.0</version>
 	<packaging>war</packaging>
-	<name>Open Bank</name>
+	<name>Social Finance</name>
 	<inceptionYear>2011</inceptionYear>
 	<properties>
 		<scala.version>2.9.1</scala.version>
@@ -80,17 +80,6 @@
 			<version>0.9.26</version>
 		</dependency>
 		<dependency>
-			<groupId>postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>8.4-701.jdbc4</version>
-		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>1.2.138</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
 			<version>2.5</version>
@@ -120,40 +109,18 @@
 			<version>6.1.25</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpg-jdk16</artifactId>
-			<version>1.46</version>
-		</dependency>
 		<!-- for LiftConsole -->
 		<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-compiler</artifactId>
 			<version>${scala.version}</version>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>2.9.1</version>
     </dependency>
-		<dependency>
-			<groupId>net.liftweb</groupId>
-			<artifactId>lift-mongodb_${scala.version}</artifactId>
-			<version>${lift.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>net.liftweb</groupId>
-			<artifactId>lift-mongodb-record_${scala.version}</artifactId>
-			<version>${lift.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>casbah_${scala.version}</artifactId>
-			<version>2.3.0</version>
-			<scope>compile</scope>
-			<type>pom</type>
-		</dependency>
 		<dependency>
 			<groupId>oauth.signpost</groupId>
 			<artifactId>signpost-commonshttp4</artifactId>

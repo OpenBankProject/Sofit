@@ -22,7 +22,6 @@ import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
 import scala.xml.Text
 import net.liftweb.http.js.jquery.JqJsCmds.Show
-import sun.reflect.generics.reflectiveObjects.NotImplementedException
 
 case class PermissionsUrlParams(bankId : String, accountId: String)
 case class ClickJson(userId: String, checked: Boolean, viewId : String)

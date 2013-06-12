@@ -46,7 +46,6 @@ import net.liftweb.common.{Full, Failure}
 import net.liftweb.util.Helpers
 import net.liftweb.http.LiftResponse
 import net.liftweb.common.Loggable
-import code.model.dataAccess.OBPUser
 
 sealed trait Provider {
   val name : String
@@ -71,7 +70,7 @@ sealed trait Provider {
 object OBPDemo extends Provider {
   val name = "The Open Bank Project Demo"
     
-  val baseUrl = Props.get("hostname", S.hostName)
+  val baseUrl = Props.get("api_hostname", S.hostName)
   val apiBaseUrl = baseUrl + "/obp/v1.2"
   val apiVersion = "1.1"
   val requestTokenUrl = baseUrl + "/oauth/initiate"
@@ -81,8 +80,8 @@ object OBPDemo extends Provider {
   
   val oAuthProvider : OAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
   
-  val consumerKey = SofiAPITransition.sofiConsumer.key.get
-  val consumerSecret = SofiAPITransition.sofiConsumer.secret.get
+  val consumerKey = Props.get("obp_consumer_key", "")//SofiAPITransition.sofiConsumer.key.get
+  val consumerSecret = Props.get("obp_secret_key", "")//SofiAPITransition.sofiConsumer.secret.get
 }
 
 case class Consumer(consumerKey : String, consumerSecret : String) {
@@ -93,35 +92,6 @@ case class Credential(provider : Provider, consumer : OAuthConsumer, readyToSign
 
 object credentials extends SessionVar[List[Credential]](Nil)
 object mostRecentLoginAttemptProvider extends SessionVar[Box[Provider]](Empty)
-
-/**
- * Until the Social Finance app and the API are fully split, the Social Finance app will in fact call
- * its own API functions which requires it be registered as a consumer. This object takes care of that.
- */
-object SofiAPITransition {
-  
-  //At the moment developer email has to be unique for code.model.Consumers, which is probably not how it should be.
-  //The end result is that we should search based on it.
-  val sofiEmail = "socialfinance@tesobe.com"
-  
-  def getOrCreateSofiConsumer : code.model.Consumer = {
-    code.model.Consumer.find(By(code.model.Consumer.developerEmail, sofiEmail)) match {
-      case Full(c) => c
-      case _ => {
-        code.model.Consumer.create.name("Social Finance").
-        	appType(code.model.AppType.Web).description("").developerEmail(sofiEmail).isActive(true).
-        	key(Helpers.randomString(40).toLowerCase).secret(Helpers.randomString(40).toLowerCase).saveMe()
-      }
-    }
-  }
-  
-  //Once Sofi splits from the api we won't need to logout the obpuser anymore as it won't exist
-  def logoutOBPUserToo() = {
-    OBPUser.logoutCurrentUser
-  }
-  
-  val sofiConsumer = getOrCreateSofiConsumer
-}
 
 object OAuthClient extends Loggable {
 
@@ -165,6 +135,7 @@ object OAuthClient extends Loggable {
 
   def handleCallback(): Box[LiftResponse] = {
 
+    println("recent provider: " + mostRecentLoginAttemptProvider.get)
     val success = for {
       verifier <- S.param("oauth_verifier") ?~ "No oauth verifier found"
       provider <- mostRecentLoginAttemptProvider.get ?~ "No provider found for callback"
@@ -188,7 +159,7 @@ object OAuthClient extends Loggable {
 		  						 
   def getAuthUrl(provider : Provider) : String = {
     mostRecentLoginAttemptProvider.set(Full(provider))
-    
+    println("recent provider: " + mostRecentLoginAttemptProvider.get)
     val credential = replaceCredential(provider)
     provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
   }
@@ -200,7 +171,7 @@ object OAuthClient extends Loggable {
   def loggedInAt(provider : Provider) : Boolean = loggedInAt.contains(provider)
   def loggedInAtAny : Boolean = loggedInAt.size > 0
   def logoutAll() = {
-    SofiAPITransition.logoutOBPUserToo()
-    S.session.open_!.destroySessionAndContinueInNewSession(S.redirectTo("/"))
+    credentials.set(Nil)
+    S.redirectTo("/")
   }
 }
