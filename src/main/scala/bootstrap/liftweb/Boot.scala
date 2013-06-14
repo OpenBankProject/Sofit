@@ -64,38 +64,6 @@ import code.snippet.PermissionsUrlParams
 class Boot extends Loggable{
   def boot {
 
-    if (!DB.jndiJdbcConnAvailable_?) {
-      val driver =
-        Props.mode match {
-          case Props.RunModes.Production | Props.RunModes.Staging | Props.RunModes.Development =>  Props.get("db.driver") openOr "org.h2.Driver"
-          case _ => "org.h2.Driver"
-        }
-      val vendor =
-        Props.mode match {
-          case Props.RunModes.Production | Props.RunModes.Staging | Props.RunModes.Development =>
-            new StandardDBVendor(driver,
-               Props.get("db.url") openOr "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
-               Props.get("db.user"), Props.get("db.password"))
-          case _ =>
-            new StandardDBVendor(
-              driver,
-              "jdbc:h2:mem:OBPTest;DB_CLOSE_DELAY=-1",
-              Empty, Empty)
-        }
-
-      logger.debug("Using database driver: " + driver)
-      LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)
-
-      DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
-    }
-    Mailer.authenticator = for {
-      user <- Props.get("mail.username")
-      pass <- Props.get("mail.password")
-    } yield new Authenticator {
-      override def getPasswordAuthentication =
-        new PasswordAuthentication(user,pass)
-    }
-
     val runningMode = Props.mode match {
       case Props.RunModes.Production => "Production mode"
       case Props.RunModes.Staging => "Staging mode"
@@ -279,9 +247,6 @@ class Boot extends Loggable{
       new Html5Properties(r.userAgent))
 
     LiftRules.explicitlyParsedSuffixes = Helpers.knownSuffixes &~ (Set("com"))
-
-    // Make a transaction span the whole HTTP request
-    S.addAround(DB.buildLoanWrapper)
 
     TableSorter.init
 
