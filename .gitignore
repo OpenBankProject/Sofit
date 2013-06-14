@@ -10,11 +10,12 @@
 .classpath
 .project
 *.sh
-MavLift/.cache
-MavLift/src/main/resources/rebel.xml
-MavLift/src/main/resources/props
-MavLift/src/test/resources/props
-MavLift/src/main/resources/git.properties
+.cache
+src/main/resources/rebel.xml
+src/main/resources/props
+src/test/resources/props
+src/main/resources/git.properties
 
-MavLift/src/main/webapp/WEB-INF/jetty.xml
-MavLift/src/main/webapp/conf.html
+src/main/webapp/WEB-INF/jetty.xml
+src/main/webapp/conf.html
+target/
