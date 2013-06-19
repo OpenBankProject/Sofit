@@ -60,5 +60,57 @@ Note: You may need to add the pluginGroup to the $HOME/.m2/settings.xml
 
 PROPS FILE
 
-A props file with some important settings is required. More details about this are being written!
+There is a props file template provided at src/main/resources/props/sample.props.template. It needs to be renamed and modified in order for
+the application to work. 
 
+1. Renaming:
+
+The sample.props.template file must be renamed for Lift to find it (https://www.assembla.com/wiki/show/liftweb/Properties). Renaming it to default.props
+should be the easiest way to get started.
+
+2. Filling in values:
+
+transloadit.authkey
+transloadit.addImageTemplate
+
+The Social Finance app uses transloadit.com to process uploaded images. If these are not filling in, users will not be able to add images to 
+individual transactions.
+
+transloadit.authkey can be obtained by registering at transloadit.com
+transloadit.addImageTemplate can be obtained by creating a template at transloadit. A sample template which resizes images to 250px width is :
+
+{
+  "steps": {
+    "resize_to_250": {
+      "robot": "/image/resize",
+      "width": 250,
+      "zoom": false
+    }
+  }
+}
+
+hostname
+
+The hostname is used to calculate the callback url to give to the Open Bank Project API server. This should just be the 
+base url used to access the social finance application. So if you're running a copy of the social finance application at
+sofi.example.com over https, on the standard port, it would be "https://sofi.example.com".
+An example value for local development could be: http://127.0.0.1:8080 (as 8080 is the default Lift development port)
+
+api_hostname
+
+The api_hostname should be the base url of the Open Bank Project API. For example, https://api.openbankproject.com/api
+
+obp_consumer_key
+obp_secret_key
+
+The keys are obtained by registering as a developer on the Open Bank Project API server located at "api_hostname".
+
+
+All in all, a props file could look something like:
+
+transloadit.authkey=89hs8fho98fsho8hsf48sfo98sh
+transloadit.addImageTemplate=s9fe8sh8h4sof98hf84s8fs48f4
+api_hostname=https://api.openbankproject.com/api
+obp_consumer_key=uodsifnodsfifdsliufdsliufdsfdsfsdfsx
+obp_secret_key=iuesbfiyvglxzgifg7eisgei7fglesfi
+hostname=http://localhost:8080
