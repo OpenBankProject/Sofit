@@ -56,6 +56,8 @@ import code.snippet.ManagementURLParams
 import code.lib.ObpJson.OtherAccountsJson
 import code.lib.ObpAPI
 import code.snippet.PermissionsUrlParams
+import java.io.FileInputStream
+import java.io.File
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -73,6 +75,64 @@ class Boot extends Loggable{
     }
 
     logger.info("running mode: " + runningMode)
+    
+    val contextPath = LiftRules.context.path
+    val propsPath = tryo{Box.legacyNullTest(System.getProperty("props.resource.dir"))}.flatten
+    
+    logger.info("external props folder: " + propsPath)
+    
+    /**
+     * Where this application looks for props files:
+     * 
+     * All properties files follow the standard lift naming scheme for order of preference (see https://www.assembla.com/wiki/show/liftweb/Properties)
+     * within a directory.
+     * 
+     * The first choice of directory is $props.resource.dir/CONTEXT_PATH where $props.resource.dir is the java option set via -Dprops.resource.dir=...
+     * The second choice of directory is $props.resource.dir
+     * 
+     * For example, on a production system:
+     * 
+     * thing1.example.com with context path /thing1
+     * 
+     * Looks first in (outside of war file): $props.resource.dir/thing1, following the normal lift naming rules (e.g. production.default.props)
+     * Looks second in (outside of war file): $props.resource.dir, following the normal lift naming rules (e.g. production.default.props)
+     * Looks third in the war file
+     * 
+     * and
+     * 
+     * thing2.example.com with context path /thing2
+     * 
+     * Looks first in (outside of war file): $props.resource.dir/thing2 , following the normal lift naming rules (e.g. production.default.props)
+     * Looks second in (outside of war file): $props.resource.dir, following the normal lift naming rules (e.g. production.default.props)
+     * Looks third in the war file, following the normal lift naming rules
+     *
+     */
+    
+    val firstChoicePropsDir = for {
+      propsPath <- propsPath
+    } yield {
+      Props.toTry.map {
+        f => {
+          val name = propsPath + contextPath + f() + "props"
+          name -> { () => tryo{new FileInputStream(new File(name))} }
+        }
+      }
+    }
+    
+    val secondChoicePropsDir = for {
+      propsPath <- propsPath
+    } yield {
+      Props.toTry.map {
+        f => {
+          val name = propsPath +  f() + "props"
+          name -> { () => tryo{new FileInputStream(new File(name))} }
+        }
+      }
+    }
+    
+    Props.whereToLook = () => {
+      firstChoicePropsDir.flatten.toList ::: secondChoicePropsDir.flatten.toList
+    }
 
     def check(bool: Boolean) : Box[LiftResponse] = {
       if(bool){
