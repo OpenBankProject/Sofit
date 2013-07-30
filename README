@@ -1,8 +1,6 @@
-README
+Welcome to the Open Bank Project Social Finance !
 
-Welcome to the Open Bank Project Social Finance / Transparency Web Application!
-
-ABOUT
+# ABOUT
 
 This appliation demostrates some of the principles of the Open Bank Project:
 
@@ -11,13 +9,13 @@ This appliation demostrates some of the principles of the Open Bank Project:
 3) Comment on transactions
 4) Add other meta data e.g. tags / images to transactions / payees.
 
+The project roadmap is available [here.](https://trello.com/b/aBELCLYA/open-bank-project-sofi) 
 
-LICENSE
+# LICENSE
 
-This project is dual licensed under the AGPL V3 (see NOTICE) and a commercial license from TESOBE
-Some files (OAuth related) are licensed under the Apache 2 license.
+This project is licensed under the AGPL V3 (see NOTICE) and a commercial license from TESOBE.
 
-SETUP
+# SETUP
 
 The project is using sbt or Maven 2 as a build tool.
 See build.scala or pom.xml respectively for the dependencies.
@@ -58,10 +56,10 @@ Note: You may need to add the pluginGroup to the $HOME/.m2/settings.xml
 
 ---
 
-PROPS FILE
+# PROPS FILE
 
 There is a props file template provided at src/main/resources/props/sample.props.template. It needs to be renamed and modified in order for
-the application to work. 
+the application to work.
 
 1. Renaming:
 
@@ -73,7 +71,7 @@ should be the easiest way to get started.
 transloadit.authkey
 transloadit.addImageTemplate
 
-The Social Finance app uses transloadit.com to process uploaded images. If these are not filling in, users will not be able to add images to 
+The Social Finance app uses transloadit.com to process uploaded images. If these are not filling in, users will not be able to add images to
 individual transactions.
 
 transloadit.authkey can be obtained by registering at transloadit.com
@@ -89,19 +87,19 @@ transloadit.addImageTemplate can be obtained by creating a template at transload
   }
 }
 
-hostname
+*hostname*
 
-The hostname is used to calculate the callback url to give to the Open Bank Project API server. This should just be the 
+The hostname is used to calculate the callback url to give to the Open Bank Project API server. This should just be the
 base url used to access the social finance application. So if you're running a copy of the social finance application at
 sofi.example.com over https, on the standard port, it would be "https://sofi.example.com".
 An example value for local development could be: http://127.0.0.1:8080 (as 8080 is the default Lift development port)
 
-api_hostname
+*api_hostname*
 
 The api_hostname should be the base url of the Open Bank Project API. For example, https://api.openbankproject.com/api
 
-obp_consumer_key
-obp_secret_key
+*obp_consumer_key*
+*obp_secret_key*
 
 The keys are obtained by registering as a developer on the Open Bank Project API server located at "api_hostname".
 
