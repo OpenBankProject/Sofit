@@ -1,4 +1,4 @@
-Welcome to the Open Bank Project Social Finance / Transparency Web Application!
+Welcome to the Open Bank Project Social Finance !
 
 # ABOUT
 
@@ -9,12 +9,11 @@ This appliation demostrates some of the principles of the Open Bank Project:
 3) Comment on transactions
 4) Add other meta data e.g. tags / images to transactions / payees.
 
-The project roadmap is available [here.](https://trello.com/b/aBELCLYA/open-bank-project-sofi)
+The project roadmap is available [here.](https://trello.com/b/aBELCLYA/open-bank-project-sofi) 
 
 # LICENSE
 
-This project is dual licensed under the AGPL V3 (see NOTICE) and a commercial license from TESOBE
-Some files (OAuth related) are licensed under the Apache 2 license.
+This project is licensed under the AGPL V3 (see NOTICE) and a commercial license from TESOBE.
 
 # SETUP
 

@@ -12,7 +12,8 @@
 *.sh
 .cache
 src/main/resources/rebel.xml
-src/main/resources/props
+src/main/resources/props/*
+!src/main/resources/props/sample.props.template
 src/test/resources/props
 src/main/resources/git.properties
 
