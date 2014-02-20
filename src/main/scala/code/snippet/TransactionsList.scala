@@ -182,7 +182,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
       def narrative = {
 
         val narrativeValue = transaction.metadata.flatMap(_.narrative).getOrElse("")
-        val narrativeUrl = "/banks/" + transactionsURLParams.bankId + "/accounts/" + transactionsURLParams.accountId + "/" + transactionsURLParams.viewId +
+        val narrativeUrl = "/v1.2/banks/" + transactionsURLParams.bankId + "/accounts/" + transactionsURLParams.accountId + "/" + transactionsURLParams.viewId +
           "/transactions/" + transaction.id.getOrElse("") + "/metadata/narrative"
         
         var newNarrativeValue = narrativeValue

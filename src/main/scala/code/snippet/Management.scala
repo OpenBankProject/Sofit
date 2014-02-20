@@ -110,14 +110,14 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
       def saveValue() = {
         if(currentValue.isEmpty) {
           //Send a delete
-          ObpDelete("/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
+          ObpDelete("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
           exists = false
         } else {
           if(exists) {
-            ObpPut("/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
+            ObpPut("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
                 json())
           } else {
-            ObpPost("/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
+            ObpPost("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
                 json())
             exists = true
           }

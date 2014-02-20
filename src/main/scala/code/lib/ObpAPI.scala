@@ -37,7 +37,7 @@ object ObpAPI {
   def allBanks : Box[BanksJson]= {
     allBanksVar.get match {
       case Full(a) => Full(a)
-      case _ => ObpGet("/banks").flatMap(_.extractOpt[BanksJson])
+      case _ => ObpGet("/v1.2/banks").flatMap(_.extractOpt[BanksJson])
     }
   }
   
@@ -57,20 +57,20 @@ object ObpAPI {
       fromDate.map(f => Header("obp_from_date", dateFormat.format(f))).toList ::: toDate.map(t => Header("obp_to_date", dateFormat.format(t))).toList :::
       sortDirection.map(s => Header("obp_sort_direction", s.value)).toList ::: Nil
     
-    ObpGet("/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
+    ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
               "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson])
   }
   
   def publicAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
-    ObpGet("/banks/" + urlEncode(bankId) + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
+    ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
   
   def privateAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
-    ObpGet("/banks/" + urlEncode(bankId) + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
+    ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
   
   def account(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
-    ObpGet("/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/account").flatMap(x => x.extractOpt[AccountJson])
+    ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/account").flatMap(x => x.extractOpt[AccountJson])
   }
   
    /**
@@ -81,14 +81,14 @@ object ObpAPI {
     
     val addCommentJson = ("value" -> comment)
     
-    val addCommentUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
+    val addCommentUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
       "/transactions/" + urlEncode(transactionId) + "/metadata/comments"
     
     ObpPost(addCommentUrl, addCommentJson).flatMap(_.extractOpt[TransactionCommentJson])
   }
   
   def addPermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val grantPermissionUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
+    val grantPermissionUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpPost(grantPermissionUrl, new JObject(Nil))
   }
   
@@ -100,16 +100,16 @@ object ObpAPI {
   }
   
   def getPermissions(bankId: String, accountId : String) : Box[PermissionsJson] = {
-    ObpGet("/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
+    ObpGet("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
   }
   
   def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val removePermissionUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
+    val removePermissionUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpDelete(removePermissionUrl)
   }
   
   def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
-    val removeAllPermissionsUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views"
+    val removeAllPermissionsUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views"
     ObpDelete(removeAllPermissionsUrl)
   }
   
@@ -123,7 +123,7 @@ object ObpAPI {
       ("value" -> tag)
     })
     
-    val addTagUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" + urlEncode(transactionId) + "/metadata/tags"
+    val addTagUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" + urlEncode(transactionId) + "/metadata/tags"
     
     addTagJsons.map(addTagJson => ObpPost(addTagUrl, addTagJson).flatMap(_.extractOpt[TransactionTagJson])).flatten
   }
@@ -133,7 +133,7 @@ object ObpAPI {
    */
   def deleteTag(bankId : String, accountId : String, viewId : String,
       transactionId: String, tagId: String) : Boolean  = {
-    val deleteTagUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" + 
+    val deleteTagUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" + 
       urlEncode(transactionId) + "/metadata/tags/" + urlEncode(tagId)
     ObpDelete(deleteTagUrl)
   }
@@ -148,7 +148,7 @@ object ObpAPI {
       ("label" -> imageDescription) ~
       ("URL" -> imageURL)
     
-    val addImageUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + 
+    val addImageUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + 
       "/transactions/" + urlEncode(transactionId) + "/metadata/images"
       
     ObpPost(addImageUrl, json).flatMap(_.extractOpt[TransactionImageJson])
@@ -160,7 +160,7 @@ object ObpAPI {
   def deleteImage(bankId : String, accountId : String, viewId : String,
       transactionId: String, imageId: String) : Boolean  = {
     
-    val deleteImageUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + 
+    val deleteImageUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + 
       "/transactions/" + urlEncode(transactionId) + "/metadata/images/" + urlEncode(imageId)
     ObpDelete(deleteImageUrl)
   }

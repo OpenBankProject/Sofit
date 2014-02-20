@@ -51,7 +51,6 @@ sealed trait Provider {
   val name : String
   
   val apiBaseUrl : String
-  val apiVersion : String
   val requestTokenUrl : String
   val accessTokenUrl : String
   val authorizeUrl : String
@@ -71,8 +70,7 @@ object OBPDemo extends Provider {
   val name = "The Open Bank Project Demo"
     
   val baseUrl = Props.get("api_hostname", S.hostName)
-  val apiBaseUrl = baseUrl + "/obp/v1.2"
-  val apiVersion = "1.1"
+  val apiBaseUrl = baseUrl + "/obp"
   val requestTokenUrl = baseUrl + "/oauth/initiate"
   val accessTokenUrl = baseUrl + "/oauth/token"
   val authorizeUrl = baseUrl + "/oauth/authorize"
