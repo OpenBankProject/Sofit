@@ -22,12 +22,18 @@ import code.lib.ObpJson._
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import java.text.SimpleDateFormat
 import net.liftweb.common.Loggable
+import net.liftweb.util.Props
 
 case class Header(key: String, value: String)
 
-object ObpAPI {
+object ObpAPI extends Loggable {
   implicit val formats = DefaultFormats
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+  
+  val defaultProvider = Props.get("defaultAuthProvider").getOrElse("")
+  
+  val userNotFoundError = "user (\\S+) at provider (\\S+) not found".r
+  
   /**
    * The request vars ensure that for one page load, the same API call isn't
    * made multiple times
@@ -88,28 +94,41 @@ object ObpAPI {
   }
   
   def addPermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val grantPermissionUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
+    val grantPermissionUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + 
+      "/permissions/" + urlEncode(defaultProvider) + "/" +urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpPost(grantPermissionUrl, new JObject(Nil))
   }
   
   def addPermissions(bankId: String, accountId: String, userId: String, viewIds : List[String]) : Box[JValue] = {
-    val addPermissionsUrl = "/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views"
+    val addPermissionsUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + 
+         urlEncode(accountId) + "/permissions/" + urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
     val json = ("views" -> viewIds)
     
-    ObpPost(addPermissionsUrl, json)
+    for {
+      result <- ObpPost(addPermissionsUrl, json)
+    } yield result
   }
   
   def getPermissions(bankId: String, accountId : String) : Box[PermissionsJson] = {
-    ObpGet("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
+    ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
+  }
+  
+  def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
+    for {
+      json <- ObpGet("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/views")
+      viewsJson <- Box(json.extractOpt[ViewsJson])
+    } yield viewsJson.views.getOrElse(Nil)
   }
   
   def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val removePermissionUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
+    val removePermissionUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
+      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpDelete(removePermissionUrl)
   }
   
   def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
-    val removeAllPermissionsUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + urlEncode(userId) + "/views"
+    val removeAllPermissionsUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
+      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
     ObpDelete(removeAllPermissionsUrl)
   }
   
@@ -213,20 +232,61 @@ object ObpPost extends Loggable {
       readLines()
       reader.close();
       val result = builder.toString();
+      
+      APIUtils.getAPIResponse(status, result)
+    }
+  }
+}
 
-      status match {
+object APIUtils extends Loggable {
+  implicit val formats = DefaultFormats
+  
+  //TODO: refactor this to get rid of the exception throwing stuff... only should be called from a tryo{} at the moment
+  def getAPIResponse(responseCode : Int, result : String) = {
+    responseCode match {
         case 200 | 201 => parse(result)
         case code => {
           logger.info("Bad response code (" + code + ") from server: " + result)
           val errorMsg = tryo{parse(result).extract[ObpError]}
           
           errorMsg match {
-            case Full(e) => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
+            case Full(e) => {
+              
+              e.error match {
+                case ObpAPI.userNotFoundError(userId, providerId) => {
+                  throw new Exception(userId + " has not registered at " + providerId)//bleh -> converts to Failure due to the tryo
+                }
+                case _ => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
+              }
+            }
             case _ => throw new Exception("Error")
           }
         }
       }
-    }
+  }
+  
+  //TODO: refactor
+  def apiResponseWorked(responseCode : Int, result : String) : Boolean = {
+    responseCode match {
+        case 200 | 201 | 204 => true
+        case code => {
+          logger.info("Bad response code (" + code + ") from server: " + result)
+          val errorMsg = tryo{parse(result).extract[ObpError]}
+          
+          errorMsg match {
+            case Full(e) => {
+              
+              e.error match {
+                case ObpAPI.userNotFoundError(userId, providerId) => {
+                  throw new Exception(userId + " has not registered at " + providerId)//bleh -> converts to Failure due to the tryo
+                }
+                case _ => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
+              }
+            }
+            case _ => throw new Exception("Error")
+          }
+        }
+      }
   }
 }
 
@@ -277,18 +337,7 @@ object ObpPut extends Loggable {
       reader.close();
       val result = builder.toString();
 
-      status match {
-        case 200 | 201 => parse(result)
-        case code => {
-          logger.info("Bad response code (" + code + ") from server: " + result)
-          val errorMsg = tryo{parse(result).extract[ObpError]}
-          
-          errorMsg match {
-            case Full(e) => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
-            case _ => throw new Exception("Error")
-          }
-        }
-      }
+      APIUtils.getAPIResponse(status, result)
     }
   }
 }
@@ -334,18 +383,7 @@ object ObpDelete extends Loggable {
       reader.close();
       val result = builder.toString();
 
-      status match {
-        case 200 | 204 => true
-        case code => {
-          logger.info("Bad response code (" + code + ") from server: " + result)
-          val errorMsg = tryo{parse(result).extract[ObpError]}
-          
-          errorMsg match {
-            case Full(e) => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
-            case _ => throw new Exception("Error")
-          }
-        }
-      }
+      APIUtils.apiResponseWorked(status, result)
     }
     
     worked.getOrElse(false)
@@ -431,10 +469,13 @@ object ObpJson {
   case class AccountBalanceJson(currency: Option[String],
 		  					amount: Option[String])		  	
 	
+  //simplified version of what we actually get back from the api
   case class ViewJson(id: Option[String],
 		  		  short_name: Option[String],
 		  		  description: Option[String],
 		  		  is_public: Option[Boolean])
+		  		  
+  case class ViewsJson(views: Option[List[ViewJson]])
 		  		  
   case class AccountJson(id: Option[String],
                      label: Option[String],

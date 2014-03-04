@@ -9,22 +9,29 @@ import net.liftweb.util.Helpers._
 import code.lib.ObpAPI
 import net.liftweb.http.SHtml
 import net.liftweb.common.Failure
+import code.lib.ObpJson.PermissionsJson
+import code.lib.ObpJson.AccountJson
+import code.lib.ObpJson.ViewJson
+import net.liftweb.util.CssSel
 
-object CreatePermissionForm extends Loggable {
-    case class PermissionData(viewName : String, allowed: Boolean)
+class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrlParams)) extends Loggable {
+    case class ViewData(view : ViewJson, allowed: Boolean)
+    
+    val views = params._1
+    val accountJson = params._2
+    val urlParams = params._3
+    
+    val url = S.uri.split("/")
+    var email = ""
+        
+    val allowed : scala.collection.mutable.Map[ViewJson, Boolean] = scala.collection.mutable.Map(views.map(v => (v, false)).toSeq : _*)
+      
+    val nonPublicViews = views.filterNot(_.is_public.getOrElse(true))
+    val nonBadViews = nonPublicViews.filterNot(_.id == None)
+    def viewData = nonBadViews.map(view => ViewData(view, allowed(view)))
     
     def render = {
-      val url = S.uri.split("/")
-      var email = ""
-      var owner = false
-      var ournetwork = false
-      var team = false
-      var board = false
-      var authorities = false
       
-      def permissions = List(PermissionData("owner", owner), PermissionData("our-network", ournetwork),
-          PermissionData("team", team), PermissionData("board", board), PermissionData("authorities", authorities))
-        
       def process(): JsCmd = {
         
         def showMsg(msg : String) = {
@@ -33,7 +40,7 @@ object CreatePermissionForm extends Loggable {
         
         def invalidEmail() : Boolean = !email.contains("@")
         
-        if(permissions.forall(_.allowed == false)) showMsg("You must select at least one view to grant access to.")
+        if(viewData.forall(_.allowed == false)) showMsg("You must select at least one view to grant access to.")
         else if(email.isEmpty()) showMsg("You must enter an email address")
         else if(invalidEmail()) showMsg("Invalid email address")
         else {
@@ -41,12 +48,13 @@ object CreatePermissionForm extends Loggable {
           if(url.length > 5) {
             val bankId = url(3)
             val accountId = url(5)
-            val viewNames = for {
-              permission <- permissions
-              if(permission.allowed)
-            } yield permission.viewName
+            val viewIds = for {
+              vData <- viewData
+              if(vData.allowed)
+              vId <- vData.view.id
+            } yield vId
             
-            val result = ObpAPI.addPermissions(bankId, accountId, email, viewNames)
+            val result = ObpAPI.addPermissions(bankId, accountId, email, viewIds)
             result match {
               case Failure(msg, _, _) => showMsg(msg)
               case _ => {
@@ -65,11 +73,14 @@ object CreatePermissionForm extends Loggable {
         
       }
       
-      "name=owner" #> SHtml.checkbox(owner, owner = _) &
-      "name=our-network" #> SHtml.checkbox(ournetwork, ournetwork = _) &
-      "name=team" #> SHtml.checkbox(team, team = _) &
-      "name=board" #> SHtml.checkbox(board, board = _) &
-      "name=authorities" #> SHtml.checkbox(authorities, authorities = _) &
+      ".view_row *" #> viewData.map(vData => {
+        ".view_name *" #> vData.view.short_name.getOrElse(vData.view.id.getOrElse("")) &
+        ".view_check" #> SHtml.checkbox(allowed(vData.view), allowed.put(vData.view, _))
+      }) &
       "name=email" #> (SHtml.text(email, email = _) ++ SHtml.hidden(process))
+      
     }
+    
+    //def accountInfo = ".account-label *" #> accountJson.label.getOrElse("---")
+    
   }

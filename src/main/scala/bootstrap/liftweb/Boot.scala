@@ -58,6 +58,7 @@ import code.lib.ObpAPI
 import code.snippet.PermissionsUrlParams
 import java.io.FileInputStream
 import java.io.File
+import code.snippet.PermissionsUrlParams
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -132,6 +133,10 @@ class Boot extends Loggable{
     
     Props.whereToLook = () => {
       firstChoicePropsDir.flatten.toList ::: secondChoicePropsDir.flatten.toList
+    }
+    
+    if(Props.get("defaultAuthProvider").isEmpty) {
+      throw new Exception("defaultAuthProvider must be specified in the props file!")
     }
 
     def check(bool: Boolean) : Box[LiftResponse] = {
@@ -248,8 +253,25 @@ class Boot extends Loggable{
           case _ => calculateTransaction()
         }
       }
+    
+    def getAccountViews(URLParameters: List[String]): Box[(List[ViewJson], AccountJson, PermissionsUrlParams)] = {
+      if (URLParameters.length == 2) {
+        val bank = URLParameters(0)
+        val account = URLParameters(1)
 
-    def getPermissions(URLParameters: List[String]): Box[(PermissionsJson, AccountJson, PermissionsUrlParams)] = {
+        logOrReturnResult {
+          for {
+            viewsJson <- ObpAPI.getViews(bank, account)
+            accountJson <- ObpAPI.account(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
+          } yield {
+            (viewsJson, accountJson, PermissionsUrlParams(bank, account))
+          }
+          
+        }
+      } else Empty
+    }
+
+    def getPermissions(URLParameters: List[String]): Box[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)] = {
       if (URLParameters.length == 2) {
         val bank = URLParameters(0)
         val account = URLParameters(1)
@@ -257,8 +279,9 @@ class Boot extends Loggable{
         logOrReturnResult {
           for {
             permissionsJson <- ObpAPI.getPermissions(bank, account)
+            accountViewsJson <- ObpAPI.getViews(bank, account)
             accountJson <- ObpAPI.account(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
-          } yield (permissionsJson, accountJson, PermissionsUrlParams(bank, account))
+          } yield (permissionsJson, accountJson, accountViewsJson, PermissionsUrlParams(bank, account))
         }
       } else Empty
     }
@@ -272,10 +295,10 @@ class Boot extends Loggable{
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
           
-          Menu.params[(PermissionsJson, AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getPermissions _ , x => List("")) 
+          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViews _ , x => List("")) 
           / "permissions" / "banks" / * / "accounts" / * / "create" ,
           
-          Menu.params[(PermissionsJson, AccountJson, PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,
+          Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,
 
           Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,

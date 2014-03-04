@@ -26,11 +26,12 @@ import net.liftweb.http.js.jquery.JqJsCmds.Show
 case class PermissionsUrlParams(bankId : String, accountId: String)
 case class ClickJson(userId: String, checked: Boolean, viewId : String)
 
-class PermissionManagement(params : (PermissionsJson, AccountJson, PermissionsUrlParams)) extends Loggable {
+class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)) extends Loggable {
   
   val permissionsJson = params._1
   val accountJson = params._2
-  val urlParams = params._3
+  val nonPublicViews : List[ViewJson] = params._3.filterNot(_.is_public.getOrElse(true))
+  val urlParams = params._4
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
   
   implicit val formats = DefaultFormats
@@ -69,31 +70,38 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, PermissionsUr
     }
     """).cmd
   
-  
-  def checkBox(permission : PermissionJson, view : String, userId : String) = {
-    val onClick = "." + view + " [onclick]"
-    val userIdData = "." + view + " [data-userid]"
-    val viewIdData = "." + view + " [data-viewid]"
-    
-    val permissionExists = (for {
-      views <- permission.views
-    }yield {
-      views.exists(_.id == (Some(view)))
-    }).getOrElse(false)
-    
-    
-    val checkedSelector : CssSel = 
-      if(permissionExists) {{"." + view + " [checked]"} #> "checked"}
-      else NOOP_SELECTOR
-    
-    checkedSelector &
-    onClick #> clickAjax &
-    userIdData #> userId &
-    viewIdData #> view
-  }
-
   def accountInfo = ".account-label *" #> accountJson.label.getOrElse("---")
 
+  def accountViewHeaders = {
+    val viewNames : List[String] = nonPublicViews.map(_.short_name.getOrElse(""))
+    
+    ".view_name *" #> viewNames
+  }
+  
+  def checkBoxes(permission : PermissionJson) = {
+    ".view-checkbox *" #> nonPublicViews.map(view => {
+      
+      val onClick = "." + view + " [onclick]"
+      val userIdData = "." + view + " [data-userid]"
+      val viewIdData = "." + view + " [data-viewid]"
+      
+      val permissionExists = (for {
+        views <- permission.views
+      }yield {
+        views.exists(_.id == (view.id))
+      }).getOrElse(false)
+      
+      val checkedSelector : CssSel = 
+        if(permissionExists) {{".check [checked]"} #> "checked"}
+      else NOOP_SELECTOR
+      
+      checkedSelector &
+      ".check [onclick]" #> clickAjax &
+      ".check [data-userid]" #> permission.user.flatMap(_.id) &
+      ".check [data-viewid]" #> view.id
+    })
+  }
+  
   def manage = {
 
     permissionsJson.permissions match {
@@ -103,15 +111,10 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, PermissionsUr
           ".row" #> {
             ps.map(permission => {
               val userId = permission.user.flatMap(_.id).getOrElse("")
-
+              
               "* [id]" #> rowId(userId) &
                 ".user *" #> permission.user.flatMap(_.display_name).getOrElse("") &
-                checkBox(permission, "owner", userId) &
-                checkBox(permission, "management", userId) &
-                checkBox(permission, "our-network", userId) &
-                checkBox(permission, "team", userId) &
-                checkBox(permission, "board", userId) &
-                checkBox(permission, "authorities", userId) &
+                checkBoxes(permission) &
                 ".remove [data-userid]" #> userId &
                 ".remove [onclick]" #> removeAjax
             })

@@ -4,3 +4,5 @@ api_hostname=FILL_ME_IN
 obp_consumer_key=FILL_ME_IN
 obp_secret_key=FILL_ME_IN
 hostname=FILL_ME_IN
+#default api authentication provider
+defaultAuthProvider=FILL_ME_IN
