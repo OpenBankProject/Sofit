@@ -9,6 +9,7 @@ body {
 .logout,
 a {
 	color: #1C8B77;
+	text-decoration: none;
 }
 
 a:hover {
@@ -19,6 +20,7 @@ a:hover {
 .logout:hover {
 	color: #156759;
 	text-decoration: underline;
+	cursor:pointer;
 }
 
 a.sort {
