@@ -254,7 +254,7 @@ class Boot extends Loggable{
         }
       }
     
-    def getAccountViews(URLParameters: List[String]): Box[(List[ViewJson], AccountJson, PermissionsUrlParams)] = {
+    def getAccountPermissions(URLParameters: List[String]): Box[(List[ViewJson], AccountJson, PermissionsUrlParams)] = {
       if (URLParameters.length == 2) {
         val bank = URLParameters(0)
         val account = URLParameters(1)
@@ -265,6 +265,22 @@ class Boot extends Loggable{
             accountJson <- ObpAPI.account(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
           } yield {
             (viewsJson, accountJson, PermissionsUrlParams(bank, account))
+          }
+          
+        }
+      } else Empty
+    }
+
+    def getAccountViews(URLParameters: List[String]): Box[(List[ViewJson])] = {
+      if (URLParameters.length == 2) {
+        val bank = URLParameters(0)
+        val account = URLParameters(1)
+
+        logOrReturnResult {
+          for {
+            viewsJson <- ObpAPI.getViews(bank, account)
+          } yield {
+            viewsJson
           }
           
         }
@@ -295,7 +311,9 @@ class Boot extends Loggable{
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
           
-          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViews _ , x => List("")) 
+          Menu.params[(List[ViewJson])]("Views","Views Overview", getAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
+           
+          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountPermissions _ , x => List("")) 
           / "permissions" / "banks" / * / "accounts" / * / "create" ,
           
           Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,
