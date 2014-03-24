@@ -117,7 +117,10 @@ object ObpAPI extends Loggable {
     for {
       json <- ObpGet("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/views")
       viewsJson <- Box(json.extractOpt[ViewsJson])
-    } yield viewsJson.views.getOrElse(Nil)
+    } yield {
+      println("views:"+ viewsJson.views)
+      viewsJson.views.getOrElse(Nil)
+    }
   }
   
   def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
@@ -457,119 +460,181 @@ object ObpJson {
     }
   }
   case class BankJson(id: Option[String], 
-		  		  short_name: Option[String],
-		  		  full_name: Option[String],
-		  		  logo: Option[String],
-		  		  website: Option[String])
+    short_name: Option[String],
+    full_name: Option[String],
+    logo: Option[String],
+    website: Option[String])
 		  		  
   case class UserJson(id: Option[String],
-                      provider: Option[String],
-		  		      display_name: Option[String])
-  
+    provider: Option[String],
+    display_name: Option[String])
+
   case class AccountBalanceJson(currency: Option[String],
-		  					amount: Option[String])		  	
+    amount: Option[String])		  	
 	
-  //simplified version of what we actually get back from the api
-  case class ViewJson(id: Option[String],
-		  		  short_name: Option[String],
-		  		  description: Option[String],
-		  		  is_public: Option[Boolean])
+  class ViewJson(
+    val id: Option[String],
+    val short_name: Option[String],
+    val description: Option[String],
+    val is_public: Option[Boolean],
+    val which_alias_to_use: Option[String],
+    val hide_metadata_if_alias_used : Option[Boolean],
+    val can_see_transaction_this_bank_account : Option[Boolean],
+    val can_see_transaction_other_bank_account : Option[Boolean],
+    val can_see_transaction_metadata : Option[Boolean],
+    val can_see_transaction_label : Option[Boolean],
+    val can_see_transaction_amount : Option[Boolean],
+    val can_see_transaction_type : Option[Boolean],
+    val can_see_transaction_currency : Option[Boolean],
+    val can_see_transaction_start_date : Option[Boolean],
+    val can_see_transaction_finish_date : Option[Boolean],
+    val can_see_transaction_balance : Option[Boolean],
+    val can_see_comments : Option[Boolean],
+    val can_see_narrative : Option[Boolean],
+    val can_see_tags : Option[Boolean],
+    val can_see_images : Option[Boolean],
+    val can_see_bank_account_owners : Option[Boolean],
+    val can_see_bank_account_type : Option[Boolean],
+    val can_see_bank_account_balance : Option[Boolean],
+    val can_see_bank_account_currency : Option[Boolean],
+    val can_see_bank_account_label : Option[Boolean],
+    val can_see_bank_account_national_identifier : Option[Boolean],
+    val can_see_bank_account_swift_bic : Option[Boolean],
+    val can_see_bank_account_iban : Option[Boolean],
+    val can_see_bank_account_number : Option[Boolean],
+    val can_see_bank_account_bank_name : Option[Boolean],
+    val can_see_other_account_national_identifier : Option[Boolean],
+    val can_see_other_account_swift_bic : Option[Boolean],
+    val can_see_other_account_iban : Option[Boolean],
+    val can_see_other_account_bank_name : Option[Boolean],
+    val can_see_other_account_number : Option[Boolean],
+    val can_see_other_account_metadata : Option[Boolean],
+    val can_see_other_account_kind : Option[Boolean],
+    val can_see_more_info : Option[Boolean],
+    val can_see_url : Option[Boolean],
+    val can_see_image_url : Option[Boolean],
+    val can_see_open_corporates_url : Option[Boolean],
+    val can_see_corporate_location : Option[Boolean],
+    val can_see_physical_location : Option[Boolean],
+    val can_see_public_alias : Option[Boolean],
+    val can_see_private_alias : Option[Boolean],
+    val can_add_more_info : Option[Boolean],
+    val can_add_url : Option[Boolean],
+    val can_add_image_url : Option[Boolean],
+    val can_add_open_corporates_url : Option[Boolean],
+    val can_add_corporate_location : Option[Boolean],
+    val can_add_physical_location : Option[Boolean],
+    val can_add_public_alias : Option[Boolean],
+    val can_add_private_alias : Option[Boolean],
+    val can_delete_corporate_location : Option[Boolean],
+    val can_delete_physical_location : Option[Boolean],
+    val can_edit_narrative : Option[Boolean],
+    val can_add_comment : Option[Boolean],
+    val can_delete_comment : Option[Boolean],
+    val can_add_tag : Option[Boolean],
+    val can_delete_tag : Option[Boolean],
+    val can_add_image : Option[Boolean],
+    val can_delete_image : Option[Boolean],
+    val can_add_where_tag : Option[Boolean],
+    val can_see_where_tag : Option[Boolean],
+    val can_delete_where_tag : Option[Boolean]
+  )
 		  		  
   case class ViewsJson(views: Option[List[ViewJson]])
 		  		  
   case class AccountJson(id: Option[String],
-                     label: Option[String],
-		  			 number: Option[String],
-		  			 owners: Option[List[UserJson]],
-		  			 `type`: Option[String],
-		  			 balance: Option[AccountBalanceJson],
-		  			 IBAN : Option[String],
-		  			 views_available: Option[List[ViewJson]])
+    label: Option[String],
+    number: Option[String],
+    owners: Option[List[UserJson]],
+    `type`: Option[String],
+    balance: Option[AccountBalanceJson],
+    IBAN : Option[String],
+    views_available: Option[List[ViewJson]])
 		  			 
   case class BarebonesAccountsJson(accounts: Option[List[BarebonesAccountJson]])
   
   case class BarebonesAccountJson(id: Option[String],
-		  						  label: Option[String],
-		  						  views_available: Option[List[ViewJson]],
-		  						  bank_id: Option[String])
+    label: Option[String],
+    views_available: Option[List[ViewJson]],
+    bank_id: Option[String])
 		  						  
   case class HolderJson(name: Option[String],
-		  				is_alias : Option[Boolean])
+		is_alias : Option[Boolean])
 		  				
   //TODO: Can this go with BankJson?
   case class LightBankJson(national_identifier: Option[String],
-		  			  	   name: Option[String])
+    name: Option[String])
   
   case class ThisAccountJson(holders: Option[List[HolderJson]],
-		  					 number: Option[String],
-		  					 kind: Option[String],
-		  					 IBAN: Option[String],
-		  					 bank: Option[LightBankJson])
+    number: Option[String],
+    kind: Option[String],
+    IBAN: Option[String],
+    bank: Option[LightBankJson])
   
   case class LocationJson(latitude: Option[Double],
-		  						   longitude: Option[Double],
-		  						   date: Option[Date], //TODO: Check if the default date formatter is okay
-		  						   user: Option[UserJson])
-  
+    longitude: Option[Double],
+    date: Option[Date], //TODO: Check if the default date formatter is okay
+    user: Option[UserJson])
+
   case class OtherAccountMetadataJson(public_alias: Option[String],
-		  							  private_alias: Option[String],
-		  							  more_info: Option[String],
-		  							  URL: Option[String],
-		  							  image_URL: Option[String],
-		  							  open_corporates_URL: Option[String],
-		  							  corporate_location: Option[LocationJson],
-		  							  physical_location: Option[LocationJson])		  					 
-		  					 
+    private_alias: Option[String],
+    more_info: Option[String],
+    URL: Option[String],
+    image_URL: Option[String],
+    open_corporates_URL: Option[String],
+    corporate_location: Option[LocationJson],
+    physical_location: Option[LocationJson])		  					 
+
   //TODO: Why can't an other account have more than one holder?	  					 
   case class OtherAccountJson(id: Option[String],
-                              holder: Option[HolderJson],
-		  					  number: Option[String],
-		  					  kind: Option[String],
-		  					  IBAN: Option[String],
-		  					  bank: Option[LightBankJson],
-		  					  metadata: Option[OtherAccountMetadataJson])
-		  					  
+    holder: Option[HolderJson],
+    number: Option[String],
+    kind: Option[String],
+    IBAN: Option[String],
+    bank: Option[LightBankJson],
+    metadata: Option[OtherAccountMetadataJson])
+
   case class OtherAccountsJson(other_accounts: Option[List[OtherAccountJson]])
   
   case class TransactionValueJson(currency: Option[String],
-		  						  amount: Option[String])
+    amount: Option[String])
 		  					  
   case class TransactionDetailsJson(`type`: Option[String],
-		  							label: Option[String],
-		  							posted: Option[Date], //TODO: Check if the default date formatter is okay
-		  							completed: Option[Date], //TODO: Check if the default date formatter is okay
-		  							new_balance: Option[AccountBalanceJson],
-		  							value: Option[TransactionValueJson])	  					  
+    label: Option[String],
+    posted: Option[Date], //TODO: Check if the default date formatter is okay
+    completed: Option[Date], //TODO: Check if the default date formatter is okay
+    new_balance: Option[AccountBalanceJson],
+    value: Option[TransactionValueJson])	  					  
 		  					  
   case class TransactionCommentJson(id: Option[String],
-		  				 date: Option[Date], //TODO: Check if the default date formatter is okay
-		  				 value: Option[String],
-		  				 user: Option[UserJson],
-		  				 reply_to: Option[String])
+    date: Option[Date], //TODO: Check if the default date formatter is okay
+    value: Option[String],
+    user: Option[UserJson],
+    reply_to: Option[String])
   
   case class TransactionTagJson(id: Option[String],
-		  			 date: Option[Date], //TODO: Check if the default date formatter is okay
-		  			 value: Option[String],
-		  			 user: Option[UserJson])
+    date: Option[Date], //TODO: Check if the default date formatter is okay
+    value: Option[String],
+    user: Option[UserJson])
   
   case class TransactionImageJson(id: Option[String],
-		  						  label: Option[String],
-		  						  date: Option[Date], //TODO: Check if the default date formatter is okay
-		  						  URL: Option[String],
-		  						  user: Option[UserJson])
+    label: Option[String],
+    date: Option[Date], //TODO: Check if the default date formatter is okay
+    URL: Option[String],
+    user: Option[UserJson])
   
   case class TransactionMetadataJson(narrative: Option[String],
-		  							 comments: Option[List[TransactionCommentJson]],
-		  							 tags: Option[List[TransactionTagJson]],
-		  							 images: Option[List[TransactionImageJson]],
-		  							 where: Option[LocationJson])
+    comments: Option[List[TransactionCommentJson]],
+    tags: Option[List[TransactionTagJson]],
+    images: Option[List[TransactionImageJson]],
+    where: Option[LocationJson])
   
   case class TransactionJson(uuid: Option[String],
-		  					 id: Option[String],
-		  					 this_account: Option[ThisAccountJson],
-		  					 other_account: Option[OtherAccountJson],
-		  					 details: Option[TransactionDetailsJson],
-		  					 metadata: Option[TransactionMetadataJson]) {
+    id: Option[String],
+    this_account: Option[ThisAccountJson],
+    other_account: Option[OtherAccountJson],
+    details: Option[TransactionDetailsJson],
+    metadata: Option[TransactionMetadataJson]) {
     
     lazy val imageJsons : Option[List[TransactionImageJson]] = {
       metadata.flatMap(_.images)

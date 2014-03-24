@@ -30,8 +30,18 @@ Berlin 13359, Germany
 -->
 <div class="lift:surround?with=default;at=content">
 	<div class="views">
-		<div class="lift:ViewsOverview.showAll">
-			<p id="listedViews">this is where the view page will be</p>
+		<div>
+      <table id="view_table" class="view tablesorter">
+        <tbody>
+          <tr class="lift:ViewsOverview.showAll">
+            <td class="view_name" id="123" >A random view</td>
+            <td class="view_description">Description</td>
+            <td class="view_details"><a href="#">Details</a></td>
+            <td class="view_edit"><a href="#">Edit</a></td>
+            <td class="view_delete"><a href="#">Delete</a></td>
+          </tr>
+        </tbody>
+      </table>
 		</div>
 	</div>
 </div>

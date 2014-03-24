@@ -254,7 +254,7 @@ class Boot extends Loggable{
         }
       }
     
-    def getAccountPermissions(URLParameters: List[String]): Box[(List[ViewJson], AccountJson, PermissionsUrlParams)] = {
+    def getAccountViewsAndPermission(URLParameters: List[String]): Box[(List[ViewJson], AccountJson, PermissionsUrlParams)] = {
       if (URLParameters.length == 2) {
         val bank = URLParameters(0)
         val account = URLParameters(1)
@@ -312,8 +312,8 @@ class Boot extends Loggable{
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
           
           Menu.params[(List[ViewJson])]("Views","Views Overview", getAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
-           
-          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountPermissions _ , x => List("")) 
+   
+          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List("")) 
           / "permissions" / "banks" / * / "accounts" / * / "create" ,
           
           Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,
