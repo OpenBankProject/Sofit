@@ -287,6 +287,22 @@ class Boot extends Loggable{
       } else Empty
     }
 
+    def getCompleteAccountViews(URLParameters: List[String]): Box[(List[CompleteViewJson])] = {
+      if (URLParameters.length == 2) {
+        val bank = URLParameters(0)
+        val account = URLParameters(1)
+
+        logOrReturnResult {
+          for {
+            viewsJson <- ObpAPI.getCompleteViews(bank, account)
+          } yield {
+            viewsJson
+          }
+          
+        }
+      } else Empty
+    }
+
     def getPermissions(URLParameters: List[String]): Box[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)] = {
       if (URLParameters.length == 2) {
         val bank = URLParameters(0)
@@ -311,7 +327,7 @@ class Boot extends Loggable{
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
           
-          Menu.params[(List[ViewJson])]("Views","Views Overview", getAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
+          Menu.params[(List[CompleteViewJson])]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
    
           Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List("")) 
           / "permissions" / "banks" / * / "accounts" / * / "create" ,

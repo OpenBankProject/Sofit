@@ -112,14 +112,26 @@ object ObpAPI extends Loggable {
   def getPermissions(bankId: String, accountId : String) : Box[PermissionsJson] = {
     ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
   }
-  
+
   def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
     for {
       json <- ObpGet("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/views")
       viewsJson <- Box(json.extractOpt[ViewsJson])
+    } yield viewsJson.views.getOrElse(Nil)
+  }
+
+  def getCompleteViews(bankId: String, accountId: String) : Box[List[CompleteViewJson]] = {
+    for {
+      json <- ObpGet("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/views")
     } yield {
-      println("views:"+ viewsJson.views)
-      viewsJson.views.getOrElse(Nil)
+      json \ "views" match {
+        case JArray(l) => l.map(viewJson => 
+          viewJson.values match{
+            case vals: Map[String, Any] => CompleteViewJson(vals)
+            case _ => CompleteViewJson(Map.empty)
+          })
+        case _ => Nil
+      }
     }
   }
   
@@ -472,75 +484,36 @@ object ObpJson {
   case class AccountBalanceJson(currency: Option[String],
     amount: Option[String])		  	
 	
-  class ViewJson(
-    val id: Option[String],
-    val short_name: Option[String],
-    val description: Option[String],
-    val is_public: Option[Boolean],
-    val which_alias_to_use: Option[String],
-    val hide_metadata_if_alias_used : Option[Boolean],
-    val can_see_transaction_this_bank_account : Option[Boolean],
-    val can_see_transaction_other_bank_account : Option[Boolean],
-    val can_see_transaction_metadata : Option[Boolean],
-    val can_see_transaction_label : Option[Boolean],
-    val can_see_transaction_amount : Option[Boolean],
-    val can_see_transaction_type : Option[Boolean],
-    val can_see_transaction_currency : Option[Boolean],
-    val can_see_transaction_start_date : Option[Boolean],
-    val can_see_transaction_finish_date : Option[Boolean],
-    val can_see_transaction_balance : Option[Boolean],
-    val can_see_comments : Option[Boolean],
-    val can_see_narrative : Option[Boolean],
-    val can_see_tags : Option[Boolean],
-    val can_see_images : Option[Boolean],
-    val can_see_bank_account_owners : Option[Boolean],
-    val can_see_bank_account_type : Option[Boolean],
-    val can_see_bank_account_balance : Option[Boolean],
-    val can_see_bank_account_currency : Option[Boolean],
-    val can_see_bank_account_label : Option[Boolean],
-    val can_see_bank_account_national_identifier : Option[Boolean],
-    val can_see_bank_account_swift_bic : Option[Boolean],
-    val can_see_bank_account_iban : Option[Boolean],
-    val can_see_bank_account_number : Option[Boolean],
-    val can_see_bank_account_bank_name : Option[Boolean],
-    val can_see_other_account_national_identifier : Option[Boolean],
-    val can_see_other_account_swift_bic : Option[Boolean],
-    val can_see_other_account_iban : Option[Boolean],
-    val can_see_other_account_bank_name : Option[Boolean],
-    val can_see_other_account_number : Option[Boolean],
-    val can_see_other_account_metadata : Option[Boolean],
-    val can_see_other_account_kind : Option[Boolean],
-    val can_see_more_info : Option[Boolean],
-    val can_see_url : Option[Boolean],
-    val can_see_image_url : Option[Boolean],
-    val can_see_open_corporates_url : Option[Boolean],
-    val can_see_corporate_location : Option[Boolean],
-    val can_see_physical_location : Option[Boolean],
-    val can_see_public_alias : Option[Boolean],
-    val can_see_private_alias : Option[Boolean],
-    val can_add_more_info : Option[Boolean],
-    val can_add_url : Option[Boolean],
-    val can_add_image_url : Option[Boolean],
-    val can_add_open_corporates_url : Option[Boolean],
-    val can_add_corporate_location : Option[Boolean],
-    val can_add_physical_location : Option[Boolean],
-    val can_add_public_alias : Option[Boolean],
-    val can_add_private_alias : Option[Boolean],
-    val can_delete_corporate_location : Option[Boolean],
-    val can_delete_physical_location : Option[Boolean],
-    val can_edit_narrative : Option[Boolean],
-    val can_add_comment : Option[Boolean],
-    val can_delete_comment : Option[Boolean],
-    val can_add_tag : Option[Boolean],
-    val can_delete_tag : Option[Boolean],
-    val can_add_image : Option[Boolean],
-    val can_delete_image : Option[Boolean],
-    val can_add_where_tag : Option[Boolean],
-    val can_see_where_tag : Option[Boolean],
-    val can_delete_where_tag : Option[Boolean]
-  )
-		  		  
+    //simplified version of what we actually get back from the api
+  case class ViewJson(
+    id: Option[String],
+    short_name: Option[String],
+    description: Option[String],
+    is_public: Option[Boolean])
+            
   case class ViewsJson(views: Option[List[ViewJson]])
+
+  case class CompleteViewJson(json: Map[String, Any]){
+    val id: Option[String] = json.get("id") match {
+      case s:Some[String] => s
+      case _ => None
+    }
+
+    val shortName: Option[String] = json.get("short_name") match {
+      case s:Some[String] => s
+      case _ => None
+    }
+
+    val description: Option[String] = json.get("description") match {
+      case s:Some[String] => s
+      case _ => None
+    }
+
+    val isPublic: Option[Boolean] = json.get("is_public") match {
+      case b:Some[Boolean] => b
+      case _ => None
+    }
+  }
 		  		  
   case class AccountJson(id: Option[String],
     label: Option[String],

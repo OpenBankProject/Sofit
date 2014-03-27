@@ -3,26 +3,23 @@ package code.snippet
 import net.liftweb.util.Helpers._
 import scala.xml.NodeSeq
 
-import code.lib.ObpJson.ViewJson
+import code.lib.ObpJson.CompleteViewJson
 
-class ViewsOverview(views : List[ViewJson]) {
+class ViewsOverview(views : List[CompleteViewJson]) {
 
-	def showAll(xhtml: NodeSeq) : NodeSeq = {
-		"#listedViews" #> views.toString()
+	def showAll(xhtml: NodeSeq) : NodeSeq ={
 
 		views.flatMap {
 		  view => {
-		    val id = view.id.getOrElse("")
-		    val short_name = view.short_name.getOrElse("")
-		    val description = view.description.getOrElse("")
+		    val id = view.id
+		    val shortName = view.shortName
+		    val description = view.description
 
 				val viewId = ".view_name [id]" #> id
-				val viewShortName = ".view_name *" #> short_name
-        val viewDescription = ".view_description *" #> description
+				val viewShortName = ".view_name *" #> shortName
+    		val viewDescription = ".view_description *" #> description
 
-       (viewId &
-        viewShortName &
-        viewDescription).apply(xhtml)
+    	 (viewId & viewShortName & viewDescription).apply(xhtml)
 		  }
     }
 	}
