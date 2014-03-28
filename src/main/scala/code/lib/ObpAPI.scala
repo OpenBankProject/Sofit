@@ -519,12 +519,9 @@ object ObpJson {
       case _ => None
     }
 
-    val permissions = json
-      .filterNot(_.key == "id")
-      .filterNot(_.key == "short_name")
-      .filterNot(_.key == "alias")
-      .filterNot(_.key == "description")
-      .filterNot(_.key == "is_public")
+    val booleans = json.collect{ case (s: String, b: Boolean) => (s,b)}
+
+    val permissions = booleans.filterNot(_.key == "is_public")
   }
 		  		  
   case class AccountJson(id: Option[String],

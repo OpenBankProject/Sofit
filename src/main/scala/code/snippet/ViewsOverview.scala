@@ -2,18 +2,17 @@ package code.snippet
 
 import net.liftweb.util.Helpers._
 import scala.xml.NodeSeq
-import net.liftweb.util.CssSel
-import net.liftweb.mapper.By
 
 import code.lib.ObpJson.CompleteViewJson
+import net.liftweb.util.CssSel
 
 
 class ViewsOverview(views : List[CompleteViewJson]) {
 
   def getTableContent(xhtml: NodeSeq) :NodeSeq = {
 
-    val permissionsCollection: List[Map[String, Any]] = views.map(view => view.permissions)
-    val permissions: Map[String, Any] = permissionsCollection(0)
+    val permissionsCollection: List[Map[String, Boolean]] = views.map(view => view.permissions)
+    val permissions: Map[String, Boolean] = permissionsCollection(0)
 
     val viewNames = getShortNames()
     val viewNameSel     = ".view_name *"    #> viewNames
@@ -47,11 +46,37 @@ class ViewsOverview(views : List[CompleteViewJson]) {
       views.map( view => view.description.getOrElse(""))
     }
 
-    def getIfIsPublic() :List[String] = {
-      views.map( view => view.isPublic.getOrElse("").toString())
+    def getIfIsPublic() :List[CssSel] = {
+      views.map(
+        view => {
+          val isPublic = view.isPublic.getOrElse(false)
+          val checkBox =
+            if(isPublic)
+              ".is_public_cb [checked]" #> "checked"
+            else
+              ".is_public_cb [name]" #> "is_public"
+          checkBox
+        }
+      )
     }
 
-    def getPermissionValues(permName: String) :List[String] = {
-      views.map( view => view.permissions(permName).toString())
+    def getPermissionValues(permName: String) :List[CssSel] = {
+      views.map(
+        view => {
+          val permValue: Boolean = view.permissions(permName)
+          val checkBox =
+            if(permValue){
+              ".permission_value_cb [checked]" #> "checked" &
+               ".permission_value_cb [value]" #> permName &
+               ".permission_value_cb [name]" #> permName
+            }
+            else{
+              ".permission_value_cb [value]" #> permName &
+               ".permission_value_cb [name]" #> permName
+            }
+
+          checkBox
+        }
+      )
     }
   }
