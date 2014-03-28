@@ -29,19 +29,38 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 -->
 <div class="lift:surround?with=default;at=content">
-	<div class="views">
-		<div>
-      <table id="view_table" class="view tablesorter">
+  <div class="views">
+    <div>
+      <table class="lift:ViewsOverview.getTableContent" id="view_table">
+        <thead>
+          <tr class="view_head">
+            <th class="view_permissions">Permissons</th>
+            <th class="view_name" id="123">View name</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr class="lift:ViewsOverview.showAll">
-            <td class="view_name" id="123" >A random view</td>
-            <td class="view_description">Description</td>
-            <td class="view_details"><a href="#">Details</a></td>
-            <td class="view_edit"><a href="#">Edit</a></td>
-            <td class="view_delete"><a href="#">Delete</a></td>
+          <tr class="short_name_head">
+            <td>Short name</td>
+            <td class="short_name">View short name</td>
+          </tr>
+          <tr class="alias_head">
+            <td>Alias</td>
+            <td class="alias">no alias</td>
+          </tr>
+          <tr class="description_head">
+            <td>Description</td>
+            <td class="description">description</td>
+          </tr>
+          <tr class="is_public_head">
+            <td>Is public</td>
+            <td class="is_public"></td>
+          </tr>
+          <tr class="permissions">
+            <td class="permission_name">Permission name</td>
+            <td class="permission_value"></td>
           </tr>
         </tbody>
       </table>
-		</div>
-	</div>
+    </div>
+  </div>
 </div>

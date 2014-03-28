@@ -504,6 +504,11 @@ object ObpJson {
       case _ => None
     }
 
+    val alias: Option[String] = json.get("alias") match {
+      case s:Some[String] => s
+      case _ => None
+    }
+
     val description: Option[String] = json.get("description") match {
       case s:Some[String] => s
       case _ => None
@@ -513,6 +518,13 @@ object ObpJson {
       case b:Some[Boolean] => b
       case _ => None
     }
+
+    val permissions = json
+      .filterNot(_.key == "id")
+      .filterNot(_.key == "short_name")
+      .filterNot(_.key == "alias")
+      .filterNot(_.key == "description")
+      .filterNot(_.key == "is_public")
   }
 		  		  
   case class AccountJson(id: Option[String],
