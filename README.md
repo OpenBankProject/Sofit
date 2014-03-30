@@ -2,7 +2,7 @@ Welcome to the Open Bank Project Social Finance !
 
 # ABOUT
 
-This appliation demostrates some of the principles of the Open Bank Project:
+This appliation demonstrates some of the principles of the Open Bank Project:
 
 1) Sliding scale of privacy and disclosure. e.g. Use aliases to protect real names but still show the flow of money .
 2) Different views on account data (Public / Share holders / Team etc.) e.g. hide balances on public view.
