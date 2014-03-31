@@ -877,3 +877,16 @@ a.otherAccountLinkForAlias{
 	margin-top: 10px;
 	margin-bottom: 20px;
 }
+
+
+/* views */
+td.delete, td.edit{
+  color: #1C8B77;
+  text-decoration: underline;
+}
+td.delete:hover, td.edit:hover{
+  cursor: pointer;
+}
+#view_table td{
+
+}

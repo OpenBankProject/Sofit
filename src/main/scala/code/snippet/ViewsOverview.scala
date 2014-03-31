@@ -14,12 +14,14 @@ class ViewsOverview(views : List[CompleteViewJson]) {
     val permissionsCollection: List[Map[String, Boolean]] = views.map(view => view.permissions)
     val permissions: Map[String, Boolean] = permissionsCollection(0)
 
-    val viewNames = getShortNames()
-    val viewNameSel     = ".view_name *"    #> viewNames
-    val shortNamesSel   = ".short_name *"   #> viewNames
-    val aliasSel        = ".alias *"        #> getAliases()
-    val descriptionSel  = ".description *"  #> getDescriptions()
-    val isPublicSel     = ".is_public *"    #> getIfIsPublic()
+    val ids = getIds()
+    val viewNameSel     = ".view_name *"      #> views.map( view => view.shortName.getOrElse(""))
+    val shortNamesSel   = ".short_name"       #> views.map( view => "* *" #> view.shortName.getOrElse("") & "* [data-viewid]" #> view.id )
+    val aliasSel        = ".alias"            #> views.map( view => "* *" #> view.alias.getOrElse("") & "* [data-viewid]" #> view.id )
+    val descriptionSel  = ".description"      #> views.map( view => "* *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
+    val isPublicSel     = ".is_public *"      #> getIfIsPublic()
+    val addDeleteSel    = ".delete"           #> ids.map(x => "* [data-id]" #> x)
+    val addEditSel      = ".edit"             #> ids.map(x => "* [data-id]" #> x)
 
     val permissionNames = permissions.keys
     val permSel = ".permissions *" #>
@@ -29,32 +31,30 @@ class ViewsOverview(views : List[CompleteViewJson]) {
           ".permission_value *" #> getPermissionValues(permName)
         }
       )
-
-      (viewNameSel & shortNamesSel & aliasSel & descriptionSel & isPublicSel & permSel).apply(xhtml)
+      (viewNameSel & shortNamesSel & aliasSel & descriptionSel & isPublicSel & permSel & addDeleteSel & addEditSel).apply(xhtml)
      }
 
-
-    def getShortNames() :List[String] = {
-      views.map( view => view.shortName.getOrElse(""))
+    def getIds(): List[String] = {
+      views.map( view => view.id.getOrElse(""))
     }
 
-    def getAliases() :List[String] = {
-     views.map( view => view.alias.getOrElse(""))
-    }
-
-    def getDescriptions() :List[String] = {
-      views.map( view => view.description.getOrElse(""))
-    }
 
     def getIfIsPublic() :List[CssSel] = {
       views.map(
         view => {
           val isPublic = view.isPublic.getOrElse(false)
-          val checkBox =
+          val viewId: String = view.id.getOrElse("")
+          val checked =
             if(isPublic)
-              ".is_public_cb [checked]" #> "checked"
-            else
-              ".is_public_cb [name]" #> "is_public"
+              ".is_public_cb [checked]" #> "checked" &
+               ".is_public_cb [disabled]" #> "disabled"
+          else
+              ".is_public_cb [disabled]" #> "disabled"
+
+          val checkBox =
+            checked &
+              ".is_public_cb [data-viewid]" #> viewId
+
           checkBox
         }
       )
@@ -64,16 +64,20 @@ class ViewsOverview(views : List[CompleteViewJson]) {
       views.map(
         view => {
           val permValue: Boolean = view.permissions(permName)
-          val checkBox =
+          val viewId: String = view.id.getOrElse("")
+          val checked =
             if(permValue){
               ".permission_value_cb [checked]" #> "checked" &
-               ".permission_value_cb [value]" #> permName &
-               ".permission_value_cb [name]" #> permName
+              ".permission_value_cb [disabled]" #> "disabled"
             }
-            else{
-              ".permission_value_cb [value]" #> permName &
-               ".permission_value_cb [name]" #> permName
-            }
+            else
+              ".permission_value_cb [disabled]" #> "disabled"
+
+          val checkBox =
+            checked &
+            ".permission_value_cb [value]" #> permName &
+            ".permission_value_cb [name]" #> permName &
+            ".permission_value_cb [data-viewid]" #> viewId
 
           checkBox
         }
