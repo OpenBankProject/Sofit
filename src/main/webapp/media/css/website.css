@@ -880,13 +880,19 @@ a.otherAccountLinkForAlias{
 
 
 /* views */
-td.delete, td.edit{
+td.action{
   color: #1C8B77;
   text-decoration: underline;
 }
-td.delete:hover, td.edit:hover{
+td.action:hover{
   cursor: pointer;
 }
-#view_table td{
 
+tr.save_head, tr.cancel_head{
+  display: none;
 }
+
+td.main-attributes{
+  font-weight: bold;
+}
+

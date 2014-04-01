@@ -22,6 +22,8 @@ class ViewsOverview(views : List[CompleteViewJson]) {
     val isPublicSel     = ".is_public *"      #> getIfIsPublic()
     val addDeleteSel    = ".delete"           #> ids.map(x => "* [data-id]" #> x)
     val addEditSel      = ".edit"             #> ids.map(x => "* [data-id]" #> x)
+    val addSaveSel      = ".save"             #> ids.map(x => "* [data-id]" #> x)
+    val addCancelSel    = ".cancel"           #> ids.map(x => "* [data-id]" #> x)
 
     val permissionNames = permissions.keys
     val permSel = ".permissions *" #>
@@ -31,7 +33,7 @@ class ViewsOverview(views : List[CompleteViewJson]) {
           ".permission_value *" #> getPermissionValues(permName)
         }
       )
-      (viewNameSel & shortNamesSel & aliasSel & descriptionSel & isPublicSel & permSel & addDeleteSel & addEditSel).apply(xhtml)
+      (viewNameSel & shortNamesSel & aliasSel & descriptionSel & isPublicSel & permSel & addDeleteSel & addEditSel & addSaveSel & addCancelSel).apply(xhtml)
      }
 
     def getIds(): List[String] = {
