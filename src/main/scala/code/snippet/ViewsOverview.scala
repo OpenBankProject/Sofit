@@ -5,11 +5,49 @@ import scala.xml.NodeSeq
 
 import code.lib.ObpJson.CompleteViewJson
 import net.liftweb.util.CssSel
+import net.liftweb.http.SHtml
+import net.liftweb.json.JsonAST.JValue
+import net.liftweb.json._
+import net.liftweb.http.js.JsCmds.Alert
+import net.liftweb.common.Box
+import code.lib.ObpAPI
+
+case class ViewUpdateData(
+  viewId: String,
+  updateJson: JValue
+)
+
+case class ViewsDataJSON(
+   views: List[CompleteViewJson],
+   bankId: String,
+   accountId: String
+)
 
 
-class ViewsOverview(views : List[CompleteViewJson]) {
+class ViewsOverview(viewsDataJson: ViewsDataJSON) {
+  val views = viewsDataJson.views
 
   def getTableContent(xhtml: NodeSeq) :NodeSeq = {
+
+    def saveOnClick(viewId : String): CssSel = {
+      import net.liftweb.http.js.JE.{Call,Str}
+      implicit val formats = DefaultFormats
+
+      "* [onclick]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
+        val result: Box[Unit] = for{
+          data <- tryo{parse(callResult).extract[ViewUpdateData]}
+          response <- ObpAPI.updateView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
+        } yield{
+          response
+        }
+        if(result.isDefined){
+          Alert("Yay!")
+        }
+        else{
+          Alert(result.toString())
+        }
+      })
+    }
 
     val permissionsCollection: List[Map[String, Boolean]] = views.map(view => view.permissions)
     val permissions: Map[String, Boolean] = permissionsCollection(0)
@@ -22,8 +60,9 @@ class ViewsOverview(views : List[CompleteViewJson]) {
     val isPublicSel     = ".is_public *"      #> getIfIsPublic()
     val addDeleteSel    = ".delete"           #> ids.map(x => "* [data-id]" #> x)
     val addEditSel      = ".edit"             #> ids.map(x => "* [data-id]" #> x)
-    val addSaveSel      = ".save"             #> ids.map(x => "* [data-id]" #> x)
+    val addSaveSel      = ".save"             #> ids.map(x => ("* [data-id]" #> x) & saveOnClick(x))
     val addCancelSel    = ".cancel"           #> ids.map(x => "* [data-id]" #> x)
+
 
     val permissionNames = permissions.keys
     val permSel = ".permissions *" #>
@@ -33,7 +72,17 @@ class ViewsOverview(views : List[CompleteViewJson]) {
           ".permission_value *" #> getPermissionValues(permName)
         }
       )
-      (viewNameSel & shortNamesSel & aliasSel & descriptionSel & isPublicSel & permSel & addDeleteSel & addEditSel & addSaveSel & addCancelSel).apply(xhtml)
+      (viewNameSel &
+        shortNamesSel &
+        aliasSel &
+        descriptionSel &
+        isPublicSel &
+        permSel &
+        addDeleteSel &
+        addEditSel &
+        addSaveSel &
+        addCancelSel
+        ).apply(xhtml)
      }
 
     def getIds(): List[String] = {

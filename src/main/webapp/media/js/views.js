@@ -2,14 +2,14 @@ $(document).ready(function(){
 
   /* clicking on delete: if confirmed delete and reload the page, else nothing */
   $(".delete").click(function(){
-    $doDelete = confirm("You want to delete the view \""+$(this).attr("data-id")+"\"?")
-    if($doDelete)
+    var doDelete = confirm("You want to delete the view \""+$(this).attr("data-id")+"\"?")
+    if(doDelete)
         console.log("ok, delete \""+$(this).attr("data-id")+"\" and reload the page.")
   });
 
   /* clicking on edit: change view to edit mode for selected view */
   $(".edit").click(function(){
-    $viewId = $(this).attr("data-id")
+    var $viewId = $(this).attr("data-id")
 
     /* permissions and is public checkboxes get activated */
     $(".permission_value_cb").each(function(i){
@@ -24,6 +24,14 @@ $(document).ready(function(){
       }
     })
 
+    /* make Save / Cancel / Delete unclickable for not selected columns */
+    var $actionButtons = $(".action")
+    for(i=0; i<$actionButtons.length; i++){
+        var $action = $($actionButtons[i])
+        if($action.attr("data-id") != $viewId)
+            $action.removeAttr("onclick").css("color", "grey").css("cursor", "default")
+    }
+
     /* edit button disappears, save and cancel button appear */
     $(".edit_head").hide();
     $(".save_head").show();
@@ -32,7 +40,7 @@ $(document).ready(function(){
     /* description become editable */
     $(".description").each(function(i){
       if($(this).attr("data-viewid") == $viewId){
-        $content = $(this).html()
+        var $content = $(this).html()
         $(this).html("<input type='text' value='"+$content+"'>")
       }
     })
@@ -40,7 +48,7 @@ $(document).ready(function(){
     /* alias field will become a select box */
     $(".alias").each(function(i){
       if($(this).attr("data-viewid") == $viewId){
-        $content = $(this).html()
+        var $content = $(this).html()
         $(this).html(
           "<select id='selectAlias'>"+getOptions()+"</option></select>"
         )
@@ -49,36 +57,44 @@ $(document).ready(function(){
     })
 
    function getOptions () {
-      $aliasOptions = new Array("public", "private", "")
-      $option = ""
-      for($a in $aliasOptions){
-       $option += "<option value='"+$aliasOptions[$a]+"'>"+$aliasOptions[$a]+"</option>"
+      var aliasOptions = new Array("public", "private", "")
+      var option = ""
+      for(a in aliasOptions){
+       var alias = aliasOptions[a]
+       option += "<option value='"+alias+"'>"+alias+"</option>"
       }
-      return $option
+      return option
    };
 
   });
 
-  /* clicking on save: save changes and reload the page */
-    $(".save").click(function(){
-        $viewId = $(this).attr("data-id")
-        console.log("Save changes for view '"+$viewId+"' and reload the page.")
-        console.log("description: "+$(".description input").val())
-        console.log("alias: "+$(".alias select").val())
-        console.log("is_public: "+$(".is_public_cb").is(':checked'))
-        $permissionObjects = $("input.permission_value_cb")
-        for($p in $permissionObjects){
-            if($($permissionObjects[$p]).attr("data-viewid") == $viewId){
-               console.log($($permissionObjects[$p]).attr("name")+": "+$($permissionObjects[$p]).is(':checked'))
-            }
-        }
-        console.log("Then reload the page.")
-    });
-
     /* clicking on cancel: reload the page */
     $(".cancel").click(function(){
-        $viewId = $(this).attr("data-id")
         location.reload();
     });
 
 })
+
+/* clicking on save: save changes and reload the page */
+    var collectData = function(viewId){
+        var saveJson = new Object();
+        saveJson.viewId = viewId;
+        var viewData = new Object();
+        viewData.description = $(".description input").val();
+        viewData.which_alias_to_use = $(".alias select").val();
+        viewData.is_public = $(".is_public_cb").is(':checked');
+
+        var $permissions = $("input.permission_value_cb");
+        var allowedActions = new Array();
+        for(i=0; i < $permissions.length; i++){
+            var $permission = $($permissions[i])
+            if($permission.attr("data-viewid") == viewId && $permission.is(':checked')){
+               allowedActions.push($permission.attr("name"));
+            }
+        }
+        viewData.allowed_actions = allowedActions;
+        saveJson.updateJson = viewData;
+        return JSON.stringify(saveJson);
+    //  console.log("Then reload the page.")
+    };
+

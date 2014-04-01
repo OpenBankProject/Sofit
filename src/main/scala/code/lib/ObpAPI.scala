@@ -198,6 +198,13 @@ object ObpAPI extends Loggable {
       "/transactions/" + urlEncode(transactionId) + "/metadata/images/" + urlEncode(imageId)
     ObpDelete(deleteImageUrl)
   }
+
+
+  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
+    for {
+      response <- ObpPut("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
+    } yield Unit
+  }
 }
 
 case class ObpError(error :String)
