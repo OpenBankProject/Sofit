@@ -92,10 +92,60 @@ $(document).ready(function(){
     $(".cancel").on("click", function(){
         window.location.reload();
     });
+    
+    $(".save").on("click", function(){
+    	var $this = $(this);
+    	var viewId = $this.attr("data-id")
 
+    	//removes the alias dropdown and replaces it with the text of the previously selected option
+    	$(".alias").each(function(i){
+    		var $alias = $(this);
+    		if($alias.attr("data-viewid") === viewId){
+    			var aliasName = $alias.find(":selected").val();
+    			$alias.html(aliasName)
+    		}
+    	});
+    	
+    	//show the description again and hide the description input
+    	$(".description").each(function(i){
+    		var $description = $(this);
+    		if($description.attr("data-viewid") === viewId){
+    			var $descInput = $description.find(".desc_input")
+    			var newDescription = $descInput.val();
+    			$descInput.hide();
+    			
+    			var $desc = $description.find(".desc");
+    			$desc.text(newDescription);
+    			$desc.show();
+    		}
+    	});
+    	
+    	/* permissions and is public checkboxes get deactivated */
+        $(".permission_value_cb").each(function(i){
+          if($(this).attr("data-viewid") === viewId){
+            $(this).attr("disabled", "disabled")
+          }
+        })
+
+        $(".is_public_cb").each(function(i){
+          if($(this).attr("data-viewid") === viewId){
+        	  $(this).attr("disabled", "disabled")
+          }
+        })
+
+        /* make Save / Cancel / Delete clickable for not selected columns */
+        var $actionButtons = $(".action");
+        for(i=0; i<$actionButtons.length; i++){
+            var $action = $($actionButtons[i]);
+            $action.removeAttr("disabled");
+        }
+    	
+    	/* edit button appears, save and cancel button disappear */
+        $(".edit_head").show();
+        $(".cancel_head, .save_head").hide();
+    });
 })
 
-/* clicking on save: save changes and reload the page */
     var collectData = function(viewId){
         var saveJson = new Object();
         saveJson.viewId = viewId;
