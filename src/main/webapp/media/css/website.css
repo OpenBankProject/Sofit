@@ -894,6 +894,7 @@ tr.save_head, tr.cancel_head{
 
 td.main-attributes{
   font-weight: bold;
+  font-size: 18px;
 }
 
 .advanced-option {
