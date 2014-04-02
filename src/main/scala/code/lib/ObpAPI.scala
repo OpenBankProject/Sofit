@@ -502,27 +502,27 @@ object ObpJson {
 
   case class CompleteViewJson(json: Map[String, Any]){
     val id: Option[String] = json.get("id") match {
-      case s:Some[String] => s
+      case Some(s : String) => Some(s)
       case _ => None
     }
 
     val shortName: Option[String] = json.get("short_name") match {
-      case s:Some[String] => s
+      case Some(s : String) => Some(s)
       case _ => None
     }
 
     val alias: Option[String] = json.get("alias") match {
-      case s:Some[String] => s
+      case Some(s : String) => Some(s)
       case _ => None
     }
 
     val description: Option[String] = json.get("description") match {
-      case s:Some[String] => s
+      case Some(s : String) => Some(s)
       case _ => None
     }
 
     val isPublic: Option[Boolean] = json.get("is_public") match {
-      case b:Some[Boolean] => b
+      case Some(b : Boolean) => Some(b)
       case _ => None
     }
 
