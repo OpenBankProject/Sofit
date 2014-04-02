@@ -898,7 +898,7 @@ td.main-attributes{
 }
 
 .advanced-option {
-  visibility: hidden;
+  display: none;
 }
 
 #view-edit-advanced-options {

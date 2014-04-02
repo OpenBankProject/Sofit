@@ -1,18 +1,19 @@
 $(document).ready(function(){
-
+	
   $('#view-edit-advanced-options').click(function(){
 	  var thisButton = $(this)
+	  var showButtonText = "Show advanced options"
 	  
-	  if(thisButton.text() === "Show advanced options") {
+	  if(thisButton.text() === showButtonText) {
 		  
-		  $('.advanced-option').css("visibility", "visible")
+		  $('.advanced-option').show();
 		  
 		  thisButton.text("Hide advanced options");
 	  } else {
 		  
-		  $('.advanced-option').css("visibility", "hidden")
+		  $('.advanced-option').hide();
 		  
-		  thisButton.text("Show advanced options");
+		  thisButton.text(showButtonText);
 	  }
   })
 
