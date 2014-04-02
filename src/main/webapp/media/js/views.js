@@ -66,7 +66,7 @@ $(document).ready(function(){
     })
 
    function getOptions () {
-      var aliasOptions = new Array("public", "private", "")
+      var aliasOptions = new Array("public", "private", "none (display real names only)")
       var option = ""
       for(a in aliasOptions){
        var alias = aliasOptions[a]

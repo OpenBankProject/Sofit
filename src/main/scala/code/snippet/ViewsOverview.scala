@@ -52,10 +52,18 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
     val permissionsCollection: List[Map[String, Boolean]] = views.map(view => view.permissions)
     val permissions: Map[String, Boolean] = permissionsCollection(0)
 
+    def aliasType(typeInJson : Option[String]) = {
+      typeInJson match {
+        case Some("") => "none (display real names only)"
+        case Some(s) => s
+        case _ => ""
+      }
+    }
+    
     val ids = getIds()
     val viewNameSel     = ".view_name *"      #> views.map( view => view.shortName.getOrElse(""))
     val shortNamesSel   = ".short_name"       #> views.map( view => "* *" #> view.shortName.getOrElse("") & "* [data-viewid]" #> view.id )
-    val aliasSel        = ".alias"            #> views.map( view => "* *" #> view.alias.getOrElse("") & "* [data-viewid]" #> view.id )
+    val aliasSel        = ".alias"            #> views.map( view => "* *" #> aliasType(view.alias) & "* [data-viewid]" #> view.id )
     val descriptionSel  = ".description"      #> views.map( view => "* *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
     val isPublicSel     = ".is_public *"      #> getIfIsPublic()
     val addDeleteSel    = ".delete"           #> ids.map(x => "* [data-id]" #> x)
