@@ -2,7 +2,6 @@ package code.snippet
 
 import net.liftweb.util.Helpers._
 import scala.xml.NodeSeq
-
 import code.lib.ObpJson.CompleteViewJson
 import net.liftweb.util.CssSel
 import net.liftweb.http.SHtml
@@ -11,6 +10,7 @@ import net.liftweb.json._
 import net.liftweb.http.js.JsCmds.Alert
 import net.liftweb.common.Box
 import code.lib.ObpAPI
+import net.liftweb.http.S
 
 case class ViewUpdateData(
   viewId: String,
@@ -41,10 +41,12 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
           response
         }
         if(result.isDefined){
-          Alert("Yay!")
+          val msg = "View " + viewId + " has been updated"
+          Call("socialFinanceNotificiations.notify", msg).cmd
         }
         else{
-          Alert(result.toString())
+          val msg = "Error updating view"
+          Call("socialFinanceNotificiations.notifyError", msg).cmd
         }
       })
     }
