@@ -80,9 +80,9 @@ $(document).ready(function(){
         var saveJson = new Object();
         saveJson.viewId = viewId;
         var viewData = new Object();
-        viewData.description = $(".description input").val();
-        viewData.which_alias_to_use = $(".alias select").val();
-        viewData.is_public = $(".is_public_cb").is(':checked');
+        viewData.description = $(".description[data-viewId=" + viewId + "] input").val();
+        viewData.which_alias_to_use = $(".alias[data-viewId=" + viewId + "] select").val();
+        viewData.is_public = $(".is_public_cb[data-viewId=" + viewId + "]").is(':checked');
 
         var $permissions = $("input.permission_value_cb");
         var allowedActions = new Array();
