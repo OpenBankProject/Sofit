@@ -33,7 +33,8 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
       import net.liftweb.http.js.JE.{Call,Str}
       implicit val formats = DefaultFormats
 
-      "* [onclick]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
+      ".save-button [data-id]" #> viewId &
+      ".save-button [onclick]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
         val result: Box[Unit] = for{
           data <- tryo{parse(callResult).extract[ViewUpdateData]}
           response <- ObpAPI.updateView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
