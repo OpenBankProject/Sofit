@@ -896,3 +896,11 @@ td.main-attributes{
   font-weight: bold;
 }
 
+.advanced-option {
+  visibility: hidden;
+}
+
+#view-edit-advanced-options {
+  margin: 10px;
+}
+

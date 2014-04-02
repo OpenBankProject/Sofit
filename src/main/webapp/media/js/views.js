@@ -1,11 +1,20 @@
 $(document).ready(function(){
 
-  /* clicking on delete: if confirmed delete and reload the page, else nothing */
-  $(".delete").click(function(){
-    var doDelete = confirm("You want to delete the view \""+$(this).attr("data-id")+"\"?")
-    if(doDelete)
-        console.log("ok, delete \""+$(this).attr("data-id")+"\" and reload the page.")
-  });
+  $('#view-edit-advanced-options').click(function(){
+	  var thisButton = $(this)
+	  
+	  if(thisButton.text() === "Show advanced options") {
+		  
+		  $('.advanced-option').css("visibility", "visible")
+		  
+		  thisButton.text("Hide advanced options");
+	  } else {
+		  
+		  $('.advanced-option').css("visibility", "hidden")
+		  
+		  thisButton.text("Show advanced options");
+	  }
+  })
 
   /* clicking on edit: change view to edit mode for selected view */
   $(".edit").click(function(){

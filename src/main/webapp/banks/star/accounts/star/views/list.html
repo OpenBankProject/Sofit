@@ -30,8 +30,9 @@ Berlin 13359, Germany
 -->
 <div class="lift:surround?with=default;at=content">
   <div class="views">
-    <div>
-      <table class="lift:ViewsOverview.getTableContent" id="view_table">
+    <div class="lift:ViewsOverview.getTableContent" >
+      <button id="view-edit-advanced-options">Show advanced options</button>
+      <table id="view_table">
         <thead>
           <tr class="view_head">
             <th class="view_permissions">Permissons</th>
@@ -60,14 +61,14 @@ Berlin 13359, Germany
               <td class="description">description</td>
           </tr>
           <tr class="is_public_head">
-            <td class="main-attributes">Is public</td>
+            <td class="main-attributes">Visible to anyone (public)</td>
             <td class="is_public"><input type="checkbox" class="is_public_cb" name="is_public" value="is_public"></td>
           </tr>
-          <tr class="alias_head">
+          <tr class="alias_head advanced-option">
             <td>Alias</td>
             <td class="alias"></td>
           </tr>
-          <tr class="permissions">
+          <tr class="permissions advanced-option">
             <td class="permission_name">Permission name</td>
             <td class="permission_value"><input type="checkbox" class="permission_value_cb" name="name" value="id"></td>
           </tr>
