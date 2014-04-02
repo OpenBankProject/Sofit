@@ -901,6 +901,10 @@ td.main-attributes{
   display: none;
 }
 
+.desc_input {
+  display: none;
+}
+
 #view-edit-advanced-options {
   margin: 10px;
 }

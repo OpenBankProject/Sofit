@@ -34,7 +34,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
       implicit val formats = DefaultFormats
 
       ".save-button [data-id]" #> viewId &
-      ".save-button [onclick]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
+      ".save-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
         val result: Box[Unit] = for{
           data <- tryo{parse(callResult).extract[ViewUpdateData]}
           response <- ObpAPI.updateView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
@@ -67,7 +67,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
     val viewNameSel     = ".view_name *"      #> views.map( view => view.shortName.getOrElse(""))
     val shortNamesSel   = ".short_name"       #> views.map( view => "* *" #> view.shortName.getOrElse("") & "* [data-viewid]" #> view.id )
     val aliasSel        = ".alias"            #> views.map( view => "* *" #> aliasType(view.alias) & "* [data-viewid]" #> view.id )
-    val descriptionSel  = ".description"      #> views.map( view => "* *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
+    val descriptionSel  = ".description"      #> views.map( view => ".desc *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
     val isPublicSel     = ".is_public *"      #> getIfIsPublic()
     val addDeleteSel    = ".delete"           #> ids.map(x => "* [data-id]" #> x)
     val addEditSel      = ".edit"             #> ids.map(x => "* [data-id]" #> x)
