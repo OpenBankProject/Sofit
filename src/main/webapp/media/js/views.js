@@ -68,13 +68,14 @@ $(document).ready(function(){
 
     /* alias field will become a select box */
     $(".alias").each(function(i){
-      if($(this).attr("data-viewid") === viewId){
-        var $content = $(this).html()
-        $(this).html(
+      var $alias = $(this)
+      if($alias.attr("data-viewid") === viewId){
+        var content = $alias.html()
+        $alias.html(
           "<select id='selectAlias'>"+getOptions()+"</option></select>"
         )
       }
-      $("#selectAlias option[value="+$content+"]").attr('selected',true)
+      $("#selectAlias option[value='"+content+"']").attr('selected',true)
     })
 
    function getOptions () {
