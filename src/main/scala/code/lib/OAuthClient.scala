@@ -1,4 +1,4 @@
-/** 
+/**
 Open Bank Project - Transparency / Social Finance Web Application
 Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
 
@@ -15,14 +15,14 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Email: contact@tesobe.com 
-TESOBE / Music Pictures Ltd 
+Email: contact@tesobe.com
+TESOBE / Music Pictures Ltd
 Osloerstrasse 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
   TESOBE (http://www.tesobe.com/)
-  by 
+  by
   Simon Redfern : simon AT tesobe DOT com
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
@@ -49,35 +49,35 @@ import net.liftweb.common.Loggable
 
 sealed trait Provider {
   val name : String
-  
+
   val apiBaseUrl : String
   val requestTokenUrl : String
   val accessTokenUrl : String
   val authorizeUrl : String
   val signupUrl : Option[String]
-  
+
   /**
    * Can't do oAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
    * here as the Strings all evaluate at null at this point in object creation
    */
   val oAuthProvider : OAuthProvider
-  
+
   val consumerKey : String
   val consumerSecret : String
 }
 
 object OBPDemo extends Provider {
   val name = "The Open Bank Project Demo"
-    
+
   val baseUrl = Props.get("api_hostname", S.hostName)
   val apiBaseUrl = baseUrl + "/obp"
   val requestTokenUrl = baseUrl + "/oauth/initiate"
   val accessTokenUrl = baseUrl + "/oauth/token"
   val authorizeUrl = baseUrl + "/oauth/authorize"
   val signupUrl = Some(baseUrl + "/user_mgt/sign_up")
-  
+
   val oAuthProvider : OAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
-  
+
   val consumerKey = Props.get("obp_consumer_key", "")//SofiAPITransition.sofiConsumer.key.get
   val consumerSecret = Props.get("obp_secret_key", "")//SofiAPITransition.sofiConsumer.secret.get
 }
@@ -94,31 +94,31 @@ object mostRecentLoginAttemptProvider extends SessionVar[Box[Provider]](Empty)
 object OAuthClient extends Loggable {
 
   val defaultProvider = OBPDemo
-  
+
   def getAuthorizedCredential(provider : Provider) : Option[Credential] = {
     credentials.find(_.provider == provider).filter(_.readyToSign)
   }
-  
+
   def replaceCredential(provider : Provider) : Credential = {
     credentials.find(_.provider == provider) match {
       case Some(c) => {
         val newCredentials = credentials.get.filterNot(_ == c)
         val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
         val credential = Credential(provider, consumer, false)
-        
+
         credentials.set(credential :: newCredentials)
         credential
       }
       case None => {
         val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
         val credential = Credential(provider, consumer, false)
-        
+
         credentials.set(credential :: credentials.get)
         credential
       }
     }
   }
-  
+
   def getOrCreateCredential(provider : Provider) : Credential = {
     credentials.find(_.provider == provider) match {
       case Some(c) => c
@@ -153,15 +153,14 @@ object OAuthClient extends Loggable {
     }
     Empty
   }
-		  						 
+
   def getAuthUrl(provider : Provider) : String = {
     mostRecentLoginAttemptProvider.set(Full(provider))
     val credential = replaceCredential(provider)
     provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
   }
-  
+
   def loggedInAt : List[Provider] = {
-    val loggedin = credentials.filter(_.readyToSign).map(_.provider)
     credentials.filter(_.readyToSign).map(_.provider)
   }
   def loggedInAt(provider : Provider) : Boolean = loggedInAt.contains(provider)
