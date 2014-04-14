@@ -93,7 +93,7 @@ class AccountsOverview extends Loggable {
             viewId <- aPublicView.id
           } yield viewId).getOrElse("")
 
-          ".accLink *" #> accountJson.label &
+          ".accLink *" #> accountDisplayName(accountJson) &
             ".accLink [href]" #> {
               val accountId = accountJson.id.getOrElse("")
               "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
@@ -101,6 +101,11 @@ class AccountsOverview extends Loggable {
         }
       }
     }
+  }
+
+  def accountDisplayName(accountJson : BarebonesAccountJson) : String = {
+    val label = accountJson.label.getOrElse("")
+    if(label != "") label else accountJson.id.getOrElse("unknown account name")
   }
 
   def authorisedAccounts = {
@@ -114,7 +119,7 @@ class AccountsOverview extends Loggable {
           viewId <- aPrivateView.id
         } yield viewId).getOrElse("")
         
-        ".accLink *" #> accountJson.label &
+        ".accLink *" #> accountDisplayName(accountJson) &
         ".accLink [href]" #> {
           val accountId : String = accountJson.id.getOrElse("")
           "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
