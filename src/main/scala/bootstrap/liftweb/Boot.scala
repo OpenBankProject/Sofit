@@ -50,15 +50,26 @@ import net.liftweb.sitemap.Loc.EarlyResponse
 import code.lib.OAuthClient
 import code.lib.ObpGet
 import code.lib.ObpJson._
-import code.snippet.TransactionsListURLParams
-import code.snippet.CommentsURLParams
-import code.snippet.ManagementURLParams
+import code.snippet._
 import code.lib.ObpJson.OtherAccountsJson
 import code.lib.ObpAPI
-import code.snippet.PermissionsUrlParams
 import java.io.FileInputStream
 import java.io.File
+import net.liftweb.http.Html5Properties
+import code.lib.ObpJson.PermissionsJson
+import code.snippet.ManagementURLParams
+import code.snippet.TransactionsListURLParams
+import net.liftweb.common.Full
+import scala.Some
+import code.lib.ObpJson.CompleteViewJson
+import net.liftweb.sitemap.Loc.EarlyResponse
 import code.snippet.PermissionsUrlParams
+import code.lib.ObpJson.AccountJson
+import code.lib.ObpJson.TransactionJson
+import code.lib.ObpJson.TransactionsJson
+import code.lib.ObpJson.OtherAccountsJson
+import code.lib.ObpJson.ViewJson
+import code.snippet.CommentsURLParams
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -287,7 +298,7 @@ class Boot extends Loggable{
       } else Empty
     }
 
-    def getCompleteAccountViews(URLParameters: List[String]): Box[(List[CompleteViewJson])] = {
+    def getCompleteAccountViews(URLParameters: List[String]): Box[ViewsDataJSON] = {
       if (URLParameters.length == 2) {
         val bank = URLParameters(0)
         val account = URLParameters(1)
@@ -296,7 +307,7 @@ class Boot extends Loggable{
           for {
             viewsJson <- ObpAPI.getCompleteViews(bank, account)
           } yield {
-            viewsJson
+            ViewsDataJSON(viewsJson, bank,account)
           }
           
         }
@@ -327,7 +338,7 @@ class Boot extends Loggable{
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
           
-          Menu.params[(List[CompleteViewJson])]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
+          Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
    
           Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List("")) 
           / "permissions" / "banks" / * / "accounts" / * / "create" ,

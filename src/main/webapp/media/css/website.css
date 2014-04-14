@@ -877,3 +877,35 @@ a.otherAccountLinkForAlias{
 	margin-top: 10px;
 	margin-bottom: 20px;
 }
+
+
+/* views */
+td.action{
+  color: #1C8B77;
+  text-decoration: underline;
+}
+td.action:hover{
+  cursor: pointer;
+}
+
+tr.save_head, tr.cancel_head{
+  display: none;
+}
+
+td.main-attributes{
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.advanced-option {
+  display: none;
+}
+
+.desc_input {
+  display: none;
+}
+
+#view-edit-advanced-options {
+  margin: 10px;
+}
+

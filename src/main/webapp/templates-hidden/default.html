@@ -36,9 +36,13 @@ Berlin 13359, Germany
     <title class="lift:Menu.title">Open Bank Project: %*%</title>
 
     <link href="/media/css/website.css" rel="stylesheet" type="text/css" />
-    <script id="jquery" src="/classpath/jquery.js" type="text/javascript"></script>
+    <script id="jquery" src="/media/js/jquery-1.11.0.min.js" type="text/javascript"></script>
 	<script src="/media/js/polarize.js" type="text/javascript"></script>
     <script src="/media/js/website.js" type="text/javascript"></script>
+    <script src="/media/js/views.js" type="text/javascript"></script>
+    <script src="/media/js/toastr.min.js"></script>
+    <link href="/media/css/toastr.min.css" rel="stylesheet"/>
+    <script src="/media/js/notifications.js" type="text/javascript"></script>
 </head>
 <body>
     <div id="wrapper">
@@ -60,6 +64,9 @@ Berlin 13359, Germany
         <div id="nav">
         	<ul>
                 <li class="lift:Nav.item?name=Home navitem">
+                    <a class="navlink" href="#">Link name. Has class "selected" if it's the current page.</a>
+                </li>
+                <li class="lift:Nav.editViews navitem">
                     <a class="navlink" href="#">Link name. Has class "selected" if it's the current page.</a>
                 </li>
                 <li class="lift:Nav.management navitem">
