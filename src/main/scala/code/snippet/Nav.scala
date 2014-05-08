@@ -49,6 +49,7 @@ import code.lib.ObpJson._
 import code.lib.ObpGet
 import code.lib.ObpAPI
 import code.lib.OAuthClient
+import net.liftweb.util.CssSel
 
 class Nav {
 
@@ -105,6 +106,20 @@ class Nav {
 
     if (url.size > 4) getManagement getOrElse eraseMenu
     else eraseMenu
+  }
+  
+  def editViews : CssSel = {
+    val views = accountJson.flatMap(_.views_available).flatten
+    val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
+    
+    if(hasOwnerPermissions) {
+      if (hasOwnerPermissions) {
+        val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
+        ".navlink [href]" #> { editViewsUrl } &
+        ".navlink *" #> "Edit Views/Public Access" &
+        ".navlink [class+]" #> markIfSelected(editViewsUrl)
+      } else eraseMenu
+    } else eraseMenu
   }
 
   def item = {

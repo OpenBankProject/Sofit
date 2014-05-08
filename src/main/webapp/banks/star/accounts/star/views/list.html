@@ -30,48 +30,41 @@ Berlin 13359, Germany
 -->
 <div class="lift:surround?with=default;at=content">
   <div class="views">
-    <div>
-      <table class="lift:ViewsOverview.getTableContent" id="view_table">
+    <div class="lift:ViewsOverview.getTableContent" >
+      <button id="view-edit-advanced-options">Show advanced options</button>
+      <table id="view_table">
         <thead>
           <tr class="view_head">
-            <th class="view_permissions">Permissons</th>
+            <th class="view_permissions"></th>
             <th class="view_name" id="123">View name</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="delete_head">
-            <td></td>
-            <td class="delete action">Delete</td>
-          </tr>
           <tr class="edit_head">
             <td></td>
-            <td class="edit action">Edit</td>
+            <td class="edit action"><button>Edit</button></td>
           </tr>
           <tr class="save_head">
             <td></td>
-            <td class="save action">Save</td>
+            <td class="save"><button class="save-button action">Save</button><button class="cancel action">Cancel</button></td>
           </tr>
-          <tr class="cancel_head">
-            <td></td>
-            <td class="cancel action">Cancel</td>
-          </tr>
-          <tr class="short_name_head">
-            <td>Short name</td>
+<!--           <tr class="short_name_head">
+            <td>View</td>
             <td class="short_name">View short name</td>
+          </tr> -->
+          <tr class="is_public_head">
+            <td class="main-attributes">Visible to anyone (public)</td>
+            <td class="is_public"><input type="checkbox" class="is_public_cb" name="is_public" value="is_public"></td>
           </tr>
-          <tr class="description_head">
+          <tr class="description_head advanced-option">
               <td>Description</td>
-              <td class="description">description</td>
+              <td class="description"><span class="desc">description</span><input class="desc_input" type="text" value=""></td>
           </tr>
-          <tr class="alias_head">
+          <tr class="alias_head advanced-option">
             <td>Alias</td>
             <td class="alias"></td>
           </tr>
-          <tr class="is_public_head">
-            <td class="main-attributes">Is public</td>
-            <td class="is_public"><input type="checkbox" class="is_public_cb" name="is_public" value="is_public"></td>
-          </tr>
-          <tr class="permissions">
+          <tr class="permissions advanced-option">
             <td class="permission_name">Permission name</td>
             <td class="permission_value"><input type="checkbox" class="permission_value_cb" name="name" value="id"></td>
           </tr>

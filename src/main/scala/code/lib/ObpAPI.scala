@@ -115,14 +115,14 @@ object ObpAPI extends Loggable {
 
   def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
     for {
-      json <- ObpGet("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/views")
+      json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
       viewsJson <- Box(json.extractOpt[ViewsJson])
     } yield viewsJson.views.getOrElse(Nil)
   }
 
   def getCompleteViews(bankId: String, accountId: String) : Box[List[CompleteViewJson]] = {
     for {
-      json <- ObpGet("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/views")
+      json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
     } yield {
       json \ "views" match {
         case JArray(l) => l.map(viewJson => 
@@ -202,7 +202,7 @@ object ObpAPI extends Loggable {
 
   def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
     for {
-      response <- ObpPut("/v1.2/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
+      response <- ObpPut("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
     } yield Unit
   }
 }
@@ -502,27 +502,27 @@ object ObpJson {
 
   case class CompleteViewJson(json: Map[String, Any]){
     val id: Option[String] = json.get("id") match {
-      case s:Some[String] => s
+      case Some(s : String) => Some(s)
       case _ => None
     }
 
     val shortName: Option[String] = json.get("short_name") match {
-      case s:Some[String] => s
+      case Some(s : String) => Some(s)
       case _ => None
     }
 
     val alias: Option[String] = json.get("alias") match {
-      case s:Some[String] => s
+      case Some(s : String) => Some(s)
       case _ => None
     }
 
     val description: Option[String] = json.get("description") match {
-      case s:Some[String] => s
+      case Some(s : String) => Some(s)
       case _ => None
     }
 
     val isPublic: Option[Boolean] = json.get("is_public") match {
-      case b:Some[Boolean] => b
+      case Some(b : Boolean) => Some(b)
       case _ => None
     }
 

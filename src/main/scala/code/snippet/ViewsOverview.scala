@@ -2,7 +2,6 @@ package code.snippet
 
 import net.liftweb.util.Helpers._
 import scala.xml.NodeSeq
-
 import code.lib.ObpJson.CompleteViewJson
 import net.liftweb.util.CssSel
 import net.liftweb.http.SHtml
@@ -11,6 +10,7 @@ import net.liftweb.json._
 import net.liftweb.http.js.JsCmds.Alert
 import net.liftweb.common.Box
 import code.lib.ObpAPI
+import net.liftweb.http.S
 
 case class ViewUpdateData(
   viewId: String,
@@ -33,7 +33,8 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
       import net.liftweb.http.js.JE.{Call,Str}
       implicit val formats = DefaultFormats
 
-      "* [onclick]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
+      ".save-button [data-id]" #> viewId &
+      ".save-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
         val result: Box[Unit] = for{
           data <- tryo{parse(callResult).extract[ViewUpdateData]}
           response <- ObpAPI.updateView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
@@ -41,10 +42,12 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
           response
         }
         if(result.isDefined){
-          Alert("Yay!")
+          val msg = "View " + viewId + " has been updated"
+          Call("socialFinanceNotificiations.notify", msg).cmd
         }
         else{
-          Alert(result.toString())
+          val msg = "Error updating view"
+          Call("socialFinanceNotificiations.notifyError", msg).cmd
         }
       })
     }
@@ -52,11 +55,19 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
     val permissionsCollection: List[Map[String, Boolean]] = views.map(view => view.permissions)
     val permissions: Map[String, Boolean] = permissionsCollection(0)
 
+    def aliasType(typeInJson : Option[String]) = {
+      typeInJson match {
+        case Some("") => "none (display real names only)"
+        case Some(s) => s
+        case _ => ""
+      }
+    }
+    
     val ids = getIds()
     val viewNameSel     = ".view_name *"      #> views.map( view => view.shortName.getOrElse(""))
     val shortNamesSel   = ".short_name"       #> views.map( view => "* *" #> view.shortName.getOrElse("") & "* [data-viewid]" #> view.id )
-    val aliasSel        = ".alias"            #> views.map( view => "* *" #> view.alias.getOrElse("") & "* [data-viewid]" #> view.id )
-    val descriptionSel  = ".description"      #> views.map( view => "* *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
+    val aliasSel        = ".alias"            #> views.map( view => "* *" #> aliasType(view.alias) & "* [data-viewid]" #> view.id )
+    val descriptionSel  = ".description"      #> views.map( view => ".desc *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
     val isPublicSel     = ".is_public *"      #> getIfIsPublic()
     val addDeleteSel    = ".delete"           #> ids.map(x => "* [data-id]" #> x)
     val addEditSel      = ".edit"             #> ids.map(x => "* [data-id]" #> x)

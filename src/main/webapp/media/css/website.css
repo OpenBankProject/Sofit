@@ -894,5 +894,18 @@ tr.save_head, tr.cancel_head{
 
 td.main-attributes{
   font-weight: bold;
+  font-size: 18px;
+}
+
+.advanced-option {
+  display: none;
+}
+
+.desc_input {
+  display: none;
+}
+
+#view-edit-advanced-options {
+  margin: 10px;
 }
 
