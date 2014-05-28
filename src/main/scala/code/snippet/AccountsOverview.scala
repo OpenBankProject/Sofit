@@ -50,37 +50,36 @@ import code.lib.ObpAPI
 import code.lib.OAuthClient
 
 class AccountsOverview extends Loggable {
-		  		  
+
   val banksJsonBox = ObpAPI.allBanks
-  
+
   val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
-  
+
   val bankIds = for {
     bank <- bankJsons
     id <- bank.id
   } yield id
-  
+
   logger.info("Accounts Overview: Bank ids found: " + bankIds)
-  
+
   type BankID = String
   val publicAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
     bankId <- bankIds
     publicAccountsJson <- ObpAPI.publicAccounts(bankId).toList
     barebonesAccountJson <- publicAccountsJson.accounts.flatten
   } yield (bankId, barebonesAccountJson)
-  
+
   logger.info("Accounts Overview: Public accounts found: " + publicAccountJsons)
-  
+
   val privateAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
     bankId <- bankIds
     privateAccountsJson <- ObpAPI.privateAccounts(bankId).toList
     barebonesAccountJson <- privateAccountsJson.accounts.flatten
   } yield (bankId, barebonesAccountJson)
-  
-  logger.info("Accounts Overview: Private accounts found: " + privateAccountJsons)
-  
-  def publicAccounts = {
 
+  logger.info("Accounts Overview: Private accounts found: " + privateAccountJsons)
+
+  def publicAccounts = {
     if (publicAccountJsons.size == 0) {
       ".accountList" #> "No public accounts"
     } else {
@@ -90,10 +89,10 @@ class AccountsOverview extends Loggable {
           val views = accountJson.views_available.flatten
           val aPublicViewId: String = (for {
             aPublicView <- views.filter(view => view.is_public.getOrElse(false)).headOption
-            viewId <- aPublicView.id
+            viewId <- aPublicView.idgit
           } yield viewId).getOrElse("")
 
-          ".accLink *" #> accountJson.label &
+          ".accLink *" #> accountDisplayName(accountJson) &
             ".accLink [href]" #> {
               val accountId = accountJson.id.getOrElse("")
               "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
@@ -103,9 +102,14 @@ class AccountsOverview extends Loggable {
     }
   }
 
+  def accountDisplayName(accountJson : BarebonesAccountJson) : String = {
+    val label = accountJson.label.getOrElse("")
+    if(label != "") label else accountJson.id.getOrElse("unknown account name")
+  }
+
   def authorisedAccounts = {
     def loggedInSnippet = {
-      
+
       ".accountList" #> privateAccountJsons.map{case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
         val views = accountJson.views_available.flatten
@@ -113,8 +117,8 @@ class AccountsOverview extends Loggable {
           aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
           viewId <- aPrivateView.id
         } yield viewId).getOrElse("")
-        
-        ".accLink *" #> accountJson.label &
+
+        ".accLink *" #> accountDisplayName(accountJson) &
         ".accLink [href]" #> {
           val accountId : String = accountJson.id.getOrElse("")
           "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
