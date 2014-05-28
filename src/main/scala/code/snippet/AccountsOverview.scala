@@ -89,7 +89,7 @@ class AccountsOverview extends Loggable {
           val views = accountJson.views_available.flatten
           val aPublicViewId: String = (for {
             aPublicView <- views.filter(view => view.is_public.getOrElse(false)).headOption
-            viewId <- aPublicView.idgit
+            viewId <- aPublicView.id
           } yield viewId).getOrElse("")
 
           ".accLink *" #> accountDisplayName(accountJson) &
