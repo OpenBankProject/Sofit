@@ -28,9 +28,7 @@ Berlin 13359, Germany
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
   Nina Gänsdorfer: nina AT tesobe.com
-
  */
-
 package code.snippet
 
 import net.liftweb.http.SHtml
@@ -38,15 +36,9 @@ import scala.xml.NodeSeq
 import net.liftweb.http.js.JsCmd
 import scala.xml.Text
 
-trait CustomEditable {
-  def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String): NodeSeq
-}
+object CustomRemovable extends CustomEditable {
 
-object CustomEditable extends CustomEditable{
-
-  //Borrows very heavily from SHtml.ajaxEditable
-  //TODO: This should go. There is too much presentation stuff living here in the code
-  def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String): NodeSeq = {
+	def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String): NodeSeq = {
     import net.liftweb.http.js
     import net.liftweb.http.S
     import js.{ jquery, JsCmd, JsCmds, JE }
@@ -66,22 +58,23 @@ object CustomEditable extends CustomEditable{
       (SHtml.ajaxCall(Str("ignore"), { ignore: String => SetHtml(show, showContents) })._2.cmd & swapJsCmd(show, hide))
 
     val editClass = "edit"
-    val addClass = "add"
-    def aClass = if (label.equals("")) addClass else editClass
+    val removeClass = "remove"
+    val noAlias = "No alias is set, so the account name will be displayed."
     def displayText = if (label.equals("")) defaultValue else label
 
     def displayMarkup: NodeSeq = {
       label match {
         case "" => {
-          <div onclick={ setAndSwap(editName, editMarkup, dispName).toJsCmd + " return false;" }><a href="#" class={ addClass }>{
-            " " ++ displayText
-          }</a></div>
+          <div title={ noAlias } >
+            <a href="#" class={ editClass } onclick={ setAndSwap(editName, editMarkup, dispName).toJsCmd + " return false;" } />
+            <br/><span class="text-add-edit">{ displayText }</span>
+          </div>
         }
         case _ => {
           <div>
             <a href="#" class={ editClass } onclick={ setAndSwap(editName, editMarkup, dispName).toJsCmd + " return false;" }/>
-            <br/>
-            <span class="text">{ label }</span>
+            <a href="#" class={ removeClass } onclick="window.alert('delete this!')" />
+            <br/><span class="text">{ label }</span>
           </div>
         }
       }
@@ -108,5 +101,5 @@ object CustomEditable extends CustomEditable{
       </div>
     </div>
   }
-  
+
 }
