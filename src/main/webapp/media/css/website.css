@@ -51,6 +51,7 @@ a.add:hover {
 span.text-add-edit {
 	text-decoration: none;
 	color: #999999;
+	font-style: italic;
 }
 
 a.edit {
@@ -922,4 +923,3 @@ td.main-attributes{
 #view-edit-advanced-options {
   margin: 10px;
 }
-

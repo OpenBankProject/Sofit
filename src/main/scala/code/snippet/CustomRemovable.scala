@@ -59,7 +59,8 @@ object CustomRemovable extends CustomEditable {
 
     val editClass = "edit"
     val removeClass = "remove"
-    val noAlias = "No alias is set, so the account name will be displayed."
+    val noAlias = "No alias is set, so the real account name will be displayed."
+
     def displayText = if (label.equals("")) defaultValue else label
 
     def displayMarkup: NodeSeq = {

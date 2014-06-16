@@ -96,7 +96,7 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
       if (holder.isEmpty)
         default
       else
-        "["+holder+"]"
+        "("+holder+")"
     }
 
     /**
