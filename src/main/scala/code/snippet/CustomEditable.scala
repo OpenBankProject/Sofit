@@ -35,8 +35,9 @@ package code.snippet
 
 import net.liftweb.http.SHtml
 import scala.xml.NodeSeq
+import net.liftweb.http.js.JsCmds
 
-trait CustomEditable {
+object CustomEditable {
 
   import net.liftweb.http.js
   import net.liftweb.util.Helpers
@@ -46,20 +47,30 @@ trait CustomEditable {
   import JE.Str
   import JqJsCmds.{ Hide, Show }
 
+
   val addClass = "add"
   val editClass = "edit"
+  val removeClass = "remove"
+  val noAliasTooltip = "No alias is set, so the real account name will be displayed."
+  val confirmRemoval = "If no Alias is selected, the real account name will be displayed."
 
-  def displayText(label: String, defaultValue: String) :String = if (label.equals("")) defaultValue else label
   def dispName(divName: String) : String = divName + "_display"
   def editName(divName: String) : String = divName + "_edit"
 
-  def swapJsCmd(show: String, hide: String): JsCmd = Show(show) & Hide(hide)
 
+  /*
+   * Depending on what was clicked only either the "_edit" or the "_display" div is visible
+   */
+  def swapJsCmd(show: String, hide: String): JsCmd = Show(show) & Hide(hide)
   def setAndSwap(show: String, showContents: => NodeSeq, hide: String): JsCmd =
     (SHtml.ajaxCall(Str("ignore"), { ignore: String => SetHtml(show, showContents) })._2.cmd & swapJsCmd(show, hide))
 
 
-  def editMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String, divName: String): NodeSeq = {
+  /*
+   * The edit markup consists of the input field (editForm), a submit button and a cancel button
+   * Clicking on either of buttons will swap back to the display markup, the submit button will save the data of the input field
+   */
+  def editMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, divName: String, removable: Boolean): NodeSeq = {
 
     val formData: NodeSeq =
       editForm ++ <br />
@@ -69,46 +80,76 @@ trait CustomEditable {
 
     SHtml.ajaxForm(formData,
       Noop,
-      setAndSwap(dispName(divName), displayMarkup(label, editForm, onSubmit, defaultValue, divName), editName(divName)))
+      setAndSwap(dispName(divName), displayMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), editName(divName)))
   }
 
-  def displayMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String, divName: String): NodeSeq = {
-    
-    val dispText = displayText(label, defaultValue)
+
+  /*
+   * The display markup shows the label (default value if none is set), an edit button and for some fields (currently only the alias fields) also a remove button
+   * Clicking on the edit button will swap to the edit markup
+   * Clicking on the remove button will pop up a confirmation window
+   */
+  def displayMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, divName: String, removable: Boolean): NodeSeq = {
 
     label match {
       case "" => {
-        <div onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, defaultValue, divName), dispName(divName)).toJsCmd + " return false;" }>
-          <a href="#" class={ addClass }>
-            { " " ++ dispText }
-          </a>
-        </div>
+        if(removable){
+          <div title={ noAliasTooltip } >
+            <a href="#" class={ editClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" } />
+            <br/><span class="text-add-edit">{ defaultValue }</span>
+          </div>
+
+        } else{
+          <div>
+            <a href="#" class={ addClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>
+              { " " ++ defaultValue }
+            </a>
+          </div>
+        }
       }
       case _ => {
         <div>
-          <a href="#" class={ editClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, defaultValue, divName), dispName(divName)).toJsCmd + " return false;" }/>
-          <br/>
-          <span class="text">{ label }</span>
+          <a href="#" class={ editClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }/>
+          { if (removable)
+            <a href="#" class={ removeClass } onclick={ removeAlias("", editForm, onSubmit, onDelete, defaultValue, divName, removable) } />
+          }
+          <br/><span class="text">{ label }</span>
         </div>
       }
     }
   }
 
-  def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String): NodeSeq ={
+
+  /*
+   * Pop-up window whem removing alias: on approval deletes alias and empties value in input field of the edit markup
+   */
+
+  def removeAlias(label: String, editForm: NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, divName: String, removable: Boolean): String = {
+
+    def removalConfirmed: JsCmd = {
+      SHtml.ajaxInvoke(() => {
+        onDelete()
+        var empty = ""
+        setAndSwap(dispName(divName), displayMarkup(empty, SHtml.text(empty, empty = _), onSubmit, onDelete, defaultValue, divName, removable), editName(divName))
+      })._2.cmd
+    }
+
+    val confirmationPopup = JsCmds.Confirm(confirmRemoval, removalConfirmed)
+    confirmationPopup
+  }
+
+
+
+  def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, removable: Boolean): NodeSeq ={
     val divName = Helpers.nextFuncName
 
     <div>
       <div id={ dispName(divName) }>
-        { displayMarkup(label, editForm, onSubmit, defaultValue, divName) }
+        { displayMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable) }
       </div>
       <div id={ editName(divName) } style="display: none;">
-        { editMarkup(label, editForm, onSubmit, defaultValue, divName) }
+        { editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable) }
       </div>
     </div>
   }
-}
-
-
-object CustomEditable extends CustomEditable{
-
 }

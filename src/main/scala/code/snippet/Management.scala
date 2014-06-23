@@ -133,21 +133,19 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
           }
         }
       }
-      
-      if (removable){
-        CustomRemovable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{
-          saveValue()
-          Noop
-        }, () => {
-          currentValue = ""
-          saveValue() }, defaultValue)
-      }
-      else {
-        CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{
-          saveValue()
-          Noop
-        }, defaultValue)
-      }
+
+
+        CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _),
+          () =>{
+            saveValue()
+            Noop
+          },
+          () => {
+            currentValue = ""
+            saveValue()
+          },
+          defaultValue,
+          removable)
     }
     
     val otherAccountJsons : List[OtherAccountJson] = otherAccountsJson.other_accounts.getOrElse(Nil).
