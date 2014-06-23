@@ -138,7 +138,9 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
         CustomRemovable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{
           saveValue()
           Noop
-        }, defaultValue)
+        }, () => {
+          currentValue = ""
+          saveValue() }, defaultValue)
       }
       else {
         CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{

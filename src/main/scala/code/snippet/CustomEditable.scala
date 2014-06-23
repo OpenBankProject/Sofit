@@ -35,28 +35,23 @@ package code.snippet
 
 import net.liftweb.http.SHtml
 import scala.xml.NodeSeq
-import net.liftweb.http.js.JsCmd
-import scala.xml.Text
 
 trait CustomEditable {
 
   import net.liftweb.http.js
-  import net.liftweb.http.S
+  import net.liftweb.util.Helpers
   import js.{ jquery, JsCmd, JsCmds, JE }
   import jquery.JqJsCmds
   import JsCmds.{ Noop, SetHtml }
   import JE.Str
   import JqJsCmds.{ Hide, Show }
-  import net.liftweb.util.Helpers
-
-  val divName = Helpers.nextFuncName
-  val dispName = divName + "_display"
-  val editName = divName + "_edit"
 
   val addClass = "add"
   val editClass = "edit"
 
   def displayText(label: String, defaultValue: String) :String = if (label.equals("")) defaultValue else label
+  def dispName(divName: String) : String = divName + "_display"
+  def editName(divName: String) : String = divName + "_edit"
 
   def swapJsCmd(show: String, hide: String): JsCmd = Show(show) & Hide(hide)
 
@@ -64,47 +59,50 @@ trait CustomEditable {
     (SHtml.ajaxCall(Str("ignore"), { ignore: String => SetHtml(show, showContents) })._2.cmd & swapJsCmd(show, hide))
 
 
-  def editMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String): NodeSeq = {
+  def editMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String, divName: String): NodeSeq = {
 
     val formData: NodeSeq =
       editForm ++ <br />
         <input class="submit" style="float:left;" type="image" src="/media/images/submit.png"/> ++
         SHtml.hidden(onSubmit, ("float", "left")) ++
-        <input type="image" src="/media/images/cancel.png" onclick={ swapJsCmd(dispName, editName).toJsCmd + " return false;" }/>
+        <input type="image" src="/media/images/cancel.png" onclick={ swapJsCmd(dispName(divName), editName(divName)).toJsCmd + " return false;" }/>
 
     SHtml.ajaxForm(formData,
       Noop,
-      setAndSwap(dispName, displayMarkup(label, editForm, onSubmit, defaultValue), editName))
+      setAndSwap(dispName(divName), displayMarkup(label, editForm, onSubmit, defaultValue, divName), editName(divName)))
   }
 
-  def displayMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String): NodeSeq = {
+  def displayMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String, divName: String): NodeSeq = {
     
     val dispText = displayText(label, defaultValue)
 
     label match {
       case "" => {
-        <div onclick={ setAndSwap(editName, editMarkup(label, editForm, onSubmit, defaultValue), dispName).toJsCmd + " return false;" }><a href="#" class={ addClass }>{
-          " " ++ dispText
-        }</a></div>
+        <div onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, defaultValue, divName), dispName(divName)).toJsCmd + " return false;" }>
+          <a href="#" class={ addClass }>
+            { " " ++ dispText }
+          </a>
+        </div>
       }
       case _ => {
         <div>
-          <a href="#" class={ editClass } onclick={ setAndSwap(editName, editMarkup(label, editForm, onSubmit, defaultValue), dispName).toJsCmd + " return false;" }/>
+          <a href="#" class={ editClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, defaultValue, divName), dispName(divName)).toJsCmd + " return false;" }/>
           <br/>
           <span class="text">{ label }</span>
         </div>
       }
     }
   }
-      
+
   def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String): NodeSeq ={
+    val divName = Helpers.nextFuncName
 
     <div>
-      <div id={ dispName }>
-        { displayMarkup(label, editForm, onSubmit, defaultValue) }
+      <div id={ dispName(divName) }>
+        { displayMarkup(label, editForm, onSubmit, defaultValue, divName) }
       </div>
-      <div id={ editName } style="display: none;">
-        { editMarkup(label, editForm, onSubmit, defaultValue) }
+      <div id={ editName(divName) } style="display: none;">
+        { editMarkup(label, editForm, onSubmit, defaultValue, divName) }
       </div>
     </div>
   }
