@@ -35,7 +35,6 @@ package code.snippet
 
 import net.liftweb.http.SHtml
 import scala.xml.NodeSeq
-import net.liftweb.http.js.JsCmds
 
 object CustomEditable {
 
@@ -52,7 +51,7 @@ object CustomEditable {
   val editClass = "edit"
   val removeClass = "remove"
   val noAliasTooltip = "No alias is set, so the real account name will be displayed."
-  val confirmRemoval = "If no Alias is selected, the real account name will be displayed."
+  val confirmRemoval = "If no alias is set, the real account name will be displayed."
 
   def dispName(divName: String) : String = divName + "_display"
   def editName(divName: String) : String = divName + "_edit"
@@ -121,7 +120,7 @@ object CustomEditable {
 
 
   /*
-   * Pop-up window whem removing alias: on approval deletes alias and empties value in input field of the edit markup
+   * Pop-up window when removing alias: on approval deletes alias and empties value in input field of the edit markup
    */
 
   def removeAlias(label: String, editForm: NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, divName: String, removable: Boolean): String = {
@@ -138,7 +137,9 @@ object CustomEditable {
     confirmationPopup
   }
 
-
+  /*
+   *
+   */
 
   def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, removable: Boolean): NodeSeq ={
     val divName = Helpers.nextFuncName
