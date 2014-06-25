@@ -39,37 +39,15 @@ import http._
 import sitemap._
 import Loc._
 import mapper._
-import net.liftweb.util.Helpers._
+import Helpers._
+import json.JsonDSL._
 import net.liftweb.widgets.tablesorter.TableSorter
-import net.liftweb.json.JsonDSL._
-import net.liftweb.util.Schedule
-import net.liftweb.http.js.jquery.JqJsCmds
-import net.liftweb.util.Helpers
-import javax.mail.{ Authenticator, PasswordAuthentication }
-import net.liftweb.sitemap.Loc.EarlyResponse
-import code.lib.OAuthClient
-import code.lib.ObpGet
-import code.lib.ObpJson._
-import code.snippet._
-import code.lib.ObpJson.OtherAccountsJson
-import code.lib.ObpAPI
 import java.io.FileInputStream
 import java.io.File
-import net.liftweb.http.Html5Properties
-import code.lib.ObpJson.PermissionsJson
-import code.snippet.ManagementURLParams
-import code.snippet.TransactionsListURLParams
-import net.liftweb.common.Full
-import scala.Some
-import code.lib.ObpJson.CompleteViewJson
-import net.liftweb.sitemap.Loc.EarlyResponse
-import code.snippet.PermissionsUrlParams
-import code.lib.ObpJson.AccountJson
-import code.lib.ObpJson.TransactionJson
-import code.lib.ObpJson.TransactionsJson
-import code.lib.ObpJson.OtherAccountsJson
-import code.lib.ObpJson.ViewJson
-import code.snippet.CommentsURLParams
+import code.lib.{OAuthClient, ObpGet, ObpJson, ObpAPI}
+import ObpJson._
+import code.snippet._
+import code.util.MyExceptionLogger
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -87,39 +65,39 @@ class Boot extends Loggable{
     }
 
     logger.info("running mode: " + runningMode)
-    
+
     val contextPath = LiftRules.context.path
     val propsPath = tryo{Box.legacyNullTest(System.getProperty("props.resource.dir"))}.flatten
-    
+
     logger.info("external props folder: " + propsPath)
-    
+
     /**
      * Where this application looks for props files:
-     * 
+     *
      * All properties files follow the standard lift naming scheme for order of preference (see https://www.assembla.com/wiki/show/liftweb/Properties)
      * within a directory.
-     * 
+     *
      * The first choice of directory is $props.resource.dir/CONTEXT_PATH where $props.resource.dir is the java option set via -Dprops.resource.dir=...
      * The second choice of directory is $props.resource.dir
-     * 
+     *
      * For example, on a production system:
-     * 
+     *
      * thing1.example.com with context path /thing1
-     * 
+     *
      * Looks first in (outside of war file): $props.resource.dir/thing1, following the normal lift naming rules (e.g. production.default.props)
      * Looks second in (outside of war file): $props.resource.dir, following the normal lift naming rules (e.g. production.default.props)
      * Looks third in the war file
-     * 
+     *
      * and
-     * 
+     *
      * thing2.example.com with context path /thing2
-     * 
+     *
      * Looks first in (outside of war file): $props.resource.dir/thing2 , following the normal lift naming rules (e.g. production.default.props)
      * Looks second in (outside of war file): $props.resource.dir, following the normal lift naming rules (e.g. production.default.props)
      * Looks third in the war file, following the normal lift naming rules
      *
      */
-    
+
     val firstChoicePropsDir = for {
       propsPath <- propsPath
     } yield {
@@ -130,7 +108,7 @@ class Boot extends Loggable{
         }
       }
     }
-    
+
     val secondChoicePropsDir = for {
       propsPath <- propsPath
     } yield {
@@ -141,11 +119,11 @@ class Boot extends Loggable{
         }
       }
     }
-    
+
     Props.whereToLook = () => {
       firstChoicePropsDir.flatten.toList ::: secondChoicePropsDir.flatten.toList
     }
-    
+
     if(Props.get("defaultAuthProvider").isEmpty) {
       throw new Exception("defaultAuthProvider must be specified in the props file!")
     }
@@ -157,7 +135,7 @@ class Boot extends Loggable{
         Full(PlainTextResponse("unauthorized"))
       }
     }
-    
+
     def logOrReturnResult[T](result : Box[T]) : Box[T] = {
       result match {
         case Failure(msg, _, _) => logger.info("Problem getting url " + tryo{S.uri} + ": " + msg)
@@ -168,7 +146,7 @@ class Boot extends Loggable{
 
     //getTransactionsAndView can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
     object transactionsMemo extends RequestVar[Box[Box[((TransactionsJson, AccountJson, TransactionsListURLParams))]]](Empty)
-    
+
     def getTransactions(URLParameters: List[String]): Box[(TransactionsJson, AccountJson, TransactionsListURLParams)] =
       {
 
@@ -194,17 +172,17 @@ class Boot extends Loggable{
           transactionsMemo.set(Full(result))
           result
         }
-    
+
         transactionsMemo.get match {
           case Full(something) => something
           case _ => calculateTransactions()
         }
-        
+
       }
 
     //getAccount can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
     object accountMemo extends RequestVar[Box[Box[(code.lib.ObpJson.OtherAccountsJson, code.snippet.ManagementURLParams)]]](Empty)
-    
+
     def getAccount(URLParameters : List[String]) =
     {
 
@@ -219,17 +197,17 @@ class Boot extends Loggable{
               otherAccountsJson <- ObpGet("/v1.2/banks/" + bankUrl + "/accounts/" + accountUrl + "/owner/" + "other_accounts").flatMap(x => x.extractOpt[OtherAccountsJson])
             } yield (otherAccountsJson, urlParams)
           }
-          
+
           accountMemo.set(Full(result))
           result
         }
-      
+
       accountMemo.get match {
         case Full(something) => something
         case _ => calculateAccount()
       }
     }
-    
+
     //getTransaction can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
     object transactionMemo extends RequestVar[Box[Box[(code.lib.ObpJson.TransactionJson, code.snippet.CommentsURLParams)]]](Empty)
     def getTransaction(URLParameters: List[String]) =
@@ -252,19 +230,19 @@ class Boot extends Loggable{
                 tJson <- transactionJson
               } yield (tJson, commentsURLParams)
             }
-            
+
             transactionMemo.set(Full(result))
             result
           } else
             Empty
         }
-          
+
         transactionMemo.get match {
           case Full(something) => something
           case _ => calculateTransaction()
         }
       }
-    
+
     def getAccountViewsAndPermission(URLParameters: List[String]): Box[(List[ViewJson], AccountJson, PermissionsUrlParams)] = {
       if (URLParameters.length == 2) {
         val bank = URLParameters(0)
@@ -277,7 +255,7 @@ class Boot extends Loggable{
           } yield {
             (viewsJson, accountJson, PermissionsUrlParams(bank, account))
           }
-          
+
         }
       } else Empty
     }
@@ -293,7 +271,7 @@ class Boot extends Loggable{
           } yield {
             viewsJson
           }
-          
+
         }
       } else Empty
     }
@@ -309,7 +287,7 @@ class Boot extends Loggable{
           } yield {
             ViewsDataJSON(viewsJson, bank,account)
           }
-          
+
         }
       } else Empty
     }
@@ -328,7 +306,7 @@ class Boot extends Loggable{
         }
       } else Empty
     }
-    
+
     // Build SiteMap
     val sitemap = List(
           Menu.i("Home") / "index",
@@ -337,12 +315,12 @@ class Boot extends Loggable{
           }),
           //test if the bank exists and if the user have access to management page
           Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
-          
+
           Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
-   
-          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List("")) 
+
+          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List(""))
           / "permissions" / "banks" / * / "accounts" / * / "create" ,
-          
+
           Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,
 
           Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
@@ -351,11 +329,11 @@ class Boot extends Loggable{
           Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
           / "banks" / * / "accounts" / * / "transactions" / * / *
     )
-    
+
     LiftRules.setSiteMap(SiteMap.build(sitemap.toArray))
 
     LiftRules.addToPackages("code")
-    
+
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
 
@@ -377,6 +355,10 @@ class Boot extends Loggable{
     LiftRules.explicitlyParsedSuffixes = Helpers.knownSuffixes &~ (Set("com"))
 
     TableSorter.init
+
+    LiftRules.exceptionHandler.prepend{
+      case MyExceptionLogger(_, _, t) => throw t // this will never happen
+    }
 
   }
 }
