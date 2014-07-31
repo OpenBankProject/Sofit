@@ -206,10 +206,16 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
       }
         
         def apiEditableNarrative = {
-          CustomEditable.editable(newNarrativeValue, SHtml.text(newNarrativeValue, newNarrativeValue = _), () => {
-            saveValue()
-            Noop
-          }, "Narrative")
+          CustomEditable.editable(
+            newNarrativeValue,
+            SHtml.text(newNarrativeValue, newNarrativeValue = _),
+            () => {
+              saveValue()
+              Noop
+            },
+            () => {},
+            "Narrative",
+          false)
         }
         
         //TODO: Get this from the api
