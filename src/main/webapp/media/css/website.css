@@ -537,7 +537,10 @@ span.edit_error_class {
 }
 
 .account {
-	margin-bottom: 5px;
+	margin-bottom: 5px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 li.comment
