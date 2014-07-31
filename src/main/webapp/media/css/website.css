@@ -48,12 +48,27 @@ a.add:hover {
 	color: #666666;
 }
 
+span.text-add-edit {
+	text-decoration: none;
+	color: #999999;
+	font-style: italic;
+}
+
 a.edit {
 	overflow: hidden;
 	display: inline-block;
 	width: 16px;
 	height: 16px;
 	background: transparent url(../images/edit-off.png) no-repeat 0 0;
+	text-indent: -9999em;
+}
+
+a.remove {
+	overflow: hidden;
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background: transparent url(../images/remove.png) no-repeat 0 0;
 	text-indent: -9999em;
 }
 
@@ -537,7 +552,10 @@ span.edit_error_class {
 }
 
 .account {
-	margin-bottom: 5px;
+	margin-bottom: 5px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 li.comment
@@ -908,4 +926,3 @@ td.main-attributes{
 #view-edit-advanced-options {
   margin: 10px;
 }
-

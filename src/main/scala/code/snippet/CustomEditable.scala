@@ -27,79 +27,129 @@ Berlin 13359, Germany
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
+  Nina Gänsdorfer: nina AT tesobe.com
 
  */
 
 package code.snippet
+
 import net.liftweb.http.SHtml
 import scala.xml.NodeSeq
-import net.liftweb.http.js.JsCmd
-import scala.xml.Text
+import net.liftweb.http.js.JsCmds
 
 object CustomEditable {
 
-  //Borrows very heavily from SHtml.ajaxEditable
-  //TODO: This should go. There is too much presentation stuff living here in the code
-  def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, defaultValue: String): NodeSeq = {
-    import net.liftweb.http.js
-    import net.liftweb.http.S
-    import js.{ jquery, JsCmd, JsCmds, JE }
-    import jquery.JqJsCmds
-    import JsCmds.{ Noop, SetHtml }
-    import JE.Str
-    import JqJsCmds.{ Hide, Show }
-    import net.liftweb.util.Helpers
+  import net.liftweb.http.js
+  import net.liftweb.util.Helpers
+  import js.{ jquery, JsCmd, JsCmds, JE }
+  import jquery.JqJsCmds
+  import JsCmds.{ Noop, SetHtml }
+  import JE.Str
+  import JqJsCmds.{ Hide, Show }
 
-    val divName = Helpers.nextFuncName
-    val dispName = divName + "_display"
-    val editName = divName + "_edit"
 
-    def swapJsCmd(show: String, hide: String): JsCmd = Show(show) & Hide(hide)
+  val addClass = "add"
+  val editClass = "edit"
+  val removeClass = "remove"
+  val noAliasTooltip = "No alias is set, so the real account name will be displayed."
+  val confirmRemoval = "If no Alias is selected, the real account name will be displayed."
 
-    def setAndSwap(show: String, showContents: => NodeSeq, hide: String): JsCmd =
-      (SHtml.ajaxCall(Str("ignore"), { ignore: String => SetHtml(show, showContents) })._2.cmd & swapJsCmd(show, hide))
+  def dispName(divName: String) : String = divName + "_display"
+  def editName(divName: String) : String = divName + "_edit"
 
-    val editClass = "edit"
-    val addClass = "add"
-    def aClass = if (label.equals("")) addClass else editClass
-    def displayText = if (label.equals("")) defaultValue else label
 
-    def displayMarkup: NodeSeq = {
-      label match {
-        case "" => {
-          <div onclick={ setAndSwap(editName, editMarkup, dispName).toJsCmd + " return false;" }><a href="#" class={ addClass }>{
-            " " ++ displayText
-          }</a></div>
-        }
-        case _ => {
+  /*
+   * Depending on what was clicked only either the "_edit" or the "_display" div is visible
+   */
+  def swapJsCmd(show: String, hide: String): JsCmd = Show(show) & Hide(hide)
+  def setAndSwap(show: String, showContents: => NodeSeq, hide: String): JsCmd =
+    (SHtml.ajaxCall(Str("ignore"), { ignore: String => SetHtml(show, showContents) })._2.cmd & swapJsCmd(show, hide))
+
+
+  /*
+   * The edit markup consists of the input field (editForm), a submit button and a cancel button
+   * Clicking on either of buttons will swap back to the display markup, the submit button will save the data of the input field
+   */
+  def editMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, divName: String, removable: Boolean): NodeSeq = {
+
+    val formData: NodeSeq =
+      editForm ++ <br />
+        <input class="submit" style="float:left;" type="image" src="/media/images/submit.png"/> ++
+        SHtml.hidden(onSubmit, ("float", "left")) ++
+        <input type="image" src="/media/images/cancel.png" onclick={ swapJsCmd(dispName(divName), editName(divName)).toJsCmd + " return false;" }/>
+
+    SHtml.ajaxForm(formData,
+      Noop,
+      setAndSwap(dispName(divName), displayMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), editName(divName)))
+  }
+
+
+  /*
+   * The display markup shows the label (default value if none is set), an edit button and for some fields (currently only the alias fields) also a remove button
+   * Clicking on the edit button will swap to the edit markup
+   * Clicking on the remove button will pop up a confirmation window
+   */
+  def displayMarkup(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, divName: String, removable: Boolean): NodeSeq = {
+
+    label match {
+      case "" => {
+        if(removable){
+          <div title={ noAliasTooltip } >
+            <a href="#" class={ editClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" } />
+            <br/><span class="text-add-edit">{ defaultValue }</span>
+          </div>
+
+        } else{
           <div>
-            <a href="#" class={ editClass } onclick={ setAndSwap(editName, editMarkup, dispName).toJsCmd + " return false;" }/>
-            <span class="text">{ label }</span>
+            <a href="#" class={ addClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>
+              { " " ++ defaultValue }
+            </a>
           </div>
         }
       }
+      case _ => {
+        <div>
+          <a href="#" class={ editClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }/>
+          { if (removable)
+            <a href="#" class={ removeClass } onclick={ removeAlias("", editForm, onSubmit, onDelete, defaultValue, divName, removable) } />
+          }
+          <br/><span class="text">{ label }</span>
+        </div>
+      }
+    }
+  }
+
+
+  /*
+   * Pop-up window whem removing alias: on approval deletes alias and empties value in input field of the edit markup
+   */
+
+  def removeAlias(label: String, editForm: NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, divName: String, removable: Boolean): String = {
+
+    def removalConfirmed: JsCmd = {
+      SHtml.ajaxInvoke(() => {
+        onDelete()
+        var empty = ""
+        setAndSwap(dispName(divName), displayMarkup(empty, SHtml.text(empty, empty = _), onSubmit, onDelete, defaultValue, divName, removable), editName(divName))
+      })._2.cmd
     }
 
-    def editMarkup: NodeSeq = {
-      val formData: NodeSeq =
-        editForm ++ <br />
-          <input class="submit" style="float:left;" type="image" src="/media/images/submit.png"/> ++
-          SHtml.hidden(onSubmit, ("float", "left")) ++
-          <input type="image" src="/media/images/cancel.png" onclick={ swapJsCmd(dispName, editName).toJsCmd + " return false;" }/>
+    val confirmationPopup = JsCmds.Confirm(confirmRemoval, removalConfirmed)
+    confirmationPopup
+  }
 
-      SHtml.ajaxForm(formData,
-        Noop,
-        setAndSwap(dispName, displayMarkup, editName))
-    }
+
+
+  def editable(label : => String, editForm: => NodeSeq, onSubmit: () => JsCmd, onDelete: () => Unit, defaultValue: String, removable: Boolean): NodeSeq ={
+    val divName = Helpers.nextFuncName
 
     <div>
-      <div id={ dispName }>
-        { displayMarkup }
+      <div id={ dispName(divName) }>
+        { displayMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable) }
       </div>
-      <div id={ editName } style="display: none;">
-        { editMarkup }
+      <div id={ editName(divName) } style="display: none;">
+        { editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable) }
       </div>
     </div>
   }
-  
 }
