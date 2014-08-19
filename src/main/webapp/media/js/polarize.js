@@ -194,24 +194,22 @@
     }
 
     function createEvents(settings) {
-      $(".feedback-slider").toggle(
-          function(){
-              var $feedback = $("#feedback").removeClass("feedback-bg");
-              $feedback.css({"background-image":"none"});
-              $feedback.find('.polarize-input').show();
-              $feedback.find('input[type="text"], textarea').val("");
-              $feedback.find('.thanks').hide();
-              $feedback.animate(JSON.parse(add_position_style(settings)["animation"]["show"]));
-              return false;
-          },
-          function(){
-              var $feedback = $("#feedback").addClass("feedback-bg");
-              console.log("url(" + settings.images_dir + "polarize-logo.png);");
-              $feedback.animate(JSON.parse(add_position_style(settings)["animation"]["hide"]));
-              $feedback.css({"background-image": "url(" + settings.images_dir + "polarize-logo.png)"});
-              return false;
-          }
-      );
+      $(".feedback-slider").on("click", function(){
+        var $feedback = $("#feedback");
+        if ($feedback.css("background-image") !== "none") {
+          $feedback.removeClass("feedback-bg");
+          $feedback.css({"background-image":"none"});
+          $feedback.find('.polarize-input').show();
+          $feedback.find('input[type="text"], textarea').val("");
+          $feedback.find('.thanks').hide();
+          $feedback.animate(JSON.parse(add_position_style(settings).animation.show));
+        } else {
+          $feedback.addClass("feedback-bg");
+          $feedback.animate(JSON.parse(add_position_style(settings).animation.hide));
+          $feedback.css({"background-image": "url(" + settings.images_dir + "polarize-logo.png)"});
+        }
+        return false;
+      });
       $('#feedback-angel').submit(function() {
         var $this = $(this);
         if ($.trim($("#feedback-angel input[type=text]").val()).length !== 0) {
@@ -264,7 +262,7 @@
             } else if ( typeof method === 'object' || ! method ) {
                 return methods.init.apply( this, arguments );
             } else {
-                $.error( 'Method ' +  method + ' does not exist on jQuery.tooltip' );
+                $.error( 'Method ' +  method + ' does not exist on polarize Widget' );
             }
       };
 
