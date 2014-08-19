@@ -1,469 +1,484 @@
 @import url('reset.css');
 
 body {
-	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-	font-weight: 300;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 300;
 }
 
 #start-login,
 .logout,
 a {
-	color: #1C8B77;
-	text-decoration: none;
+  color: #1C8B77;
+  text-decoration: none;
 }
 
 a:hover {
-	color: #156759;
+  color: #156759;
 }
 
 #start-login:hover,
 .logout:hover {
-	color: #156759;
-	text-decoration: underline;
-	cursor:pointer;
+  color: #156759;
+  text-decoration: underline;
+  cursor:pointer;
 }
 
 a.sort {
-	overflow: hidden;
-	display: inline-block;
-	width: 7px;
-	height: 9px;
-	background: transparent url(../images/sort.png) no-repeat 50% 0;
-	text-indent: -9999em;
+  overflow: hidden;
+  display: inline-block;
+  width: 7px;
+  height: 9px;
+  background: transparent url(../images/sort.png) no-repeat 50% 0;
+  text-indent: -9999em;
 }
 
 a.add {
-	display: inline-block;
-	padding: 0 0 0 20px;
-	background: transparent url(../images/add-off.png) no-repeat 0 0;
-	line-height: 16px;
-	font-size: 12px;
-	text-decoration: none;
-	color: #999999;
+  display: inline-block;
+  padding: 0 0 0 20px;
+  background: transparent url(../images/add-off.png) no-repeat 0 0;
+  line-height: 16px;
+  font-size: 12px;
+  text-decoration: none;
+  color: #999999;
 }
 
 a.add:hover {
-	background-image: url(../images/add-on.png);
-	text-decoration: underline;
-	color: #666666;
+  background-image: url(../images/add-on.png);
+  text-decoration: underline;
+  color: #666666;
+}
+
+span.text-add-edit {
+  text-decoration: none;
+  color: #999999;
+  font-style: italic;
 }
 
 a.edit {
-	overflow: hidden;
-	display: inline-block;
-	width: 16px;
-	height: 16px;
-	background: transparent url(../images/edit-off.png) no-repeat 0 0;
-	text-indent: -9999em;
+  overflow: hidden;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: transparent url(../images/edit-off.png) no-repeat 0 0;
+  text-indent: -9999em;
+}
+
+a.remove {
+  overflow: hidden;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: transparent url(../images/remove.png) no-repeat 0 0;
+  text-indent: -9999em;
 }
 
 a.edit:hover {
-	background-image: url(../images/edit-on.png);
+  background-image: url(../images/edit-on.png);
 }
 
 input.edit {
-	float: left;
-	vertical-align: middle;
-	background: #ffffff;
-	border: 1px solid #aaaaaa;
-	border-radius: 2px;
-	padding: 1px;
-	font-size: 10px;
-	width: 60%;
+  float: left;
+  vertical-align: middle;
+  background: #ffffff;
+  border: 1px solid #aaaaaa;
+  border-radius: 2px;
+  padding: 1px;
+  font-size: 10px;
+  width: 60%;
 }
 
 input.submit {
-	float: left;
-	margin: 0 0 0 2px;
-	cursor: pointer;
+  float: left;
+  margin: 0 0 0 2px;
+  cursor: pointer;
 }
 
 #wrapper {
-	/*width: 940px;*/
-	width: 1050px;
-	margin: 0 auto;
+  /*width: 940px;*/
+  width: 1050px;
+  margin: 0 auto;
 }
 
 #header {
-	overflow: auto;
-	padding: 45px 0 40px;
-	background: transparent url(../images/header.png) repeat-x 50% 100%;
+  overflow: auto;
+  padding: 45px 0 40px;
+  background: transparent url(../images/header.png) repeat-x 50% 100%;
 }
 
 #accountShortDiscription {
-	font-size: 20px;
-	display: inline-block;
+  font-size: 20px;
+  display: inline-block;
 }
 
 #social {
-	float: right;
+  float: right;
 }
 
 #nav {
-	overflow: auto;
-	padding: 3px 0 0;
-	background: transparent url(../images/nav.png) repeat-x 50% 50%;
+  overflow: auto;
+  padding: 3px 0 0;
+  background: transparent url(../images/nav.png) repeat-x 50% 50%;
 }
 
 #about_text {
-	text-align: justify;
-	width: 500px;
-	margin-top: 15px;
-	float: left;
-	margin-left: 20px;
-	margin-right: 20px;
+  text-align: justify;
+  width: 500px;
+  margin-top: 15px;
+  float: left;
+  margin-left: 20px;
+  margin-right: 20px;
 }
 
 #nav ul {
-	float: left;
+  float: left;
 }
 
 #nav ul li {
-	float: left;
-	margin: 0 0 0 3px;
+  float: left;
+  margin: 0 0 0 3px;
 }
 
 #nav ul li a {
-	display: block;
-	padding: 8px 20px 10px;
-	border-radius: 5px 5px 0 0;
-	background: transparent url(../images/nav-item.png) repeat-x 50% 50%;
-	color: #ffffff;
-	text-decoration: none;
-	font-size: 14px;
-	text-shadow: 1px 1px 1px #666666;
+  display: block;
+  padding: 8px 20px 10px;
+  border-radius: 5px 5px 0 0;
+  background: transparent url(../images/nav-item.png) repeat-x 50% 50%;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  text-shadow: 1px 1px 1px #666666;
 }
 
 #nav ul li a.selected {
-	float: left;
-	background-image: url(../images/nav-selected.png);
-	color: #333333;
-	text-shadow: none;
+  float: left;
+  background-image: url(../images/nav-selected.png);
+  color: #333333;
+  text-shadow: none;
 }
 
 #logo {
-	float: left;
-	overflow: hidden;
-	width: 279px;
-	height: 38px;
-	margin: 0 0 0 10px;
-	background: transparent url(../images/logo.png) no-repeat 50% 0;
-	text-indent: -9999em;
-	cursor: pointer;
+  float: left;
+  overflow: hidden;
+  width: 279px;
+  height: 38px;
+  margin: 0 0 0 10px;
+  background: transparent url(../images/logo.png) no-repeat 50% 0;
+  text-indent: -9999em;
+  cursor: pointer;
 }
 
 #account {
-	float: right;
-	height: 100%;
-	padding: 2px 0 0;
+  float: right;
+  height: 100%;
+  padding: 2px 0 0;
 }
 
 #account .profile-info {
-	float: right;
-	margin: 0 10px 0 0;
-	font-size: 12px;
+  float: right;
+  margin: 0 10px 0 0;
+  font-size: 12px;
 }
 
 #account .account-info {
-	padding: 7px 15px 8px;
-	border: 1px solid #dddddd;
-	border-radius: 10px;
-	background: #ffffff;
-	font-size: 17px;
-	color: #666666;
+  padding: 7px 15px 8px;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 17px;
+  color: #666666;
 }
 
 #account .logout {
-	font-size: 12px;
+  font-size: 12px;
 }
 
 #account form.login {
-	float: right;
+  float: right;
 }
 
 #account form.login .field,
 #account form.login .button {
-	float: left;
+  float: left;
 }
 
 #account form.login .field {
-	width: 164px;
+  width: 164px;
 }
 
 #account form.login .field label {
-	font-size: 11px;
+  font-size: 11px;
 }
 
 #account form.login .field input {
-	float: left;
-	clear: left;
-	width: 150px;
-	background: #ffffff;
-	border: 1px solid #999999;
-	border-radius: 3px;
-	font-size: 12px;
-	padding: 2px;
+  float: left;
+  clear: left;
+  width: 150px;
+  background: #ffffff;
+  border: 1px solid #999999;
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 2px;
 }
 
 #account form.login .field .forgot {
-	float: right;
-	margin: 1px 8px 0 0;
-	padding: 2px 0 0;
-	font-size: 11px;
+  float: right;
+  margin: 1px 8px 0 0;
+  padding: 2px 0 0;
+  font-size: 11px;
 }
 
 #account form.login .field .signup {
-	float: right;
-	margin: 1px 8px 0 0;
-	padding: 2px 0 0;
-	font-size: 11px;
+  float: right;
+  margin: 1px 8px 0 0;
+  padding: 2px 0 0;
+  font-size: 11px;
 }
 
 #account form.login .button .submit {
-	float: left;
-	background: #c1e7e1;
-	border: 1px solid #22a890;
-	border-radius: 3px;
-	margin: 18px 0 0;
-	padding: 2px 5px;
-	color: #58988e;
-	font-size: 12px;
-	cursor: pointer;
+  float: left;
+  background: #c1e7e1;
+  border: 1px solid #22a890;
+  border-radius: 3px;
+  margin: 18px 0 0;
+  padding: 2px 5px;
+  color: #58988e;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 #content {
-	padding: 20px 0 40px;
+  padding: 20px 0 40px;
 }
 
 table {
-	width: 100%;
-	margin: 0 0 40px;
-	border-collapse: collapse;
-	clear : both;
+  width: 100%;
+  margin: 0 0 40px;
+  border-collapse: collapse;
+  clear : both;
 }
 
 /* don't add spacing after last table in a transaction list */
 #content div div:last-of-type table {
-    margin-bottom: 0px;
+  margin-bottom: 0px;
 }
 
 table th,
 table td {
-	text-align: left;
+  text-align: left;
 }
 
 table tbody tr {
-	background: #f3f9f8;
+  background: #f3f9f8;
 }
 
 table tbody tr:nth-child(even) {
-	background: #f2f8f1;
+  background: #f2f8f1;
 }
 
 table td {
-	padding: 14px 10px;
-	border-top: 2px solid #ffffff;
-	line-height: 1em;
-	font-size: 13px;
-	vertical-align: top;
+  padding: 14px 10px;
+  border-top: 2px solid #ffffff;
+  line-height: 1em;
+  font-size: 13px;
+  vertical-align: top;
 }
 
 table th {
-	overflow: auto;
-	padding: 0 0 10px 8px;
-	border-bottom: 2px solid #cbcbcb;
+  overflow: auto;
+  padding: 0 0 10px 8px;
+  border-bottom: 2px solid #cbcbcb;
 }
 
 table.management th {
-    padding-left: 0px;
+  padding-left: 0px;
 }
 
 table.transactions th h5.date {
-	float: left;
+  float: left;
 }
 
 table.transactions th h6.balance {
-	float: right;
+  float: right;
 }
 
 table.transactions th .balance .text {
-	color: #999999;
-	padding: 0 10px 0 0;
-	font-size: 0.8em;
+  color: #999999;
+  padding: 0 10px 0 0;
+  font-size: 0.8em;
 }
 
 table.transactions td.icon {
-	width: 20px;
+  width: 20px;
 }
 
 table.transactions td.icon .out,
 table.transactions td.icon .in {
-	overflow: hidden;
-	width: 14px;
-	height: 14px;
-	background-color: transparent;
-	background-position: 50% 50%;
-	background-repeat: no-repeat;
-	text-indent: -9999em;
+  overflow: hidden;
+  width: 14px;
+  height: 14px;
+  background-color: transparent;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  text-indent: -9999em;
 }
 
 table.transactions td.icon .out {
-	background-image: url(../images/transaction-out.png);
+  background-image: url(../images/transaction-out.png);
 }
 
 table.transactions td.icon .in {
-	background-image: url(../images/transaction-in.png);
+  background-image: url(../images/transaction-in.png);
 }
 
 table.transactions td.symbol {
-	width: 10px;
-	padding-right: 5px;
-	text-align: center;
-	font-weight: bold;
+  width: 10px;
+  padding-right: 5px;
+  text-align: center;
+  font-weight: bold;
 }
 
 table.transactions td.amount {
-	padding-left: 5px;
-	width: 100px;
+  padding-left: 5px;
+  width: 100px;
 }
 
 table.transactions td.name {
-	width: 160px;
+  width: 160px;
 }
 
 table.transactions td.transaction_images .transaction_image {
-	width: 50px;
+  width: 50px;
 }
 
 table.transactions td.tags .tag {
     width: 100%
 }
 table.transactions td.tags .tag .tagContent {
-    display: inline-block;
-    margin-bottom: 2px;
-    padding: 1px 4px;
+  display: inline-block;
+  margin-bottom: 2px;
+  padding: 1px 4px;
 }
 
 table.transactions td.extra {
-	width: 350px;
+  width: 350px;
 }
 
 table.transactions td.comments {
-	width: 30px;
-	padding-top: 10px;
-	text-align: right;
+  width: 30px;
+  padding-top: 10px;
+  text-align: right;
 }
 
 table.transactions td.comments .comment {
-	display: inline-block;
-	background: transparent url(../images/comment.png) no-repeat 50% 0;
-	width: 13px;
-	height: 9px;
-	padding: 3px 3px 6px 4px;
-	color: #333333;
-	text-align: center;
-	line-height: 1em;
-	font-size: 9px;
+  display: inline-block;
+  background: transparent url(../images/comment.png) no-repeat 50% 0;
+  width: 13px;
+  height: 9px;
+  padding: 3px 3px 6px 4px;
+  color: #333333;
+  text-align: center;
+  line-height: 1em;
+  font-size: 9px;
 }
 
 table.management th a.sort {
-	margin: 0 0 0 3px;
+  margin: 0 0 0 3px;
 }
 
 td a.upload {
-	display: inline-block;
-	padding: 5px 5px 6px 30px;
-	border: 1px dotted #cccccc;
-	border-radius: 5px;
-	background: #ffffff url(../images/upload-off.png) no-repeat 5px 5px;
-	line-height: 22px;
-	white-space: nowrap;
-	font-size: 12px;
-	text-decoration: none;
-	color: #999999;
+  display: inline-block;
+  padding: 5px 5px 6px 30px;
+  border: 1px dotted #cccccc;
+  border-radius: 5px;
+  background: #ffffff url(../images/upload-off.png) no-repeat 5px 5px;
+  line-height: 22px;
+  white-space: nowrap;
+  font-size: 12px;
+  text-decoration: none;
+  color: #999999;
 }
 
 table.management td a.upload:hover {
-	background-image: url(../images/upload-on.png);
-	text-decoration: underline;
-	color: #666666;
+  background-image: url(../images/upload-on.png);
+  text-decoration: underline;
+  color: #666666;
 }
 
 table.management td span.upload {
-	display: inline-block;
-	padding: 2px;
-	border: 1px solid #cccccc;
-	border-radius: 5px;
-	background: #ffffff;
-	line-height: 0;
-	font-size: 0;
+  display: inline-block;
+  padding: 2px;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  background: #ffffff;
+  line-height: 0;
+  font-size: 0;
 }
 
 table.management td span.upload img {
-	height: 30px;
+  height: 30px;
 }
 
 table.management th {
-	font-size: 14px;
+  font-size: 14px;
 }
 
 table.management th.account {
-	width: 155px;
+  width: 155px;
 }
 
 table.management td.account {
-	padding-right: 15px;
+  padding-right: 15px;
 }
 
 table.management th.public {
-	width: 120px;
+  width: 120px;
 }
 
 table.management td.public {
-	padding-left: 0;
-	line-height: 16px;
-	font-size: 12px;
+  padding-left: 0;
+  line-height: 16px;
+  font-size: 12px;
 }
 
 table.management th.private {
-	width: 120px;
+  width: 120px;
 }
 
 table.management td.private {
-	padding-left: 0;
-	line-height: 16px;
-	font-size: 12px;
+  padding-left: 0;
+  line-height: 16px;
+  font-size: 12px;
 }
 
 table.management th.website {
-	width: 150px;
+  width: 150px;
 }
 
 table.management td.website {
-	padding-left: 0;
-	line-height: 16px;
-	font-size: 12px;
+  padding-left: 0;
+  line-height: 16px;
+  font-size: 12px;
 }
 
 table.management th.information {
-	width: 200px;
+  width: 200px;
 }
 
 table.management td.information {
-	padding-left: 0;
-	line-height: 16px;
-	font-size: 12px;
+  padding-left: 0;
+  line-height: 16px;
+  font-size: 12px;
 }
 
 table.management th.image {
-	width: 120px;
+  width: 120px;
 }
 
 table.management td.image {
-	padding-top: 3px;
-	padding-bottom: 2px;
-	padding-left: 0;
-	text-align: right;
+  padding-top: 3px;
+  padding-bottom: 2px;
+  padding-left: 0;
+  text-align: right;
 }
 
 
@@ -472,410 +487,413 @@ div.extra_account_logo {
 }
 
 div.extra_account_logo img {
-    max-width: 200px;
-    max-height: 100px;
+  max-width: 200px;
+  max-height: 100px;
 }
 
 div.extra_info_and_links {
-    float: left;
-    margin-left: 10px;
+  float: left;
+  margin-left: 10px;
 }
 
 span.alias_indicator_public {
-    color: green;
-    padding: 2px;
+  color: green;
+  padding: 2px;
 }
 
 span.alias_indicator_private {
-    color: purple;
-    padding: 2px;
+  color: purple;
+  padding: 2px;
 }
 
 
 #footer {
-	background: #f0f0f0;
-	border-top: 1px dotted #cccccc;
-	border-radius: 0 0 8px 8px;
-	padding: 10px 0 13px;
+  background: #f0f0f0;
+  border-top: 1px dotted #cccccc;
+  border-radius: 0 0 8px 8px;
+  padding: 10px 0 13px;
 }
 
 #footer p {
-	color: #999999;
-	font-size: 11px;
-	text-align: center;
+  color: #999999;
+  font-size: 11px;
+  text-align: center;
 }
 #authorizeSection{
-	margin-bottom: 50px;
+  margin-bottom: 50px;
 }
 #authorizeSection form.login {
-	float : left;
-	margin-top: 20px;
+  float : left;
+  margin-top: 20px;
 }
 span.edit_error_class {
-	color: red;
+  color: red;
 }
 #accountList {
-	margin-top: 5px;
-	float : right;
+  margin-top: 5px;
+  float : right;
 }
 
 #public_accounts, #authorised_accounts {
-	background: #FAFAFA;
-	width: 200px;
-	border-radius: 8px 8px 8px 8px;
-	padding: 10px 10px 20px 10px;
-	margin-top: 20px;
-	float: left;
+  background: #FAFAFA;
+  width: 200px;
+  border-radius: 8px 8px 8px 8px;
+  padding: 10px 10px 20px 10px;
+  margin-top: 20px;
+  float: left;
 }
 
 #homeContent {
-	overflow: hidden;
+  overflow: hidden;
 }
 
 .account_header {
-	margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .account {
-	margin-bottom: 5px;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 li.comment
 {
-	padding : 14px 10px;
-	border-top: 2px solid white;
-	background: #f3f9f8;
-	line-height: 1em;
-	font-size: 13px;
+  padding : 14px 10px;
+  border-top: 2px solid white;
+  background: #f3f9f8;
+  line-height: 1em;
+  font-size: 13px;
 }
 #comment_list
 {
-	margin-top: 10px;
+  margin-top: 10px;
 }
 #addCommentbloc
 {
-	margin-top: 50px;
+  margin-top: 50px;
 }
 #submitComment
 {
-	display: block;
+  display: block;
 }
 #lastUpdate
 {
-	margin-top: 5px;
-	font-size: 13px;
-	display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  display: block;
 }
 #account_details
 {
-	margin-bottom: 25px;
+  margin-bottom: 25px;
 }
 span#registrationDetails
 {
-	font-size: 10px;
+  font-size: 10px;
 }
 span.error
 {
-	color:red;
+  color:red;
 }
 img.moreInfoIcon
 {
-	margin-left: 5px;
+  margin-left: 5px;
 }
 span#submissionMessage
 {
-	display: block;
+  display: block;
 }
 span#submissionSuccess, span#submissionFailed
 {
-	display: block;
-	padding: 15px 20px;
-	background: #66ee55;
+  display: block;
+  padding: 15px 20px;
+  background: #66ee55;
 }
 span#submissionFailed
 {
-	background: #ff3311;
+  background: #ff3311;
 }
 span#accountsMsg
 {
-	font-size: 13px;
+  font-size: 13px;
 }
 
 #tagsTitle, #commentsTitle, #imagesBlock > .imagesTitle {
-	margin-bottom: 10px;
-	font-weight: bold;
-	border-bottom: 2px solid #cbcbcb;
-	padding-bottom: 10px
+  margin-bottom: 10px;
+  font-weight: bold;
+  border-bottom: 2px solid #cbcbcb;
+  padding-bottom: 10px
 }
 #tags_list{
-	height: auto;
+  height: auto;
 }
 
 .tagID{
-	padding: 5px 10px;
-	background: #F3F9F8;
-	display: inline-block;
-	margin-right: 10px;
-	display: inline-block;
-	border: 2px solid #CBCBCB;
-	margin-bottom: 5px;
+  padding: 5px 10px;
+  background: #F3F9F8;
+  display: inline-block;
+  margin-right: 10px;
+  display: inline-block;
+  border: 2px solid #CBCBCB;
+  margin-bottom: 5px;
 }
 
 .tagValue{
-	padding-right: 20px;
+  padding-right: 20px;
 }
 
 .deleteTag{
-	margin-left: 5px;
-	text-decoration: none;
+  margin-left: 5px;
+  text-decoration: none;
 }
 
 .deleteTag:hover {
-	cursor: pointer;
-	color: red;
+  cursor: pointer;
+  color: red;
 }
 
 #addTagbloc{
-	margin-top : 25px;
-	margin-bottom: 50px;
+  margin-top : 25px;
+  margin-bottom: 50px;
 }
 #tagsBloc{
 
 }
 #commentsBloc, #imagesBlock{
-	margin-top: 15px;
+  margin-top: 15px;
 }
 #addTagInput{
-	height: 25px;
+  height: 25px;
 }
 #submitTag,
 #addImageBlock .addImageSubmit,
 #addImageBlock .chooseFile{
-	height: 30px;
-	padding: 0 15px;
+  height: 30px;
+  padding: 0 15px;
 }
 
 #addImageBlock {
-	border-top: 2px solid #cbcbcb;
-	padding-top: 10px;
-	margin-top: 10px;
+  border-top: 2px solid #cbcbcb;
+  padding-top: 10px;
+  margin-top: 10px;
 }
 
 .image-holder {
-	padding: 5px 10px;
-	background: #F3F9F8;
-	display: inline-block;
-	margin-right: 10px;
-	display: inline-block;
-	border: 2px solid #CBCBCB;
-	vertical-align: top;
-	margin-bottom: 10px;
-	width: 300px;
+  padding: 5px 10px;
+  background: #F3F9F8;
+  display: inline-block;
+  margin-right: 10px;
+  display: inline-block;
+  border: 2px solid #CBCBCB;
+  vertical-align: top;
+  margin-bottom: 10px;
+  width: 300px;
 }
 
 .deleteImage{
-	float: right;
-	margin-left: 5px;
-	text-decoration: none;
+  float: right;
+  margin-left: 5px;
+  text-decoration: none;
 }
 
 .deleteImage:hover {
-	cursor: pointer;
-	color: red;
+  cursor: pointer;
+  color: red;
 }
 
 .image-description {
-	margin-top: 5px;
-	margin-bottom: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .registration-error {
-	color: red;
+  color: red;
 }
 
 .register-header {
-	margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .registration form {
-	width: 500px;
-	clear: both;
+  width: 500px;
+  clear: both;
 }
 
 .registration input {
-	font-size: 16px;
-	float: left;
-	width: 350px;
-	height: 25px;
-	margin-bottom: 10px;
-	-webkit-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
-	-moz-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
-	box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+  font-size: 16px;
+  float: left;
+  width: 350px;
+  height: 25px;
+  margin-bottom: 10px;
+  -webkit-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
 }
 
 .registration input[type="submit"] {
-	float: left;
-	width : 100px;
+  float: left;
+  width : 100px;
 }
 
 .registration label {
-	float: left;
-	width: 150px;
+  float: left;
+  width: 150px;
 }
 
 .registration textarea {
-	width: 350px;
+  width: 350px;
 }
 
 .registration select {
-	display: block;
-	margin-bottom: 10px;
+  display: block;
+  margin-bottom: 10px;
 }
 
 .registration textarea {
-	display: block;
-	margin-bottom: 10px;
+  display: block;
+  margin-bottom: 10px;
 }
 
 .success .info {
-	margin: 5px;
+  margin: 5px;
 }
 
 .success .success-message {
-	margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .success .user-generated {
-	margin: 10px;
+  margin: 10px;
 }
 
 .success .server-generated {
-	margin: 10px;
-	font-weight: bold;
+  margin: 10px;
+  font-weight: bold;
 }
 
 /* Feedback button css*/
 #feedback {
-    display: block;
-    position: fixed;
-    top: 35%;
-    width: 220px;
-    height: 120px;
-    cursor: pointer;
-    background-color: #5c5c5c;
-    border-radius: 5px;
-    padding: 10px 10px 20px;
-    z-index: 9000;
+  display: block;
+  position: fixed;
+  top: 35%;
+  width: 220px;
+  height: 120px;
+  cursor: pointer;
+  background-color: #5c5c5c;
+  border-radius: 5px;
+  padding: 10px 10px 20px;
+  z-index: 9000;
 }
 
 #feedback.feedback-bg {
-    background-repeat: no-repeat;
-    background-size: 30px;
+  background-repeat: no-repeat;
+  background-size: 30px;
 }
 
 #feedback form {
-    width: 180px;
-    margin-bottom: 8px;
-    display:inline-block;
+  width: 180px;
+  margin-bottom: 8px;
+  display:inline-block;
 }
 
 #feedback p {
-    color: #FFFFFF;
-    margin:10px 0;
+  color: #FFFFFF;
+  margin:10px 0;
 }
 
 #feedback img {
-    height:50px;
+  height:50px;
 }
 
 #feedback input[type="text"] {
-    height:19px;
+  height:19px;
 }
 
 #feedback input, #feedback textarea {
-    border: 0;
-    border-radius: 5px;
-    box-shadow: none;
-    width:172px;
-    color:#7f7f7f;
-    margin:5px 0;
-    padding:4px 4px;
+  border: 0;
+  border-radius: 5px;
+  box-shadow: none;
+  width:172px;
+  color:#7f7f7f;
+  margin:5px 0;
+  padding:4px 4px;
 }
 
 #feedback input:required, #feedback textarea:required {
-    box-shadow:none;
+  box-shadow:none;
 }
 
 #feedback input[type="submit"] {
-    /* IE10 Consumer Preview */
-    background-image: -ms-linear-gradient(top, #5C9BD1 0%, #2871b5 100%);
+  /* IE10 Consumer Preview */
+  background-image: -ms-linear-gradient(top, #5C9BD1 0%, #2871b5 100%);
 
-    /* Mozilla Firefox */
-    background-image: -moz-linear-gradient(top, #5C9BD1 0%, #2871b5 100%);
+  /* Mozilla Firefox */
+  background-image: -moz-linear-gradient(top, #5C9BD1 0%, #2871b5 100%);
 
-    /* Opera */
-    background-image: -o-linear-gradient(top, #5C9BD1 0%, #2871b5 100%);
+  /* Opera */
+  background-image: -o-linear-gradient(top, #5C9BD1 0%, #2871b5 100%);
 
-    /* Webkit (Safari/Chrome 10) */
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #5C9BD1), color-stop(1, #2871b5));
+  /* Webkit (Safari/Chrome 10) */
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #5C9BD1), color-stop(1, #2871b5));
 
-    /* Webkit (Chrome 11+) */
-    background-image: -webkit-linear-gradient(top, #5C9BD1 0%, #2871b5 100%);
+  /* Webkit (Chrome 11+) */
+  background-image: -webkit-linear-gradient(top, #5C9BD1 0%, #2871b5 100%);
 
-    /* W3C Markup, IE10 Release Preview */
-    background-image: linear-gradient(to bottom, #5C9BD1 0%, #2871b5 100%);
-    color: #f0f0ee;
-    font-weight: bold;
-    cursor: pointer;
-    width:inherit;
-    margin:0;
-    padding:3px 0;
-    box-shadow: 1px 1px 5px rgb(43, 40, 40);
+  /* W3C Markup, IE10 Release Preview */
+  background-image: linear-gradient(to bottom, #5C9BD1 0%, #2871b5 100%);
+  color: #f0f0ee;
+  font-weight: bold;
+  cursor: pointer;
+  width:inherit;
+  margin:0;
+  padding:3px 0;
+  box-shadow: 1px 1px 5px rgb(43, 40, 40);
 }
 
 #feedback #feedback-content {
-    width:180px;
+  width:180px;
 }
 
 #feedback .polarize-anchor {
-    display:block;
-    width:180px;
-    height:50px;
-    background-repeat: no-repeat;
-    background-size: 50%;
-    margin: 10px 0;
+  display:block;
+  width:180px;
+  height:50px;
+  background-repeat: no-repeat;
+  background-size: 50%;
+  margin: 10px 0;
 }
 
 #feedback .feedback-slider {
-    display:block;
-    width: 20px;
-    height: 100%;
-    background-repeat: no-repeat;
-    background-size: 15px;
-    background-position: 50%;
-    padding: 0 5px;
+  display:block;
+  width: 20px;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-size: 15px;
+  background-position: 50%;
+  padding: 0 5px;
 }
 /* Feedbackbuttonc css end*/
 
 a.otherAccountLinkForName{
-	text-decoration: None;
-	color: black;
+  text-decoration: None;
+  color: black;
 }
 a.otherAccountLinkForAlias{
-	text-decoration: None;
-	color: inherit;
+  text-decoration: None;
+  color: inherit;
 }
 
 #create-permission-message {
-	color: red;
-	width: 400px;
-	padding: 5px;
+  color: red;
+  width: 400px;
+  padding: 5px;
 }
 
 #add-permission {
-	display: inline-block;
-	margin-top: 10px;
-	margin-bottom: 20px;
+  display: inline-block;
+  margin-top: 10px;
+  margin-bottom: 20px;
 }
 
 
@@ -908,4 +926,3 @@ td.main-attributes{
 #view-edit-advanced-options {
   margin: 10px;
 }
-

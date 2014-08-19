@@ -27,6 +27,7 @@ Berlin 13359, Germany
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
+  Nina Gänsdorfer: nina AT tesobe.com
 
  */
 
@@ -68,27 +69,34 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
   def showAll(xhtml: NodeSeq) : NodeSeq = {
 
     def editablePublicAlias(initialValue : String, holder: String, otherAccountId: String) = {
-      apiEditable(initialValue, holder, "alias", "public_alias", otherAccountId, "Public Alias")
+      apiEditable(initialValue, holder, "alias", "public_alias", otherAccountId, displayHolder(holder, "Public Alias"), true)
     }
 
     def editablePrivateAlias(initialValue : String, holder: String, otherAccountId: String) = {
-      apiEditable(initialValue, holder, "alias", "private_alias", otherAccountId, "Private Alias")
+      apiEditable(initialValue, holder, "alias", "private_alias", otherAccountId, displayHolder(holder, "Private Alias"), true)
     }
 
     def editableImageUrl(initialValue : String, holder: String, otherAccountId: String) = {
-      apiEditable(initialValue, holder, "image_URL", "image_url", otherAccountId, "Image URL")
+      apiEditable(initialValue, holder, "image_URL", "image_url", otherAccountId, "Image URL", false)
     }
 
     def editableUrl(initialValue : String, holder: String, otherAccountId: String) = {
-      apiEditable(initialValue, holder, "URL", "url", otherAccountId, "Website")
+      apiEditable(initialValue, holder, "URL", "url", otherAccountId, "Website", false)
     }
 
     def editableMoreInfo(initialValue : String, holder: String, otherAccountId: String) = {
-      apiEditable(initialValue, holder, "more_info", "more_info", otherAccountId, "Information")
+      apiEditable(initialValue, holder, "more_info", "more_info", otherAccountId, "Information", false)
     }
 
     def editableOpenCorporatesUrl(initialValue : String, holder: String, otherAccountId: String) = {
-      apiEditable(initialValue, holder, "open_corporates_URL", "open_corporates_url", otherAccountId, "Open Corporates URL")
+      apiEditable(initialValue, holder, "open_corporates_URL", "open_corporates_url", otherAccountId, "Open Corporates URL", false)
+    }
+ 
+    def displayHolder(holder: String, default: String): String = {
+      if (holder.isEmpty)
+        default
+      else
+        "("+holder+")"
     }
 
     /**
@@ -102,7 +110,8 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
       jsonKey: String,
       apiProperty: String,
       otherAccountId: String,
-      defaultValue: String ) = {
+      defaultValue: String,
+      removable: Boolean ) = {
       var currentValue = initialValue
       var exists = !currentValue.isEmpty
 
@@ -124,11 +133,19 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
           }
         }
       }
-      
-      CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _), () =>{
-        saveValue()
-        Noop
-      }, defaultValue)
+
+
+        CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _),
+          () =>{
+            saveValue()
+            Noop
+          },
+          () => {
+            currentValue = ""
+            saveValue()
+          },
+          defaultValue,
+          removable)
     }
     
     val otherAccountJsons : List[OtherAccountJson] = otherAccountsJson.other_accounts.getOrElse(Nil).
@@ -173,7 +190,5 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
           imageURLSelector).apply(xhtml)
       }
     }
-      
   }
-
 }
