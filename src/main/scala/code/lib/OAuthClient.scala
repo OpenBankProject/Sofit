@@ -95,7 +95,7 @@ object OAuthClient extends Loggable {
 
   val defaultProvider = OBPDemo
 
-  def getAuthorizedCredential(provider : Provider) : Option[Credential] = {
+  def getAuthorizedCredential() : Option[Credential] = {
     credentials.filter(_.readyToSign)
   }
 

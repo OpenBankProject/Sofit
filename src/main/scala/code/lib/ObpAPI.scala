@@ -215,7 +215,7 @@ object ObpPost extends Loggable {
   def apply(apiPath: String, json : JValue): Box[JValue] = {
     tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
-      val credentials = OAuthClient.getAuthorizedCredential(provider)
+      val credentials = OAuthClient.getAuthorizedCredential
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
@@ -319,7 +319,7 @@ object ObpPut extends Loggable {
   def apply(apiPath: String, json : JValue): Box[JValue] = {
     tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
-      val credentials = OAuthClient.getAuthorizedCredential(provider)
+      val credentials = OAuthClient.getAuthorizedCredential()
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
@@ -374,7 +374,7 @@ object ObpDelete extends Loggable {
   def apply(apiPath: String): Boolean = {
     val worked = tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
-      val credentials = OAuthClient.getAuthorizedCredential(provider)
+      val credentials = OAuthClient.getAuthorizedCredential()
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
@@ -420,7 +420,7 @@ object ObpGet extends Loggable {
   def apply(apiPath: String, headers : List[Header] = Nil): Box[JValue] = {
     tryo {
       val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
-      val credentials = OAuthClient.getAuthorizedCredential(provider)
+      val credentials = OAuthClient.getAuthorizedCredential()
       val apiUrl = provider.apiBaseUrl
       val url = new URL(apiUrl + apiPath)
       
