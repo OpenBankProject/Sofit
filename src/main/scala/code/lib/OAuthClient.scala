@@ -88,7 +88,7 @@ case class Consumer(consumerKey : String, consumerSecret : String) {
 
 case class Credential(provider : Provider, consumer : OAuthConsumer, readyToSign : Boolean)
 
-object credentials extends SessionVar[List[Credential]](Nil)
+object credentials extends SessionVar[Option[Credential]](None)
 object mostRecentLoginAttemptProvider extends SessionVar[Box[Provider]](Empty)
 
 object OAuthClient extends Loggable {
@@ -96,38 +96,21 @@ object OAuthClient extends Loggable {
   val defaultProvider = OBPDemo
 
   def getAuthorizedCredential(provider : Provider) : Option[Credential] = {
-    credentials.find(_.provider == provider).filter(_.readyToSign)
+    credentials.filter(_.readyToSign)
   }
 
   def replaceCredential(provider : Provider) : Credential = {
-    credentials.find(_.provider == provider) match {
-      case Some(c) => {
-        val newCredentials = credentials.get.filterNot(_ == c)
-        val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
-        val credential = Credential(provider, consumer, false)
+    val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
+    val credential = Credential(provider, consumer, false)
 
-        credentials.set(credential :: newCredentials)
-        credential
-      }
-      case None => {
-        val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
-        val credential = Credential(provider, consumer, false)
-
-        credentials.set(credential :: credentials.get)
-        credential
-      }
-    }
+    credentials.set(Some(credential))
+    credential
   }
 
   def getOrCreateCredential(provider : Provider) : Credential = {
-    credentials.find(_.provider == provider) match {
+    credentials.get match {
       case Some(c) => c
-      case None => {
-        val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
-        val credential = Credential(provider, consumer, false)
-        credentials.set(credential :: credentials.get)
-        credential
-      }
+      case None => replaceCredential(provider)
     }
   }
 
@@ -136,14 +119,13 @@ object OAuthClient extends Loggable {
     val success = for {
       verifier <- S.param("oauth_verifier") ?~ "No oauth verifier found"
       provider <- mostRecentLoginAttemptProvider.get ?~ "No provider found for callback"
-      consumer <- Box(credentials.find(_.provider == provider).map(_.consumer)) ?~ "No consumer found for callback"
+      consumer <- Box(credentials.map(_.consumer)) ?~ "No consumer found for callback"
     } yield {
       //after this, consumer is ready to sign requests
       provider.oAuthProvider.retrieveAccessToken(consumer, verifier)
       //update the session credentials
       val newCredential = Credential(provider, consumer, true)
-      val newCredentials = newCredential :: credentials.filterNot(_.provider == provider)
-      credentials.set(newCredentials)
+      credentials.set(Some(newCredential))
     }
 
     success match {
@@ -160,13 +142,10 @@ object OAuthClient extends Loggable {
     provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
   }
 
-  def loggedInAt : List[Provider] = {
-    credentials.filter(_.readyToSign).map(_.provider)
-  }
-  def loggedInAt(provider : Provider) : Boolean = loggedInAt.contains(provider)
-  def loggedInAtAny : Boolean = loggedInAt.size > 0
+  def loggedIn : Boolean = credentials.map(_.readyToSign).getOrElse(false)
+
   def logoutAll() = {
-    credentials.set(Nil)
+    credentials.set(None)
     S.redirectTo("/")
   }
 }

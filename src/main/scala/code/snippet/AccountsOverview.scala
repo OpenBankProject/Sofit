@@ -130,7 +130,7 @@ class AccountsOverview extends Loggable {
       ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg"))
     }
 
-    if(OAuthClient.loggedInAt(OAuthClient.defaultProvider)) loggedInSnippet //TODO: Support multiple providers
+    if(OAuthClient.loggedIn) loggedInSnippet
     else loggedOutSnippet
   }
 

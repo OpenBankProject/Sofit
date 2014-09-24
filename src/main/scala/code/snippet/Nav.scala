@@ -192,7 +192,7 @@ class Nav {
     val banksJsonBox = ObpAPI.allBanks
     val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
     val accountJsons : List[BarebonesAccountJson] = bankJsons.flatMap(bankJson => {
-      if(OAuthClient.loggedInAt(OAuthClient.defaultProvider)) {
+      if(OAuthClient.loggedIn) {
         ObpAPI.privateAccounts(bankJson.id.getOrElse("")).flatMap(_.accounts)
       } else {
         ObpAPI.publicAccounts(bankJson.id.getOrElse("")).flatMap(_.accounts)

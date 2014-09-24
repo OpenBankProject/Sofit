@@ -76,7 +76,7 @@ class Login {
   }
 
   def login = {
-    if(OAuthClient.loggedInAtAny) loggedIn
+    if(OAuthClient.loggedIn) loggedIn
     else loggedOut
   }
 

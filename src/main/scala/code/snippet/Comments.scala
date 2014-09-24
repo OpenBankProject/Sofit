@@ -265,7 +265,7 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
       }
     }
     
-    if (OAuthClient.loggedInAt(provider)) {
+    if (OAuthClient.loggedIn) {
       "#imageUploader [action]" #> S.uri &
         "#imageUploader" #> {
           "name=params [value]" #> transloadItParams
@@ -356,9 +356,8 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
             },
             ("id", "submitTag")))
     }
-    
-    //TODO: Support multiple providers
-    if(OAuthClient.loggedInAt.contains(OAuthClient.defaultProvider)) {
+
+    if(OAuthClient.loggedIn) {
       addTagSelector
     } else {
       (".add" #> "You need to login before you can add tags").apply(xhtml)
@@ -456,9 +455,8 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
 	              AppendHtml("comment_list", newCommentXml.getOrElse(NodeSeq.Empty))
 	          }, ("id", "submitComment")))
     }
-    
-    //TODO: Support multiple providers
-    if (!OAuthClient.loggedInAt.contains(OAuthClient.defaultProvider)) mustLogIn
+
+    if (!OAuthClient.loggedIn) mustLogIn
     else loggedIn
     
   }
