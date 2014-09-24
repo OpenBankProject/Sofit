@@ -32,15 +32,10 @@ Berlin 13359, Germany
 
 package code.snippet
 
-import scala.xml.NodeSeq
+import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers
 import Helpers._
-import net.liftweb.util.CssSel
-import net.liftweb.http.S
 import net.liftweb.http.SHtml
-import net.liftweb.http.js.jquery.JqJsCmds.Show
-import net.liftweb.http.js.JE.JsRaw
-import code.lib.OAuthClient
 import code.lib.OAuthClient
 import net.liftweb.http.js.JsCmds.Noop
 
@@ -56,20 +51,11 @@ class Login {
   }
 
   def loggedOut = {
-    import scala.xml.Unparsed
-    import net.liftweb.http.js.JsCmd
     ".logged-in *" #> "" &
     "#start-login [onclick]" #> {
       def actionJS: JsCmd = {
-        import net.liftweb.http.js.JsCmds.{Alert, RedirectTo}
-        import net.liftweb.common.Full
-        val provider = OAuthClient.defaultProvider
-        tryo{
-          OAuthClient.getAuthUrl(provider)
-        } match {
-          case Full(oauthUrl) => RedirectTo(oauthUrl)
-          case _ => Alert("Error. Could not get request token. Please retry later")
-        }
+        OAuthClient.redirectToOauthLogin()
+        Noop
       }
       SHtml.onEvent((s: String) => actionJS)
     }

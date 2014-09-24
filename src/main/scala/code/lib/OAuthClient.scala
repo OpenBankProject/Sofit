@@ -99,7 +99,7 @@ object OAuthClient extends Loggable {
     credentials.filter(_.readyToSign)
   }
 
-  def replaceCredential(provider : Provider) : Credential = {
+  def setNewCredential(provider : Provider) : Credential = {
     val consumer = new DefaultOAuthConsumer(provider.consumerKey, provider.consumerSecret)
     val credential = Credential(provider, consumer, false)
 
@@ -129,10 +129,13 @@ object OAuthClient extends Loggable {
     Empty
   }
 
-  def getAuthUrl(provider : Provider) : String = {
+  def redirectToOauthLogin() = {
+    val provider = defaultProvider
     mostRecentLoginAttemptProvider.set(Full(provider))
-    val credential = replaceCredential(provider)
-    provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
+    val credential = setNewCredential(provider)
+
+    val authUrl = provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
+    S.redirectTo(authUrl)
   }
 
   def loggedIn : Boolean = credentials.map(_.readyToSign).getOrElse(false)
