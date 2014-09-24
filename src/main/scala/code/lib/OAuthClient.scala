@@ -66,7 +66,7 @@ sealed trait Provider {
   val consumerSecret : String
 }
 
-object OBPDemo extends Provider {
+trait DefaultProvider extends Provider {
   val name = "The Open Bank Project Demo"
 
   val baseUrl = Props.get("api_hostname", S.hostName)
@@ -76,10 +76,22 @@ object OBPDemo extends Provider {
   val authorizeUrl = baseUrl + "/oauth/authorize"
   val signupUrl = Some(baseUrl + "/user_mgt/sign_up")
 
-  val oAuthProvider : OAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
+  lazy val oAuthProvider : OAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
 
-  val consumerKey = Props.get("obp_consumer_key", "")//SofiAPITransition.sofiConsumer.key.get
-  val consumerSecret = Props.get("obp_secret_key", "")//SofiAPITransition.sofiConsumer.secret.get
+  val consumerKey = Props.get("obp_consumer_key", "")
+  val consumerSecret = Props.get("obp_secret_key", "")
+}
+
+object OBPDemo extends DefaultProvider
+
+object AddBankAccountProvider extends DefaultProvider {
+  override val name = "The Open Bank Project Demo - Add Bank Account"
+
+  //The "login" prefix before /oauth means that we will use the oauth flow that will ask the user
+  //to connect a bank account
+  override val requestTokenUrl = baseUrl + "/login/oauth/initiate"
+  override val accessTokenUrl = baseUrl + "/login/oauth/token"
+  override val authorizeUrl = baseUrl + "/login/oauth/authorize"
 }
 
 case class Consumer(consumerKey : String, consumerSecret : String) {
@@ -93,6 +105,7 @@ object mostRecentLoginAttemptProvider extends SessionVar[Box[Provider]](Empty)
 
 object OAuthClient extends Loggable {
 
+  //TODO get rid of this val
   val defaultProvider = OBPDemo
 
   def getAuthorizedCredential() : Option[Credential] = {
@@ -130,12 +143,19 @@ object OAuthClient extends Loggable {
   }
 
   def redirectToOauthLogin() = {
-    val provider = defaultProvider
+    redirect(OBPDemo)
+  }
+
+  private def redirect(provider : Provider) = {
     mostRecentLoginAttemptProvider.set(Full(provider))
     val credential = setNewCredential(provider)
 
     val authUrl = provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
     S.redirectTo(authUrl)
+  }
+
+  def redirectToConnectBankAccount() = {
+    redirect(AddBankAccountProvider)
   }
 
   def loggedIn : Boolean = credentials.map(_.readyToSign).getOrElse(false)
