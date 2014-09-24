@@ -214,9 +214,8 @@ object ObpPost extends Loggable {
 
   def apply(apiPath: String, json : JValue): Box[JValue] = {
     tryo {
-      val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
       val credentials = OAuthClient.getAuthorizedCredential
-      val apiUrl = provider.apiBaseUrl
+      val apiUrl = OAuthClient.currentApiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
@@ -318,9 +317,8 @@ object ObpPut extends Loggable {
 
   def apply(apiPath: String, json : JValue): Box[JValue] = {
     tryo {
-      val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
       val credentials = OAuthClient.getAuthorizedCredential()
-      val apiUrl = provider.apiBaseUrl
+      val apiUrl = OAuthClient.currentApiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
@@ -373,9 +371,8 @@ object ObpDelete extends Loggable {
    */
   def apply(apiPath: String): Boolean = {
     val worked = tryo {
-      val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
       val credentials = OAuthClient.getAuthorizedCredential()
-      val apiUrl = provider.apiBaseUrl
+      val apiUrl = OAuthClient.currentApiBaseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
@@ -412,6 +409,7 @@ object ObpDelete extends Loggable {
   }
 }
 
+
 object ObpGet extends Loggable {
   
   implicit val formats = DefaultFormats
@@ -419,9 +417,8 @@ object ObpGet extends Loggable {
   //Ah, dispatch does have oauth support. It would be nicer to use dispatch! -E.S.
   def apply(apiPath: String, headers : List[Header] = Nil): Box[JValue] = {
     tryo {
-      val provider = OAuthClient.defaultProvider //TODO: Support multiple providers
       val credentials = OAuthClient.getAuthorizedCredential()
-      val apiUrl = provider.apiBaseUrl
+      val apiUrl = OAuthClient.currentApiBaseUrl
       val url = new URL(apiUrl + apiPath)
       
       //bleh

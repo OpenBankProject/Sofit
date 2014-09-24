@@ -105,11 +105,12 @@ object mostRecentLoginAttemptProvider extends SessionVar[Box[Provider]](Empty)
 
 object OAuthClient extends Loggable {
 
-  //TODO get rid of this val
-  val defaultProvider = OBPDemo
-
   def getAuthorizedCredential() : Option[Credential] = {
     credentials.filter(_.readyToSign)
+  }
+
+  def currentApiBaseUrl : String = {
+    getAuthorizedCredential().map(_.provider.apiBaseUrl).getOrElse(OBPDemo.apiBaseUrl)
   }
 
   def setNewCredential(provider : Provider) : Credential = {

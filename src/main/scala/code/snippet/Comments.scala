@@ -78,9 +78,6 @@ case class CommentsURLParams(bankId: String, accountId: String, viewId: String, 
  */
 class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
   
-  //TODO: Support multiple providers
-  val provider = OAuthClient.defaultProvider
-  
   val FORBIDDEN = "---"
   val transactionJson = params._1
   val urlParams = params._2
