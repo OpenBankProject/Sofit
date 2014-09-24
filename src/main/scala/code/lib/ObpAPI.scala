@@ -209,10 +209,10 @@ object ObpAPI extends Loggable {
 
 case class ObpError(error :String)
 
-object ObpPost extends Loggable {
+object OBPRequest {
   implicit val formats = DefaultFormats
-
-  def apply(apiPath: String, json : JValue): Box[JValue] = {
+  //returns a tuple of the status code and response body as a string
+  def apply(apiPath : String, jsonBody : Option[JValue], method : String, headers : List[Header]) : Box[(Int, String)] = {
     tryo {
       val credentials = OAuthClient.getAuthorizedCredential
       val apiUrl = OAuthClient.currentApiBaseUrl
@@ -220,20 +220,23 @@ object ObpPost extends Loggable {
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
       request.setDoOutput(true)
-      request.setRequestMethod("POST")
+      request.setRequestMethod(method)
       request.setRequestProperty("Content-Type", "application/json")
       request.setRequestProperty("Accept", "application/json")
-      
+
+      headers.foreach(header => request.setRequestProperty(header.key, header.value))
+
       //sign the request if we have some credentials to sign it with
       credentials.foreach(c => c.consumer.sign(request))
-      
+
       //Set the request body
-      val output = request.getOutputStream()
-      val body = compact(render(json)).getBytes()
-      output.write(body)
-      output.flush()
-      output.close()
-      
+      if(jsonBody.isDefined) {
+        val output = request.getOutputStream()
+        val body = compact(render(jsonBody.get)).getBytes()
+        output.write(body)
+        output.flush()
+        output.close()
+      }
       request.connect()
 
       val status = request.getResponseCode()
@@ -252,217 +255,66 @@ object ObpPost extends Loggable {
       }
       readLines()
       reader.close();
-      val result = builder.toString();
-      
-      APIUtils.getAPIResponse(status, result)
+      (status, builder.toString())
+    }
+  }
+}
+
+object ObpPut {
+  def apply(apiPath: String, json : JValue): Box[JValue] = {
+    OBPRequest(apiPath, Some(json), "PUT", Nil).flatMap {
+      case(status, result) => APIUtils.getAPIResponseBody(status, result)
+    }
+  }
+}
+
+object ObpPost {
+  def apply(apiPath: String, json : JValue): Box[JValue] = {
+    OBPRequest(apiPath, Some(json), "POST", Nil).flatMap {
+      case(status, result) => APIUtils.getAPIResponseBody(status, result)
+    }
+  }
+}
+
+
+object ObpDelete {
+  /**
+   * @return True if the delete worked
+   */
+  def apply(apiPath: String): Boolean = {
+    val worked = OBPRequest(apiPath, None, "DELETE", Nil).map {
+      case(status, result) => APIUtils.apiResponseWorked(status, result)
+    }
+    worked.getOrElse(false)
+  }
+}
+
+object ObpGet {
+  def apply(apiPath: String, headers : List[Header] = Nil): Box[JValue] = {
+    OBPRequest(apiPath, None, "GET", headers).flatMap {
+      case(status, result) => APIUtils.getAPIResponseBody(status, result)
     }
   }
 }
 
 object APIUtils extends Loggable {
   implicit val formats = DefaultFormats
-  
-  //TODO: refactor this to get rid of the exception throwing stuff... only should be called from a tryo{} at the moment
-  def getAPIResponse(responseCode : Int, result : String) = {
+
+  def getAPIResponseBody(responseCode : Int, body : String) : Box[JValue] = {
     responseCode match {
-        case 200 | 201 => parse(result)
-        case code => {
-          logger.info("Bad response code (" + code + ") from server: " + result)
-          val errorMsg = tryo{parse(result).extract[ObpError]}
-          
-          errorMsg match {
-            case Full(e) => {
-              
-              e.error match {
-                case ObpAPI.userNotFoundError(userId, providerId) => {
-                  throw new Exception(userId + " has not registered at " + providerId)//bleh -> converts to Failure due to the tryo
-                }
-                case _ => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
-              }
-            }
-            case _ => throw new Exception("Error")
-          }
-        }
+      case 200 | 201 => tryo{parse(body)}
+      case _ => {
+        val failMsg = "Bad response code (" + responseCode + ") from server: " + body
+        logger.warn(failMsg)
+        Failure(failMsg)
       }
+    }
   }
-  
-  //TODO: refactor
+
   def apiResponseWorked(responseCode : Int, result : String) : Boolean = {
     responseCode match {
-        case 200 | 201 | 204 => true
-        case code => {
-          logger.info("Bad response code (" + code + ") from server: " + result)
-          val errorMsg = tryo{parse(result).extract[ObpError]}
-          
-          errorMsg match {
-            case Full(e) => {
-              
-              e.error match {
-                case ObpAPI.userNotFoundError(userId, providerId) => {
-                  throw new Exception(userId + " has not registered at " + providerId)//bleh -> converts to Failure due to the tryo
-                }
-                case _ => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
-              }
-            }
-            case _ => throw new Exception("Error")
-          }
-        }
-      }
-  }
-}
-
-//TODO: Almost identical to ObpPost --> refactor
-object ObpPut extends Loggable {
-  implicit val formats = DefaultFormats
-
-  def apply(apiPath: String, json : JValue): Box[JValue] = {
-    tryo {
-      val credentials = OAuthClient.getAuthorizedCredential()
-      val apiUrl = OAuthClient.currentApiBaseUrl
-      val url = new URL(apiUrl + apiPath)
-      //bleh
-      val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
-      request.setDoOutput(true)
-      request.setRequestMethod("PUT")
-      request.setRequestProperty("Content-Type", "application/json")
-      request.setRequestProperty("Accept", "application/json")
-      
-      //sign the request if we have some credentials to sign it with
-      credentials.foreach(c => c.consumer.sign(request))
-      
-      //Set the request body
-      val output = request.getOutputStream()
-      val body = compact(render(json)).getBytes()
-      output.write(body)
-      output.flush()
-      output.close()
-      
-      request.connect()
-
-      val status = request.getResponseCode()
-
-      //bleh
-      val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
-      val reader = new BufferedReader(new InputStreamReader(inputStream))
-      val builder = new StringBuilder()
-      var line = ""
-      def readLines() {
-        line = reader.readLine()
-        if (line != null) {
-          builder.append(line + "\n")
-          readLines()
-        }
-      }
-      readLines()
-      reader.close();
-      val result = builder.toString();
-
-      APIUtils.getAPIResponse(status, result)
-    }
-  }
-}
-
-
-object ObpDelete extends Loggable {
-  implicit val formats = DefaultFormats
-  
-  /**
-   * @return True if the delete worked
-   */
-  def apply(apiPath: String): Boolean = {
-    val worked = tryo {
-      val credentials = OAuthClient.getAuthorizedCredential()
-      val apiUrl = OAuthClient.currentApiBaseUrl
-      val url = new URL(apiUrl + apiPath)
-      //bleh
-      val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
-      request.setRequestMethod("DELETE")
-      request.setRequestProperty("Content-Type", "application/json")
-      request.setRequestProperty("Accept", "application/json")
-
-      //sign the request if we have some credentials to sign it with
-      credentials.foreach(c => c.consumer.sign(request))
-      request.connect()
-
-      val status = request.getResponseCode()
-      
-      //bleh
-      val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
-      val reader = new BufferedReader(new InputStreamReader(inputStream))
-      val builder = new StringBuilder()
-      var line = ""
-      def readLines() {
-        line = reader.readLine()
-        if (line != null) {
-          builder.append(line + "\n")
-          readLines()
-        }
-      }
-      readLines()
-      reader.close();
-      val result = builder.toString();
-
-      APIUtils.apiResponseWorked(status, result)
-    }
-    
-    worked.getOrElse(false)
-  }
-}
-
-
-object ObpGet extends Loggable {
-  
-  implicit val formats = DefaultFormats
-  
-  //Ah, dispatch does have oauth support. It would be nicer to use dispatch! -E.S.
-  def apply(apiPath: String, headers : List[Header] = Nil): Box[JValue] = {
-    tryo {
-      val credentials = OAuthClient.getAuthorizedCredential()
-      val apiUrl = OAuthClient.currentApiBaseUrl
-      val url = new URL(apiUrl + apiPath)
-      
-      //bleh
-      val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
-      request.setRequestMethod("GET")
-      request.setRequestProperty("Content-Type", "application/json")
-      request.setRequestProperty("Accept", "application/json")
-      
-      headers.foreach(header => request.setRequestProperty(header.key, header.value))
-
-      //sign the request if we have some credentials to sign it with
-      credentials.foreach(c => c.consumer.sign(request))
-      request.connect()
-
-      val status = request.getResponseCode()
-      
-      //bleh
-      val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
-      val reader = new BufferedReader(new InputStreamReader(inputStream))
-      val builder = new StringBuilder()
-      var line = ""
-      def readLines() {
-        line = reader.readLine()
-        if (line != null) {
-          builder.append(line + "\n")
-          readLines()
-        }
-      }
-      readLines()
-      reader.close();
-      val result = builder.toString();
-      
-      status match {
-        case 200 => parse(result)
-        case code => {
-          logger.info("Bad response code (" + code + ") from server: " + result)
-          val errorMsg = tryo{parse(result).extract[ObpError]}
-          
-          errorMsg match {
-            case Full(e) => throw new Exception(e.error)//bleh -> converts to Failure due to the tryo
-            case _ => throw new Exception("Error")
-          }
-        }
-      }
+      case 200 | 201 | 204 => true
+      case _ => false
     }
   }
 }
