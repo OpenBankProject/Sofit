@@ -107,13 +107,6 @@ object OAuthClient extends Loggable {
     credential
   }
 
-  def getOrCreateCredential(provider : Provider) : Credential = {
-    credentials.get match {
-      case Some(c) => c
-      case None => replaceCredential(provider)
-    }
-  }
-
   def handleCallback(): Box[LiftResponse] = {
 
     val success = for {
