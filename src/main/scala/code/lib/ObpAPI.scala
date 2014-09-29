@@ -209,11 +209,11 @@ object ObpAPI extends Loggable {
 
 case class ObpError(error :String)
 
-object OBPRequest {
+object OBPRequest extends Loggable {
   implicit val formats = DefaultFormats
   //returns a tuple of the status code and response body as a string
   def apply(apiPath : String, jsonBody : Option[JValue], method : String, headers : List[Header]) : Box[(Int, String)] = {
-    tryo {
+    val statusAndBody = tryo {
       val credentials = OAuthClient.getAuthorizedCredential
       val apiUrl = OAuthClient.currentApiBaseUrl
       val url = new URL(apiUrl + apiPath)
@@ -256,6 +256,11 @@ object OBPRequest {
       readLines()
       reader.close();
       (status, builder.toString())
+    }
+
+    statusAndBody pass {
+      case Failure(msg, _, _) => logger.debug(msg)
+      case _ => Unit
     }
   }
 }
