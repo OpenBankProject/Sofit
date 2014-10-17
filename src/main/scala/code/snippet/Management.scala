@@ -155,53 +155,15 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
 
       var currentValue = initialValue
       var inputDefaultValue = initialValue
-      //TODO: the values (currentValue/inputDefaultValue) are still not updated correctly
+
       CustomEditable.editable(inputDefaultValue, SHtml.text(inputDefaultValue, currentValue = _),
         onSubmit = () => {
-          println("inputDefaultValue "+inputDefaultValue)
-          println("currentValue "+currentValue)
-          println("holder "+holder)
-          if(currentValue.equals(holder) || currentValue.isEmpty){
+          if(currentValue.isEmpty || (holder.toLowerCase == currentValue.toLowerCase && apiProperty == "public_alias")){
             // delete Alias
             ObpDelete("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
             inputDefaultValue = ""
             Noop
-          }
-          else if (holder.toLowerCase().contains(currentValue.toLowerCase) && apiProperty == "public_alias"){
-            // should actually be a confirm as implemented below, but confirmation pop up does not yet work as it should
-            println("alert")
-            val alertMessage = """
-If you want to display the account name, we
-to rather clear the alias, because then other
-fields such as website and information can
-also be shown to the public."""
-            val json = jsonKey -> currentValue
-            ObpPut("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
-              json)
-            inputDefaultValue = currentValue
-            Alert(alertMessage)
-
-
-            // TODO: Currently updateAlias gets called no matter if Cancel or OK is clicked, should only be executed on OK
-            // show a pop to confirm
-           /* val confirmationMessage =
-              """If you want to display the account name, it is
-              better to clear the alias, because then other
-              fields such as website and information can
-              also be shown to the public.
-              OK => Save anyway
-              Cancel => Don't save"""
-            def updateAlias = {
-              println("updating "+ currentValue)
-              val json = jsonKey -> currentValue
-              ObpPut("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
-                json)
-              inputDefaultValue = currentValue
-              Noop
-            }
-            Confirm(confirmationMessage, updateAlias)*/
-          }
-          else{
+          } else{
             val json = jsonKey -> currentValue
             ObpPut("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
               json)
