@@ -13,9 +13,8 @@ import java.net.URL
 import org.apache.http.client.HttpClient
 import java.net.HttpURLConnection
 import net.liftweb.common.Failure
-import java.io.BufferedReader
+import java.io.{PrintWriter, StringWriter, BufferedReader, InputStreamReader}
 import net.liftweb.util.Helpers._
-import java.io.InputStreamReader
 import java.util.Date
 import net.liftweb.http.RequestVar
 import code.lib.ObpJson._
@@ -259,7 +258,12 @@ object OBPRequest extends Loggable {
     }
 
     statusAndBody pass {
-      case Failure(msg, _, _) => logger.debug(msg)
+      case Failure(msg, ex, _) => {
+        val sw = new StringWriter()
+        val writer = new PrintWriter(sw)
+        ex.foreach(_.printStackTrace(writer))
+        logger.debug("Error making api call: " + msg + ", stack trace: " + sw.toString)
+      }
       case _ => Unit
     }
   }
