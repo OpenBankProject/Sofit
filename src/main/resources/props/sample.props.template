@@ -1,8 +1,32 @@
-transloadit.authkey=FILL_ME_IN
-transloadit.addImageTemplate=FILL_ME_IN
+#this is a sample props file you should edit and rename
+#see https://www.assembla.com/wiki/show/liftweb/Properties for all the naming options, or just use "default.props" in this same folder
+
+#the base url of the api to use (e.g. https://apisandbox.openbankproject.com)
 api_hostname=FILL_ME_IN
+
+#these are the oauth keys obtained from the api (at /consumer-registration)
 obp_consumer_key=FILL_ME_IN
 obp_secret_key=FILL_ME_IN
+
+#the hostname of this application (e.g. localhost:8080)
+#note: if you are running a local api instance and a local sofi instance, you will want to access one via localhost and one via 127.0.0.1
+#to avoid weird cookie issues
 hostname=FILL_ME_IN
-#default api authentication provider
+
+#at the moment sofi doesn't have the ability select multiple user auth providers
+#in most cases, this should just be identical to "api_hostname"
 defaultAuthProvider=FILL_ME_IN
+
+#set to true if you want to display a link to the alternate api login flow that allows a user to connect their bank account via HBCI
+#sofi currently is not very flexible and hardcodes this link to api_hostname/login, so it will probably only be useful to show if you
+#are working against https://api.openbankproject.com, where that path actually exists
+showConnectBankAccountLink=true
+
+
+#Your transloadit auth key (used to upload transaction images)
+#not needed unless you want to upload images
+transloadit.authkey=FILL_ME_IN
+
+#Your transloadit template used to process transaction image uploading
+#not needed unless you want to upload images
+transloadit.addImageTemplate=FILL_ME_IN
