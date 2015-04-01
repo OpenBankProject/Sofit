@@ -41,7 +41,7 @@ import Loc._
 import mapper._
 import Helpers._
 import json.JsonDSL._
-import net.liftweb.widgets.tablesorter.TableSorter
+import net.liftmodules.widgets.tablesorter.TableSorter
 import java.io.FileInputStream
 import java.io.File
 import code.lib.{OAuthClient, ObpGet, ObpJson, ObpAPI}
@@ -67,7 +67,7 @@ class Boot extends Loggable{
     logger.info("running mode: " + runningMode)
 
     val contextPath = LiftRules.context.path
-    val propsPath = tryo{Box.legacyNullTest(System.getProperty("props.resource.dir"))}.flatten
+    val propsPath = tryo{Box.legacyNullTest(System.getProperty("props.resource.dir"))}.toList.flatten
 
     logger.info("external props folder: " + propsPath)
 
@@ -121,7 +121,7 @@ class Boot extends Loggable{
     }
 
     Props.whereToLook = () => {
-      firstChoicePropsDir.flatten.toList ::: secondChoicePropsDir.flatten.toList
+      firstChoicePropsDir.toList.flatten ::: secondChoicePropsDir.toList.flatten
     }
 
     if(Props.get("defaultAuthProvider").isEmpty) {

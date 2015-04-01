@@ -67,7 +67,7 @@ class Nav {
   val viewJsons: List[ViewJson] = {
     accountJson.flatMap(accJson => {
       accJson.views_available
-    }).flatten.toList
+    }).toList.flatten
   }
 
   def eraseMenu =
@@ -92,7 +92,7 @@ class Nav {
     val url = S.uri.split("/", 0)
 
     def getManagement = {
-      val views = accountJson.flatMap(_.views_available).flatten
+      val views = accountJson.flatMap(_.views_available).toList.flatten
       //TODO: Determine this in a better way
       val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
       
@@ -109,7 +109,7 @@ class Nav {
   }
   
   def editViews : CssSel = {
-    val views = accountJson.flatMap(_.views_available).flatten
+    val views = accountJson.flatMap(_.views_available).toList.flatten
     val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
     
     if(hasOwnerPermissions) {
@@ -144,7 +144,7 @@ class Nav {
     val url = S.uri.split("/", 0)
 
     def getPrivilegeAdmin = {
-      val views = accountJson.flatMap(_.views_available).flatten
+      val views = accountJson.flatMap(_.views_available).toList.flatten
       //TODO: Determine this in a better way
       val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
       

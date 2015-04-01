@@ -66,7 +66,7 @@ class AccountsOverview extends Loggable {
   val publicAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
     bankId <- bankIds
     publicAccountsJson <- ObpAPI.publicAccounts(bankId).toList
-    barebonesAccountJson <- publicAccountsJson.accounts.flatten
+    barebonesAccountJson <- publicAccountsJson.accounts.toList.flatten
   } yield (bankId, barebonesAccountJson)
 
   logger.info("Accounts Overview: Public accounts found: " + publicAccountJsons)
@@ -74,7 +74,7 @@ class AccountsOverview extends Loggable {
   val privateAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
     bankId <- bankIds
     privateAccountsJson <- ObpAPI.privateAccounts(bankId).toList
-    barebonesAccountJson <- privateAccountsJson.accounts.flatten
+    barebonesAccountJson <- privateAccountsJson.accounts.toList.flatten
   } yield (bankId, barebonesAccountJson)
 
   logger.info("Accounts Overview: Private accounts found: " + privateAccountJsons)
@@ -86,7 +86,7 @@ class AccountsOverview extends Loggable {
       ".accountList" #> publicAccountJsons.map {
         case (bankId, accountJson) => {
           //TODO: It might be nice to ensure that the same view is picked each time the page loads
-          val views = accountJson.views_available.flatten
+          val views = accountJson.views_available.toList.flatten
           val aPublicViewId: String = (for {
             aPublicView <- views.filter(view => view.is_public.getOrElse(false)).headOption
             viewId <- aPublicView.id
@@ -112,7 +112,7 @@ class AccountsOverview extends Loggable {
 
       ".accountList" #> privateAccountJsons.map{case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
-        val views = accountJson.views_available.flatten
+        val views = accountJson.views_available.toList.flatten
         val aPrivateViewId: String = (for {
           aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
           viewId <- aPrivateView.id
