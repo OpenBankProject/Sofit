@@ -8,10 +8,15 @@ api_hostname=FILL_ME_IN
 obp_consumer_key=FILL_ME_IN
 obp_secret_key=FILL_ME_IN
 
-#the hostname of this application (e.g. localhost:8080)
-#note: if you are running a local api instance and a local sofi instance, you will want to access one via localhost and one via 127.0.0.1
-#to avoid weird cookie issues
-hostname=FILL_ME_IN
+#the base url of this application (e.g. http://localhost:8080) which is used for the oauth callback url.
+#note: if you are running a local api instance and a local sofi instance, you will want to access one via
+#localhost and one via 127.0.0.1 to avoid weird cookie issues
+base_url=FILL_ME_IN
+
+#this is only useful for running the api locally via RunWebApp
+#if you use it, make sure this matches your base_url port!
+#if you want to change the port when running via the command line, use "mvn -Djetty.port=8081 jetty:run" instead
+dev.port=8081
 
 #at the moment sofi doesn't have the ability select multiple user auth providers
 #in most cases, this should just be identical to "api_hostname"

@@ -28,16 +28,16 @@ Berlin 13359, Germany
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
 */
-import org.mortbay.jetty.Connector
+
+import net.liftweb.util.Props
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.jetty.nio._
-import scala.sys._
 
 object RunWebApp extends App {
   val server = new Server
   val scc = new SelectChannelConnector
-  scc.setPort(8080)
+  scc.setPort(Props.getInt("dev.port", 8080))
   server.setConnectors(Array(scc))
 
   val context = new WebAppContext()

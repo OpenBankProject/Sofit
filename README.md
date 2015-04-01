@@ -87,9 +87,9 @@ transloadit.addImageTemplate can be obtained by creating a template at transload
   }
 }
 
-*hostname*
+*base_url*
 
-The hostname is used to calculate the callback url to give to the Open Bank Project API server. This should just be the
+The base_url is used to calculate the callback url to give to the Open Bank Project API server. This should just be the
 base url used to access the social finance application. So if you're running a copy of the social finance application at
 sofi.example.com over https, on the standard port, it would be "https://sofi.example.com".
 An example value for local development could be: http://127.0.0.1:8080 (as 8080 is the default Lift development port)
@@ -111,4 +111,4 @@ transloadit.addImageTemplate=s9fe8sh8h4sof98hf84s8fs48f4
 api_hostname=https://api.openbankproject.com/api
 obp_consumer_key=uodsifnodsfifdsliufdsliufdsfdsfsdfsx
 obp_secret_key=iuesbfiyvglxzgifg7eisgei7fglesfi
-hostname=http://localhost:8080
+base_url=http://localhost:8080
