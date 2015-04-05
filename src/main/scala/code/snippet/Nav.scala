@@ -51,6 +51,12 @@ import code.lib.ObpAPI
 import code.lib.OAuthClient
 import net.liftweb.util.CssSel
 
+
+
+/*
+TODO Fix the current behaviour where the current tab gets hidden and replaced with "Home"!
+ */
+
 class Nav {
 
   val url = S.uri.split("/", 0)
@@ -91,6 +97,7 @@ class Nav {
     
     val url = S.uri.split("/", 0)
 
+    // Menu for a page which lists counterparties and their metadata (and edits the metadata)
     def getManagement = {
       val views = accountJson.flatMap(_.views_available).toList.flatten
       //TODO: Determine this in a better way
@@ -99,7 +106,7 @@ class Nav {
       if (hasOwnerPermissions) {
         val managementUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/management"
         Some(".navlink [href]" #> { managementUrl } &
-        ".navlink *" #> "Management" &
+        ".navlink *" #> "Counterparties" &
         ".navlink [class+]" #> markIfSelected(managementUrl))
       } else None
     }
@@ -107,7 +114,9 @@ class Nav {
     if (url.size > 4) getManagement getOrElse eraseMenu
     else eraseMenu
   }
-  
+
+
+  // Menu For Entitlements / permissions on an account / view
   def editViews : CssSel = {
     val views = accountJson.flatMap(_.views_available).toList.flatten
     val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
@@ -116,7 +125,7 @@ class Nav {
       if (hasOwnerPermissions) {
         val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
         ".navlink [href]" #> { editViewsUrl } &
-        ".navlink *" #> "Edit Views/Public Access" &
+        ".navlink *" #> "Entitlements" &
         ".navlink [class+]" #> markIfSelected(editViewsUrl)
       } else eraseMenu
     } else eraseMenu
@@ -140,6 +149,8 @@ class Nav {
       ".navlink [class+]" #> markIfSelected(l.calcDefaultHref)
   }
 
+
+  // Menu for which Users have access to which Views
   def privilegeAdmin = {
     val url = S.uri.split("/", 0)
 
@@ -152,7 +163,7 @@ class Nav {
         val permissionsUrls = "/permissions/banks/" + url(2) + "/accounts/" + url(4)
         Some(".navitem *" #> {
         ".navlink [href]" #> permissionsUrls &
-          ".navlink *" #> "Privilege Admin" &
+          ".navlink *" #> "Users" &
           ".navlink [class+]" #> markIfSelected(permissionsUrls)
         })
       } else None

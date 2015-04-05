@@ -23,7 +23,9 @@ case class ViewsDataJSON(
    accountId: String
 )
 
-
+/*
+For maintaining permissions on the views (entitlements on the account)
+ */
 class ViewsOverview(viewsDataJson: ViewsDataJSON) {
   val views = viewsDataJson.views
 
@@ -53,6 +55,9 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
     }
 
     val permissionsCollection: List[Map[String, Boolean]] = views.map(view => view.permissions)
+
+
+    // Use permissions from the first view as a basis for permission names.
     val permissions: Map[String, Boolean] = permissionsCollection(0)
 
     def aliasType(typeInJson : Option[String]) = {
