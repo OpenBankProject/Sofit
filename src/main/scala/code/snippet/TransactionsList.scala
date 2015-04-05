@@ -168,14 +168,26 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     }
 
     def transactionInformation: CssSel = {
-      
+
+      def reference = {
+        ".reference *" #> {
+          val reference = transaction.details.flatMap(_.label) match {
+            case Some(a) => a
+            case _ => "no reference found"
+          }
+          reference
+        }
+      }
+
+
+
       def amount = {
         ".amount *" #> {
           val amount = transaction.details.flatMap(_.value.flatMap(_.amount)) match {
             case Some(a) => a.stripPrefix("-")
             case _ => ""
           }
-          currencySymbol + amount
+          currencySymbol + " " + amount
         }
       }
       
@@ -312,6 +324,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
       }
       
       amount &
+      reference &
       narrative &
       symbol &
       transactionInOrOut &
@@ -324,6 +337,11 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     otherPartyInfo
   }
 
+
+  /*
+  Used in the display of the transactions list
+  e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/public
+   */
   def displayAll = {
     val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
     "* *" #> groupedApiTransactions.map(daySummary)
@@ -350,7 +368,13 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
                   cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
   }
-  
+
+
+/*
+Used in transactions list
+
+   */
+
   def groupByDate(list : List[TransactionJson]) : List[List[TransactionJson]] = {
     list match {
       case Nil => Nil

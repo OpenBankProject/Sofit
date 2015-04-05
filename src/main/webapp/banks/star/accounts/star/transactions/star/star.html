@@ -29,14 +29,21 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 -->
 
+<!--
+   This renders the transaction "detail":
+   http://localhost:8080/banks/bnpp-fr/accounts/1137869186/transactions/transaction44/owner
+-->
+
+
 <div id="main" class="lift:surround?with=default;at=content">
   <table>
     <thead>
       <tr>
         <th class="span-1">Cleared</th>
         <th class="span-1">Amount</th>
-        <th class="span-1">To/From</th>
-        <th class="span-1">Label</th>
+        <th class="span-1">Counterparty</th>
+        <th class="span-1">Reference</th>
+        <th class="span-1">Narrative</th>
         <th class="span-1">Balance</th>            
       </tr>
     </thead>
@@ -48,7 +55,8 @@ Berlin 13359, Germany
           <span class="the_name">Ronald Montgomery</span>
           <span class="alias_indicator"></span>
         </td>
-        <td class="label">obp_transaction_label</td>
+        <td class="reference">obp_transaction_label</td>
+        <td class="narrative">narrative</td>
         <td class="new_balance">obp_transaction_new_balance</td>
       </tr>
     </tbody>

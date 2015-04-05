@@ -96,6 +96,11 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
   val commentDateFormat = new SimpleDateFormat("kk:mm:ss EEE MMM dd yyyy")
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
 
+
+
+  /*
+  TODO: Is this a good name for this function?
+   */
   def commentPageTitle(xhtml: NodeSeq): NodeSeq = {
     val dateFormat = new SimpleDateFormat("EEE MMM dd yyyy")
     var theCurrency = FORBIDDEN
@@ -150,7 +155,15 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
           case _ => FORBIDDEN
         }
       } &
-      ".label *" #> {
+        // Reference / Label is the reference or description entered by the account holder when the transaction is posted
+        // In the version of the API currently used by Sofi, this field is called label but probably we'll settle on reference
+        // so using "reference" in the interface
+        ".reference *" #> {
+          val reference = details.flatMap(_.label)
+          reference.getOrElse(FORBIDDEN)
+        } &
+      // Narrative is part of metadata (probably entered after the transaction is posted)
+      ".narrative *" #> {
         val narrative = transactionMetaData.flatMap(_.narrative)
         narrative.getOrElse(FORBIDDEN)
       } &
