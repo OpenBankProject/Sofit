@@ -155,12 +155,11 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
           case _ => FORBIDDEN
         }
       } &
-        // Reference / Label is the reference or description entered by the account holder when the transaction is posted
-        // In the version of the API currently used by Sofi, this field is called label but probably we'll settle on reference
-        // so using "reference" in the interface
-        ".reference *" #> {
-          val reference = details.flatMap(_.label)
-          reference.getOrElse(FORBIDDEN)
+        // Used for the reference / description entered by the account holder when the transaction is posted
+        // In one version of the API, "label" was the name of this
+        ".description *" #> {
+          val description = details.flatMap(_.label)
+          description.getOrElse(FORBIDDEN)
         } &
       // Narrative is part of metadata (probably entered after the transaction is posted)
       ".narrative *" #> {

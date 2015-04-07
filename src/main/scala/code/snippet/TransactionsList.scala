@@ -169,13 +169,13 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
     def transactionInformation: CssSel = {
 
-      def reference = {
-        ".reference *" #> {
-          val reference = transaction.details.flatMap(_.label) match {
+      def description = {
+        ".description *" #> {
+          val description = transaction.details.flatMap(_.label) match {
             case Some(a) => a
-            case _ => "no reference found"
+            case _ => FORBIDDEN // TODO Different symbol for forbidden / empty?
           }
-          reference
+          description
         }
       }
 
@@ -324,7 +324,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
       }
       
       amount &
-      reference &
+      description &
       narrative &
       symbol &
       transactionInOrOut &

@@ -308,7 +308,7 @@ class Boot extends Loggable{
     }
 
     // Build SiteMap
-    // Note: See Nav.scala which munges the menu
+    // Note: See Nav.scala which modifies the menu
 
     val sitemap = List(
           Menu.i("Home") / "index",
