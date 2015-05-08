@@ -31,24 +31,17 @@
  */
 
 package code.snippet
-import scala.xml.NodeSeq
+
 import net.liftweb.http.S
 import net.liftweb.http.LiftRules
-import net.liftweb.util.Helpers
 import net.liftweb.util.Helpers._
-import scala.xml.Group
 import net.liftweb.sitemap.Loc
 import net.liftweb.common.Box
 import net.liftweb.common.Full
 import net.liftweb.common.Empty
 import net.liftweb.sitemap.SiteMapSingleton
-import net.liftweb.http.SHtml
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds._Noop
 import code.lib.ObpJson._
-import code.lib.ObpGet
 import code.lib.ObpAPI
-import code.lib.OAuthClient
 import net.liftweb.util.CssSel
 
 
@@ -176,58 +169,4 @@ class Nav {
     else Empty
   }
 
-  def listAccounts = {
-    val banksJsonBox = ObpAPI.allBanks
-    val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
-    val accountJsons : List[BarebonesAccountJson] = bankJsons.flatMap(bankJson => {
-      if(OAuthClient.loggedIn) {
-        ObpAPI.privateAccounts(bankJson.id.getOrElse("")).flatMap(_.accounts)
-      } else {
-        ObpAPI.publicAccounts(bankJson.id.getOrElse("")).flatMap(_.accounts)
-      }
-    }).flatten
-    
-    val availableAccounts: List[(String, String)] = ("0", "--> Choose an account") :: {
-      accountJsons.map(accountJson => {
-        val bankId = accountJson.bank_id.getOrElse("")
-        val accountId = accountJson.id.getOrElse("")
-        val label = accountJson.label.getOrElse("")
-        
-        ({bankId + "," + accountId}, {bankId + " - " + label})
-      })
-    }
-    
-    def computeDefaultValue: Box[String] =
-      {
-        val url = S.uri.split("/", 0)
-        var output = "0"
-        if (url.size > 4)
-          output = url(2) + "," + url(4)
-        Full(output)
-      }
-
-    def redirect(selectValue: String): JsCmd =
-      {
-        val bankAndAccount = selectValue.split(",", 0)
-        if (bankAndAccount.size != 2) {
-          _Noop
-        } else {
-          val bankId = bankAndAccount(0)
-          val accountId = bankAndAccount(1)
-          //TODO : the account may not has an public view, so this redirection would retun a 404
-          //a better solution has to be found
-          S.redirectTo("/banks/" + bankId + "/accounts/" + accountId + "/public")
-        }
-      }
-    
-    "#accountList *" #> {
-      computeDefaultValue match {
-        case Full("postbank,tesobe") =>
-          //For now we're only showing this list of available accounts on the TESOBE account page
-          SHtml.ajaxSelect(availableAccounts, computeDefaultValue, redirect _)
-        case _ =>
-          NodeSeq.Empty
-      }
-    }
-  }
 }

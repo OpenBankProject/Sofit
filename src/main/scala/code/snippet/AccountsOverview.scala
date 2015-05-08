@@ -32,11 +32,13 @@ Berlin 13359, Germany
 
 package code.snippet
 
+import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers._
-import net.liftweb.common.Full
-import net.liftweb.http.SHtml
-import scala.xml.Text
-import net.liftweb.http.js.JsCmds.Noop
+import net.liftweb.common.{Box, Full, Loggable}
+import net.liftweb.http.{S, SHtml}
+import scala.xml.{NodeSeq, Text}
+import net.liftweb.http.js.JsCmds.{Script, _Noop, Noop}
 import code.lib.ObpGet
 import code.lib.ObpJson._
 import net.liftweb.json.JsonAST.{JInt, JArray}
@@ -45,14 +47,12 @@ import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json.JsonAST.JString
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json.JBool
-import net.liftweb.common.Loggable
 import code.lib.ObpAPI
 import code.lib.OAuthClient
 
 class AccountsOverview extends Loggable {
 
   val banksJsonBox = ObpAPI.allBanks
-
   val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
 
   val bankIds = for {
@@ -113,6 +113,7 @@ class AccountsOverview extends Loggable {
       ".accountList" #> privateAccountJsons.map{case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
         val views = accountJson.views_available.toList.flatten
+        val accountId : String = accountJson.id.getOrElse("")
         val aPrivateViewId: String = (for {
           aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
           viewId <- aPrivateView.id
@@ -120,9 +121,10 @@ class AccountsOverview extends Loggable {
 
         ".accLink *" #> accountDisplayName(accountJson) &
         ".accLink [href]" #> {
-          val accountId : String = accountJson.id.getOrElse("")
           "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
-        }
+        } &
+        ".remove [data-bankid]" #> bankId &
+        ".remove [data-accountid]" #> accountId
       }}
     }
 
@@ -134,4 +136,25 @@ class AccountsOverview extends Loggable {
     else loggedOutSnippet
   }
 
+  def manage = {
+    if (privateAccountJsons.size == 0) {
+      "* *" #> "You don't have any private accounts"
+    } else {
+      ".accountList" #>
+      privateAccountJsons.map(
+        account => {
+          //val bankId = account._2.bank_id.flatMap(_.id).getOrElse("")
+          val accountId = account._2.id match {
+            case Some(a) => a
+            case _ => ""
+          }
+          val removeAjax = SHtml.ajaxCall(JsRaw("this.getAttribute('data-accountid')"), accountId => {
+            ObpAPI.deleteAccount(account._1, accountId)
+            Noop
+          })
+          ".remove [onclick]" #> removeAjax
+        }
+      )
+    }
+  }
 }

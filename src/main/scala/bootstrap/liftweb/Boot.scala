@@ -185,7 +185,6 @@ class Boot extends Loggable{
 
     def getAccount(URLParameters : List[String]) =
     {
-
         def calculateAccount() = {
           val bankUrl = URLParameters(0)
           val accountUrl = URLParameters(1)
@@ -205,6 +204,20 @@ class Boot extends Loggable{
       accountMemo.get match {
         case Full(something) => something
         case _ => calculateAccount()
+      }
+    }
+
+
+    def getAccounts(URLParameters : List[String]): Box[List[BarebonesAccountJson]] =
+    {
+      val result =
+        for {
+          accountJson <- ObpGet("/v1.2.1/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
+        } yield (accountJson.accounts)
+
+      result match {
+        case Full(s) => s
+        case _ => None
       }
     }
 
@@ -311,25 +324,26 @@ class Boot extends Loggable{
     // Note: See Nav.scala which modifies the menu
 
     val sitemap = List(
-          Menu.i("Home") / "index",
-          Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
-            OAuthClient.handleCallback()
-          }),
-          //test if the bank exists and if the user have access to management page
-          Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
+      Menu.i("Home") / "index",
+      Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
+        OAuthClient.handleCallback()
+      }),
+      //test if the bank exists and if the user has access to the management page
+      Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
-          Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
+      Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
 
-          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List(""))
-          / "banks" / * / "accounts" / * / "permissions" / "create" ,
+      Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List(""))
+      / "banks" / * / "accounts" / * / "permissions" / "create" ,
 
-          Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "banks" / * / "accounts" / * / "permissions" ,
+      Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "banks" / * / "accounts" / * / "permissions" ,
+      Menu.params[List[BarebonesAccountJson]]("Manage Accounts", "manage accounts", getAccounts _ , x => List("")) / "list-accounts" ,
 
-          Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
-          / "banks" / * / "accounts" / * / *,
+      Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
+      / "banks" / * / "accounts" / * / *,
 
-          Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
-          / "banks" / * / "accounts" / * / "transactions" / * / *
+      Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
+      / "banks" / * / "accounts" / * / "transactions" / * / *
     )
 
     LiftRules.setSiteMap(SiteMap.build(sitemap.toArray))
