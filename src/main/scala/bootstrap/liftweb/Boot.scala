@@ -321,9 +321,9 @@ class Boot extends Loggable{
           Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
 
           Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List(""))
-          / "permissions" / "banks" / * / "accounts" / * / "create" ,
+          / "banks" / * / "accounts" / * / "permissions" / "create" ,
 
-          Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,
+          Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "banks" / * / "accounts" / * / "permissions" ,
 
           Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
           / "banks" / * / "accounts" / * / *,
