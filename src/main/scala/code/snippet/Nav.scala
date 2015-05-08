@@ -52,19 +52,16 @@ import code.lib.OAuthClient
 import net.liftweb.util.CssSel
 
 
-
-/*
-TODO Fix the current behaviour where the current tab gets hidden and replaced with "Home"!
- */
-
 class Nav {
 
   val url = S.uri.split("/", 0)
   val accountJson : Option[AccountJson]= {
-    if (url.size > 5) {
-      val bankId = url(2)
-      val accountId = url(4)
-      val viewId = url(5)
+    if (url.size > 4) {
+
+      val viewId = "owner"  //if we can't access the owner view, account returns nothing
+      val bankId = url( url.indexOf("banks")+1 )
+      val accountId = url( url.indexOf("accounts")+1 )
+
       ObpAPI.account(bankId, accountId, viewId)
     } else {
       None
@@ -122,12 +119,10 @@ class Nav {
     val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
     
     if(hasOwnerPermissions) {
-      if (hasOwnerPermissions) {
-        val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
-        ".navlink [href]" #> { editViewsUrl } &
-        ".navlink *" #> "Entitlements" &
-        ".navlink [class+]" #> markIfSelected(editViewsUrl)
-      } else eraseMenu
+      val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
+      ".navlink [href]" #> { editViewsUrl } &
+      ".navlink *" #> "Entitlements" &
+      ".navlink [class+]" #> markIfSelected(editViewsUrl)
     } else eraseMenu
   }
 
@@ -160,7 +155,7 @@ class Nav {
       val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
       
       if (hasOwnerPermissions) {
-        val permissionsUrls = "/permissions/banks/" + url(2) + "/accounts/" + url(4)
+        val permissionsUrls = "/banks/" + url(2) + "/accounts/" + url(4) + "/permissions"
         Some(".navitem *" #> {
         ".navlink [href]" #> permissionsUrls &
           ".navlink *" #> "Users" &

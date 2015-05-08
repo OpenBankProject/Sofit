@@ -553,7 +553,9 @@ span.edit_error_class {
 
 .account {
   margin-bottom: 5px;
-  white-space: nowrap;
+  //white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -925,4 +927,12 @@ td.main-attributes{
 
 #view-edit-advanced-options {
   margin: 10px;
+}
+
+td.imageURL {
+  max-width: 200px;
+}
+
+td.imageURL span.text {
+  word-wrap: break-word;
 }
