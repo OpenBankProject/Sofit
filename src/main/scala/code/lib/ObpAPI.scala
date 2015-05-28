@@ -69,11 +69,19 @@ object ObpAPI extends Loggable {
   def publicAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
-  
+
+  def publicAccounts : Box[BarebonesAccountsJson] = {
+    ObpGet("/v1.2.1/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+
   def privateAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
-  
+
+  def privateAccounts : Box[BarebonesAccountsJson] = {
+    ObpGet("/v1.2.1/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+
   def account(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/account").flatMap(x => x.extractOpt[AccountJson])
   }

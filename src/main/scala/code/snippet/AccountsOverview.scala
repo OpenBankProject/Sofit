@@ -52,29 +52,29 @@ import code.lib.OAuthClient
 
 class AccountsOverview extends Loggable {
 
-  val banksJsonBox = ObpAPI.allBanks
-  val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten
+  //val banksJsonBox = ObpAPI.allBanks
+  //val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten.distinct
 
-  val bankIds = for {
+  /*val bankIds = for {
     bank <- bankJsons
     id <- bank.id
-  } yield id
+  } yield id */
 
-  logger.info("Accounts Overview: Bank ids found: " + bankIds)
+  //logger.info("Accounts Overview: Bank ids found: " + bankIds)
 
   type BankID = String
   val publicAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
-    bankId <- bankIds
-    publicAccountsJson <- ObpAPI.publicAccounts(bankId).toList
+    publicAccountsJson <- ObpAPI.publicAccounts.toList
     barebonesAccountJson <- publicAccountsJson.accounts.toList.flatten
+    bankId <- barebonesAccountJson.bank_id
   } yield (bankId, barebonesAccountJson)
 
   logger.info("Accounts Overview: Public accounts found: " + publicAccountJsons)
 
   val privateAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
-    bankId <- bankIds
-    privateAccountsJson <- ObpAPI.privateAccounts(bankId).toList
+    privateAccountsJson <- ObpAPI.privateAccounts.toList
     barebonesAccountJson <- privateAccountsJson.accounts.toList.flatten
+    bankId <- barebonesAccountJson.bank_id
   } yield (bankId, barebonesAccountJson)
 
   logger.info("Accounts Overview: Private accounts found: " + privateAccountJsons)
@@ -110,7 +110,7 @@ class AccountsOverview extends Loggable {
   def authorisedAccounts = {
     def loggedInSnippet = {
 
-      ".accountList" #> privateAccountJsons.map{case (bankId, accountJson) => {
+      ".accountList" #> privateAccountJsons.map {case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
         val views = accountJson.views_available.toList.flatten
         val accountId : String = accountJson.id.getOrElse("")
@@ -122,9 +122,7 @@ class AccountsOverview extends Loggable {
         ".accLink *" #> accountDisplayName(accountJson) &
         ".accLink [href]" #> {
           "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
-        } &
-        ".remove [data-bankid]" #> bankId &
-        ".remove [data-accountid]" #> accountId
+        }
       }}
     }
 
@@ -136,25 +134,37 @@ class AccountsOverview extends Loggable {
     else loggedOutSnippet
   }
 
-  def manage = {
-    if (privateAccountJsons.size == 0) {
-      "* *" #> "You don't have any private accounts"
-    } else {
-      ".accountList" #>
-      privateAccountJsons.map(
-        account => {
-          //val bankId = account._2.bank_id.flatMap(_.id).getOrElse("")
-          val accountId = account._2.id match {
-            case Some(a) => a
-            case _ => ""
-          }
-          val removeAjax = SHtml.ajaxCall(JsRaw("this.getAttribute('data-accountid')"), accountId => {
-            ObpAPI.deleteAccount(account._1, accountId)
-            Noop
-          })
+  def authorisedAccountsWithManageLinks = {
+    def loggedInSnippet = {
+
+      ".accountList" #> privateAccountJsons.map { case (bankId, accountJson) => {
+        //TODO: It might be nice to ensure that the same view is picked each time the page loads
+        val views = accountJson.views_available.toList.flatten
+        val accountId: String = accountJson.id.getOrElse("")
+        val aPrivateViewId: String = (for {
+          aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
+          viewId <- aPrivateView.id
+        } yield viewId).getOrElse("")
+        val removeAjax = SHtml.ajaxCall(JsRaw("this.getAttribute('data-accountid')"), accountId => {
+          ObpAPI.deleteAccount(bankId, accountId)
+          Noop
+        })
+
+        ".accLink *" #> accountDisplayName(accountJson) &
+          ".accLink [href]" #> {
+            "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
+          } &
+          ".remove [data-bankid]" #> bankId &
+          ".remove [data-accountid]" #> accountId &
           ".remove [onclick]" #> removeAjax
-        }
-      )
+      }
+      }
     }
+    def loggedOutSnippet = {
+      ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg"))
+    }
+
+    if(OAuthClient.loggedIn) loggedInSnippet
+    else loggedOutSnippet
   }
 }
