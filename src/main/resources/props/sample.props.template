@@ -27,7 +27,6 @@ defaultAuthProvider=FILL_ME_IN
 #are working against https://api.openbankproject.com, where that path actually exists
 showConnectBankAccountLink=true
 
-
 #Your transloadit auth key (used to upload transaction images)
 #not needed unless you want to upload images
 transloadit.authkey=FILL_ME_IN

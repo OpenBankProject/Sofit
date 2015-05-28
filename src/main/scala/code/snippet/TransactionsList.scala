@@ -412,7 +412,8 @@ Used in transactions list
     }
 
     def accountLabel = {
-      accountJson.label.map("#accountShortDiscription *" #> _).getOrElse(NOOP_SELECTOR)
+      val label = accountJson.label.getOrElse(accountJson.number.getOrElse(""))
+      "#accountShortDiscription *" #> label
     }
 
     /*    LocalStorage.getAccount(url(2), url(4)) match {
