@@ -412,7 +412,16 @@ Used in transactions list
     }
 
     def accountLabel = {
-      val label = accountJson.label.getOrElse(accountJson.number.getOrElse(""))
+      val hasManagementAccess = {
+        val availableViews = accountJson.views_available.toList.flatten
+        availableViews.exists(view => view.id == Some("owner"))
+      }
+      var label = accountJson.label.getOrElse("")
+      if (label.isEmpty && hasManagementAccess)
+        label = accountJson.number.getOrElse("")
+      else
+        label = accountJson.id.getOrElse("")
+
       "#accountShortDiscription *" #> label
     }
 
