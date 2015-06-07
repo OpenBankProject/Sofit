@@ -10,6 +10,7 @@ import net.liftweb.json.JsonAST.JInt
 import net.liftweb.json.JDouble
 import net.liftweb.common.Empty
 import java.net.URL
+import java.io.{BufferedWriter, OutputStreamWriter}
 import org.apache.http.client.HttpClient
 import java.net.HttpURLConnection
 import net.liftweb.common.Failure
@@ -236,8 +237,9 @@ object OBPRequest extends Loggable {
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
       request.setDoOutput(true)
       request.setRequestMethod(method)
-      request.setRequestProperty("Content-Type", "application/json")
+      request.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
       request.setRequestProperty("Accept", "application/json")
+      request.setRequestProperty("Accept-Charset", "UTF-8")
 
       headers.foreach(header => request.setRequestProperty(header.key, header.value))
 
@@ -247,18 +249,18 @@ object OBPRequest extends Loggable {
       //Set the request body
       if(jsonBody.isDefined) {
         val output = request.getOutputStream()
-        val body = compact(render(jsonBody.get)).getBytes()
-        output.write(body)
-        output.flush()
-        output.close()
+        val writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"))
+        writer.write(compact(render(jsonBody.get)).toString)
+        writer.flush()
+        writer.close()
       }
-      request.connect()
 
+      request.connect()
       val status = request.getResponseCode()
 
-      //bleh
+      //get reponse body
       val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
-      val reader = new BufferedReader(new InputStreamReader(inputStream))
+      val reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))
       val builder = new StringBuilder()
       var line = ""
       def readLines() {
