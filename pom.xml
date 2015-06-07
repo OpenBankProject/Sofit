@@ -274,6 +274,7 @@
                     </executions>
                     <configuration>
                         <nosuffix>true</nosuffix>
+                        <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>
                 <plugin>
