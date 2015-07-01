@@ -129,6 +129,18 @@ object ObpAPI extends Loggable {
     ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
   }
 
+  def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
+    val removePermissionUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
+      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
+    ObpDelete(removePermissionUrl)
+  }
+  
+  def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
+    val removeAllPermissionsUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
+      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
+    ObpDelete(removeAllPermissionsUrl)
+  }
+
   def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
     for {
       json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
@@ -141,7 +153,7 @@ object ObpAPI extends Loggable {
       json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
     } yield {
       json \ "views" match {
-        case JArray(l) => l.map(viewJson => 
+        case JArray(l) => l.map(viewJson =>
           viewJson.values match{
             case vals: Map[String, Any] => CompleteViewJson(vals)
             case _ => CompleteViewJson(Map.empty)
@@ -150,19 +162,29 @@ object ObpAPI extends Loggable {
       }
     }
   }
-  
-  def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val removePermissionUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
-      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
-    ObpDelete(removePermissionUrl)
+
+  def addView(bankId: String, accountId: String, userId : String, viewName: String) = {
+    val addViewUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) +
+      "/views/"
+
+    /*
+    {
+      "name": "the view name",
+      "description": "a little description.",
+      "is_public": "Boolean to specify if the view can be accessible to not logged in users",
+      "which_alias_to_use": "public/private/none",
+      "hide_metadata_if_alias_used" : true/false,
+      "allowed_actions":  [
+      "can_see_transaction_this_bank_account",
+      "can_see_transaction_label",
+      "can_see_transaction_other_bank_account"
+      ]
+    }
+    */
+
+    //ObpPost(addViewUrl, new JObject())
   }
-  
-  def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
-    val removeAllPermissionsUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
-      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
-    ObpDelete(removeAllPermissionsUrl)
-  }
-  
+
   /**
    * @return The jsons for the tags that were were successfully added
    */

@@ -37,13 +37,19 @@ See views.js for the javascript which manipulates the DOM for editing
 
 -->
 
-
-
-
 <div class="lift:surround?with=default;at=content">
   <div class="views">
-    <div class="lift:ViewsOverview.getTableContent" >
+    <div>
+      <button id="view-add">Add new view</button>
+      <div id="add-view-form" class="lift:AddView">
+        <form class="lift:form.ajax">
+          <input type="text" name="view_name" placeholder="View name">
+          <input type="submit" value="placeholder">
+        </form>
+      </div>
       <button id="view-edit-advanced-options">Show advanced options</button>
+    </div>
+    <div class="lift:ViewsOverview.getTableContent">
       <table id="view_table">
         <thead>
           <tr class="view_head">

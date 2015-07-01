@@ -552,7 +552,7 @@ background: #FAFAFA;
 
 .account {
   margin-bottom: 5px;
-  //white-space: nowrap;
+  /* white-space: nowrap; */
   white-space: normal;
   word-wrap: break-word;
   overflow: hidden;
@@ -926,6 +926,10 @@ td.main-attributes{
 
 #view-edit-advanced-options {
   margin: 10px;
+}
+
+#add-view-form {
+  display: none;
 }
 
 td.imageURL {
