@@ -114,7 +114,7 @@ class Nav {
     if(hasOwnerPermissions) {
       val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
       ".navlink [href]" #> { editViewsUrl } &
-      ".navlink *" #> "Entitlements" &
+      ".navlink *" #> "Views & Permissions" &
       ".navlink [class+]" #> markIfSelected(editViewsUrl)
     } else eraseMenu
   }
