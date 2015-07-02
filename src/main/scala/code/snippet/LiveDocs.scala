@@ -81,15 +81,7 @@ object ApiCallForm extends Loggable {
 
   def render = {
 
-    //for {
-
-    // S.param("url_to_call").get
-
-      val urlToCall = "/v1.4.0/banks"  //
-    //} {
-
-
-      var name = ""
+      var urlToCall = ""
 
       // /v1.4.0/banks
 
@@ -97,12 +89,11 @@ object ApiCallForm extends Loggable {
         SetHtml("result", Text(getResponse(urlToCall)))
       }
 
-      // So message in field disappears when we type in it?
-      "@name" #> text(name, s => name = s) &
+      // form field (on the left) is bound to the variable (urlToCall)
+      // (However, updating the var here does not seeem to update the form field value)
+      "@url_to_call" #> text(urlToCall, s => urlToCall = s) &
         // Replace the type=submit with Javascript that makes the ajax call.
         "type=submit" #> ajaxSubmit("Call OBP API", process)
-
-    //}
 
   }
 }
