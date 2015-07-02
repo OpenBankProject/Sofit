@@ -124,9 +124,8 @@ input.submit {
   text-align: justify;
   width: 500px;
   margin-top: 15px;
-  float: left;
-  margin-left: 20px;
-  margin-right: 20px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #nav ul {
@@ -535,12 +534,12 @@ span.edit_error_class {
 }
 
 #public_accounts, #authorised_accounts {
-  background: #FAFAFA;
-  width: 200px;
+background: #FAFAFA;
+  width: 45%;
   border-radius: 8px 8px 8px 8px;
-  padding: 10px 10px 20px 10px;
-  margin-top: 20px;
+  padding: 12px 10px 20px 15px;
   float: left;
+  margin: 20px 15px 0px 10px;
 }
 
 #homeContent {
@@ -553,7 +552,7 @@ span.edit_error_class {
 
 .account {
   margin-bottom: 5px;
-  //white-space: nowrap;
+  /* white-space: nowrap; */
   white-space: normal;
   word-wrap: break-word;
   overflow: hidden;
@@ -927,6 +926,10 @@ td.main-attributes{
 
 #view-edit-advanced-options {
   margin: 10px;
+}
+
+#add-view-form {
+  display: none;
 }
 
 td.imageURL {
