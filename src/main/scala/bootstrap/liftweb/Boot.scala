@@ -377,5 +377,10 @@ class Boot extends Loggable{
       case MyExceptionLogger(_, _, t) => throw t // this will never happen
     }
 
+
+
+    LiftRules.uriNotFound.prepend(NamedPF("404handler"){ case (req,failure) =>
+      NotFoundAsTemplate(ParsePath(List("404"),"html",true,false)) })
+
   }
 }
