@@ -34,9 +34,9 @@ class LiveDocs {
                         representation: String)
 
     val resources = List(
-      Resource("GET", "/banks", "Get banks on this server", "JSON"),
-      Resource("GET", "/banks/BANK_ID", "Get a particular bank identified by its ID", "JSON"),
-      Resource("GET", "/banks/BANK_ID/branches", "Get branches of a certain bank", "JSON"))
+      Resource("GET", "/v1.4.0/banks", "Get banks on this server", "JSON"),
+      Resource("GET", "/v1.4.0/banks/BANK_ID", "Get a particular bank identified by its ID", "JSON"),
+      Resource("GET", "/v1.4.0/banks/BANK_ID/branches", "Get branches of a certain bank", "JSON"))
 
     ".resource" #> resources.map { i =>
       ".resource-verb" #> i.verb &
