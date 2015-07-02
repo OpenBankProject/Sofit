@@ -158,16 +158,20 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
 
 object AddView extends Loggable {
   def render = {
-    var view_name = ""
+    var newViewName = ""
 
     def process(): JsCmd = {
+
+      logger.debug(s"AddView.process says: NOT IMPLEMENTED Will create view called $newViewName")
       //TODO: Create new View
-      //addView(bankId, accountId, view_name)
+      //addView(bankId, accountId, newViewName)
     }
 
     // Bind view_name field to variable
     //(http://chimera.labs.oreilly.com/books/1234000000030/ch03.html)
-    "@view_name" #> text(view_name, s => view_name = s) &
+
+    // On the left is the form field
+    "@new_view_name" #> text(newViewName, s => newViewName = s) &
     // Replace the type=submit with Javascript that makes the ajax call.
     "type=submit" #> ajaxSubmit("OK", process)
   }
