@@ -19,6 +19,7 @@ $(document).ready(function(){
       el.hide()
     } else {
       el.css("display", "inline-block")
+      $('#add-view-form form input:first-of-type').focus()
     }
   })
 

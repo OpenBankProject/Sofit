@@ -28,14 +28,16 @@ Berlin 13359, Germany
 
 <div id="main" class="lift:surround?with=default;at=content">
     <div id="homeContent">
-        <h1>404 Not Found</h1>
+        <h1>404 - Resource Not Found</h1>
         <div id="404_text">
             <p>
                 Sorry, we couldn't find the page you were looking for.
             </p>
-
             <p>
-                Maybe this is because you need permission - and you are not logged in?
+                Maybe this is because you don't have the right permissions
+                <lift:TestCond.loggedOut>
+                (you are not logged in).
+                </lift:TestCond.loggedOut>
             </p>
 
         </div>

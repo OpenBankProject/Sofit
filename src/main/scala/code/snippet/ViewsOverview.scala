@@ -2,17 +2,16 @@ package code.snippet
 
 import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers._
-import scala.xml.NodeSeq
+import scala.xml.{Node, NodeSeq}
 import code.lib.ObpJson.CompleteViewJson
 import net.liftweb.util.CssSel
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
-import net.liftweb.http.js.JsCmds.{SetHtml, Alert}
+import net.liftweb.http.js.JsCmds.{SetHtml, Alert, RedirectTo}
 import net.liftweb.common.{Loggable, Box}
 import code.lib.ObpAPI
 import net.liftweb.http.SHtml.{text,ajaxSubmit}
-import _root_.scala.xml.Text
 import ObpAPI.addView
 
 case class ViewUpdateData(
@@ -29,8 +28,10 @@ case class ViewsDataJSON(
 /*
 For maintaining permissions on the views (entitlements on the account)
  */
-class ViewsOverview(viewsDataJson: ViewsDataJSON) {
+class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
   val views = viewsDataJson.views
+  val bank = viewsDataJson.bankId
+  val account = viewsDataJson.accountId
 
   def getTableContent(xhtml: NodeSeq) :NodeSeq = {
 
@@ -153,26 +154,24 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) {
       }
     )
   }
-}
 
-
-object AddView extends Loggable {
-  def render = {
+  //set up ajax handlers to add a new view
+  def setupAddView(xhtml: NodeSeq): NodeSeq = {
     var newViewName = ""
 
     def process(): JsCmd = {
+      logger.debug(s"ViewsOverview.setupAddView.process: create view called $newViewName")
+      addView(bank, account, newViewName)
 
-      logger.debug(s"AddView.process says: NOT IMPLEMENTED Will create view called $newViewName")
-      //TODO: Create new View
-      //addView(bankId, accountId, newViewName)
+      //reload page for new view to be shown
+      RedirectTo("")
     }
 
-    // Bind view_name field to variable
-    //(http://chimera.labs.oreilly.com/books/1234000000030/ch03.html)
-
-    // On the left is the form field
-    "@new_view_name" #> text(newViewName, s => newViewName = s) &
-    // Replace the type=submit with Javascript that makes the ajax call.
-    "type=submit" #> ajaxSubmit("OK", process)
+    (
+      // Bind newViewName field to variable (e.g. http://chimera.labs.oreilly.com/books/1234000000030/ch03.html)
+      "@new_view_name" #> text(newViewName, s => newViewName = s) &
+      // Replace the type=submit with Javascript that makes the ajax call.
+      "type=submit" #> ajaxSubmit("OK", process)
+    ).apply(xhtml)
   }
 }
