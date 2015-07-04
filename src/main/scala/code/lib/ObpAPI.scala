@@ -163,23 +163,19 @@ object ObpAPI extends Loggable {
     }
   }
 
-  def addView(bankId: String, accountId: String, viewId: String) = {
-    val addViewUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) +
-      "/views"
-
+  def addView(bankId: String, accountId: String, viewId: String) : Box[JValue] = {
     val json =
       ("name" -> viewId) ~
-      ("description" -> "default description") ~
-      ("is_public" -> false) ~
-      ("which_alias_to_use" -> "public") ~
-      ("hide_metadata_if_alias_used" -> true) ~
-      ("allowed_actions", List(
-        "can_see_transaction_this_bank_account",
-        "can_see_transaction_label",
-        "can_see_transaction_other_bank_account")
+        ("description" -> "default description") ~
+        ("is_public" -> false) ~
+        ("which_alias_to_use" -> "public") ~
+        ("hide_metadata_if_alias_used" -> true) ~
+        ("allowed_actions", List(
+          "can_see_transaction_this_bank_account",
+          "can_see_transaction_label",
+          "can_see_transaction_other_bank_account")
       )
-
-    val result = ObpPost(addViewUrl, json)
+    ObpPost("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views", json)
   }
 
   def deleteView(bankId: String, accountId: String, viewId: String) : Boolean = {

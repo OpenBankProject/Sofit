@@ -1,5 +1,6 @@
 package code.snippet
 
+import net.liftweb.http.js.JE.{Call, Str}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers._
 import scala.xml.{Node, NodeSeq, Text}
@@ -38,12 +39,11 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
 
     //add ajax callback to save view
     def saveOnClick(viewId : String): CssSel = {
-      import net.liftweb.http.js.JE.{Call,Str}
       implicit val formats = DefaultFormats
 
       ".save-button [data-id]" #> viewId &
       ".save-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
-        val result: Box[Unit] = for{
+        val result: Box[Unit] = for {
           data <- tryo{parse(callResult).extract[ViewUpdateData]}
           response <- ObpAPI.updateView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
         } yield{
@@ -51,30 +51,28 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
         }
         if(result.isDefined) {
           val msg = "View " + viewId + " has been updated"
-          Call("socialFinanceNotificiations.notify", msg).cmd
+          Call("socialFinanceNotifications.notify", msg).cmd
         }
         else {
           val msg = "Error updating view"
-          Call("socialFinanceNotificiations.notifyError", msg).cmd
+          Call("socialFinanceNotifications.notifyError", msg).cmd
         }
       })
     }
 
     def deleteOnClick(viewId : String): CssSel = {
-      import net.liftweb.http.js.JE.{Call,Str}
-
       ".delete-button [data-id]" #> viewId &
         ".delete-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
           val result = ObpAPI.deleteView(viewsDataJson.bankId, viewsDataJson.accountId, viewId)
 
           if(result) {
             val msg = "View " + viewId + " has been deleted"
-            Call("socialFinanceNotificiations.notify", msg).cmd
+            Call("socialFinanceNotifications.notify", msg).cmd
             RedirectTo("")
           }
           else {
             val msg = "Error deleting view"
-            Call("socialFinanceNotificiations.notifyError", msg).cmd
+            Call("socialFinanceNotifications.notifyError", msg).cmd
           }
         })
     }
@@ -137,7 +135,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
         val checked =
           if(isPublic)
             ".is_public_cb [checked]" #> "checked" &
-             ".is_public_cb [disabled]" #> "disabled"
+            ".is_public_cb [disabled]" #> "disabled"
         else
             ".is_public_cb [disabled]" #> "disabled"
 
@@ -181,12 +179,21 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
     def process(): JsCmd = {
       logger.debug(s"ViewsOverview.setupAddView.process: create view called $newViewName")
 
-      if( views.find{ case (v) => v.shortName.get == newViewName }.isDefined )
-        Alert("Sorry, a View with that name already exists.")
-      else {
-        addView(bank, account, newViewName)
-        //reload page for new view to be shown
-        RedirectTo("")
+      if (views.find { case (v) => v.shortName.get == newViewName }.isDefined) {
+        val msg = "Sorry, a View with that name already exists."
+        Call("socialFinanceNotifications.notifyError", msg).cmd
+      } else {
+        val result = addView(bank, account, newViewName)
+
+        if (result.isDefined) {
+          val msg = "View " + newViewName + " has been created"
+          Call("socialFinanceNotifications.notify", msg).cmd
+          //reload page for new view to be shown
+          RedirectTo("")
+        } else {
+          val msg = "View " + newViewName + " could not be created"
+          Call("socialFinanceNotifications.notifyError", msg).cmd
+        }
       }
     }
 
@@ -197,21 +204,4 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
       "type=submit" #> ajaxSubmit("OK", process)
     ).apply(xhtml)
   }
-
-  /*
-  def setupDeleteView = {
-    def process(data: String): JsCmd = {
-      logger.debug(s"ViewsOverview.setupDeleteView.process: delete view called $data")
-
-      if (views.find { case (v) => v.shortName.get == data }.isDefined) {
-      //TODO: ask for confirmation before doing it
-        deleteView(bank, account, data)
-        RedirectTo("")
-      } else {
-        Alert("Sorry, a View with that name does not exist.")
-      }
-    }
-    ".delete-button" #> S.attr("data-id").map { id => SHtml.ajaxButton("Delete", () => process(id)) }
-  }
-  */
 }
