@@ -163,13 +163,12 @@ object ObpAPI extends Loggable {
     }
   }
 
-  def addView(bankId: String, accountId: String, viewName: String) = {
+  def addView(bankId: String, accountId: String, viewId: String) = {
     val addViewUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) +
       "/views"
 
-
     val json =
-      ("name" -> viewName) ~
+      ("name" -> viewId) ~
       ("description" -> "default description") ~
       ("is_public" -> false) ~
       ("which_alias_to_use" -> "public") ~
@@ -181,6 +180,16 @@ object ObpAPI extends Loggable {
       )
 
     val result = ObpPost(addViewUrl, json)
+  }
+
+  def deleteView(bankId: String, accountId: String, viewId: String) : Boolean = {
+    ObpDelete("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
+  }
+
+  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
+    for {
+      response <- ObpPut("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
+    } yield Unit
   }
 
   /**
@@ -235,12 +244,6 @@ object ObpAPI extends Loggable {
     ObpDelete(deleteImageUrl)
   }
 
-
-  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
-    for {
-      response <- ObpPut("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
-    } yield Unit
-  }
 }
 
 case class ObpError(error :String)
