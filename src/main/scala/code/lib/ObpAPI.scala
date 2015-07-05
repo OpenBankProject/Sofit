@@ -163,26 +163,29 @@ object ObpAPI extends Loggable {
     }
   }
 
-  def addView(bankId: String, accountId: String, userId : String, viewName: String) = {
-    val addViewUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) +
-      "/views/"
+  def addView(bankId: String, accountId: String, viewId: String) : Box[JValue] = {
+    val json =
+      ("name" -> viewId) ~
+        ("description" -> "default description") ~
+        ("is_public" -> false) ~
+        ("which_alias_to_use" -> "public") ~
+        ("hide_metadata_if_alias_used" -> true) ~
+        ("allowed_actions", List(
+          "can_see_transaction_this_bank_account",
+          "can_see_transaction_label",
+          "can_see_transaction_other_bank_account")
+      )
+    ObpPost("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views", json)
+  }
 
-    /*
-    {
-      "name": "the view name",
-      "description": "a little description.",
-      "is_public": "Boolean to specify if the view can be accessible to not logged in users",
-      "which_alias_to_use": "public/private/none",
-      "hide_metadata_if_alias_used" : true/false,
-      "allowed_actions":  [
-      "can_see_transaction_this_bank_account",
-      "can_see_transaction_label",
-      "can_see_transaction_other_bank_account"
-      ]
-    }
-    */
+  def deleteView(bankId: String, accountId: String, viewId: String) : Boolean = {
+    ObpDelete("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
+  }
 
-    //ObpPost(addViewUrl, new JObject())
+  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
+    for {
+      response <- ObpPut("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
+    } yield Unit
   }
 
   /**
@@ -237,12 +240,6 @@ object ObpAPI extends Loggable {
     ObpDelete(deleteImageUrl)
   }
 
-
-  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
-    for {
-      response <- ObpPut("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
-    } yield Unit
-  }
 }
 
 case class ObpError(error :String)
