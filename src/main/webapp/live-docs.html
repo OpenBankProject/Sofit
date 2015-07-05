@@ -5,38 +5,45 @@
 
     <div class="lift:LiveDocs.showResources">
         <table>
+            <!-- Each URL we document appears in a row, inside a table -->
+            <!-- Multiple instances of this row are generated in LiveDocs.scala -->
+            <!-- Note: id's are added so we can manipulate individual elements -->
             <tr class="resource">
-                <td><span class="resource-verb"></span></td>
-                <td><span class="resource-url"></span></td>
-                <td><span class="resource-description"></span></td>
-                <td><span class="resource-representation"></span></td>
+                <td>
+                    <table>
+                        <tr class="resource_row">
+                            <!-- GET, POST etc -->
+                            <td><span class="resource_verb"></span></td>
+                            <!-- The URL -->
+                            <td class="resource_url_td"><span class="resource_url"></span></td>
+                            <!-- Some documentation -->
+                            <td><span class="resource_description"></span></td>
+                            <!-- JSON -->
+                            <td><span class="resource_representation"></span></td>
+                            <!-- Button that shows the execute form. It's onclick property is set in LiveDocs.scala -->
+                            <td><input class="try_me_button" type="submit" value="Try Me" onclick="alert('i will be replaced');" /> </td>
+                        </tr>
+
+                        <!-- This section starts hidden and is shown with the Try Me button -->
+                        <tr class="url_caller" style="display: none;">
+                            <td colspan="5">
+                                <form class="lift:form.ajax">
+                                    <div class="lift:CallMe">
+                                        <!-- The url_to_call is populated with the Try Me button (but it can be edited manually -->
+                                        <input type="text" id="url_to_call" class="url_to_call" name="url_to_call" value="first val" placeholder="OBP URL to call">
+                                        <!-- This submit button is also modified by LiveDocs.scala -->
+                                        <input type="submit">
+                                    </div>
+                                </form>
+                                <!-- API call result goes here -->
+                                <!-- TODO this needs to get id so we can set the correct instance of it -->
+                                <div id="result"></div>
+                            </td>
+                        </tr>
+
+                    </table>
+                </td>
             </tr>
         </table>
     </div>
-
-
-    <div>
-        Make the call right here.
-    </div>
-
-
-
-
-    <form class="lift:form.ajax">
-        <div class="lift:ApiCallForm">
-            <input type="text" name="url_to_call" placeholder="OBP URL to call">
-            <input type="submit">
-        </div>
-    </form>
-
-    <div id="result">JSON goes here.</div>
-
-
-
-
-
-
-
-
-
 </div>
