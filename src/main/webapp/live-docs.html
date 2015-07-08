@@ -13,7 +13,7 @@
                     <table>
                         <tr class="resource_row">
                             <!-- GET, POST etc -->
-                            <td><span class="resource_verb"></span></td>
+                            <td class="resource_verb_td"><span class="resource_verb"></span></td>
                             <!-- The URL -->
                             <td class="resource_url_td"><span class="resource_url"></span></td>
                             <!-- Some documentation -->
@@ -29,6 +29,10 @@
                             <td colspan="5">
                                 <form class="lift:form.ajax">
                                     <div class="lift:CallMe">
+                                        <input type="hidden" value="" class="resource_id" name="resource_id">
+
+                                        <input type="text" value="" class="resource_verb_input" name="resource_verb_input">
+
                                         <!-- The url_to_call is populated with the Try Me button (but it can be edited manually -->
                                         <input type="text" id="url_to_call" class="url_to_call" name="url_to_call" value="first val" placeholder="OBP URL to call">
                                         <!-- This submit button is also modified by LiveDocs.scala -->
@@ -37,7 +41,7 @@
                                 </form>
                                 <!-- API call result goes here -->
                                 <!-- TODO this needs to get id so we can set the correct instance of it -->
-                                <div id="result"></div>
+                                <div class="result" id="result"></div>
                             </td>
                         </tr>
 
