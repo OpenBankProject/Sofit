@@ -29,12 +29,19 @@
                             <td colspan="5">
                                 <form class="lift:form.ajax">
                                     <div class="lift:CallMe">
-                                        <input type="hidden" value="" class="resource_id" name="resource_id">
+                                        <input type="text" value="" class="resource_id_input" name="resource_id_input">
 
-                                        <input type="text" value="" class="resource_verb_input" name="resource_verb_input">
+                                        <input type="text" value="" class="request_verb_input" name="request_verb_input">
+
 
                                         <!-- The url_to_call is populated with the Try Me button (but it can be edited manually -->
-                                        <input type="text" id="url_to_call" class="url_to_call" name="url_to_call" value="first val" placeholder="OBP URL to call">
+                                        <input type="text" id="request_url_input" class="request_url_input" name="request_url_input" value="first val" placeholder="OBP URL to call">
+
+
+
+                                        <input type="text" value="" class="request_body_input" name="request_body_input" placeholder="JSON body to POST">
+
+
                                         <!-- This submit button is also modified by LiveDocs.scala -->
                                         <input type="submit">
                                     </div>

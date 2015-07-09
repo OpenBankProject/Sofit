@@ -2,9 +2,11 @@ package code.snippet
 
 import _root_.net.liftweb._
 import code.lib.APIUtils._
-import code.lib.ObpGet
+import code.lib.{ObpPost, ObpGet}
 
 import http._
+import net.liftweb.json.{JsonParser, JsonAST}
+import net.liftweb.json.JsonAST.{JObject, JValue}
 import util._
 import _root_.scala.xml.{NodeSeq, Text}
 
@@ -42,7 +44,7 @@ class LiveDocs {
 
   // Render the resources into a (nested) table.
   // This could probably be improved.
-  // So far we can't (why??) set value of input field at render time like this ".resource_id [value]" #> s"lslslsls${i.id}"
+  // So far we can't (why??) set value of input field at render time like this ".resource_id_input [value]" #> s"lslslsls${i.id}"
   // so have to work around and set the input fields via the try_me_button onclick javascript.
   // Notes on escaping strings
   // To have a $ in the resulting string use two: $$
@@ -57,12 +59,12 @@ class LiveDocs {
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" &
       ".url_caller [id]" #> s"url_caller_${i.id}" &
-      ".url_to_call [id]" #> s"url_to_call_${i.id}" &
-      ".url_to_call [value]" #> s"${i.url}" &
-      ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle(); $$(DOUBLE-QUOTE#url_to_call_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_url_td_${i.id}DOUBLE-QUOTE)[0].innerHTML); $$(DOUBLE-QUOTE#resource_id_${i.id}DOUBLE-QUOTE).val(DOUBLE-QUOTE${i.id}DOUBLE-QUOTE); $$(DOUBLE-QUOTE#resource_verb_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_verb_td_${i.id}DOUBLE-QUOTE)[0].innerHTML);".replaceAll("DOUBLE-QUOTE",""""""") &
+      ".request_url_input [id]" #> s"request_url_input_${i.id}" &
+      ".request_url_input [value]" #> s"${i.url}" &
+      ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle(); $$(DOUBLE-QUOTE#request_url_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_url_td_${i.id}DOUBLE-QUOTE)[0].innerHTML); $$(DOUBLE-QUOTE#resource_id_input_${i.id}DOUBLE-QUOTE).val(DOUBLE-QUOTE${i.id}DOUBLE-QUOTE); $$(DOUBLE-QUOTE#request_verb_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_verb_td_${i.id}DOUBLE-QUOTE)[0].innerHTML);".replaceAll("DOUBLE-QUOTE",""""""") &
       ".result [id]" #> s"result_${i.id}" &
-      ".resource_id [id]" #> s"resource_id_${i.id}" &
-      ".resource_verb_input [id]" #> s"resource_verb_input_${i.id}"
+      ".resource_id_input [id]" #> s"resource_id_input_${i.id}" &
+      ".request_verb_input [id]" #> s"request_verb_input_${i.id}"
     }
   }
 }
@@ -74,7 +76,7 @@ Call an OBP URL and return the response to the browser in JSON form.
 object CallMe extends Loggable {
 
 
-  def getResponse (url : String, resourceVerb: String) : String = {
+  def getResponse (url : String, resourceVerb: String, json : JValue) : String = {
 
 
     // TODO: Handle POST requests
@@ -83,8 +85,9 @@ object CallMe extends Loggable {
     val responseBodyBox = {
       resourceVerb match {
         case "GET" => ObpGet(url)
+        case "POST" => ObpPost(url, json)
         case _ => {
-          val failMsg = s"Unsupported resourceVerb: $resourceVerb. Please use GET"
+          val failMsg = s"Live Docs says: Unsupported resourceVerb: $resourceVerb."
           logger.warn(failMsg)
           Failure(failMsg)
         }
@@ -117,21 +120,25 @@ object CallMe extends Loggable {
 
   def render = {
 
-      var urlToCall = ""
       var resourceId = ""
-      var resourceVerb = ""
+
+      var requestUrl = ""
+      var requestVerb = ""
+      var requestBody = "{}"
 
       def process(): JsCmd = {
-        SetHtml("result_" + resourceId, Text(getResponse(urlToCall, resourceVerb)))
+        val jsonThing = JsonParser.parse(requestBody).asInstanceOf[JObject]
+        SetHtml("result_" + resourceId, Text(getResponse(requestUrl, requestVerb, jsonThing)))
       }
 
       // The form field (on the left) is bound to the variable (urlToCall)
       // (However, updating the var here does not seem to update the form field value)
-      // TODO Rename all these input fields _input
 
-      "@url_to_call" #> text(urlToCall, s => urlToCall = s) &
-      "@resource_id" #> text(resourceId, s => resourceId = s) &
-      "@resource_verb_input" #> text(resourceVerb, s => resourceVerb = s) &
+
+      "@resource_id_input" #> text(resourceId, s => resourceId = s) &
+      "@request_verb_input" #> text(requestVerb, s => requestVerb = s) &
+      "@request_url_input" #> text(requestUrl, s => requestUrl = s) &
+      "@request_body_input" #> text(requestBody, s => requestBody = s) &
       // Replace the type=submit with Javascript that makes the ajax call.
       "type=submit" #> ajaxSubmit("Go", process)
 
