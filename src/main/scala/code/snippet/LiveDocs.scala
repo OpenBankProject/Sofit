@@ -22,7 +22,7 @@ import net.liftweb.json.Extraction._
 import net.liftweb.util.Helpers._
 import net.liftweb.http.SHtml.{text,ajaxSubmit}
 import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.http.js.JsCmds.{Run, SetHtml}
 import xml.Text
 
 
@@ -102,8 +102,10 @@ object CallMe extends Loggable {
     implicit val formats = net.liftweb.json.DefaultFormats
 
     // extractOpt ?
-    val responseBody = decompose(responseBodyBox)
 
+    // TODO extract and return the stuff inside "value"
+
+    val responseBody = decompose(responseBodyBox)
 
     import net.liftweb.json.Serialization.writePretty
 
@@ -127,14 +129,16 @@ object CallMe extends Loggable {
       var requestBody = "{}"
 
       def process(): JsCmd = {
-        val jsonThing = JsonParser.parse(requestBody).asInstanceOf[JObject]
-        SetHtml("result_" + resourceId, Text(getResponse(requestUrl, requestVerb, jsonThing)))
+        // Create json object from input string
+        val jsonObject = JsonParser.parse(requestBody).asInstanceOf[JObject]
+        // Call the url with optional body and put the response into the appropriate result div
+        SetHtml("result_" + resourceId, Text(getResponse(requestUrl, requestVerb, jsonObject))) &
+        // This applies json highlighting to the json
+        Run ("$('pre code').each(function(i, block) { hljs.highlightBlock(block);});")
       }
 
       // The form field (on the left) is bound to the variable (urlToCall)
       // (However, updating the var here does not seem to update the form field value)
-
-
       "@resource_id_input" #> text(resourceId, s => resourceId = s) &
       "@request_verb_input" #> text(requestVerb, s => requestVerb = s) &
       "@request_url_input" #> text(requestUrl, s => requestUrl = s) &
