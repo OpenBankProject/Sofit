@@ -134,9 +134,9 @@ object CallMe extends Loggable {
 
       // The form field (on the left) is bound to the variable (urlToCall)
       // (However, updating the var here does not seem to update the form field value)
-      "@resource_id_input" #> text(resourceId, s => resourceId = s) &
-      "@request_verb_input" #> text(requestVerb, s => requestVerb = s) &
-      "@request_url_input" #> text(requestUrl, s => requestUrl = s) &
+      "@resource_id_input" #> text(resourceId, s => resourceId = s, "type" -> "hidden") &
+      "@request_verb_input" #> text(requestVerb, s => requestVerb = s, "type" -> "hidden") &
+      "@request_url_input" #> text(requestUrl, s => requestUrl = s, "maxlength" -> "255", "size" -> "100") &
       "@request_body_input" #> text(requestBody, s => requestBody = s) &
       // Replace the type=submit with Javascript that makes the ajax call.
       "type=submit" #> ajaxSubmit("Go", process)
