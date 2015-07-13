@@ -34,7 +34,9 @@ class LiveDocs {
     val resources = List(
       Resource("1", "GET", "/v1.4.0/banks", "Get banks on this server", "JSON"),
       Resource("2", "GET", "/v1.4.0/banks/BANK_ID", "Get a particular bank identified by its ID", "JSON"),
-      Resource("3", "GET", "/v1.4.0/banks/BANK_ID/branches", "Get branches of a certain bank", "JSON"))
+      Resource("3", "GET", "/v1.4.0/banks/BANK_ID/branches", "Get branches of a certain bank", "JSON"),
+      Resource("4", "POST", "/v1.4.0/banks/BANK_ID/something", "Post a new something", "JSON")
+    )
 
   // Render the resources into a (nested) table.
   // This could probably be improved.
@@ -44,6 +46,13 @@ class LiveDocs {
   // To have a $ in the resulting string use two: $$
   // Can't escape " with \" or use triple quoted string in the string interpolation so use the replace hack
 
+
+    def displayBody(resourceVerb : String) = {
+      resourceVerb match {
+        case "POST" => "block"
+        case _ => "none"
+      }
+    }
 
     ".resource" #> resources.map { i =>
       ".resource_verb" #> i.verb &
@@ -55,10 +64,12 @@ class LiveDocs {
       ".url_caller [id]" #> s"url_caller_${i.id}" &
       "@request_url_input [id]" #> s"request_url_input_${i.id}" &
       "@request_url_input [value]" #> s"${i.url}" &
-      ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle(); $$(DOUBLE-QUOTE#request_url_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_url_td_${i.id}DOUBLE-QUOTE)[0].innerHTML); $$(DOUBLE-QUOTE#resource_id_input_${i.id}DOUBLE-QUOTE).val(DOUBLE-QUOTE${i.id}DOUBLE-QUOTE); $$(DOUBLE-QUOTE#request_verb_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_verb_td_${i.id}DOUBLE-QUOTE)[0].innerHTML);".replaceAll("DOUBLE-QUOTE",""""""") &
+      ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle();  $$(DOUBLE-QUOTE#request_url_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_url_td_${i.id}DOUBLE-QUOTE)[0].innerHTML); $$(DOUBLE-QUOTE#resource_id_input_${i.id}DOUBLE-QUOTE).val(DOUBLE-QUOTE${i.id}DOUBLE-QUOTE); $$(DOUBLE-QUOTE#request_verb_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_verb_td_${i.id}DOUBLE-QUOTE)[0].innerHTML);".replaceAll("DOUBLE-QUOTE",""""""") &
       ".result [id]" #> s"result_${i.id}" &
       "@resource_id_input [id]" #> s"resource_id_input_${i.id}" &
-      "@request_verb_input [id]" #> s"request_verb_input_${i.id}"
+      "@request_verb_input [id]" #> s"request_verb_input_${i.id}" &
+      "@request_body [id]" #> s"request_body_${i.id}" &
+      "@request_body [style]" #> s"display: ${displayBody(i.verb)};"
     }
   }
 }
@@ -66,15 +77,13 @@ class LiveDocs {
 
 /*
 Call an OBP URL and return the response to the browser in JSON form.
- */
+*/
 object CallUrlForm extends Loggable {
 
 
   def getResponse (url : String, resourceVerb: String, json : JValue) : String = {
 
-
     implicit val formats = net.liftweb.json.DefaultFormats
-
 
 
     // TODO: Handle POST requests
@@ -110,8 +119,8 @@ object CallUrlForm extends Loggable {
   def render = {
 
       var resourceId = ""
-      var requestUrl = ""
       var requestVerb = ""
+      var requestUrl = ""
       var requestBody = "{}"
 
       def process(): JsCmd = {
@@ -128,7 +137,7 @@ object CallUrlForm extends Loggable {
       "@resource_id_input" #> text(resourceId, s => resourceId = s, "type" -> "hidden") &
       "@request_verb_input" #> text(requestVerb, s => requestVerb = s, "type" -> "hidden") &
       "@request_url_input" #> text(requestUrl, s => requestUrl = s, "maxlength" -> "255", "size" -> "100") &
-      "@request_body_input" #> text(requestBody, s => requestBody = s) &
+      "@request_body_input" #> text(requestBody, s => requestBody = s, "type" -> "text") &
       // Replace the type=submit with Javascript that makes the ajax call.
       "type=submit" #> ajaxSubmit("Go", process)
 
