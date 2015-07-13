@@ -6,7 +6,7 @@ import code.lib.{ObpPost, ObpGet}
 
 import http._
 import net.liftweb.json.{JsonParser, JsonAST}
-import net.liftweb.json.JsonAST.{JObject, JValue}
+import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 import util._
 import _root_.scala.xml.{NodeSeq, Text}
 
@@ -79,6 +79,10 @@ object CallMe extends Loggable {
   def getResponse (url : String, resourceVerb: String, json : JValue) : String = {
 
 
+    implicit val formats = net.liftweb.json.DefaultFormats
+    import net.liftweb.json.Serialization.writePretty
+
+
     // TODO: Handle POST requests
 
 
@@ -95,28 +99,19 @@ object CallMe extends Loggable {
     }
 
 
-
     logger.info(s"responseBodyBox is ${responseBodyBox}")
 
-
-    implicit val formats = net.liftweb.json.DefaultFormats
-
-    // extractOpt ?
-
-    // TODO extract and return the stuff inside "value"
-
-    val responseBody = decompose(responseBodyBox)
-
-    import net.liftweb.json.Serialization.writePretty
+    // Handle the contents of the Box
+    val responseBody =
+      responseBodyBox match {
+      case Full(json) => writePretty(json)
+      case Empty => "Empty: API did not return anything"
+      case Failure(message, _, _) => "Failure: " + message
+    }
 
 
-    val jsonString = writePretty(responseBody)
-
-
-    logger.info(s"jsonString is $jsonString")
-
-    jsonString
-
+    logger.info(s"responseBody is $responseBody")
+    responseBody
   }
 
 
