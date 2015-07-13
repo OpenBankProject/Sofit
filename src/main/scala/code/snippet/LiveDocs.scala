@@ -1,29 +1,23 @@
 package code.snippet
 
 import _root_.net.liftweb._
-import code.lib.APIUtils._
 import code.lib.{ObpPost, ObpGet}
 
-import http._
 import net.liftweb.json.{JsonParser, JsonAST}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
-import util._
 import _root_.scala.xml.{NodeSeq, Text}
 
 
 import net.liftweb._
-import http._
 import common._
-
-
-import net.liftweb.json.Extraction._
-
 
 import net.liftweb.util.Helpers._
 import net.liftweb.http.SHtml.{text,ajaxSubmit}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.{Run, SetHtml}
 import xml.Text
+
+import net.liftweb.json.Serialization.writePretty
 
 
 /*
@@ -59,12 +53,12 @@ class LiveDocs {
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" &
       ".url_caller [id]" #> s"url_caller_${i.id}" &
-      ".request_url_input [id]" #> s"request_url_input_${i.id}" &
-      ".request_url_input [value]" #> s"${i.url}" &
+      "@request_url_input [id]" #> s"request_url_input_${i.id}" &
+      "@request_url_input [value]" #> s"${i.url}" &
       ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle(); $$(DOUBLE-QUOTE#request_url_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_url_td_${i.id}DOUBLE-QUOTE)[0].innerHTML); $$(DOUBLE-QUOTE#resource_id_input_${i.id}DOUBLE-QUOTE).val(DOUBLE-QUOTE${i.id}DOUBLE-QUOTE); $$(DOUBLE-QUOTE#request_verb_input_${i.id}DOUBLE-QUOTE).val($$(DOUBLE-QUOTE#resource_verb_td_${i.id}DOUBLE-QUOTE)[0].innerHTML);".replaceAll("DOUBLE-QUOTE",""""""") &
       ".result [id]" #> s"result_${i.id}" &
-      ".resource_id_input [id]" #> s"resource_id_input_${i.id}" &
-      ".request_verb_input [id]" #> s"request_verb_input_${i.id}"
+      "@resource_id_input [id]" #> s"resource_id_input_${i.id}" &
+      "@request_verb_input [id]" #> s"request_verb_input_${i.id}"
     }
   }
 }
@@ -73,19 +67,17 @@ class LiveDocs {
 /*
 Call an OBP URL and return the response to the browser in JSON form.
  */
-object CallMe extends Loggable {
+object CallUrlForm extends Loggable {
 
 
   def getResponse (url : String, resourceVerb: String, json : JValue) : String = {
 
 
     implicit val formats = net.liftweb.json.DefaultFormats
-    import net.liftweb.json.Serialization.writePretty
+
 
 
     // TODO: Handle POST requests
-
-
     val responseBodyBox = {
       resourceVerb match {
         case "GET" => ObpGet(url)
@@ -118,7 +110,6 @@ object CallMe extends Loggable {
   def render = {
 
       var resourceId = ""
-
       var requestUrl = ""
       var requestVerb = ""
       var requestBody = "{}"
