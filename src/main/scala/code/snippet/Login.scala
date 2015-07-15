@@ -41,8 +41,8 @@ import net.liftweb.http.js.JsCmds.Noop
 
 class Login {
 
+  // TODO show currenctly loggedin user / name
   private def loggedIn = {
-
     ".logged-out *" #> "" &
     ".logout [onclick+]" #> SHtml.onEvent(s => {
       OAuthClient.logoutAll()
@@ -52,7 +52,7 @@ class Login {
 
   def loggedOut = {
     ".logged-in *" #> "" &
-    "#start-login [onclick]" #> {
+    ".start-login [onclick]" #> {
       def actionJS: JsCmd = {
         OAuthClient.redirectToOauthLogin()
         Noop

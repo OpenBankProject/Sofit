@@ -34,11 +34,20 @@ Berlin 13359, Germany
                 Sorry, we couldn't find the page you were looking for.
             </p>
             <p>
-                Maybe this is because you don't have the right permissions
-                <lift:TestCond.loggedOut>
-                (you are not logged in).
-                </lift:TestCond.loggedOut>
+                Maybe this is because you don't have the right permissions.
             </p>
+
+
+            <div class="lift:Login.login">
+                <div class="logged-out">
+                    You might like to <a class="start-login" href="#">login</a>
+                </div>
+                <div class="logged-in">
+                    <div class="profile-info">
+                        Please double check the URL or <span class="logout">logout</span> and login as a different user.
+                    </div>
+                </div>
+            </div>
 
         </div>
 

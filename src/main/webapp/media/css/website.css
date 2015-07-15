@@ -10,7 +10,7 @@ h1 {
   margin-bottom: 10px;
 }
 
-#start-login,
+.start-login,
 .logout,
 a {
   color: #1C8B77;
@@ -21,7 +21,7 @@ a:hover {
   color: #156759;
 }
 
-#start-login:hover,
+.start-login:hover,
 .logout:hover {
   color: #156759;
   text-decoration: underline;
