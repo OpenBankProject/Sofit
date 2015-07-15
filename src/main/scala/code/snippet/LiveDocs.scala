@@ -35,7 +35,9 @@ class LiveDocs {
       Resource("1", "GET", "/v1.4.0/banks", "Get banks on this server", "JSON"),
       Resource("2", "GET", "/v1.4.0/banks/BANK_ID", "Get a particular bank identified by its ID", "JSON"),
       Resource("3", "GET", "/v1.4.0/banks/BANK_ID/branches", "Get branches of a certain bank", "JSON"),
-      Resource("4", "POST", "/v1.4.0/banks/BANK_ID/something", "Post a new something", "JSON")
+      Resource("4", "GET", "/v1.4.0/banks/BANK_ID/customer", "Info about the current customer", "JSON"),
+      Resource("5", "GET", "/v1.4.0/banks/BANK_ID/customer/messages", "Customer messages", "JSON"),
+      Resource("6", "POST", "/v1.4.0/banks/BANK_ID/customer/CUSTOMER_NUMBER/messages", "Post a new customer message", "JSON")
     )
 
   // Render the resources into a (nested) table.
