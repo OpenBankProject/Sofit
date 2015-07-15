@@ -108,7 +108,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         
         def aliasSelector = {
           val hasManagementAccess = {
-            val availableViews = accountJson.views_available.flatten
+            val availableViews = accountJson.views_available.toList.flatten
             availableViews.exists(view => view.id == Some("owner"))
           }
 
@@ -168,14 +168,26 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     }
 
     def transactionInformation: CssSel = {
-      
+
+      def description = {
+        ".description *" #> {
+          val description = transaction.details.flatMap(_.label) match {
+            case Some(a) => a
+            case _ => FORBIDDEN // TODO Different symbol for forbidden / empty?
+          }
+          description
+        }
+      }
+
+
+
       def amount = {
         ".amount *" #> {
           val amount = transaction.details.flatMap(_.value.flatMap(_.amount)) match {
             case Some(a) => a.stripPrefix("-")
             case _ => ""
           }
-          currencySymbol + amount
+          currencySymbol + " " + amount
         }
       }
       
@@ -312,6 +324,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
       }
       
       amount &
+      description &
       narrative &
       symbol &
       transactionInOrOut &
@@ -324,6 +337,11 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     otherPartyInfo
   }
 
+
+  /*
+  Used in the display of the transactions list
+  e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/public
+   */
   def displayAll = {
     val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
     "* *" #> groupedApiTransactions.map(daySummary)
@@ -350,7 +368,13 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
                   cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
   }
-  
+
+
+/*
+Used in transactions list
+
+   */
+
   def groupByDate(list : List[TransactionJson]) : List[List[TransactionJson]] = {
     list match {
       case Nil => Nil
@@ -388,7 +412,17 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     }
 
     def accountLabel = {
-      accountJson.label.map("#accountShortDiscription *" #> _).getOrElse(NOOP_SELECTOR)
+      val hasManagementAccess = {
+        val availableViews = accountJson.views_available.toList.flatten
+        availableViews.exists(view => view.id == Some("owner"))
+      }
+      var label = accountJson.label.getOrElse("")
+      if (label.isEmpty && hasManagementAccess)
+        label = accountJson.number.getOrElse("")
+      else
+        label = accountJson.id.getOrElse("")
+
+      "#accountShortDiscription *" #> label
     }
 
     /*    LocalStorage.getAccount(url(2), url(4)) match {

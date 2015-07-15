@@ -1,20 +1,26 @@
 $(document).ready(function(){
 	
   $('#view-edit-advanced-options').click(function(){
-	  var thisButton = $(this)
-	  var showButtonText = "Show advanced options"
+    var thisButton = $(this)
+	var showButtonText = "Show advanced options"
 	  
-	  if(thisButton.text() === showButtonText) {
-		  
-		  $('.advanced-option').show();
-		  
-		  thisButton.text("Hide advanced options");
+	if(thisButton.text() === showButtonText) {
+	  $('.advanced-option').show();
+	  thisButton.text("Hide advanced options");
 	  } else {
-		  
-		  $('.advanced-option').hide();
-		  
-		  thisButton.text(showButtonText);
-	  }
+	    $('.advanced-option').hide();
+	    thisButton.text(showButtonText);
+	}
+  })
+
+  $('#view-add').click(function(){
+    var el = $('#add-view-form')
+    if (el.is(":visible")) {
+      el.hide()
+    } else {
+      el.css("display", "inline-block")
+      $('#add-view-form form input:first-of-type').focus()
+    }
   })
 
   /* clicking on edit: change view to edit mode for selected view */

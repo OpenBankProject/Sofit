@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see www.gnu.org/licenses/
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Email: contact@tesobe.com
 TESOBE / Music Pictures Ltd
@@ -27,10 +27,28 @@ Berlin 13359, Germany
   Stefan Bethge : stefan AT tesobe DOT com
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
-  Tim Kleinschmidt: tim@tesobe.com
 -->
-<div id="main" class="lift:surround?with=default;at=content">
+<div class="lift:surround?with=default;at=content">
 
-Sorry! There was an error logging in.
+	<div class="account_header">Accounts management</div>
+	<!--<a id="add-permission" href="#" class="lift:PermissionManagement.addPermissionLink">Add Permission</a>-->
+	<div class="lift:AccountsOverview.authorisedAccountsWithManageLinks">
+		<table>
+			<tr class="">
+				<th>Account name</th>
+				<th class="manage"></th>
+			</tr>
+			<tr class="accountList">
+				<td><span class="user"><a class="accLink" href="">Account Name</a></span></td>
+				<td><input class="remove" type="button" value="Remove"></td>
+			</tr>
+		</table>
 
+		<script type="text/javascript">
+		  $('.remove').click(function () {
+			$(this).closest('.accountList').css('background-color', '#CC0000').fadeOut(1500, function() {$(this).remove();});
+		  });
+		</script>
+
+	</div>
 </div>

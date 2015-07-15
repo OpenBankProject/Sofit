@@ -10,6 +10,7 @@ import net.liftweb.json.JsonAST.JInt
 import net.liftweb.json.JDouble
 import net.liftweb.common.Empty
 import java.net.URL
+import java.io.{BufferedWriter, OutputStreamWriter}
 import org.apache.http.client.HttpClient
 import java.net.HttpURLConnection
 import net.liftweb.common.Failure
@@ -69,13 +70,29 @@ object ObpAPI extends Loggable {
   def publicAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
-  
+
+  def publicAccounts : Box[BarebonesAccountsJson] = {
+    ObpGet("/v1.2.1/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+
   def privateAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
-  
+
+  def privateAccounts : Box[BarebonesAccountsJson] = {
+    ObpGet("/v1.2.1/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+
   def account(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/account").flatMap(x => x.extractOpt[AccountJson])
+  }
+
+  /**
+   * @return True if the account was deleted
+   */
+  def deleteAccount(bankId : String, accountId : String) : Boolean  = {
+    val deleteAccountUrl = "/internal/v1.0/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId)
+    ObpInternalDelete(deleteAccountUrl)
   }
   
    /**
@@ -112,6 +129,18 @@ object ObpAPI extends Loggable {
     ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
   }
 
+  def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
+    val removePermissionUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
+      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
+    ObpDelete(removePermissionUrl)
+  }
+  
+  def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
+    val removeAllPermissionsUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
+      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
+    ObpDelete(removeAllPermissionsUrl)
+  }
+
   def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
     for {
       json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
@@ -124,7 +153,7 @@ object ObpAPI extends Loggable {
       json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
     } yield {
       json \ "views" match {
-        case JArray(l) => l.map(viewJson => 
+        case JArray(l) => l.map(viewJson =>
           viewJson.values match{
             case vals: Map[String, Any] => CompleteViewJson(vals)
             case _ => CompleteViewJson(Map.empty)
@@ -133,19 +162,32 @@ object ObpAPI extends Loggable {
       }
     }
   }
-  
-  def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val removePermissionUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
-      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
-    ObpDelete(removePermissionUrl)
+
+  def addView(bankId: String, accountId: String, viewId: String) : Box[JValue] = {
+    val json =
+      ("name" -> viewId) ~
+        ("description" -> "default description") ~
+        ("is_public" -> false) ~
+        ("which_alias_to_use" -> "public") ~
+        ("hide_metadata_if_alias_used" -> true) ~
+        ("allowed_actions", List(
+          "can_see_transaction_this_bank_account",
+          "can_see_transaction_label",
+          "can_see_transaction_other_bank_account")
+      )
+    ObpPost("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views", json)
   }
-  
-  def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
-    val removeAllPermissionsUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
-      urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
-    ObpDelete(removeAllPermissionsUrl)
+
+  def deleteView(bankId: String, accountId: String, viewId: String) : Boolean = {
+    ObpDelete("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
   }
-  
+
+  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
+    for {
+      response <- ObpPut("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
+    } yield Unit
+  }
+
   /**
    * @return The jsons for the tags that were were successfully added
    */
@@ -198,12 +240,6 @@ object ObpAPI extends Loggable {
     ObpDelete(deleteImageUrl)
   }
 
-
-  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
-    for {
-      response <- ObpPut("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
-    } yield Unit
-  }
 }
 
 case class ObpError(error :String)
@@ -215,6 +251,70 @@ object OBPRequest extends Loggable {
     val statusAndBody = tryo {
       val credentials = OAuthClient.getAuthorizedCredential
       val apiUrl = OAuthClient.currentApiBaseUrl
+      val url = new URL(apiUrl + apiPath)
+      //bleh
+      val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
+      request.setDoOutput(true)
+      request.setRequestMethod(method)
+      request.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+      request.setRequestProperty("Accept", "application/json")
+      request.setRequestProperty("Accept-Charset", "UTF-8")
+
+      headers.foreach(header => request.setRequestProperty(header.key, header.value))
+
+      //sign the request if we have some credentials to sign it with
+      credentials.foreach(c => c.consumer.sign(request))
+
+      //Set the request body
+      if(jsonBody.isDefined) {
+        val output = request.getOutputStream()
+        val writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"))
+        writer.write(compact(render(jsonBody.get)).toString)
+        writer.flush()
+        writer.close()
+      }
+
+      request.connect()
+      val status = request.getResponseCode()
+
+      //get reponse body
+      val inputStream = if(status >= 400) request.getErrorStream() else request.getInputStream()
+      val reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))
+      val builder = new StringBuilder()
+      var line = ""
+      def readLines() {
+        line = reader.readLine()
+        if (line != null) {
+          builder.append(line + "\n")
+          readLines()
+        }
+      }
+      readLines()
+      reader.close();
+      (status, builder.toString())
+    }
+
+    statusAndBody pass {
+      case Failure(msg, ex, _) => {
+        val sw = new StringWriter()
+        val writer = new PrintWriter(sw)
+        ex.foreach(_.printStackTrace(writer))
+        logger.debug("Error making api call: " + msg + ", stack trace: " + sw.toString)
+      }
+      case _ => Unit
+    }
+  }
+}
+
+//Ugly duplicate of above to be able to get rid of /obp prefix.
+//Should be done without it
+object OBPInternalRequest extends Loggable {
+  implicit val formats = DefaultFormats
+  //returns a tuple of the status code and response body as a string
+  def apply(apiPath : String, jsonBody : Option[JValue], method : String, headers : List[Header]) : Box[(Int, String)] = {
+    val statusAndBody = tryo {
+      val credentials = OAuthClient.getAuthorizedCredential
+      val apiUrl = OBPDemo.baseUrl
       val url = new URL(apiUrl + apiPath)
       //bleh
       val request = url.openConnection().asInstanceOf[HttpURLConnection] //blagh!
@@ -285,7 +385,6 @@ object ObpPost {
   }
 }
 
-
 object ObpDelete {
   /**
    * @return True if the delete worked
@@ -306,6 +405,18 @@ object ObpGet {
   }
 }
 
+object ObpInternalDelete {
+  /**
+   * @return True if the delete worked
+   */
+  def apply(apiPath: String): Boolean = {
+    val worked = OBPInternalRequest(apiPath, None, "DELETE", Nil).map {
+      case(status, result) => APIUtils.apiResponseWorked(status, result)
+    }
+    worked.getOrElse(false)
+  }
+}
+
 object APIUtils extends Loggable {
   implicit val formats = DefaultFormats
 
@@ -313,7 +424,7 @@ object APIUtils extends Loggable {
     responseCode match {
       case 200 | 201 => tryo{parse(body)}
       case _ => {
-        val failMsg = "Bad response code (" + responseCode + ") from server: " + body
+        val failMsg = "Bad response code (" + responseCode + ") from OBP API server: " + body
         logger.warn(failMsg)
         Failure(failMsg)
       }

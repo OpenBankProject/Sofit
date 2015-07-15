@@ -151,7 +151,7 @@ object OAuthClient extends Loggable {
     mostRecentLoginAttemptProvider.set(Full(provider))
     val credential = setNewCredential(provider)
 
-    val authUrl = provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("hostname", S.hostName) + "/oauthcallback")
+    val authUrl = provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("base_url", S.hostName) + "/oauthcallback")
     S.redirectTo(authUrl)
   }
 

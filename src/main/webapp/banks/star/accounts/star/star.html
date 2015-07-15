@@ -28,6 +28,16 @@ Berlin 13359, Germany
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
 -->
+
+
+<!--
+This renders the transaction list.
+e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/owner
+
+-->
+
+
+
 <div class="lift:surround?with=default;at=content">
 
 	<div id="account_details" class="lift:OBPTransactionSnippet.accountDetails">
@@ -46,7 +56,7 @@ Berlin 13359, Germany
 					  fjs.parentNode.insertBefore(js, fjs);
 					}(document, 'script', 'facebook-jssdk'));
 				</script>
-				<div class="fb-like" data-href="https://demo.openbankproject.com" data-send="false" data-layout="button_count" data-width="60"data-show-faces="false"></div>
+				<div class="fb-like" data-href="https://sofi.openbankproject.com" data-send="false" data-layout="button_count" data-width="60"data-show-faces="false"></div>
 
 				<!-- Twitter -->
 				<a href="https://twitter.com/share" class="twitter-share-button" data-via="openbankproject" data-hashtags="openbankproject">Tweet</a>
@@ -57,7 +67,7 @@ Berlin 13359, Germany
 				<script class="lift:head" type="text/javascript" src="https://apis.google.com/js/plusone.js">
 				    {lang: 'en-GB'}
 				 </script>
-				<g:plusone size="medium" href="https://demo.openbankproject.com"></g:plusone>
+				<g:plusone size="medium" href="https://sofi.openbankproject.com"></g:plusone>
 			</div>
 		</div>
     </div>
@@ -88,6 +98,7 @@ Berlin 13359, Germany
 					    	<a class="otherAccountLinkForAlias" href="#"></a>
 					    </span>
 					</td>
+                    <td class="description">description</td>
 					<td class="narrative">Transaction specific notes</td>
 					<td class="transaction_images">
 						<img class="transaction_image" src="/media/images/blank.gif" alt="transaction-image">

@@ -41,7 +41,7 @@ import Loc._
 import mapper._
 import Helpers._
 import json.JsonDSL._
-import net.liftweb.widgets.tablesorter.TableSorter
+import net.liftmodules.widgets.tablesorter.TableSorter
 import java.io.FileInputStream
 import java.io.File
 import code.lib.{OAuthClient, ObpGet, ObpJson, ObpAPI}
@@ -67,7 +67,7 @@ class Boot extends Loggable{
     logger.info("running mode: " + runningMode)
 
     val contextPath = LiftRules.context.path
-    val propsPath = tryo{Box.legacyNullTest(System.getProperty("props.resource.dir"))}.flatten
+    val propsPath = tryo{Box.legacyNullTest(System.getProperty("props.resource.dir"))}.toList.flatten
 
     logger.info("external props folder: " + propsPath)
 
@@ -121,7 +121,7 @@ class Boot extends Loggable{
     }
 
     Props.whereToLook = () => {
-      firstChoicePropsDir.flatten.toList ::: secondChoicePropsDir.flatten.toList
+      firstChoicePropsDir.toList.flatten ::: secondChoicePropsDir.toList.flatten
     }
 
     if(Props.get("defaultAuthProvider").isEmpty) {
@@ -185,7 +185,6 @@ class Boot extends Loggable{
 
     def getAccount(URLParameters : List[String]) =
     {
-
         def calculateAccount() = {
           val bankUrl = URLParameters(0)
           val accountUrl = URLParameters(1)
@@ -205,6 +204,20 @@ class Boot extends Loggable{
       accountMemo.get match {
         case Full(something) => something
         case _ => calculateAccount()
+      }
+    }
+
+
+    def getAccounts(URLParameters : List[String]): Box[List[BarebonesAccountJson]] =
+    {
+      val result =
+        for {
+          accountJson <- ObpGet("/v1.2.1/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
+        } yield (accountJson.accounts)
+
+      result match {
+        case Full(s) => s
+        case _ => None
       }
     }
 
@@ -308,34 +321,38 @@ class Boot extends Loggable{
     }
 
     // Build SiteMap
+    // Note: See Nav.scala which modifies the menu
+
     val sitemap = List(
-          Menu.i("Home") / "index",
-          Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
-            OAuthClient.handleCallback()
-          }),
-          //test if the bank exists and if the user have access to management page
-          Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
+      Menu.i("OBP Live Docs") / "live-docs",
+      Menu.i("Home") / "index",
+      Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
+        OAuthClient.handleCallback()
+      }),
+      //test if the bank exists and if the user has access to the management page
+      Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
-          Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
+      Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
 
-          Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List(""))
-          / "permissions" / "banks" / * / "accounts" / * / "create" ,
+      Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List(""))
+      / "banks" / * / "accounts" / * / "permissions" / "create" ,
 
-          Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "permissions" / "banks" / * / "accounts" / * ,
+      Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "banks" / * / "accounts" / * / "permissions" ,
+      Menu.params[List[BarebonesAccountJson]]("Manage Accounts", "manage accounts", getAccounts _ , x => List("")) / "list-accounts" ,
 
-          Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
-          / "banks" / * / "accounts" / * / *,
+      Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
+      / "banks" / * / "accounts" / * / *,
 
-          Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
-          / "banks" / * / "accounts" / * / "transactions" / * / *
+      Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
+      / "banks" / * / "accounts" / * / "transactions" / * / *
     )
 
     LiftRules.setSiteMap(SiteMap.build(sitemap.toArray))
 
     LiftRules.addToPackages("code")
 
-    // Use jQuery 1.4
-    LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
+    // Use jQuery from js directory
+    LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQueryArtifacts
 
     //Show the spinny image when an Ajax call starts
     LiftRules.ajaxStart =
@@ -359,6 +376,11 @@ class Boot extends Loggable{
     LiftRules.exceptionHandler.prepend{
       case MyExceptionLogger(_, _, t) => throw t // this will never happen
     }
+
+
+
+    LiftRules.uriNotFound.prepend(NamedPF("404handler"){ case (req,failure) =>
+      NotFoundAsTemplate(ParsePath(List("404"),"html",true,false)) })
 
   }
 }

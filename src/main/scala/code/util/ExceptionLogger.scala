@@ -16,7 +16,7 @@ object MyExceptionLogger extends Loggable{
     val currentTime = now.toString
     val stackTrace = new String(outputStream.toByteArray)
     val error = currentTime + ": " + stackTrace
-    val host = Props.get("hostname", "unknown host")
+    val host = Props.get("base_url", "unknown host")
 
     val mailSent = for {
       from <- Props.get("mail.exception.sender.address") ?~ "Could not send mail: Missing props param for 'from'"

@@ -1,4 +1,4 @@
-var socialFinanceNotificiations = {
+var socialFinanceNotifications = {
   notify : function(msg) {
 	 toastr.info(msg); 
   },
