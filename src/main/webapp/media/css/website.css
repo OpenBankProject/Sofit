@@ -872,8 +872,8 @@ span#accountsMsg
 
 #feedback .feedback-slider {
   display:block;
-  width: 20px;
-  height: 100%;
+  width:20px;
+  height:100%;
   background-repeat: no-repeat;
   background-size: 15px;
   background-position: 50%;
@@ -900,6 +900,7 @@ a.otherAccountLinkForAlias{
   display: inline-block;
   margin-top: 10px;
   margin-bottom: 20px;
+  font-size: 15px;
 }
 
 
@@ -921,19 +922,7 @@ td.main-attributes{
   font-size: 18px;
 }
 
-.advanced-option {
-  display: none;
-}
-
 .desc_input {
-  display: none;
-}
-
-#view-edit-advanced-options {
-  margin: 10px;
-}
-
-#add-view-form, #account-edit-label-form {
   display: none;
 }
 
@@ -943,4 +932,17 @@ td.imageURL {
 
 td.imageURL span.text {
   word-wrap: break-word;
+}
+
+div.views .action-bar {
+  padding: 5px 0px 15px 0px;
+}
+
+#view-edit-advanced-options {
+  float: right;
+  display: inline-block;
+}
+
+#add-view-form, #account-edit-label-form {
+  display: none;
 }
