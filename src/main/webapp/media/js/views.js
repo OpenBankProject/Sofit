@@ -23,6 +23,16 @@ $(document).ready(function(){
     }
   })
 
+  $('#account-edit-label').click(function(){
+    var el = $('#account-edit-label-form')
+    if (el.is(":visible")) {
+      el.hide()
+    } else {
+      el.css("display", "inline-block")
+      $('#account-edit-label-form form input:first-of-type').focus()
+    }
+  })
+
   /* clicking on edit: change view to edit mode for selected view */
   $(".edit").on("click", function(){
     var viewId = $(this).attr("data-id")

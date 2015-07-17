@@ -83,7 +83,7 @@ object ObpAPI extends Loggable {
     ObpGet("/v1.2.1/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
 
-  def account(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
+  def getAccount(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/account").flatMap(x => x.extractOpt[AccountJson])
   }
 
@@ -94,7 +94,15 @@ object ObpAPI extends Loggable {
     val deleteAccountUrl = "/internal/v1.0/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId)
     ObpInternalDelete(deleteAccountUrl)
   }
-  
+
+  def updateAccountLabel(bankId: String, accountId : String, label: String) = {
+    val json =
+      ("id" -> accountId) ~
+      ("label" -> label) ~
+      ("bank_id" -> bankId)
+    ObpPost("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId), json)
+  }
+
    /**
    * @return The json for the comment if it was successfully added
    */

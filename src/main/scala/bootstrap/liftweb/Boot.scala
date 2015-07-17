@@ -162,7 +162,7 @@ class Boot extends Loggable{
             for {
               //TODO: Pagination: This is not totally trivial, since the transaction list groups by date and 2 pages may have some transactions on the same date
               transactionsJson <- ObpAPI.transactions(bank, account, viewName, Some(10000), Some(0), None, None, None)
-              accountJson <- ObpAPI.account(bank, account, viewName) //TODO: Execute this request and the one above in parallel
+              accountJson <- ObpAPI.getAccount(bank, account, viewName) //TODO: Execute this request and the one above in parallel
             } yield {
               (transactionsJson, accountJson, transactionsURLParams)
             }
@@ -264,7 +264,7 @@ class Boot extends Loggable{
         logOrReturnResult {
           for {
             viewsJson <- ObpAPI.getViews(bank, account)
-            accountJson <- ObpAPI.account(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
+            accountJson <- ObpAPI.getAccount(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
           } yield {
             (viewsJson, accountJson, PermissionsUrlParams(bank, account))
           }
@@ -314,7 +314,7 @@ class Boot extends Loggable{
           for {
             permissionsJson <- ObpAPI.getPermissions(bank, account)
             accountViewsJson <- ObpAPI.getViews(bank, account)
-            accountJson <- ObpAPI.account(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
+            accountJson <- ObpAPI.getAccount(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
           } yield (permissionsJson, accountJson, accountViewsJson, PermissionsUrlParams(bank, account))
         }
       } else Empty

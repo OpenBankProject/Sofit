@@ -13,7 +13,7 @@ import net.liftweb.http.js.JsCmds.{SetHtml, Alert, RedirectTo}
 import net.liftweb.common.{Loggable, Box}
 import code.lib.ObpAPI
 import net.liftweb.http.SHtml.{text,ajaxSubmit, ajaxButton}
-import ObpAPI.{addView, deleteView}
+import ObpAPI.{addView, deleteView, updateAccountLabel, getAccount}
 import SHtml._
 
 case class ViewUpdateData(
@@ -203,5 +203,31 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
       // Replace the type=submit with Javascript that makes the ajax call.
       "type=submit" #> ajaxSubmit("OK", process)
     ).apply(xhtml)
+  }
+
+  //set up ajax handlers to edit account label
+  def setupEditLabel(xhtml: NodeSeq): NodeSeq = {
+    var newLabel = ""
+
+    def process(): JsCmd = {
+      logger.debug(s"ViewsOverview.setupEditLabel.process: edit label $newLabel")
+      val result = updateAccountLabel(bank, account, newLabel)
+      if (result.isDefined) {
+        val msg = "Label " + newLabel + " has been set"
+        Call("socialFinanceNotifications.notify", msg).cmd
+      } else {
+         val msg = "Sorry, Label" + newLabel + " could not be set ("+ result +")"
+         Call("socialFinanceNotifications.notifyError", msg).cmd
+      }
+    }
+
+    val label = getAccount(bank, account, "owner").get.label.getOrElse("Label")
+    (
+      // Bind newViewName field to variable (e.g. http://chimera.labs.oreilly.com/books/1234000000030/ch03.html)
+      "@new_label" #> text(newLabel, s => newLabel = s) &
+        // Replace the type=submit with Javascript that makes the ajax call.
+        "type=submit" #> ajaxSubmit("OK", process) &
+        "type=text [value]" #> label
+      ).apply(xhtml)
   }
 }

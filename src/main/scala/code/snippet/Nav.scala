@@ -55,7 +55,7 @@ class Nav {
       val bankId = url( url.indexOf("banks")+1 )
       val accountId = url( url.indexOf("accounts")+1 )
 
-      ObpAPI.account(bankId, accountId, viewId)
+      ObpAPI.getAccount(bankId, accountId, viewId)
     } else {
       None
     }

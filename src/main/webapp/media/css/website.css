@@ -933,7 +933,7 @@ td.main-attributes{
   margin: 10px;
 }
 
-#add-view-form {
+#add-view-form, #account-edit-label-form {
   display: none;
 }
 
