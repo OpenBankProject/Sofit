@@ -3,13 +3,13 @@ $(document).ready(function(){
   $('#view-edit-advanced-options').click(function(){
     var thisButton = $(this)
 	var showButtonText = "Show advanced options"
-	  
+
+	$('.advanced-option').toggle();
+
 	if(thisButton.text() === showButtonText) {
-	  $('.advanced-option').show();
-	  thisButton.text("Hide advanced options");
-	  } else {
-	    $('.advanced-option').hide();
-	    thisButton.text(showButtonText);
+      thisButton.text("Hide advanced options");
+	} else {
+      thisButton.text(showButtonText);
 	}
   })
 
@@ -20,6 +20,16 @@ $(document).ready(function(){
     } else {
       el.css("display", "inline-block")
       $('#add-view-form form input:first-of-type').focus()
+    }
+  })
+
+  $('#account-edit-label').click(function(){
+    var el = $('#account-edit-label-form')
+    if (el.is(":visible")) {
+      el.hide()
+    } else {
+      el.css("display", "inline-block")
+      $('#account-edit-label-form form input:first-of-type').focus()
     }
   })
 

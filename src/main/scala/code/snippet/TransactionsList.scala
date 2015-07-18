@@ -417,10 +417,12 @@ Used in transactions list
         availableViews.exists(view => view.id == Some("owner"))
       }
       var label = accountJson.label.getOrElse("")
-      if (label.isEmpty && hasManagementAccess)
-        label = accountJson.number.getOrElse("")
-      else
-        label = accountJson.id.getOrElse("")
+      if (label.isEmpty) {
+        if (hasManagementAccess)
+          label = accountJson.number.getOrElse("")
+        else
+          label = accountJson.id.getOrElse("")
+      }
 
       "#accountShortDiscription *" #> label
     }
