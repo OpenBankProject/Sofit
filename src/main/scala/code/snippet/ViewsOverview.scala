@@ -183,13 +183,15 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
         val msg = "Sorry, a View with that name already exists."
         Call("socialFinanceNotifications.notifyError", msg).cmd
       } else {
+        // This only adds the view (does not grant the current user access)
         val result = addView(bank, account, newViewName)
 
         if (result.isDefined) {
-          val msg = "View " + newViewName + " has been created"
+          val msg = "View " + newViewName + " has been created. Please use the Access tab to grant yourself or others access."
           Call("socialFinanceNotifications.notify", msg).cmd
-          //reload page for new view to be shown
-          RedirectTo("")
+          // After creation, current user does not have access so, we show message above.
+          // TODO: Redirect to a page where user can give him/her self access - and/or grant access automatically.
+          // For now, don't reload so user can see the message above // reload page for new view to be shown // RedirectTo("")
         } else {
           val msg = "View " + newViewName + " could not be created"
           Call("socialFinanceNotifications.notifyError", msg).cmd

@@ -68,6 +68,8 @@ class Nav {
 
   def eraseMenu =
     "* * " #> ""
+
+
   def views: net.liftweb.util.CssSel = {
     val url = S.uri.split("/", 0)
     if (url.size > 4) {
@@ -114,7 +116,7 @@ class Nav {
     if(hasOwnerPermissions) {
       val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
       ".navlink [href]" #> { editViewsUrl } &
-      ".navlink *" #> "Views & Permissions" &
+      ".navlink *" #> "Views" &
       ".navlink [class+]" #> markIfSelected(editViewsUrl)
     } else eraseMenu
   }
