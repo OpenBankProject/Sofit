@@ -1,18 +1,31 @@
 package code.util
 
+import code.lib.ObpAPI._
 import code.lib.ObpJson.AccountJson
+import net.liftweb.common.Full
 
 
 object Helper {
 
 
 
+  // From bankId / accountId
+  def getAccountTitle (bankId: String, accountId: String) : String = {
+    val accountJsonBox = getAccount(bankId, accountId, "owner")
+
+    val accountTitle = accountJsonBox match {
+      case Full(accountJson) => getAccountTitle(accountJson)
+      case _ => "Unknown Account"
+    }
+    accountTitle
+  }
+
+
 /*
 Returns a string which can be used for the title of the account
 */
   def getAccountTitle(accountJson: AccountJson ) : String = {
-
-  // TODO rewrite in more idiomatic style
+  // Rewrite in more idiomatic style?
       var title = accountJson.label.getOrElse("")
       if (title.isEmpty) {
         if (hasManagementAccess(accountJson))

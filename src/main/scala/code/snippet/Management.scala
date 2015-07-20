@@ -33,6 +33,7 @@ Berlin 13359, Germany
 
 package code.snippet
 
+import code.util.Helper._
 import net.liftweb.json.JsonAST._
 import net.liftweb.util.Helpers._
 import scala.xml.NodeSeq
@@ -57,6 +58,9 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
   val sortList = (0, Sorting.ASC) :: Nil
 
   val options = CustomTableSorter.options(headers, sortList)
+
+
+  def setAccountTitle = ".account_title *" #> getAccountTitle(urlParams.bankId, urlParams.accountId)
 
   def tableSorter(xhtml: NodeSeq) : NodeSeq = {
     CustomTableSorter("#other_acc_management", options)

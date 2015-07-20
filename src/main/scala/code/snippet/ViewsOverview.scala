@@ -33,23 +33,10 @@ For maintaining permissions on the views (entitlements on the account)
  */
 class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
   val views = viewsDataJson.views
-  val bank = viewsDataJson.bankId
-  val account = viewsDataJson.accountId
+  val bankId = viewsDataJson.bankId
+  val accountId = viewsDataJson.accountId
 
-
-  // Get the Account Title
-  // TODO put this into code.util.Helper
-  def getAccountTitleFromAccount : String = {
-    val accountJsonBox = getAccount(bank, account, "owner")
-
-    val accountTitle = accountJsonBox match {
-      case Full(accountJson) => getAccountTitle(accountJson)
-      case _ => "Unknown Account"
-    }
-    accountTitle
-  }
-
-  def setAccountTitle = ".account_title *" #> getAccountTitleFromAccount
+  def setAccountTitle = ".account_title *" #> getAccountTitle(bankId, accountId)
 
   def getTableContent(xhtml: NodeSeq) :NodeSeq = {
 
@@ -200,7 +187,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
         Call("socialFinanceNotifications.notifyError", msg).cmd
       } else {
         // This only adds the view (does not grant the current user access)
-        val result = addView(bank, account, newViewName)
+        val result = addView(bankId, accountId, newViewName)
 
         if (result.isDefined) {
           val msg = "View " + newViewName + " has been created. Please use the Access tab to grant yourself or others access."
@@ -229,7 +216,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
 
     def process(): JsCmd = {
       logger.debug(s"ViewsOverview.setupEditLabel.process: edit label $newLabel")
-      val result = updateAccountLabel(bank, account, newLabel)
+      val result = updateAccountLabel(bankId, accountId, newLabel)
       if (result.isDefined) {
         val msg = "Label " + newLabel + " has been set"
         Call("socialFinanceNotifications.notify", msg).cmd
@@ -241,7 +228,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
       }
     }
 
-    val label = getAccount(bank, account, "owner").get.label.getOrElse("Label")
+    val label = getAccount(bankId, accountId, "owner").get.label.getOrElse("Label")
     (
       // Bind newViewName field to variable (e.g. http://chimera.labs.oreilly.com/books/1234000000030/ch03.html)
       "@new_label" #> text(newLabel, s => newLabel = s) &
