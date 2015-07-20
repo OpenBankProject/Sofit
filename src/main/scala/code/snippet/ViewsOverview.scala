@@ -1,5 +1,6 @@
 package code.snippet
 
+import code.util.Helper._
 import net.liftweb.http.js.JE.{Call, Str}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers._
@@ -10,7 +11,7 @@ import net.liftweb.http.{S, SHtml}
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
 import net.liftweb.http.js.JsCmds.{SetHtml, Alert, RedirectTo}
-import net.liftweb.common.{Loggable, Box}
+import net.liftweb.common.{Full, Loggable, Box}
 import code.lib.ObpAPI
 import net.liftweb.http.SHtml.{text,ajaxSubmit, ajaxButton}
 import ObpAPI.{addView, deleteView, updateAccountLabel, getAccount}
@@ -34,6 +35,21 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
   val views = viewsDataJson.views
   val bank = viewsDataJson.bankId
   val account = viewsDataJson.accountId
+
+
+  // Get the Account Title
+  // TODO put this into code.util.Helper
+  def getAccountTitleFromAccount : String = {
+    val accountJsonBox = getAccount(bank, account, "owner")
+
+    val accountTitle = accountJsonBox match {
+      case Full(accountJson) => getAccountTitle(accountJson)
+      case _ => "Unknown Account"
+    }
+    accountTitle
+  }
+
+  def setAccountTitle = ".account_title *" #> getAccountTitleFromAccount
 
   def getTableContent(xhtml: NodeSeq) :NodeSeq = {
 
@@ -217,6 +233,8 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
       if (result.isDefined) {
         val msg = "Label " + newLabel + " has been set"
         Call("socialFinanceNotifications.notify", msg).cmd
+        // So we can see the new account title which may use the updated label
+        RedirectTo("")
       } else {
          val msg = "Sorry, Label" + newLabel + " could not be set ("+ result +")"
          Call("socialFinanceNotifications.notifyError", msg).cmd
