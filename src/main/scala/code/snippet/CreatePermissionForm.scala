@@ -41,13 +41,13 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
         def invalidEmail() : Boolean = !email.contains("@")
         
         if(viewData.forall(_.allowed == false)) showMsg("You must select at least one view to grant access to.")
-        else if(email.isEmpty()) showMsg("You must enter an email address")
-        else if(invalidEmail()) showMsg("Invalid email address")
+        else if(email.isEmpty()) showMsg("You must enter an e-mail address")
+        else if(invalidEmail()) showMsg("Invalid e-mail address")
         else {
           //create the permission and return any failure
-          if(url.length > 5) {
-            val bankId = url(3)
-            val accountId = url(5)
+          if(url.length > 4) {
+            val bankId = url(2)
+            val accountId = url(4)
             val viewIds = for {
               vData <- viewData
               if(vData.allowed)
@@ -59,7 +59,8 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
               case Failure(msg, _, _) => showMsg(msg)
               case _ => {
                 //Redirect to permissions overview
-                S.redirectTo("/permissions/banks/" + bankId + "/accounts/" + accountId) //TODO: Would be nice to calculate this but at the moment there is nothing to do it
+                //TODO: Would be nice to calculate this but at the moment there is nothing to do it
+                S.redirectTo("/banks/" + bankId + "/accounts/" + accountId + "/permissions")
                 Noop
               }
             }
