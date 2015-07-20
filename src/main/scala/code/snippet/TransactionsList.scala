@@ -46,6 +46,7 @@ import java.util.Currency
 import code.lib.ObpJson._
 import code.lib._
 import net.liftweb.json.JsonDSL._
+import code.util.Helper._
 
 case class TransactionsListURLParams(bankId: String, accountId: String, viewId: String)
 
@@ -412,19 +413,8 @@ Used in transactions list
     }
 
     def accountLabel = {
-      val hasManagementAccess = {
-        val availableViews = accountJson.views_available.toList.flatten
-        availableViews.exists(view => view.id == Some("owner"))
-      }
-      var label = accountJson.label.getOrElse("")
-      if (label.isEmpty) {
-        if (hasManagementAccess)
-          label = accountJson.number.getOrElse("")
-        else
-          label = accountJson.id.getOrElse("")
-      }
-
-      "#accountShortDiscription *" #> label
+      val accountTitle = getAccountTitle(accountJson)
+      "#accountShortDescription *" #> accountTitle
     }
 
     /*    LocalStorage.getAccount(url(2), url(4)) match {

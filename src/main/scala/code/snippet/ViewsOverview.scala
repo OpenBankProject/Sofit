@@ -1,5 +1,6 @@
 package code.snippet
 
+import code.util.Helper._
 import net.liftweb.http.js.JE.{Call, Str}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers._
@@ -10,7 +11,7 @@ import net.liftweb.http.{S, SHtml}
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
 import net.liftweb.http.js.JsCmds.{SetHtml, Alert, RedirectTo}
-import net.liftweb.common.{Loggable, Box}
+import net.liftweb.common.{Full, Loggable, Box}
 import code.lib.ObpAPI
 import net.liftweb.http.SHtml.{text,ajaxSubmit, ajaxButton}
 import ObpAPI.{addView, deleteView, updateAccountLabel, getAccount}
@@ -34,6 +35,21 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
   val views = viewsDataJson.views
   val bank = viewsDataJson.bankId
   val account = viewsDataJson.accountId
+
+
+  // Get the Account Title
+  // TODO put this into code.util.Helper
+  def getAccountTitleFromAccount : String = {
+    val accountJsonBox = getAccount(bank, account, "owner")
+
+    val accountTitle = accountJsonBox match {
+      case Full(accountJson) => getAccountTitle(accountJson)
+      case _ => "Unknown Account"
+    }
+    accountTitle
+  }
+
+  def setAccountTitle = ".account_title *" #> getAccountTitleFromAccount
 
   def getTableContent(xhtml: NodeSeq) :NodeSeq = {
 
@@ -183,13 +199,15 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
         val msg = "Sorry, a View with that name already exists."
         Call("socialFinanceNotifications.notifyError", msg).cmd
       } else {
+        // This only adds the view (does not grant the current user access)
         val result = addView(bank, account, newViewName)
 
         if (result.isDefined) {
-          val msg = "View " + newViewName + " has been created"
+          val msg = "View " + newViewName + " has been created. Please use the Access tab to grant yourself or others access."
           Call("socialFinanceNotifications.notify", msg).cmd
-          //reload page for new view to be shown
-          RedirectTo("")
+          // After creation, current user does not have access so, we show message above.
+          // TODO: Redirect to a page where user can give him/her self access - and/or grant access automatically.
+          // For now, don't reload so user can see the message above // reload page for new view to be shown // RedirectTo("")
         } else {
           val msg = "View " + newViewName + " could not be created"
           Call("socialFinanceNotifications.notifyError", msg).cmd
@@ -215,6 +233,8 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
       if (result.isDefined) {
         val msg = "Label " + newLabel + " has been set"
         Call("socialFinanceNotifications.notify", msg).cmd
+        // So we can see the new account title which may use the updated label
+        RedirectTo("")
       } else {
          val msg = "Sorry, Label" + newLabel + " could not be set ("+ result +")"
          Call("socialFinanceNotifications.notifyError", msg).cmd
