@@ -87,6 +87,11 @@ object ObpAPI extends Loggable {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/account").flatMap(x => x.extractOpt[AccountJson])
   }
 
+  // Returns Json containing Resource Docs
+  def getResourceDocsJson : Box[ResourceDocsJson] = {
+    ObpGet("/v1.4.0/resource-docs").flatMap(_.extractOpt[ResourceDocsJson])
+  }
+
   /**
    * @return True if the account was deleted
    */
@@ -620,5 +625,23 @@ object ObpJson {
   case class PermissionJson(user: Option[UserJson], views: Option[List[ViewJson]])
   
   case class PermissionsJson(permissions : Option[List[PermissionJson]])
+
+
+
+  // Import these from API jar file?
+  case class ResourceDocJson(id: Int,
+                             verb: String,
+                             url: String,
+                             description: String)
+
+  case class ResourceDocsJson (resource_docs : List[ResourceDocJson])
+
+  case class ResourceDoc(id: Int,
+                         verb: String,
+                         url: String,
+                         description: String)
+
+
+  case class ResourceDocs (resourceDocs : List[ResourceDoc])
   
 }

@@ -1,6 +1,7 @@
 package code.snippet
 
 import _root_.net.liftweb._
+import code.lib.ObpJson.ResourceDoc
 import code.lib.{ObpPost, ObpGet}
 
 import net.liftweb.json.{JsonParser, JsonAST}
@@ -19,11 +20,12 @@ import xml.Text
 
 import net.liftweb.json.Serialization.writePretty
 
+import code.lib.ObpAPI.getResourceDocsJson
 
 /*
 Present a list of OBP resource URLs
  */
-class LiveDocs {
+class LiveDocs extends Loggable {
   def showResources = {
     case class Resource(id: String,
                         verb: String,
@@ -31,18 +33,17 @@ class LiveDocs {
                         description: String,
                         representation: String)
 
-    val resources = List(
-      Resource("1", "GET", "/v1.4.0/banks", "Get banks on this server", "JSON"),
-      Resource("2", "GET", "/v1.4.0/banks/BANK_ID", "Get a particular bank identified by its ID", "JSON"),
-      Resource("3", "GET", "/v1.4.0/banks/BANK_ID/branches", "Get branches of a certain bank", "JSON"),
-      Resource("4", "GET", "/v1.4.0/banks/BANK_ID/customer", "Info about the current customer", "JSON"),
-      Resource("5", "GET", "/v1.4.0/banks/BANK_ID/customer/messages", "Customer messages", "JSON"),
-      Resource("6", "POST", "/v1.4.0/banks/BANK_ID/customer/CUSTOMER_NUMBER/messages", "Post a new customer message", "JSON")
-    )
+    // Get a list of resource docs from the API server
+    // This will throw exception if resource_docs key is not populated
+    // Convert the json representation to ResourceDoc (pretty much a one to one mapping)
+    val resources = for {
+      r <- getResourceDocsJson.map(_.resource_docs).get
+    } yield ResourceDoc(id = r.id, verb = r.verb, url = r.url, description = r.description)
+
 
   // Render the resources into a (nested) table.
   // This could probably be improved.
-  // So far we can't (why??) set value of input field at render time like this ".resource_id_input [value]" #> s"lslslsls${i.id}"
+  // So far we can't (why?) set value of input field at render time like this ".resource_id_input [value]" #> s"lslslsls${i.id}"
   // so have to work around and set the input fields via the try_me_button onclick javascript.
   // Notes on escaping strings
   // To have a $ in the resulting string use two: $$
@@ -57,10 +58,10 @@ class LiveDocs {
     }
 
     ".resource" #> resources.map { i =>
-      ".resource_verb" #> i.verb &
+      ".resource_verb" #>  i.verb &
       ".resource_url" #> i.url &
       ".resource_description" #> i.description &
-      ".resource_representation" #> i.representation &
+      ".resource_representation" #> "JSON" &
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" &
       ".url_caller [id]" #> s"url_caller_${i.id}" &
@@ -87,7 +88,6 @@ object CallUrlForm extends Loggable {
 
     implicit val formats = net.liftweb.json.DefaultFormats
 
-
     // TODO: Handle POST requests
     val responseBodyBox = {
       resourceVerb match {
@@ -111,7 +111,6 @@ object CallUrlForm extends Loggable {
       case Empty => "Empty: API did not return anything"
       case Failure(message, _, _) => "Failure: " + message
     }
-
 
     logger.info(s"responseBody is $responseBody")
     responseBody
