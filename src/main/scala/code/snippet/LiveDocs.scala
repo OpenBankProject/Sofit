@@ -3,6 +3,7 @@ package code.snippet
 import _root_.net.liftweb._
 import code.lib.ObpJson.ResourceDoc
 import code.lib.{ObpPost, ObpGet}
+import net.liftweb.http.S
 
 import net.liftweb.json.{JsonParser, JsonAST}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
@@ -33,6 +34,13 @@ class LiveDocs extends Loggable {
                         description: String,
                         representation: String)
 
+    // Get the requested version from the url parameter and default if none
+    val apiVersion = S.param("api-version").getOrElse("1.4.0")
+
+    if (apiVersion != "1.4.0") S.notice("Note: Only 1.4.0 is currently supported")
+
+    logger.info (s"API version requested is: $apiVersion")
+
     // Get a list of resource docs from the API server
     // This will throw exception if resource_docs key is not populated
     // Convert the json representation to ResourceDoc (pretty much a one to one mapping)
@@ -57,6 +65,20 @@ class LiveDocs extends Loggable {
       }
     }
 
+
+    // Note! This is the return of the function.
+    // All the replacements you want to do *must be chained here together at the end of the function*.
+    // Also, you can't chain replaceWith (alias for #>)
+
+    // See the following for some examples.
+    // http://blog.knoldus.com/2013/03/08/lift-web-basics-of-using-snippets-for-a-beginner/
+    // http://simply.liftweb.net/index-7.10.html
+
+    // Show the version to the user.
+    // Append to the content child of id="version" i.e. Version: -> Version: 1.2.3
+    "#version *+" #> apiVersion &
+    // replace the node identified by the class "resource" with the following
+    // This creates the list of resources in the DOM
     ".resource" #> resources.map { i =>
       ".resource_verb" #>  i.verb &
       ".resource_url" #> i.url &
@@ -84,7 +106,7 @@ Call an OBP URL and return the response to the browser in JSON form.
 object CallUrlForm extends Loggable {
 
 
-  def getResponse (url : String, resourceVerb: String, json : JValue) : String = {
+  def getResponse (apiVersion : String, url : String, resourceVerb: String, json : JValue) : String = {
 
     implicit val formats = net.liftweb.json.DefaultFormats
 
@@ -119,6 +141,7 @@ object CallUrlForm extends Loggable {
 
   def render = {
 
+      var apiVersion = "/obp/v1.4.0/"
       var resourceId = ""
       var requestVerb = ""
       var requestUrl = ""
@@ -128,7 +151,7 @@ object CallUrlForm extends Loggable {
         // Create json object from input string
         val jsonObject = JsonParser.parse(requestBody).asInstanceOf[JObject]
         // Call the url with optional body and put the response into the appropriate result div
-        SetHtml("result_" + resourceId, Text(getResponse(requestUrl, requestVerb, jsonObject))) &
+        SetHtml("result_" + resourceId, Text(getResponse(apiVersion, requestUrl, requestVerb, jsonObject))) &
         // This applies json highlighting to the json
         Run ("$('pre code').each(function(i, block) { hljs.highlightBlock(block);});")
       }
@@ -140,7 +163,7 @@ object CallUrlForm extends Loggable {
       "@request_url_input" #> text(requestUrl, s => requestUrl = s, "maxlength" -> "255", "size" -> "100") &
       "@request_body_input" #> text(requestBody, s => requestBody = s, "type" -> "text") &
       // Replace the type=submit with Javascript that makes the ajax call.
-      "type=submit" #> ajaxSubmit("Go", process)
+      "type=submit" #> ajaxSubmit("Call", process)
 
   }
 }
