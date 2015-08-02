@@ -75,7 +75,7 @@ class LiveDocs extends Loggable {
     // http://simply.liftweb.net/index-7.10.html
 
     // Show the version to the user.
-    // Append to the content child of id="version" i.e. Version: -> Version: 1.2.3
+    // Append to the content child of id="version" e.g. the fixed text "Version:" is replacedWith "Version: 1.2.3"
     "#version *+" #> apiVersion &
     // replace the node identified by the class "resource" with the following
     // This creates the list of resources in the DOM
