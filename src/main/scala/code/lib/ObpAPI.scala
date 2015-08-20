@@ -5,8 +5,7 @@ import net.liftweb.json.JObject
 import net.liftweb.json.JsonDSL._
 import net.liftweb.common.Box
 import net.liftweb.common.Full
-import net.liftweb.json.JsonAST.JValue
-import net.liftweb.json.JsonAST.JInt
+import net.liftweb.json.JsonAST.{JValue, JInt}
 import net.liftweb.json.JDouble
 import net.liftweb.common.Empty
 import java.net.URL
@@ -627,19 +626,36 @@ object ObpJson {
   case class PermissionsJson(permissions : Option[List[PermissionJson]])
 
 
+  ////////////////////////////////////////
+  // Copied from OBP-API JSONFactory1_4_0
+  // TODO: Import these and others from API jar file?
 
-  // Import these from API jar file?
+  // Matches OBP-API representation of Resource Docs etc. Used to describe where an API call is implemented
+  case class ImplementedByJson (
+                                 version : String, // Short hand for the version e.g. "1_4_0" means Implementations1_4_0
+                                 function : String // The val / partial function that implements the call e.g. "getBranches"
+                                 )
+
+
+  // Used to describe the OBP API calls for documentation and API discovery purposes
   case class ResourceDocJson(id: Int,
-                             verb: String,
-                             url: String,
-                             description: String)
+                             request_verb: String,
+                             request_url: String,
+                             description: String,
+                             request_body: JValue,
+                             response_body: JValue,
+                             implemented_by: ImplementedByJson)
 
   case class ResourceDocsJson (resource_docs : List[ResourceDocJson])
+  ///////////////////////////////////////////
 
+
+  // Internal representation of the ResourceDoc (may differ from the OBP API representation)
   case class ResourceDoc(id: Int,
                          verb: String,
                          url: String,
-                         description: String)
+                         description: String,
+                         request_body: JValue)
 
 
   case class ResourceDocs (resourceDocs : List[ResourceDoc])

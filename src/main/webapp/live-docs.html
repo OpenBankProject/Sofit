@@ -30,21 +30,24 @@
                         </tr>
 
                         <!-- This section starts hidden and is shown with the Try Me button -->
-                        <tr class="url_caller" style="display: none;">
+                        <tr class="url_caller" style="display: block;">
                             <td colspan="5">
                                 <form class="lift:form.ajax">
-                                    <div class="lift:CallUrlForm">
+                                    <div class="xxxlift:LiveDocs">
                                         <!-- Attributes for these fields are replaced -->
                                         <input name="resource_id_input">
-                                        <input name="request_verb_input">
-                                        <!-- The url_to_call is populated with the Try Me button (but it can be edited manually) -->
+                                        <input name="request_verb_input" placeholder="GET or POST etc.">
+                                        <!-- The url_to_call is populated at render (but it can be edited manually) -->
                                         <input name="request_url_input" placeholder="OBP URL to call">
 
                                         <div name="request_body" style="display: block;">
                                             <input name="request_body_input" placeholder="JSON body to POST">
                                         </div>
+
+                                        <input name="test_input" placeholder="Test input">
+
                                         <!-- This submit button is also modified by LiveDocs.scala -->
-                                        <input type="submit">
+                                        <input class="call_button" type="submit">
                                     </div>
                                 </form>
                                 <!-- API call result goes here It is highlighted by javascript called from the submit button -->
