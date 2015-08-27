@@ -81,12 +81,22 @@ class LiveDocs extends Loggable {
       logger.info(s"requestUrl is $requestUrl")
       logger.info(s"resourceId is $resourceId")
 
+
       // Create json object from input string
       val jsonObject = JsonParser.parse(requestBody).asInstanceOf[JObject]
       // Call the url with optional body and put the response into the appropriate result div
-      SetHtml("result_" + resourceId, Text(getResponse(apiVersion, requestUrl, requestVerb, jsonObject))) &
+
+      val target = "result_" + resourceId
+      val command : String =  s"DOLLAR_SIGN('#$target').each(function(i, block) { hljs.highlightBlock(block);});".replace("DOLLAR_SIGN","$")
+
+      logger.info(s"command is $command")
+
+
+      SetHtml(target, Text(getResponse(apiVersion, requestUrl, requestVerb, jsonObject))) &
       // This applies json highlighting to the json
-      Run ("$('pre code').each(function(i, block) { hljs.highlightBlock(block);});")
+     // val command : String =  "$('pre code').each(function(i, block) { hljs.highlightBlock(block);});"
+      //Run ("$('pre code').each(function(i, block) { hljs.highlightBlock(block);});")
+      Run (command)
     }
 
 
@@ -142,14 +152,13 @@ class LiveDocs extends Loggable {
     // replace the node identified by the class "resource" with the following
     // This creates the list of resources in the DOM
     ".resource" #> resources.map { i =>
-      ".resource_verb" #>  i.verb &
-      ".resource_url" #> i.url &
+      //".resource_verb" #>  i.verb &
+      //".resource_url" #> i.url &
       ".resource_description" #> i.description &
-      ".resource_representation" #> "JSON" &
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &   // Probably don't need this now
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" & // Probably don't need this now
       ".url_caller [id]" #> s"url_caller_${i.id}" &
-      ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle();".replaceAll("DOUBLE-QUOTE",""""""") &
+      // ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle();".replaceAll("DOUBLE-QUOTE",""""""") &
       ".result [id]" #> s"result_${i.id}" &
       "@request_body [id]" #> s"request_body_${i.id}" &
       "@request_body [style]" #> s"display: ${displayBody(i.verb)};" &
@@ -162,13 +171,12 @@ class LiveDocs extends Loggable {
       // Extraction.decompose creates json representation of JObject.
       "@request_body_input" #> text(pretty(render(i.request_body)), s => requestBody = s, "type" -> "text") &
       // We're not using the id at the moment
-      "@request_verb_input" #> text(i.verb, s => requestVerb = s, "type" -> "text", "id" -> s"request_verb_input_${i.id}") &
-      "@resource_id_input" #> text(i.id.toString, s => resourceId = s, "type" -> "text", "id" -> s"resource_id_input_${i.id}") &
+      "@request_verb_input" #> text(i.verb, s => requestVerb = s, "type" -> "hidden", "id" -> s"request_verb_input_${i.id}") &
+      "@resource_id_input" #> text(i.id.toString, s => resourceId = s, "type" -> "hidden", "id" -> s"resource_id_input_${i.id}") &
       // Replace the type=submit with Javascript that makes the ajax call.
-      // ".call_button" #> ajaxSubmit("Call", process(i.id, apiVersion, i.url, i.verb,"{}"))
-      //".call_button" #> ajaxSubmit("Call", process(123, "apiVersion", "i.url", "i.verb","{}"))
-      ".call_button" #> ajaxSubmit("Call", process)
-      //    def process(resourceId: String, apiVersion : String, requestUrl: String, requestVerb: String, requestBody: String = "{}"): JsCmd = {
+      // The button. First argument is the text of the button (GET, POST etc). Second argument is function to call. Arguments to the func could be sent in third argument
+      "@response_body [id]" #> s"response_body_${i.id}" &
+      ".call_button" #> ajaxSubmit(i.verb, process)
     }
   }
 }
