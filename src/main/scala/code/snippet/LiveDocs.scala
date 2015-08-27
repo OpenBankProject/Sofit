@@ -68,14 +68,10 @@ class LiveDocs extends Loggable {
     // Constant
     val apiVersion = "v1.4.0"
 
-
-
     var resourceId = ""
     var requestVerb = ""
     var requestUrl = ""
     var requestBody = "{}"
-
-
 
     def process(): JsCmd = {
       logger.info(s"requestUrl is $requestUrl")
@@ -86,17 +82,17 @@ class LiveDocs extends Loggable {
       val jsonObject = JsonParser.parse(requestBody).asInstanceOf[JObject]
       // Call the url with optional body and put the response into the appropriate result div
 
+      // the id of the element we want to populate and format.
       val target = "result_" + resourceId
-      val command : String =  s"DOLLAR_SIGN('#$target').each(function(i, block) { hljs.highlightBlock(block);});".replace("DOLLAR_SIGN","$")
 
-      logger.info(s"command is $command")
+      // This will highlight the json. Replace the $ sign after we've constructed the string
+      val jsCommand : String =  s"DOLLAR_SIGN('#$target').each(function(i, block) { hljs.highlightBlock(block);});".replace("DOLLAR_SIGN","$")
 
+      logger.info(s"command is $jsCommand")
 
+      // Return the commands
       SetHtml(target, Text(getResponse(apiVersion, requestUrl, requestVerb, jsonObject))) &
-      // This applies json highlighting to the json
-     // val command : String =  "$('pre code').each(function(i, block) { hljs.highlightBlock(block);});"
-      //Run ("$('pre code').each(function(i, block) { hljs.highlightBlock(block);});")
-      Run (command)
+      Run (jsCommand)
     }
 
 
@@ -127,7 +123,7 @@ class LiveDocs extends Loggable {
         responseBodyBox match {
           case Full(json) => writePretty(json)
           case Empty => "Empty: API did not return anything"
-          case Failure(message, _, _) => "Failure: " + message
+          case Failure(message, _, _) => message
         }
 
       logger.info(s"responseBody is $responseBody")
@@ -169,7 +165,7 @@ class LiveDocs extends Loggable {
       // We provide a default value (i.url) and bind the user input to requestUrl. requestURL is available in the function process
       "@request_url_input" #> text(i.url, s => requestUrl = s, "maxlength" -> "255", "size" -> "100", "id" -> s"request_url_input_${i.id}") &
       // Extraction.decompose creates json representation of JObject.
-      "@request_body_input" #> text(pretty(render(i.request_body)), s => requestBody = s, "type" -> "text") &
+      "@request_body_input" #> text(pretty(render(i.request_body)), s => requestBody = s, "maxlength" -> "255", "size" -> "100", "type" -> "text") &
       // We're not using the id at the moment
       "@request_verb_input" #> text(i.verb, s => requestVerb = s, "type" -> "hidden", "id" -> s"request_verb_input_${i.id}") &
       "@resource_id_input" #> text(i.id.toString, s => resourceId = s, "type" -> "hidden", "id" -> s"resource_id_input_${i.id}") &
