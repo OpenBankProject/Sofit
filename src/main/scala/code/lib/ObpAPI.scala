@@ -638,7 +638,7 @@ object ObpJson {
 
 
   // Used to describe the OBP API calls for documentation and API discovery purposes
-  case class ResourceDocJson(id: Int,
+  case class ResourceDocJson(id: String,
                              request_verb: String,
                              request_url: String,
                              description: String,
@@ -650,8 +650,8 @@ object ObpJson {
   ///////////////////////////////////////////
 
 
-  // Internal representation of the ResourceDoc (may differ from the OBP API representation)
-  case class ResourceDoc(id: Int,
+  // Internal representation of the ResourceDoc (may differ from the OBP API representation (for instance OBP representation does not have id)
+  case class ResourceDoc(id: String,
                          verb: String,
                          url: String,
                          description: String,
