@@ -206,7 +206,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         def saveValue() = {
           if (newNarrativeValue.isEmpty) {
             //Send a delete
-            ObpDelete(narrativeUrl)
+            ObpDeleteBoolean(narrativeUrl)
             exists = false
           } else {
             if (exists) {

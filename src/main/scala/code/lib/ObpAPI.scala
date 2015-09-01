@@ -144,13 +144,13 @@ object ObpAPI extends Loggable {
   def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
     val removePermissionUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
       urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
-    ObpDelete(removePermissionUrl)
+    ObpDeleteBoolean(removePermissionUrl)
   }
   
   def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
     val removeAllPermissionsUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
       urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
-    ObpDelete(removeAllPermissionsUrl)
+    ObpDeleteBoolean(removeAllPermissionsUrl)
   }
 
   def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
@@ -191,7 +191,7 @@ object ObpAPI extends Loggable {
   }
 
   def deleteView(bankId: String, accountId: String, viewId: String) : Boolean = {
-    ObpDelete("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
+    ObpDeleteBoolean("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
   }
 
   def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
@@ -222,7 +222,7 @@ object ObpAPI extends Loggable {
       transactionId: String, tagId: String) : Boolean  = {
     val deleteTagUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" + 
       urlEncode(transactionId) + "/metadata/tags/" + urlEncode(tagId)
-    ObpDelete(deleteTagUrl)
+    ObpDeleteBoolean(deleteTagUrl)
   }
   
   /**
@@ -249,7 +249,7 @@ object ObpAPI extends Loggable {
     
     val deleteImageUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + 
       "/transactions/" + urlEncode(transactionId) + "/metadata/images/" + urlEncode(imageId)
-    ObpDelete(deleteImageUrl)
+    ObpDeleteBoolean(deleteImageUrl)
   }
 
 }
@@ -397,7 +397,7 @@ object ObpPost {
   }
 }
 
-object ObpDelete {
+object ObpDeleteBoolean {
   /**
    * @return True if the delete worked
    */
@@ -408,6 +408,21 @@ object ObpDelete {
     worked.getOrElse(false)
   }
 }
+
+
+
+// In case we want a more raw result
+// TODO
+object ObpDelete {
+  def apply(apiPath: String): Box[JValue] = {
+    OBPRequest(apiPath, None, "DELETE", Nil).map {
+      case(status, result) => APIUtils.apiResponseWorked(status, result)
+    }
+  }
+}
+
+
+
 
 object ObpGet {
   def apply(apiPath: String, headers : List[Header] = Nil): Box[JValue] = {

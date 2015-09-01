@@ -2,7 +2,7 @@ package code.snippet
 
 import _root_.net.liftweb._
 import code.lib.ObpJson.ResourceDoc
-import code.lib.{ObpPost, ObpGet}
+import code.lib.{ObpPut, ObpDelete, ObpPost, ObpGet}
 //import code.snippet.CallUrlForm._
 import net.liftweb.http.S
 
@@ -102,11 +102,12 @@ class LiveDocs extends Loggable {
 
       val urlWithVersion = s"/$apiVersion$url"
 
-      // TODO: Handle POST requests
       val responseBodyBox = {
         resourceVerb match {
           case "GET" => ObpGet(urlWithVersion)
+          case "DELETE" => ObpDelete(urlWithVersion)
           case "POST" => ObpPost(urlWithVersion, json)
+          case "PUT" => ObpPut(urlWithVersion, json)
           case _ => {
             val failMsg = s"Live Docs says: Unsupported resourceVerb: $resourceVerb. Url requested was: $url"
             logger.warn(failMsg)

@@ -42,7 +42,7 @@ import net.liftweb.http.js.JsCmds.{Confirm, Alert, Noop}
 import code.widgets.tableSorter.{CustomTableSorter, DisableSorting, Sorting, Sorter}
 import code.lib.ObpJson.OtherAccountsJson
 import code.lib.ObpJson.OtherAccountJson
-import code.lib.ObpDelete
+import code.lib.ObpDeleteBoolean
 import code.lib.ObpPost
 import code.lib.ObpPut
 import net.liftweb.json.JsonDSL._
@@ -120,7 +120,7 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
       def saveValue() = {
         if(currentValue.isEmpty) {
           //Send a delete
-          ObpDelete("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
+          ObpDeleteBoolean("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
           exists = false
         } else {
           if(exists) {
@@ -164,7 +164,7 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
         onSubmit = () => {
           if(currentValue.isEmpty || (holder.toLowerCase == currentValue.toLowerCase && apiProperty == "public_alias")){
             // delete Alias
-            ObpDelete("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
+            ObpDeleteBoolean("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
             inputDefaultValue = ""
             Noop
           } else{
@@ -176,7 +176,7 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
           }
         },
         onDelete = () => {
-          ObpDelete("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
+          ObpDeleteBoolean("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
         },
         defaultValue = defaultLabel,
         removable = removable
