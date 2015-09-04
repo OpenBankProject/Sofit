@@ -324,7 +324,7 @@ class Boot extends Loggable{
     // Note: See Nav.scala which modifies the menu
 
     val sitemap = List(
-      Menu.i("OBP Live Docs") / "live-docs",
+      Menu.i("OBP API Explorer") / "api-explorer",
       Menu.i("Home") / "index",
       Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
         OAuthClient.handleCallback()
