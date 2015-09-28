@@ -31,7 +31,7 @@ import code.lib.ObpAPI.getResourceDocsJson
 /*
 Present a list of OBP resource URLs
  */
-class LiveDocs extends Loggable {
+class ApiExplorer extends Loggable {
   def showResources = {
 
     // Get the requested version from the url parameter and default if none
