@@ -57,9 +57,13 @@ class ApiExplorer extends Loggable {
   // Can't escape " with \" or use triple quoted string in the string interpolation so use the replace hack
 
 
-    def displayBody(resourceVerb : String) = {
+
+    // Controls when we display the request body.
+    def displayRequestBody(resourceVerb : String) = {
       resourceVerb match {
         case "POST" => "block"
+        case "PUT" => "block"
+        case "PATCH" => "block"
         case _ => "none"
       }
     }
@@ -158,7 +162,7 @@ class ApiExplorer extends Loggable {
       // ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle();".replaceAll("DOUBLE-QUOTE",""""""") &
       ".result [id]" #> s"result_${i.id}" &
       "@request_body [id]" #> s"request_body_${i.id}" &
-      "@request_body [style]" #> s"display: ${displayBody(i.verb)};" &
+      "@request_body [style]" #> s"display: ${displayRequestBody(i.verb)};" &
       //////
       // The form field (on the left) is bound to the variable (urlToCall)
       // (However, updating the var here does not seem to update the form field value)
