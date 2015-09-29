@@ -656,9 +656,10 @@ object ObpJson {
   case class ResourceDocJson(id: String,
                              request_verb: String,
                              request_url: String,
-                             description: String,
-                             request_body: JValue,
-                             response_body: JValue,
+                             description: String, // Shortish description
+                             overview: String,      // Overview of call in markdown
+                             request_body: JValue,  // An example request body
+                             response_body: JValue, // Success response body
                              implemented_by: ImplementedByJson)
 
   case class ResourceDocsJson (resource_docs : List[ResourceDocJson])
@@ -670,6 +671,7 @@ object ObpJson {
                          verb: String,
                          url: String,
                          description: String,
+                         overview: String,
                          request_body: JValue)
 
 

@@ -48,7 +48,7 @@ class ApiExplorer extends Loggable {
 
     val resources = for {
       r <- getResourceDocsJson.map(_.resource_docs).get
-    } yield ResourceDoc(id = r.id, verb = r.request_verb, url = r.request_url, description = r.description, request_body = r.request_body)
+    } yield ResourceDoc(id = r.id, verb = r.request_verb, url = r.request_url, description = r.description, overview = r.overview, request_body = r.request_body)
 
 
   // Render the resources into a (nested) table.
@@ -156,6 +156,7 @@ class ApiExplorer extends Loggable {
       //".resource_verb" #>  i.verb &
       //".resource_url" #> i.url &
       ".resource_description" #> i.description &
+      ".resource_overview" #> i.overview &
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &   // Probably don't need this now
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" & // Probably don't need this now
       ".url_caller [id]" #> s"url_caller_${i.id}" &
