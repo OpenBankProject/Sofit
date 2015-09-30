@@ -23,6 +23,8 @@ import java.text.SimpleDateFormat
 import net.liftweb.common.Loggable
 import net.liftweb.util.Props
 
+import scala.xml.NodeSeq
+
 case class Header(key: String, value: String)
 
 object ObpAPI extends Loggable {
@@ -671,7 +673,7 @@ object ObpJson {
                          verb: String,
                          url: String,
                          description: String,
-                         overview: String,
+                         overview: NodeSeq,
                          request_body: JValue)
 
 

@@ -28,10 +28,22 @@ import net.liftweb.json.Serialization.writePretty
 
 import code.lib.ObpAPI.getResourceDocsJson
 
+import net.liftweb.markdown._
+
 /*
 Present a list of OBP resource URLs
  */
 class ApiExplorer extends Loggable {
+
+  // This can convert Markdown to HTML
+  val transformer = new ActuariusTransformer()
+
+  // Note: this may cause 500 Error if the input contains invalid HTML within the markdown
+  // The node sequence (HTML) is returned to the template rather than a string
+  def markdownToNodeSeq(input : String) : NodeSeq =
+    scala.xml.XML.loadString("<div>" + transformer(input) + "</div>")
+
+
   def showResources = {
 
     // Get the requested version from the url parameter and default if none
@@ -48,7 +60,7 @@ class ApiExplorer extends Loggable {
 
     val resources = for {
       r <- getResourceDocsJson.map(_.resource_docs).get
-    } yield ResourceDoc(id = r.id, verb = r.request_verb, url = r.request_url, description = r.description, overview = r.overview, request_body = r.request_body)
+    } yield ResourceDoc(id = r.id, verb = r.request_verb, url = r.request_url, description = r.description, overview = markdownToNodeSeq(r.overview), request_body = r.request_body)
 
 
   // Render the resources into a (nested) table.
@@ -76,6 +88,7 @@ class ApiExplorer extends Loggable {
     var requestVerb = ""
     var requestUrl = ""
     var requestBody = "{}"
+    var sOverView = "" // not used
 
     def process(): JsCmd = {
       logger.info(s"requestUrl is $requestUrl")
@@ -153,10 +166,11 @@ class ApiExplorer extends Loggable {
     // replace the node identified by the class "resource" with the following
     // This creates the list of resources in the DOM
     ".resource" #> resources.map { i =>
-      //".resource_verb" #>  i.verb &
-      //".resource_url" #> i.url &
       ".resource_description" #> i.description &
-      ".resource_overview" #> i.overview &
+      // Replace attribute named overview_text with the value (whole div/span element is replaced leaving just the text)
+      "@overview_text" #> i.overview &
+      // Give attributes named overview an id
+      "@overview [id]" #> s"overview_${i.id}" &
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &   // Probably don't need this now
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" & // Probably don't need this now
       ".url_caller [id]" #> s"url_caller_${i.id}" &
@@ -169,6 +183,7 @@ class ApiExplorer extends Loggable {
       // (However, updating the var here does not seem to update the form field value)
       // TODO use this approach.
       // We provide a default value (i.url) and bind the user input to requestUrl. requestURL is available in the function process
+      // text creates a text box and we can capture its input in requestUrl
       "@request_url_input" #> text(i.url, s => requestUrl = s, "maxlength" -> "255", "size" -> "100", "id" -> s"request_url_input_${i.id}") &
       // Extraction.decompose creates json representation of JObject.
       "@request_body_input" #> text(pretty(render(i.request_body)), s => requestBody = s, "maxlength" -> "255", "size" -> "100", "type" -> "text") &
