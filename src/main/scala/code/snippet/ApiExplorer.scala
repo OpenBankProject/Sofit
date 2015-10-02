@@ -166,7 +166,9 @@ class ApiExplorer extends Loggable {
     // replace the node identified by the class "resource" with the following
     // This creates the list of resources in the DOM
     ".resource" #> resources.map { i =>
-      ".resource_description" #> i.description &
+      ".resource_description *" #> i.description &
+      ".resource_description [href]" #> s"#${i.id}" &
+      ".resource_description [name]" #> s"${i.id}" &
       // Replace attribute named overview_text with the value (whole div/span element is replaced leaving just the text)
       "@overview_text" #> i.overview &
       // Give attributes named overview an id
