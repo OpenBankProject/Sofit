@@ -90,7 +90,7 @@ object ObpAPI extends Loggable {
 
   // Returns Json containing Resource Docs
   def getResourceDocsJson : Box[ResourceDocsJson] = {
-    ObpGet("/v1.4.0/resource-docs").flatMap(_.extractOpt[ResourceDocsJson])
+    ObpGet("/v1.4.0/resource-docs/obp").flatMap(_.extractOpt[ResourceDocsJson])
   }
 
   /**
@@ -658,8 +658,8 @@ object ObpJson {
   case class ResourceDocJson(id: String,
                              request_verb: String,
                              request_url: String,
-                             description: String, // Shortish description
-                             overview: String,      // Overview of call in markdown
+                             summary: String, // Summary of call should be 120 characters max
+                             description: String,      // Description of call in markdown
                              request_body: JValue,  // An example request body
                              response_body: JValue, // Success response body
                              implemented_by: ImplementedByJson)
@@ -672,8 +672,8 @@ object ObpJson {
   case class ResourceDoc(id: String,
                          verb: String,
                          url: String,
-                         description: String,
-                         overview: NodeSeq,
+                         summary: String,
+                         description: NodeSeq,
                          request_body: JValue)
 
 
