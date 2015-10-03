@@ -655,7 +655,7 @@ object ObpJson {
 
 
   // Used to describe the OBP API calls for documentation and API discovery purposes
-  case class ResourceDocJson(id: String,
+  case class ResourceDocJson(operation_id: String,
                              request_verb: String,
                              request_url: String,
                              summary: String, // Summary of call should be 120 characters max

@@ -56,7 +56,7 @@ class ApiExplorer extends Loggable {
     // The overview contains html. Just need to convert it to a NodeSeq so the template will render it as such
     val resources = for {
       r <- getResourceDocsJson.map(_.resource_docs).get
-    } yield ResourceDoc(id = r.id, verb = r.request_verb, url = r.request_url, summary = r.summary, description = stringToNodeSeq(r.description), request_body = r.request_body)
+    } yield ResourceDoc(id = r.operation_id, verb = r.request_verb, url = r.request_url, summary = r.summary, description = stringToNodeSeq(r.description), request_body = r.request_body)
 
 
 
@@ -161,13 +161,13 @@ class ApiExplorer extends Loggable {
     // replace the node identified by the class "resource" with the following
     // This creates the list of resources in the DOM
     ".resource" #> resources.map { i =>
-      ".resource_description *" #> i.summary &
-      ".resource_description [href]" #> s"#${i.id}" &
-      ".resource_description [name]" #> s"${i.id}" &
+      ".resource_summary *" #> i.summary &
+      ".resource_summary [href]" #> s"#${i.id}" &
+      ".resource_summary [name]" #> s"${i.id}" &
       // Replace attribute named overview_text with the value (whole div/span element is replaced leaving just the text)
-      "@overview_text" #> i.description &
+      "@description_text" #> i.description &
       // Give attributes named overview an id
-      "@overview [id]" #> s"overview_${i.id}" &
+      "@resource_description [id]" #> s"description_${i.id}" &
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &   // Probably don't need this now
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" & // Probably don't need this now
       ".url_caller [id]" #> s"url_caller_${i.id}" &
