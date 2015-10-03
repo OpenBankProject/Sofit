@@ -13,15 +13,17 @@
 
         <table>
             <!-- Each URL we document appears in a row, inside a table -->
-            <!-- Multiple instances of this row are generated in ApiExplorer.scalaala -->
+            <!-- Multiple instances of this row are generated in ApiExplorer.scala -->
             <!-- Note: id's are added so we can manipulate individual elements -->
             <tr class="resource">
                     <!-- Some documentation -->
-                    <td><a class="resource_description" href="#replace-me">Description</a></td>
-                    <td><div name="overview" class="markdown"><span name="overview_text">Overview</span></div></td>
                     <td>
+                        <a class="resource_description" href="#replace-me">Description</a>
+                        <div name="overview" class="markdown"><span name="overview_text">Overview</span></div>
+                    </td>
 
-                        <form class="lift:form.ajax">
+                    <td>
+                        <form class="lift:form.ajax" id="form1">
                                 <!-- Attributes for these fields are replaced -->
                                 <input type="hidden" name="resource_id_input">
                                 <input type="hidden" name="request_verb_input" placeholder="GET, POST, PUT etc.">
@@ -30,10 +32,15 @@
 
                                 <div name="request_body" style="display: block;">
                                     <input name="request_body_input" placeholder="JSON body to POST or PUT">
+
+                                    <!-- TODO get this working <textarea name="request_body_input" form="form1">Enter text here...</textarea>  -->
+
                                 </div>
 
                                 <!-- This submit button is also modified by ApiExplorer.scala -->
                                 <input class="call_button" type="submit">
+
+
                         </form>
 
                         <!-- API call result goes here It is highlighted by javascript called from the submit button -->
@@ -42,8 +49,6 @@
                             </code>
                         </pre>
                     </td>
-
-
             </tr>
         </table>
     </div>
