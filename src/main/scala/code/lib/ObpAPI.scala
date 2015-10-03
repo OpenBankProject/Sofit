@@ -660,8 +660,8 @@ object ObpJson {
                              request_url: String,
                              summary: String, // Summary of call should be 120 characters max
                              description: String,      // Description of call in markdown
-                             request_body: JValue,  // An example request body
-                             response_body: JValue, // Success response body
+                             example_request_body: JValue,  // An example request body
+                             success_response_body: JValue, // Success response body
                              implemented_by: ImplementedByJson)
 
   case class ResourceDocsJson (resource_docs : List[ResourceDocJson])
@@ -674,7 +674,7 @@ object ObpJson {
                          url: String,
                          summary: String,
                          description: NodeSeq,
-                         request_body: JValue)
+                         example_request_body: JValue)
 
 
   case class ResourceDocs (resourceDocs : List[ResourceDoc])

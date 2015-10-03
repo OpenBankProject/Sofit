@@ -30,17 +30,13 @@
                                 <!-- The url_to_call is populated at render (but it can be edited manually) -->
                                 <input type="hidden" name="request_url_input" placeholder="OBP URL to call">
 
-                                <div name="request_body" style="display: block;">
-                                    <input name="request_body_input" placeholder="JSON body to POST or PUT">
-
-                                    <!-- TODO get this working <textarea name="request_body_input" form="form1">Enter text here...</textarea>  -->
-
+                                <div name="example_request_body" style="display: block;">
+                                    <input name="example_request_body_input" placeholder="JSON body to POST or PUT">
+                                    <!-- TODO get this working: <textarea name="request_body_input" form="form1">Enter text here...</textarea>  -->
                                 </div>
 
                                 <!-- This submit button is also modified by ApiExplorer.scala -->
                                 <input class="call_button" type="submit">
-
-
                         </form>
 
                         <!-- API call result goes here It is highlighted by javascript called from the submit button -->

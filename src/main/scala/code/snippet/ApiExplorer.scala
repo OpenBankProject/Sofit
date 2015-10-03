@@ -56,7 +56,7 @@ class ApiExplorer extends Loggable {
     // The overview contains html. Just need to convert it to a NodeSeq so the template will render it as such
     val resources = for {
       r <- getResourceDocsJson.map(_.resource_docs).get
-    } yield ResourceDoc(id = r.operation_id, verb = r.request_verb, url = r.request_url, summary = r.summary, description = stringToNodeSeq(r.description), request_body = r.request_body)
+    } yield ResourceDoc(id = r.operation_id, verb = r.request_verb, url = r.request_url, summary = r.summary, description = stringToNodeSeq(r.description), example_request_body = r.example_request_body)
 
 
 
@@ -166,15 +166,14 @@ class ApiExplorer extends Loggable {
       ".resource_summary [name]" #> s"${i.id}" &
       // Replace attribute named overview_text with the value (whole div/span element is replaced leaving just the text)
       "@description_text" #> i.description &
-      // Give attributes named overview an id
       "@resource_description [id]" #> s"description_${i.id}" &
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &   // Probably don't need this now
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" & // Probably don't need this now
       ".url_caller [id]" #> s"url_caller_${i.id}" &
       // ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle();".replaceAll("DOUBLE-QUOTE",""""""") &
       ".result [id]" #> s"result_${i.id}" &
-      "@request_body [id]" #> s"request_body_${i.id}" &
-      "@request_body [style]" #> s"display: ${displayRequestBody(i.verb)};" &
+      "@example_request_body [id]" #> s"example_request_body_${i.id}" &
+      "@example_request_body [style]" #> s"display: ${displayRequestBody(i.verb)};" &
       //////
       // The form field (on the left) is bound to the variable (urlToCall)
       // (However, updating the var here does not seem to update the form field value)
@@ -182,14 +181,14 @@ class ApiExplorer extends Loggable {
       // text creates a text box and we can capture its input in requestUrl
       "@request_url_input" #> text(i.url, s => requestUrl = s, "maxlength" -> "255", "size" -> "100", "id" -> s"request_url_input_${i.id}") &
       // Extraction.decompose creates json representation of JObject.
-      "@request_body_input" #> text(pretty(render(i.request_body)), s => requestBody = s, "maxlength" -> "255", "size" -> "100", "type" -> "text") &
-      // TODO get this working. requestBody is not populated with textarea value "@request_body_input" #> textarea(pretty(render(i.request_body)), s => requestBody = s, "cols" -> "90", "rows" -> "5") &
+      "@example_request_body_input" #> text(pretty(render(i.example_request_body)), s => requestBody = s, "maxlength" -> "255", "size" -> "100", "type" -> "text") &
+      // TODO get this working. requestBody is not populated with textarea value "@request_body_input" #> textarea(pretty(render(i.example_request_body)), s => requestBody = s, "cols" -> "90", "rows" -> "5") &
       // We're not using the id at the moment
       "@request_verb_input" #> text(i.verb, s => requestVerb = s, "type" -> "hidden", "id" -> s"request_verb_input_${i.id}") &
       "@resource_id_input" #> text(i.id.toString, s => resourceId = s, "type" -> "hidden", "id" -> s"resource_id_input_${i.id}") &
       // Replace the type=submit with Javascript that makes the ajax call.
       // The button. First argument is the text of the button (GET, POST etc). Second argument is function to call. Arguments to the func could be sent in third argument
-      "@response_body [id]" #> s"response_body_${i.id}" &
+      "@success_response_body [id]" #> s"success_response_body_${i.id}" &
       ".call_button" #> ajaxSubmit(i.verb, process)
     }
   }
