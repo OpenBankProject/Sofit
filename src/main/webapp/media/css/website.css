@@ -166,7 +166,7 @@ input.submit {
   width: 279px;
   height: 38px;
   margin: 0 0 0 10px;
-  background: transparent url(../images/logo.png) no-repeat 50% 0;
+  background: transparent url("../images/OBP_full_web.png") left/100% no-repeat scroll;
   text-indent: -9999em;
   cursor: pointer;
 }
