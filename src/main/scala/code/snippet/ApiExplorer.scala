@@ -1,8 +1,10 @@
 package code.snippet
 
 import _root_.net.liftweb._
-import code.lib.ObpJson.ResourceDoc
-import code.lib.{ObpPut, ObpDelete, ObpPost, ObpGet}
+import code.lib.ObpJson.{BarebonesAccountJson, BarebonesAccountsJson, ResourceDoc}
+import code.lib._
+import net.liftweb.http.js.jquery.JqJsCmds.DisplayMessage
+
 //import code.snippet.CallUrlForm._
 import net.liftweb.http.{SHtml, S}
 
@@ -19,25 +21,58 @@ import net.liftweb.json._
 import common._
 
 import net.liftweb.util.Helpers._
-import net.liftweb.http.SHtml.{text,ajaxSubmit, textarea}
+import net.liftweb.http.SHtml.{text,ajaxSubmit, textarea, select, ajaxSelect}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.{Run, SetHtml}
 
 import net.liftweb.json.Serialization.writePretty
 
-import code.lib.ObpAPI.getResourceDocsJson
+import code.lib.ObpAPI.{getResourceDocsJson, allBanks, allAccountsAtOneBank}
 
-import net.liftweb.markdown._
+
 
 /*
 Present a list of OBP resource URLs
  */
 class ApiExplorer extends Loggable {
 
+
+
+  val presetBankId = S.param("bank_id").getOrElse("")
+  logger.info(s"bank_id in url param is $presetBankId")
+
+  val presetAccountId = S.param("account_id").getOrElse("")
+  logger.info(s"account_id in url param is $presetAccountId")
+
+  val presetViewId = S.param("view_id").getOrElse("")
+  logger.info(s"account_id in url param is $presetViewId")
+
+
   def stringToNodeSeq(html : String) : NodeSeq = {
     scala.xml.XML.loadString("<div>" + html + "</div>")
   }
 
+
+  def modifiedRequestUrl(url: String, presetBankId: String, presetAccountId: String) = {
+     // Potentially replace BANK_ID
+     val url2: String = presetBankId match {
+        case "" => url
+        case _ => url.replaceAll("BANK_ID", presetBankId)
+      }
+
+    // Potentially replace ACCOUNT_ID
+    val url3: String = presetAccountId match {
+      case "" => url2
+      case _ => url2.replaceAll("/ACCOUNT_ID", s"/$presetAccountId") // so we don't change OTHER_ACCOUNT_ID
+    }
+
+    // Potentially replace VIEW_ID
+    val url4: String = presetViewId match {
+      case "" => url3
+      case _ => url3.replaceAll("VIEW_ID", presetViewId)
+    }
+    url4
+  }
 
   def showResources = {
 
@@ -56,10 +91,7 @@ class ApiExplorer extends Loggable {
     // The overview contains html. Just need to convert it to a NodeSeq so the template will render it as such
     val resources = for {
       r <- getResourceDocsJson.map(_.resource_docs).get
-    } yield ResourceDoc(id = r.operation_id, verb = r.request_verb, url = r.request_url, summary = r.summary, description = stringToNodeSeq(r.description), example_request_body = r.example_request_body)
-
-
-
+    } yield ResourceDoc(id = r.operation_id, verb = r.request_verb, url = modifiedRequestUrl(r.request_url, presetBankId, presetAccountId), summary = r.summary, description = stringToNodeSeq(r.description), example_request_body = r.example_request_body)
 
     // Controls when we display the request body.
     def displayRequestBody(resourceVerb : String) = {
@@ -79,7 +111,7 @@ class ApiExplorer extends Loggable {
     var requestVerb = ""
     var requestUrl = ""
     var requestBody = "{}"
-    var sOverView = "" // not used
+    //var sOverView = "" // not used
 
     def process(): JsCmd = {
       logger.info(s"requestUrl is $requestUrl")
@@ -139,22 +171,118 @@ class ApiExplorer extends Loggable {
       responseBody
     }
 
+    val banks = allBanks
+
+
+
+    def onBankChange (v: Any) = {
+      logger.info("bank changed to " + v.toString)
+      S.redirectTo(s"api-explorer?bank_id=${v}&account_id=${presetAccountId}&view_id=${presetViewId}")
+    }
+
+    def onAccountChange (v: Any) = {
+      logger.info("account changed to " + v.toString)
+      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${v}&view_id=${presetViewId}")
+    }
+
+    def onViewChange (v: Any) = {
+      logger.info("view changed to " + v.toString)
+      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${v}")
+    }
+
+
+    // Get a list of tuples List(("bank short name", "id"),("bank two", "id2")) to populate the drop down select list.
+    // Could we write this in a way such that if there are no banks the doBankSelect is not run?
+    val bankOptions = ("", "Select Bank") :: banks.map(b => b.bankJsons.map(bj => (bj.id.getOrElse(""), bj.short_name.getOrElse("")))).getOrElse(List(("", "No Banks")))
+
+    // TODO create BankId case class like in the API
+    type BankID = String
+
+    val privateAccountJsons : List[(String, String)] = for {
+      privateAccountsJson <- ObpAPI.allAccountsAtOneBank(presetBankId).toList
+      barebonesAccountJson <- privateAccountsJson.accounts.toList.flatten
+      //bankId <- barebonesAccountJson.bank_id
+      accountId <- barebonesAccountJson.id
+      label <- barebonesAccountJson.label
+    } yield (accountId, label)
+
+    def getAccountOptions : List[(String,String)] = {
+
+      val selectAccount = ("", "Select Account")
+      val noneFound = ("", "No Accounts Found")
+
+      val options: List[(String, String)] = presetBankId match {
+        case "" => List(noneFound)
+        case _ => for {
+          allAccountsJson <- ObpAPI.allAccountsAtOneBank(presetBankId).toList
+          barebonesAccountJson <- allAccountsJson.accounts.toList.flatten
+          accountId <- barebonesAccountJson.id
+          label <- barebonesAccountJson.label
+        } yield (accountId, label)
+      }
+
+      selectAccount :: options
+    }
+
+    def getViewOptions : List[(String,String)] = {
+
+      val selectOne = ("", "Select View")
+      val noneFound = ("", "No Views Found")
+
+      // TODO Should check for both presetBankId and presetAccountId
+      val options: List[(String, String)] = presetAccountId match {
+        case "" => List(noneFound)
+        case _ => for {
+          views <- ObpAPI.getViewsForBankAccount(presetBankId, presetAccountId).toList
+          view <- views.views.toList.flatten
+          viewId <- view.id
+          shortName <- view.short_name
+        } yield (viewId, shortName)
+      }
+
+      selectOne :: options
+    }
+
+
+
+
+    // Drop down box to select bank. Selected item taken from url param.
+    def doBankSelect(in: NodeSeq) = ajaxSelect(bankOptions,
+      Full(presetBankId),
+      v => onBankChange(v))
+
+    // Drop down box to select account. Selected item taken from url param.
+    def doAccountSelect(in: NodeSeq) = ajaxSelect(getAccountOptions,
+      Full(presetAccountId),
+      v => onAccountChange(v))
+
+    // Drop down box to select view for bank/account. Selected item taken from url param.
+    def doViewSelect(in: NodeSeq) = ajaxSelect(getViewOptions,
+      Full(presetViewId),
+      v => onViewChange(v))
+
     // In case we use Extraction.decompose
     implicit val formats = net.liftweb.json.DefaultFormats
 
+
+    "#bank_selector" #> doBankSelect _ &
+    "#account_selector" #> doAccountSelect _ &
+    "#view_selector" #> doViewSelect _ &
+    //
+    //
     // Below we render the resources into a (nested) table.
     // Notes on escaping strings:
     // To have a $ in the resulting string use two: $$
     // Can't escape " with \" or use triple quoted string in the string interpolation so may need to use the replace hack
-
+    //
     // Note: This is the return of the function.
     // All the replacements you want to do *must be chained here together at the end of the function*.
     // Also, you can't use "replaceWith" (the alias for #>) to chain
-
+    //
     // See the following for some examples.
     // http://blog.knoldus.com/2013/03/08/lift-web-basics-of-using-snippets-for-a-beginner/
     // http://simply.liftweb.net/index-7.10.html
-
+    //
     // Show the version to the user.
     // Append to the content child of id="version" e.g. the fixed text "Version:" is replacedWith "Version: 1.2.3"
     "#version *+" #> apiVersion &
@@ -170,7 +298,7 @@ class ApiExplorer extends Loggable {
       ".resource_url_td [id]" #> s"resource_url_td_${i.id}" &   // Probably don't need this now
       ".resource_verb_td [id]" #> s"resource_verb_td_${i.id}" & // Probably don't need this now
       ".url_caller [id]" #> s"url_caller_${i.id}" &
-      // ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle();".replaceAll("DOUBLE-QUOTE",""""""") &
+      // ".try_me_button [onclick]" #> s"$$(DOUBLE-QUOTE#url_caller_${i.id}DOUBLE-QUOTE).fadeToggle();".replaceAll("DOUBLE-QUOTE","""") &
       ".result [id]" #> s"result_${i.id}" &
       "@example_request_body [id]" #> s"example_request_body_${i.id}" &
       "@example_request_body [style]" #> s"display: ${displayRequestBody(i.verb)};" &

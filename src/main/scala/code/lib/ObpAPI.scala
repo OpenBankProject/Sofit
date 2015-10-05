@@ -67,7 +67,7 @@ object ObpAPI extends Loggable {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
               "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson])
   }
-  
+
   def publicAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
@@ -82,6 +82,15 @@ object ObpAPI extends Loggable {
 
   def privateAccounts : Box[BarebonesAccountsJson] = {
     ObpGet("/v1.2.1/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+
+  def allAccountsAtOneBank(bankId : String) : Box[BarebonesAccountsJson] = {
+    ObpGet("/v1.4.0/banks/" + urlEncode(bankId) + "/accounts").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+
+  // Similar to getViews below
+  def getViewsForBankAccount(bankId: String, accountId: String) = {
+    ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views").flatMap(_.extractOpt[ViewsJson])
   }
 
   def getAccount(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
@@ -156,6 +165,7 @@ object ObpAPI extends Loggable {
   }
 
   def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
+    // Note function of similar name above
     for {
       json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
       viewsJson <- Box(json.extractOpt[ViewsJson])
