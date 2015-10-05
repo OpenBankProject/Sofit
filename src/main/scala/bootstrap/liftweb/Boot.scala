@@ -138,7 +138,7 @@ class Boot extends Loggable{
 
     def logOrReturnResult[T](result : Box[T]) : Box[T] = {
       result match {
-        case Failure(msg, _, _) => logger.info("Problem getting url " + tryo{S.uri} + ": " + msg)
+        case Failure(msg, _, _) => logger.warn("Problem getting url " + tryo{S.uri} + ": " + msg)
         case _ => //do nothing
       }
       result
