@@ -97,6 +97,13 @@ object ObpAPI extends Loggable {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/account").flatMap(x => x.extractOpt[AccountJson])
   }
 
+  def getCounterparties(bankId: String, accountId: String, viewId: String): Box[DirectOtherAccountsJson] = {
+    val counterparties  = ObpGet("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/other_accounts").flatMap(x => x.extractOpt[DirectOtherAccountsJson])
+    counterparties
+  }
+
+
+
   // Returns Json containing Resource Docs
   def getResourceDocsJson : Box[ResourceDocsJson] = {
     ObpGet("/v1.4.0/resource-docs/obp").flatMap(_.extractOpt[ResourceDocsJson])
@@ -592,7 +599,67 @@ object ObpJson {
     metadata: Option[OtherAccountMetadataJson])
 
   case class OtherAccountsJson(other_accounts: Option[List[OtherAccountJson]])
-  
+
+  //////////////////////////////////////
+  // Subtle differences to the OtherAccount json above.
+  // This what the 1.2.1 other_accounts call returns
+  // These case classes copied from API JSONFactory1.2.1
+
+  case class DirectOtherAccountJson(
+                               id : String,
+                               holder : DirectAccountHolderJSON,
+                               number : String,
+                               kind : String,
+                               IBAN : String,
+                               swift_bic: String,
+                               bank : DirectMinimalBankJSON,
+                               metadata : DirectOtherAccountMetadataJSON
+                               )
+
+  case class DirectOtherAccountsJson(
+                                other_accounts : List[DirectOtherAccountJson]
+                                )
+
+  case class DirectAccountHolderJSON(
+    name : String,
+    is_alias : Boolean
+    )
+
+
+  case class DirectMinimalBankJSON(
+  national_identifier : String,
+  name : String
+  )
+
+  case class DirectOtherAccountMetadataJSON(
+   public_alias : String,
+   private_alias : String,
+   more_info : String,
+   URL : String,
+   image_URL : String,
+   open_corporates_URL : String,
+   corporate_location : DirectLocationJSON,
+   physical_location : DirectLocationJSON
+   )
+
+
+  case class DirectLocationJSON(
+  latitude : Double,
+  longitude : Double,
+  date : Date,
+  user : DirectUserJSON
+  )
+
+
+  case class DirectUserJSON(
+   id : String,
+   provider : String,
+   display_name : String
+   )
+
+
+  ///////////
+
   case class TransactionValueJson(currency: Option[String],
     amount: Option[String])
 		  					  

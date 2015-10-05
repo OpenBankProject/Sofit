@@ -47,6 +47,8 @@ class ApiExplorer extends Loggable {
   val presetViewId = S.param("view_id").getOrElse("")
   logger.info(s"account_id in url param is $presetViewId")
 
+  val presetCounterpartyId = S.param("counterparty_id").getOrElse("")
+  logger.info(s"counterparty_id in url param is $presetCounterpartyId")
 
   def stringToNodeSeq(html : String) : NodeSeq = {
     scala.xml.XML.loadString("<div>" + html + "</div>")
@@ -71,7 +73,13 @@ class ApiExplorer extends Loggable {
       case "" => url3
       case _ => url3.replaceAll("VIEW_ID", presetViewId)
     }
-    url4
+
+    // Potentially replace OTHER_ACCOUNT_ID
+    val url5: String = presetCounterpartyId match {
+      case "" => url4
+      case _ => url4.replaceAll("OTHER_ACCOUNT_ID", presetCounterpartyId)
+    }
+    url5
   }
 
   def showResources = {
@@ -177,17 +185,22 @@ class ApiExplorer extends Loggable {
 
     def onBankChange (v: Any) = {
       logger.info("bank changed to " + v.toString)
-      S.redirectTo(s"api-explorer?bank_id=${v}&account_id=${presetAccountId}&view_id=${presetViewId}")
+      S.redirectTo(s"api-explorer?bank_id=${v}&account_id=${presetAccountId}&view_id=${presetViewId}&counterparty_id=${presetCounterpartyId}")
     }
 
     def onAccountChange (v: Any) = {
       logger.info("account changed to " + v.toString)
-      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${v}&view_id=${presetViewId}")
+      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${v}&view_id=${presetViewId}&counterparty_id=${presetCounterpartyId}")
     }
 
     def onViewChange (v: Any) = {
       logger.info("view changed to " + v.toString)
-      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${v}")
+      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${v}&counterparty_id=${presetCounterpartyId}")
+    }
+
+    def onCounterpartyChange (v: Any) = {
+      logger.info("counterparty changed to " + v.toString)
+      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${presetViewId}&counterparty_id=${v}")
     }
 
 
@@ -244,6 +257,24 @@ class ApiExplorer extends Loggable {
     }
 
 
+    def getCounterpartyOptions : List[(String,String)] = {
+
+      val selectOne = ("", "Select Counterparty")
+      val noneFound = ("", "No Counterparties Found")
+
+      // TODO Should check for both presetBankId and presetAccountId
+      val options: List[(String, String)] = presetViewId match {
+        case "" => List(noneFound)
+        case _ => for {
+          counterpartiesJson <- ObpAPI.getCounterparties(presetBankId, presetAccountId, presetViewId).toList
+          counterparty <- counterpartiesJson.other_accounts
+        } yield (counterparty.id, counterparty.holder.name)
+      }
+
+      selectOne :: options
+    }
+
+
 
 
     // Drop down box to select bank. Selected item taken from url param.
@@ -261,6 +292,12 @@ class ApiExplorer extends Loggable {
       Full(presetViewId),
       v => onViewChange(v))
 
+    // Drop down box to select view for bank/account. Selected item taken from url param.
+    def doCounterpartySelect(in: NodeSeq) = ajaxSelect(getCounterpartyOptions,
+      Full(presetCounterpartyId),
+      v => onCounterpartyChange(v))
+
+
     // In case we use Extraction.decompose
     implicit val formats = net.liftweb.json.DefaultFormats
 
@@ -268,6 +305,7 @@ class ApiExplorer extends Loggable {
     "#bank_selector" #> doBankSelect _ &
     "#account_selector" #> doAccountSelect _ &
     "#view_selector" #> doViewSelect _ &
+    "#counterparty_selector" #> doCounterpartySelect _ &
     //
     //
     // Below we render the resources into a (nested) table.
