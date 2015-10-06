@@ -68,6 +68,28 @@ object ObpAPI extends Loggable {
               "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson])
   }
 
+
+
+  /**
+   * @return Json for transactions of a particular bank account Uses 1.2.1 call and format.
+   */
+  def transactions121(bankId: String, accountId: String, viewId: String, limit: Option[Int],
+                   offset: Option[Int], fromDate: Option[Date], toDate: Option[Date], sortDirection: Option[SortDirection]) : Box[TransactionsJson121]= {
+
+    val headers : List[Header] = limit.map(l => Header("obp_limit", l.toString)).toList ::: offset.map(o => Header("obp_offset", o.toString)).toList :::
+      fromDate.map(f => Header("obp_from_date", dateFormat.format(f))).toList ::: toDate.map(t => Header("obp_to_date", dateFormat.format(t))).toList :::
+      sortDirection.map(s => Header("obp_sort_direction", s.value)).toList ::: Nil
+
+    ObpGet("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
+      "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson121])
+  }
+
+
+
+
+
+
+
   def publicAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
@@ -605,9 +627,9 @@ object ObpJson {
   // This what the 1.2.1 other_accounts call returns
   // These case classes copied from API JSONFactory1.2.1
 
-  case class DirectOtherAccountJson(
+  case class OtherAccountJson121(
                                id : String,
-                               holder : DirectAccountHolderJSON,
+                               holder : AccountHolderJson121,
                                number : String,
                                kind : String,
                                IBAN : String,
@@ -617,10 +639,10 @@ object ObpJson {
                                )
 
   case class DirectOtherAccountsJson(
-                                other_accounts : List[DirectOtherAccountJson]
+                                other_accounts : List[OtherAccountJson121]
                                 )
 
-  case class DirectAccountHolderJSON(
+  case class AccountHolderJson121(
     name : String,
     is_alias : Boolean
     )
@@ -718,6 +740,99 @@ object ObpJson {
   case class PermissionJson(user: Option[UserJson], views: Option[List[ViewJson]])
   
   case class PermissionsJson(permissions : Option[List[PermissionJson]])
+
+
+  // Copied directly from 1.2.1 API
+  case class TransactionsJson121(
+   transactions: List[TransactionJson121]
+   )
+
+  case class TransactionJson121(
+      id : String,
+      this_account : ThisAccountJson121,
+      other_account : OtherAccountJson121,
+      details : TransactionDetailsJson121,
+      metadata : TransactionMetadataJson121
+      )
+
+  case class ThisAccountJson121(
+    id : String,
+    holders : List[AccountHolderJson121],
+    number : String,
+    kind : String,
+    IBAN : String,
+    swift_bic: String,
+    bank : MinimalBankJson121
+    )
+
+
+  case class MinimalBankJson121(
+    national_identifier : String,
+    name : String
+    )
+
+
+  case class TransactionDetailsJson121(
+   `type` : String,
+   description : String,
+   posted : Date,
+   completed : Date,
+   new_balance : AmountOfMoneyJson121,
+   value : AmountOfMoneyJson121
+ )
+
+  case class TransactionMetadataJson121(
+  narrative : String,
+  comments : List[TransactionCommentJson121],
+  tags :  List[TransactionTagJson121],
+  images :  List[TransactionImageJson121],
+  where : LocationJson121
+  )
+
+  case class LocationJson121(
+                           latitude : Double,
+                           longitude : Double,
+                           date : Date,
+                           user : UserJson121
+                           )
+
+  case class AmountOfMoneyJson121(
+    currency : String,
+    amount : String
+    )
+
+
+  case class TransactionCommentJson121(
+     id : String,
+     value : String,
+     date: Date,
+     user : UserJson121
+     )
+
+
+
+  case class TransactionTagJson121(
+   id : String,
+   value : String,
+   date : Date,
+   user : UserJson121
+   )
+
+
+  case class TransactionImageJson121(
+   id : String,
+   label : String,
+   URL : String,
+   date : Date,
+   user : UserJson121
+   )
+
+  case class UserJson121(
+   id : String,
+   provider : String,
+   display_name : String
+   )
+
 
 
   ////////////////////////////////////////

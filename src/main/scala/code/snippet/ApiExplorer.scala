@@ -50,6 +50,10 @@ class ApiExplorer extends Loggable {
   val presetCounterpartyId = S.param("counterparty_id").getOrElse("")
   logger.info(s"counterparty_id in url param is $presetCounterpartyId")
 
+  val presetTransactionId = S.param("transaction_id").getOrElse("")
+  logger.info(s"transaction_id in url param is $presetTransactionId")
+
+
   def stringToNodeSeq(html : String) : NodeSeq = {
     scala.xml.XML.loadString("<div>" + html + "</div>")
   }
@@ -79,7 +83,14 @@ class ApiExplorer extends Loggable {
       case "" => url4
       case _ => url4.replaceAll("OTHER_ACCOUNT_ID", presetCounterpartyId)
     }
-    url5
+
+    // Potentially replace TRANSACTION_ID
+    val url6: String = presetTransactionId match {
+      case "" => url5
+      case _ => url5.replaceAll("TRANSACTION_ID", presetTransactionId)
+    }
+
+    url6
   }
 
   def showResources = {
@@ -203,6 +214,12 @@ class ApiExplorer extends Loggable {
       S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${presetViewId}&counterparty_id=${v}")
     }
 
+    def onTransactionChange (v: Any) = {
+      logger.info("transaction changed to " + v.toString)
+      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${presetViewId}&counterparty_id=${presetCounterpartyId}&transaction_id=${v}")
+    }
+
+
     // Get a list of tuples List(("bank short name", "id"),("bank two", "id2")) to populate the drop down select list.
     // Could we write this in a way such that if there are no banks the doBankSelect is not run?
     val bankOptions = ("", "Select Bank") :: banks.map(b => b.bankJsons.map(bj => (bj.id.getOrElse(""), bj.short_name.getOrElse("")))).getOrElse(List(("", "No Banks")))
@@ -283,6 +300,28 @@ class ApiExplorer extends Loggable {
 
 
 
+    def getTransactionOptions : List[(String,String)] = {
+
+      val selectOne = OAuthClient.loggedIn match {
+        case true => ("", "Select Transaction")
+        case false => ("", "Login for Transactions")
+      }
+      val noneFound = ("", "No Transactions Found")
+
+      // TODO Should check for both presetBankId and presetAccountId
+      val options: List[(String, String)] = presetViewId match {
+        case "" => List(noneFound)
+        case _ => for {
+          transactionsJson <- ObpAPI.transactions121(presetBankId, presetAccountId, presetViewId, None,None,None,None,None).toList
+          transaction <- transactionsJson.transactions
+        } yield (transaction.id, s"${transaction.other_account.holder.name} ${transaction.details.value.amount}")
+      }
+
+      selectOne :: options
+    }
+
+
+
 
     // Drop down box to select bank. Selected item taken from url param.
     def doBankSelect(in: NodeSeq) = ajaxSelect(bankOptions,
@@ -304,6 +343,14 @@ class ApiExplorer extends Loggable {
       Full(presetCounterpartyId),
       v => onCounterpartyChange(v))
 
+
+    // Drop down box to select transaction for bank/account. Selected item taken from url param.
+    def doTransactionSelect(in: NodeSeq) = ajaxSelect(getTransactionOptions,
+      Full(presetTransactionId),
+      v => onTransactionChange(v))
+
+
+
     def loggedInStatusMessage = {
       if (OAuthClient.loggedIn) "" else "Some options and calls require login."
     }
@@ -317,6 +364,7 @@ class ApiExplorer extends Loggable {
     "#account_selector" #> doAccountSelect _ &
     "#view_selector" #> doViewSelect _ &
     "#counterparty_selector" #> doCounterpartySelect _ &
+    "#transaction_selector" #> doTransactionSelect _ &
     //
     //
     // Below we render the resources into a (nested) table.
