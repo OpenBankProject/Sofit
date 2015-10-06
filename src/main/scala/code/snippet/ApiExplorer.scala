@@ -185,24 +185,23 @@ class ApiExplorer extends Loggable {
 
     def onBankChange (v: Any) = {
       logger.info("bank changed to " + v.toString)
-      S.redirectTo(s"api-explorer?bank_id=${v}&account_id=${presetAccountId}&view_id=${presetViewId}&counterparty_id=${presetCounterpartyId}")
+      S.redirectTo(s"api-explorer?bank_id=${v}")
     }
 
     def onAccountChange (v: Any) = {
       logger.info("account changed to " + v.toString)
-      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${v}&view_id=${presetViewId}&counterparty_id=${presetCounterpartyId}")
+      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${v}")
     }
 
     def onViewChange (v: Any) = {
       logger.info("view changed to " + v.toString)
-      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${v}&counterparty_id=${presetCounterpartyId}")
+      S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${v}")
     }
 
     def onCounterpartyChange (v: Any) = {
       logger.info("counterparty changed to " + v.toString)
       S.redirectTo(s"api-explorer?bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${presetViewId}&counterparty_id=${v}")
     }
-
 
     // Get a list of tuples List(("bank short name", "id"),("bank two", "id2")) to populate the drop down select list.
     // Could we write this in a way such that if there are no banks the doBankSelect is not run?
@@ -239,10 +238,15 @@ class ApiExplorer extends Loggable {
 
     def getViewOptions : List[(String,String)] = {
 
-      val selectOne = ("", "Select View")
+      val selectOne = OAuthClient.loggedIn match {
+        case true => ("", "Select View")
+        case false => ("", "Login for Views")
+      }
+
       val noneFound = ("", "No Views Found")
 
       // TODO Should check for both presetBankId and presetAccountId
+      // Logged in user required?
       val options: List[(String, String)] = presetAccountId match {
         case "" => List(noneFound)
         case _ => for {
@@ -259,7 +263,10 @@ class ApiExplorer extends Loggable {
 
     def getCounterpartyOptions : List[(String,String)] = {
 
-      val selectOne = ("", "Select Counterparty")
+      val selectOne = OAuthClient.loggedIn match {
+        case true => ("", "Select Counterparty")
+        case false => ("", "Login for Counterparties")
+      }
       val noneFound = ("", "No Counterparties Found")
 
       // TODO Should check for both presetBankId and presetAccountId
@@ -297,11 +304,15 @@ class ApiExplorer extends Loggable {
       Full(presetCounterpartyId),
       v => onCounterpartyChange(v))
 
+    def loggedInStatusMessage = {
+      if (OAuthClient.loggedIn) "" else "Some options and calls require login."
+    }
+
 
     // In case we use Extraction.decompose
     implicit val formats = net.liftweb.json.DefaultFormats
 
-
+    "#login_status_message" #> loggedInStatusMessage &
     "#bank_selector" #> doBankSelect _ &
     "#account_selector" #> doAccountSelect _ &
     "#view_selector" #> doViewSelect _ &

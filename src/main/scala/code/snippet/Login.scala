@@ -41,7 +41,7 @@ import net.liftweb.http.js.JsCmds.Noop
 
 class Login {
 
-  // TODO show currenctly loggedin user / name
+  // TODO show currently logged-in user / name
   private def loggedIn = {
     ".logged-out *" #> "" &
     ".logout [onclick+]" #> SHtml.onEvent(s => {
