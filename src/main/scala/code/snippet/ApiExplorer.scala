@@ -222,7 +222,7 @@ class ApiExplorer extends Loggable {
 
     // Get a list of tuples List(("bank short name", "id"),("bank two", "id2")) to populate the drop down select list.
     // Could we write this in a way such that if there are no banks the doBankSelect is not run?
-    val bankOptions = ("", "Select Bank") :: banks.map(b => b.bankJsons.map(bj => (bj.id.getOrElse(""), bj.short_name.getOrElse("")))).getOrElse(List(("", "No Banks")))
+    val bankOptions = ("", "Select Bank") :: banks.map(b => b.bankJsons.map(bj => (bj.id.getOrElse(""), bj.short_name.getOrElse("") + " (" + bj.id.getOrElse("") + ")"))).getOrElse(List(("", "No Banks")))
 
     // TODO create BankId case class like in the API
     type BankID = String
