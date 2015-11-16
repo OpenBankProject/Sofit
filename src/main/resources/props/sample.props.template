@@ -34,3 +34,7 @@ transloadit.authkey=FILL_ME_IN
 #Your transloadit template used to process transaction image uploading
 #not needed unless you want to upload images
 transloadit.addImageTemplate=FILL_ME_IN
+
+
+# Link to the API Explorer
+webui_api_explorer_url=
