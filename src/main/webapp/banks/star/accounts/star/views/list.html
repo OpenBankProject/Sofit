@@ -38,8 +38,11 @@ See views.js for the javascript which manipulates the DOM for editing
 -->
 
 <div class="lift:surround?with=default;at=content">
+  <div class="lift:ViewsOverview.setAccountTitle" id="account_details">
+    <span id="accountShortDescription" class="account_title">Account Title</span>
+  </div>
   <div class="views">
-    <div>
+    <div class="action-bar">
       <button id="view-add">Add new view</button>
       <div id="add-view-form" class="lift:ViewsOverview.setupAddView">
         <form class="lift:form.ajax">
@@ -47,7 +50,14 @@ See views.js for the javascript which manipulates the DOM for editing
           <input type="submit" value="placeholder">
         </form>
       </div>
-      <button id="view-edit-advanced-options">Show advanced options</button>
+      <button id="account-edit-label">Change account label</button>
+      <div id="account-edit-label-form" class="lift:ViewsOverview.setupEditLabel">
+        <form class="lift:form.ajax">
+          <input type="text" name="new_label" placeholder="Label">
+          <input type="submit" value="placeholder">
+        </form>
+      </div>
+      <button id="view-edit-advanced-options">Hide advanced options</button>
     </div>
     <div class="lift:ViewsOverview.getTableContent">
       <table id="view_table">

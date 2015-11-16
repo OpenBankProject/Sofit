@@ -127,7 +127,7 @@ class AccountsOverview extends Loggable {
     }
 
     def loggedOutSnippet = {
-      ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg"))
+      ".accountList" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
     }
 
     if(OAuthClient.loggedIn) loggedInSnippet
@@ -161,7 +161,7 @@ class AccountsOverview extends Loggable {
       }
     }
     def loggedOutSnippet = {
-      ".accountList" #> SHtml.span(Text("You don't have access to any authorised account"), Noop,("id","accountsMsg"))
+      ".accountList" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
     }
 
     if(OAuthClient.loggedIn) loggedInSnippet

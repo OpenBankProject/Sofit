@@ -23,6 +23,9 @@ import net.liftweb.http.js.JsCmds.SetHtml
 import scala.xml.Text
 import net.liftweb.http.js.jquery.JqJsCmds.Show
 
+
+import code.util.Helper._
+
 case class PermissionsUrlParams(bankId : String, accountId: String)
 case class ClickJson(userId: String, checked: Boolean, viewId : String)
 
@@ -69,8 +72,8 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson
       return JSON.stringify(json);
     }
     """).cmd
-  
-  def accountInfo = ".account-label *" #> accountJson.label.getOrElse("---")
+
+  def accountInfo = ".account-label *" #> getAccountTitle(accountJson)
 
   def accountViewHeaders = {
     val viewNames : List[String] = nonPublicViews.map(_.short_name.getOrElse(""))

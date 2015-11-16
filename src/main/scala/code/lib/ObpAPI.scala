@@ -5,8 +5,7 @@ import net.liftweb.json.JObject
 import net.liftweb.json.JsonDSL._
 import net.liftweb.common.Box
 import net.liftweb.common.Full
-import net.liftweb.json.JsonAST.JValue
-import net.liftweb.json.JsonAST.JInt
+import net.liftweb.json.JsonAST.{JValue, JInt}
 import net.liftweb.json.JDouble
 import net.liftweb.common.Empty
 import java.net.URL
@@ -23,6 +22,8 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import java.text.SimpleDateFormat
 import net.liftweb.common.Loggable
 import net.liftweb.util.Props
+
+import scala.xml.NodeSeq
 
 case class Header(key: String, value: String)
 
@@ -66,7 +67,29 @@ object ObpAPI extends Loggable {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
               "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson])
   }
-  
+
+
+
+  /**
+   * @return Json for transactions of a particular bank account Uses 1.2.1 call and format.
+   */
+  def transactions121(bankId: String, accountId: String, viewId: String, limit: Option[Int],
+                   offset: Option[Int], fromDate: Option[Date], toDate: Option[Date], sortDirection: Option[SortDirection]) : Box[TransactionsJson121]= {
+
+    val headers : List[Header] = limit.map(l => Header("obp_limit", l.toString)).toList ::: offset.map(o => Header("obp_offset", o.toString)).toList :::
+      fromDate.map(f => Header("obp_from_date", dateFormat.format(f))).toList ::: toDate.map(t => Header("obp_to_date", dateFormat.format(t))).toList :::
+      sortDirection.map(s => Header("obp_sort_direction", s.value)).toList ::: Nil
+
+    ObpGet("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
+      "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson121])
+  }
+
+
+
+
+
+
+
   def publicAccounts(bankId : String) : Box[BarebonesAccountsJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/public").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
@@ -83,8 +106,29 @@ object ObpAPI extends Loggable {
     ObpGet("/v1.2.1/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
 
-  def account(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
+  def allAccountsAtOneBank(bankId : String) : Box[BarebonesAccountsJson] = {
+    ObpGet("/v1.4.0/banks/" + urlEncode(bankId) + "/accounts").flatMap(_.extractOpt[BarebonesAccountsJson])
+  }
+
+  // Similar to getViews below
+  def getViewsForBankAccount(bankId: String, accountId: String) = {
+    ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views").flatMap(_.extractOpt[ViewsJson])
+  }
+
+  def getAccount(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
     ObpGet("/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/account").flatMap(x => x.extractOpt[AccountJson])
+  }
+
+  def getCounterparties(bankId: String, accountId: String, viewId: String): Box[DirectOtherAccountsJson] = {
+    val counterparties  = ObpGet("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/other_accounts").flatMap(x => x.extractOpt[DirectOtherAccountsJson])
+    counterparties
+  }
+
+
+
+  // Returns Json containing Resource Docs
+  def getResourceDocsJson : Box[ResourceDocsJson] = {
+    ObpGet("/v1.4.0/resource-docs/obp").flatMap(_.extractOpt[ResourceDocsJson])
   }
 
   /**
@@ -94,7 +138,15 @@ object ObpAPI extends Loggable {
     val deleteAccountUrl = "/internal/v1.0/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId)
     ObpInternalDelete(deleteAccountUrl)
   }
-  
+
+  def updateAccountLabel(bankId: String, accountId : String, label: String) = {
+    val json =
+      ("id" -> accountId) ~
+      ("label" -> label) ~
+      ("bank_id" -> bankId)
+    ObpPost("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId), json)
+  }
+
    /**
    * @return The json for the comment if it was successfully added
    */
@@ -132,16 +184,17 @@ object ObpAPI extends Loggable {
   def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
     val removePermissionUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
       urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
-    ObpDelete(removePermissionUrl)
+    ObpDeleteBoolean(removePermissionUrl)
   }
   
   def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
     val removeAllPermissionsUrl = "/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
       urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
-    ObpDelete(removeAllPermissionsUrl)
+    ObpDeleteBoolean(removeAllPermissionsUrl)
   }
 
   def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
+    // Note function of similar name above
     for {
       json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
       viewsJson <- Box(json.extractOpt[ViewsJson])
@@ -179,7 +232,7 @@ object ObpAPI extends Loggable {
   }
 
   def deleteView(bankId: String, accountId: String, viewId: String) : Boolean = {
-    ObpDelete("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
+    ObpDeleteBoolean("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
   }
 
   def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
@@ -210,7 +263,7 @@ object ObpAPI extends Loggable {
       transactionId: String, tagId: String) : Boolean  = {
     val deleteTagUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" + 
       urlEncode(transactionId) + "/metadata/tags/" + urlEncode(tagId)
-    ObpDelete(deleteTagUrl)
+    ObpDeleteBoolean(deleteTagUrl)
   }
   
   /**
@@ -237,7 +290,7 @@ object ObpAPI extends Loggable {
     
     val deleteImageUrl = "/v1.2/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + 
       "/transactions/" + urlEncode(transactionId) + "/metadata/images/" + urlEncode(imageId)
-    ObpDelete(deleteImageUrl)
+    ObpDeleteBoolean(deleteImageUrl)
   }
 
 }
@@ -385,7 +438,7 @@ object ObpPost {
   }
 }
 
-object ObpDelete {
+object ObpDeleteBoolean {
   /**
    * @return True if the delete worked
    */
@@ -396,6 +449,21 @@ object ObpDelete {
     worked.getOrElse(false)
   }
 }
+
+
+
+// In case we want a more raw result
+// TODO
+object ObpDelete {
+  def apply(apiPath: String): Box[JValue] = {
+    OBPRequest(apiPath, None, "DELETE", Nil).map {
+      case(status, result) => APIUtils.apiResponseWorked(status, result)
+    }
+  }
+}
+
+
+
 
 object ObpGet {
   def apply(apiPath: String, headers : List[Header] = Nil): Box[JValue] = {
@@ -553,7 +621,67 @@ object ObpJson {
     metadata: Option[OtherAccountMetadataJson])
 
   case class OtherAccountsJson(other_accounts: Option[List[OtherAccountJson]])
-  
+
+  //////////////////////////////////////
+  // Subtle differences to the OtherAccount json above.
+  // This what the 1.2.1 other_accounts call returns
+  // These case classes copied from API JSONFactory1.2.1
+
+  case class OtherAccountJson121(
+                               id : String,
+                               holder : AccountHolderJson121,
+                               number : String,
+                               kind : String,
+                               IBAN : String,
+                               swift_bic: String,
+                               bank : DirectMinimalBankJSON,
+                               metadata : DirectOtherAccountMetadataJSON
+                               )
+
+  case class DirectOtherAccountsJson(
+                                other_accounts : List[OtherAccountJson121]
+                                )
+
+  case class AccountHolderJson121(
+    name : String,
+    is_alias : Boolean
+    )
+
+
+  case class DirectMinimalBankJSON(
+  national_identifier : String,
+  name : String
+  )
+
+  case class DirectOtherAccountMetadataJSON(
+   public_alias : String,
+   private_alias : String,
+   more_info : String,
+   URL : String,
+   image_URL : String,
+   open_corporates_URL : String,
+   corporate_location : DirectLocationJSON,
+   physical_location : DirectLocationJSON
+   )
+
+
+  case class DirectLocationJSON(
+  latitude : Double,
+  longitude : Double,
+  date : Date,
+  user : DirectUserJSON
+  )
+
+
+  case class DirectUserJSON(
+   id : String,
+   provider : String,
+   display_name : String
+   )
+
+
+  ///////////
+
   case class TransactionValueJson(currency: Option[String],
     amount: Option[String])
 		  					  
@@ -612,5 +740,135 @@ object ObpJson {
   case class PermissionJson(user: Option[UserJson], views: Option[List[ViewJson]])
   
   case class PermissionsJson(permissions : Option[List[PermissionJson]])
+
+
+  // Copied directly from 1.2.1 API
+  case class TransactionsJson121(
+   transactions: List[TransactionJson121]
+   )
+
+  case class TransactionJson121(
+      id : String,
+      this_account : ThisAccountJson121,
+      other_account : OtherAccountJson121,
+      details : TransactionDetailsJson121,
+      metadata : TransactionMetadataJson121
+      )
+
+  case class ThisAccountJson121(
+    id : String,
+    holders : List[AccountHolderJson121],
+    number : String,
+    kind : String,
+    IBAN : String,
+    swift_bic: String,
+    bank : MinimalBankJson121
+    )
+
+
+  case class MinimalBankJson121(
+    national_identifier : String,
+    name : String
+    )
+
+
+  case class TransactionDetailsJson121(
+   `type` : String,
+   description : String,
+   posted : Date,
+   completed : Date,
+   new_balance : AmountOfMoneyJson121,
+   value : AmountOfMoneyJson121
+ )
+
+  case class TransactionMetadataJson121(
+  narrative : String,
+  comments : List[TransactionCommentJson121],
+  tags :  List[TransactionTagJson121],
+  images :  List[TransactionImageJson121],
+  where : LocationJson121
+  )
+
+  case class LocationJson121(
+                           latitude : Double,
+                           longitude : Double,
+                           date : Date,
+                           user : UserJson121
+                           )
+
+  case class AmountOfMoneyJson121(
+    currency : String,
+    amount : String
+    )
+
+
+  case class TransactionCommentJson121(
+     id : String,
+     value : String,
+     date: Date,
+     user : UserJson121
+     )
+
+
+
+  case class TransactionTagJson121(
+   id : String,
+   value : String,
+   date : Date,
+   user : UserJson121
+   )
+
+
+  case class TransactionImageJson121(
+   id : String,
+   label : String,
+   URL : String,
+   date : Date,
+   user : UserJson121
+   )
+
+  case class UserJson121(
+   id : String,
+   provider : String,
+   display_name : String
+   )
+
+
+
+  ////////////////////////////////////////
+  // Copied from OBP-API JSONFactory1_4_0
+  // TODO: Import these and others from API jar file?
+
+  // Matches OBP-API representation of Resource Docs etc. Used to describe where an API call is implemented
+  case class ImplementedByJson (
+                                 version : String, // Short hand for the version e.g. "1_4_0" means Implementations1_4_0
+                                 function : String // The val / partial function that implements the call e.g. "getBranches"
+                                 )
+
+
+  // Used to describe the OBP API calls for documentation and API discovery purposes
+  case class ResourceDocJson(operation_id: String,
+                             request_verb: String,
+                             request_url: String,
+                             summary: String, // Summary of call should be 120 characters max
+                             description: String,      // Description of call in markdown
+                             example_request_body: JValue,  // An example request body
+                             success_response_body: JValue, // Success response body
+                             implemented_by: ImplementedByJson)
+
+  case class ResourceDocsJson (resource_docs : List[ResourceDocJson])
+  ///////////////////////////////////////////
+
+
+  // Internal representation of the ResourceDoc (may differ from the OBP API representation (for instance OBP representation does not have id)
+  case class ResourceDoc(id: String,
+                         verb: String,
+                         url: String,
+                         summary: String,
+                         description: NodeSeq,
+                         example_request_body: JValue)
+
+
+  case class ResourceDocs (resourceDocs : List[ResourceDoc])
   
 }

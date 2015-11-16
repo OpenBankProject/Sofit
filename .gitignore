@@ -9,7 +9,6 @@
 .settings
 .classpath
 .project
-*.sh
 .cache
 src/main/resources/rebel.xml
 src/main/resources/props/*
