@@ -1,6 +1,6 @@
 /**
 Open Bank Project - Transparency / Social Finance Web Application
-Copyright (C) 2011, 2012, TESOBE / Music Pictures Ltd
+Copyright (C) 2011 - 2015, TESOBE Ltd.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -16,8 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Email: contact@tesobe.com
-TESOBE / Music Pictures Ltd
-Osloerstrasse 16/17
+TESOBE Ltd.
+Osloer Str. 16/17
 Berlin 13359, Germany
 
   This product includes software developed at
@@ -326,6 +326,7 @@ class Boot extends Loggable{
     val sitemap = List(
       Menu.i("OBP API Explorer") / "api-explorer",
       Menu.i("Home") / "index",
+      Menu.i("Dashboard") / "dashboard",
       Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
         OAuthClient.handleCallback()
       }),
