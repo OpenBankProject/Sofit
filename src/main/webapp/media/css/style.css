@@ -494,13 +494,13 @@ table td {
 }
 
 .header__signin__text {
-  font-size: 12px;
+  font-size: 18px;
   line-height: 16px;
   color: #31b8cd;
   display: block;
   padding: 0 0 0 0;
   margin: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .header__signin--signed-as {

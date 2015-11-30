@@ -44,7 +44,7 @@ class Login {
   // TODO show currently logged-in user / name
   private def loggedIn = {
     ".logged-out *" #> "" &
-    ".logout [onclick+]" #> SHtml.onEvent(s => {
+    "#logout [onclick+]" #> SHtml.onEvent(s => {
       OAuthClient.logoutAll()
       Noop
     })
@@ -52,7 +52,7 @@ class Login {
 
   def loggedOut = {
     ".logged-in *" #> "" &
-    ".start-login [onclick]" #> {
+    "#start-login [onclick]" #> {
       def actionJS: JsCmd = {
         OAuthClient.redirectToOauthLogin()
         Noop
