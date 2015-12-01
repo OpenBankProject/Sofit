@@ -180,6 +180,50 @@ class Boot extends Loggable{
 
       }
 
+    //getDashboard can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
+    object dashboardMemo extends RequestVar[Box[Box[((TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams))]]](Empty)
+
+    def getDashboard(URLParameters: List[String]): Box[(TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams)] =
+      {
+
+        def calculateTransactions() = {
+          val bank1 = URLParameters(0)
+          val account1 = URLParameters(1)
+          val viewName1 = URLParameters(2)
+
+          val bank2 = URLParameters(3)
+          val account2 = URLParameters(4)
+          val viewName2 = URLParameters(5)
+
+          val transactions1URLParams = TransactionsListURLParams(bankId = bank1, accountId = account1, viewId = viewName1)
+          val transactions2URLParams = TransactionsListURLParams(bankId = bank2, accountId = account2, viewId = viewName2)
+
+          val result = logOrReturnResult {
+
+            for {
+              //TODO: Pagination: This is not totally trivial, since the transaction list groups by date and 2 pages may have some transactions on the same date
+              transactions1Json <- ObpAPI.transactions(bank1, account1, viewName1, Some(10000), Some(0), None, None, None)
+              account1Json <- ObpAPI.getAccount(bank1, account1, viewName1) //TODO: Execute this request and the one above in parallel
+
+              transactions2Json <- ObpAPI.transactions(bank2, account2, viewName2, Some(10000), Some(0), None, None, None)
+              account2Json <- ObpAPI.getAccount(bank2, account2, viewName2) //TODO: Execute this request and the one above in parallel
+            } yield {
+              (transactions1Json, account1Json, transactions1URLParams, transactions2Json, account2Json, transactions2URLParams)
+            }
+
+          }
+
+          dashboardMemo.set(Full(result))
+          result
+        }
+
+        dashboardMemo.get match {
+          case Full(something) => something
+          case _ => calculateTransactions()
+        }
+
+      }
+
     //getAccount can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
     object accountMemo extends RequestVar[Box[Box[(code.lib.ObpJson.OtherAccountsJson, code.snippet.ManagementURLParams)]]](Empty)
 
@@ -326,7 +370,7 @@ class Boot extends Loggable{
     val sitemap = List(
       Menu.i("OBP API Explorer") / "api-explorer",
       Menu.i("Home") / "index",
-      Menu.i("Dashboard") / "dashboard",
+      //Menu.i("Dashboard") / "dashboard",
       Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
         OAuthClient.handleCallback()
       }),
@@ -345,7 +389,10 @@ class Boot extends Loggable{
       / "banks" / * / "accounts" / * / *,
 
       Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
-      / "banks" / * / "accounts" / * / "transactions" / * / *
+      / "banks" / * / "accounts" / * / "transactions" / * / *,
+
+      Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams)]("Dashboard", "dashboard", getDashboard _ ,  t => List("") )
+      / "dashboard" / "banks" / * / "accounts" / * / * / "banks" / * / "accounts" / * / *
     )
 
     LiftRules.setSiteMap(SiteMap.build(sitemap.toArray))
