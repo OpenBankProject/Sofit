@@ -68,7 +68,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
           currencyCode <- value.currency
           currency <- tryo{Currency.getInstance(currencyCode)}
           symbol <- tryo{currency.getSymbol(S.locale)}
-        } yield symbol).getOrElse("")
+        } yield symbol).getOrElse("").replace("GBP","£").replace("EUR","€").replace("USD","$")
       }
     }
   }
@@ -401,7 +401,7 @@ Used in transactions list
     } yield amt).getOrElse("")
     
     ".date *" #> date &
-    ".balance_number *" #> {currencySymbol + " " + amount} &
+    ".balance_number *" #> {currencySymbol + "" + amount} &
     ".transaction_row *" #> transactionsForDay.map(individualApiTransaction)
   }
 
