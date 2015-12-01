@@ -79,6 +79,17 @@ class AccountsOverview extends Loggable {
 
   logger.info("Accounts Overview: Private accounts found: " + privateAccountJsons)
 
+
+
+  /*
+
+      ".resource" #> resources.map { i =>
+      ".content-box__headline *" #> i.summary &
+      ".resource_summary [href]" #> s"#${i.id}" &
+
+   */
+
+
   def publicAccounts = {
     if (publicAccountJsons.size == 0) {
       ".accountList" #> "No public accounts"
