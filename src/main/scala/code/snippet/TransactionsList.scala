@@ -193,10 +193,16 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         } &
         ".amount [class+]" #> {
           isPositiveAmount match {
-            case Full(isPos) => if (isPos) "green--color" else "red--color"
+            case Full(isPos) => if (isPos) "green--color" else "orange--color"
             case _ => ""
           }
-        }
+        } &
+          ".money_direction [src]" #> {
+            isPositiveAmount match {
+              case Full(isPos) => if (isPos) "/media/images/money-in-icon.png" else "/media/images/money-out-icon.png"
+              case _ => ""
+            }
+          }
 
       }
       
