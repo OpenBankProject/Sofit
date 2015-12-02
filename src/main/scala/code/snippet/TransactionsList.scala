@@ -183,13 +183,19 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
 
       def amount = {
+        def amountStyle(amount : BigDecimal) = {
+           if (amount < 0) "red--color" else "green--color"
+        }
+
+
         ".amount *" #> {
           val amount = transaction.details.flatMap(_.value.flatMap(_.amount)) match {
             case Some(a) => a.stripPrefix("-")
             case _ => ""
           }
           currencySymbol + " " + amount
-        }
+        } &
+        ".amount [class+]" #> amountStyle(123)// TODO Use isPositiveAmount or symbol
       }
       
       def narrative = {
