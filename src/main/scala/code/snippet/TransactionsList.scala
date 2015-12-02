@@ -407,10 +407,21 @@ Used in transactions list
       newBalance <- details.new_balance
       amt <- newBalance.amount
     } yield amt).getOrElse("")
+
+    val isPositiveSumAmount : Box[Boolean] = {
+      val amountAsDouble = amount.toDouble
+      Full(amountAsDouble > 0)
+    }
     
     ".date *" #> date &
     ".balance_number *" #> {currencySymbol + "" + amount} &
-    ".transaction_row *" #> transactionsForDay.map(individualApiTransaction)
+    ".transaction_row *" #> transactionsForDay.map(individualApiTransaction) &
+    ".balance--cell [class+]" #> {
+      isPositiveSumAmount match {
+        case Full(isPos) => if (isPos) "green--color" else "red--color"
+        case _ => ""
+      }
+    }
   }
 
   def accountDetails = {
