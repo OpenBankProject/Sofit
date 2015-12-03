@@ -36,7 +36,7 @@ import net.liftweb._
 import util._
 import common._
 import http._
-import sitemap._
+import net.liftweb.sitemap._
 import Loc._
 import mapper._
 import Helpers._
@@ -370,7 +370,9 @@ class Boot extends Loggable{
     val sitemap = List(
       Menu.i("OBP API Explorer") / "api-explorer",
       Menu.i("Home") / "index",
-      //Menu.i("Dashboard") / "dashboard",
+
+      Menu.i("Define Dashboard") / "dd",
+
       Menu.i("OAuth Callback") / "oauthcallback" >> EarlyResponse(() => {
         OAuthClient.handleCallback()
       }),
@@ -393,9 +395,20 @@ class Boot extends Loggable{
 
       Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams)]("Dashboard", "dashboard", getDashboard _ ,  t => List("") )
       / "dashboard" / "banks" / * / "accounts" / * / * / "banks" / * / "accounts" / * / *
+
+//      Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams)]("Dashboard", "dashboard", getDashboard _ ,  t => List("") )
+//      / "dashboard" / "banks" / * / "accounts" / * / *,
+
+//      Menu.params[()]("Dashboard", "dashboard", getDashboard _ ,  t => List("") )
+//      / "dashboard"
+
+
+
     )
 
     LiftRules.setSiteMap(SiteMap.build(sitemap.toArray))
+
+
 
     LiftRules.addToPackages("code")
 
