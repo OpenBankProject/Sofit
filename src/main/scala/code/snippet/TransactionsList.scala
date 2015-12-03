@@ -360,9 +360,9 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   Also used for dashboard
    */
   def displayAll = {
-    accountDetails
     val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
-    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary)  // The previous CSS selector was "* *"
+    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) &  // The previous CSS selector was "* *"
+    ".account_title *" #> getAccountTitle(accountJson)
   }
 
  
@@ -443,7 +443,7 @@ Used in transactions list
     def accountLabel = {
       val accountTitle = getAccountTitle(accountJson)
       //"#accountShortDescription *" #> accountTitle &
-      ".account_title *" #> accountTitle
+      ".seb *" #> "simon" // accountTitle
     }
 
     /*    LocalStorage.getAccount(url(2), url(4)) match {
@@ -459,8 +459,7 @@ Used in transactions list
               }
     }*/
 
-    accountLabel //&
-      //lastUpdated
+    accountLabel //&//lastUpdated
   }
   
   def hideSocialWidgets = {
