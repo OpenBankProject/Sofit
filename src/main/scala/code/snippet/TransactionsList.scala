@@ -68,7 +68,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
           currencyCode <- value.currency
           currency <- tryo{Currency.getInstance(currencyCode)}
           symbol <- tryo{currency.getSymbol(S.locale)}
-        } yield symbol).getOrElse("").replace("GBP","£").replace("EUR","€").replace("USD","$")
+        } yield symbol).getOrElse("").replace("GBP","£").replace("EUR","€").replace("USD","$") // TODO: Better way to get short symbol?
       }
     }
   }
@@ -209,6 +209,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
       def narrative = {
 
         val narrativeValue = transaction.metadata.flatMap(_.narrative).getOrElse("")
+        // TODO use v1.4.0
         val narrativeUrl = "/v1.2/banks/" + transactionsURLParams.bankId + "/accounts/" + transactionsURLParams.accountId + "/" + transactionsURLParams.viewId +
           "/transactions/" + transaction.id.getOrElse("") + "/metadata/narrative"
         
@@ -356,10 +357,12 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   /*
   Used in the display of the transactions list
   e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/public
+  Also used for dashboard
    */
   def displayAll = {
+    accountDetails
     val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
-    "* *" #> groupedApiTransactions.map(daySummary)
+    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary)  // The previous CSS selector was "* *"
   }
 
  
@@ -439,7 +442,8 @@ Used in transactions list
 
     def accountLabel = {
       val accountTitle = getAccountTitle(accountJson)
-      "#accountShortDescription *" #> accountTitle
+      //"#accountShortDescription *" #> accountTitle &
+      ".account_title *" #> accountTitle
     }
 
     /*    LocalStorage.getAccount(url(2), url(4)) match {
@@ -455,8 +459,8 @@ Used in transactions list
               }
     }*/
 
-    accountLabel &
-      lastUpdated
+    accountLabel //&
+      //lastUpdated
   }
   
   def hideSocialWidgets = {
