@@ -111,13 +111,14 @@ Berlin 13359, Germany
 
 
 
-                <div class="menu">
-                    <lift:Menu.builder />
-                </div>
 
 
 
-            </div>
+
+
+
+
+
         </header>
         <!-- header_end -->
 
@@ -145,6 +146,20 @@ Berlin 13359, Germany
             </ul>
         </section>
         <!-- breadcrumbs_end -->
+
+
+
+        <section class="breadcrumbs">
+            <lift:Menu.builder
+                    ul:class="breadcrumbs__options"
+                    li:class="breadcrumbs__option"
+                    li_item:class="breadcrumbs__link active--link"
+                    li_item:onclick="javascript:alert(’Already selected!’);" />
+            </div>
+        </section>
+
+
+
 
 
         <!-- Original

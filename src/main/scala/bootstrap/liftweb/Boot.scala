@@ -366,6 +366,7 @@ class Boot extends Loggable{
 
     // Build SiteMap
     // Note: See Nav.scala which modifies the menu
+    // Note: This might be worth looking at: https://github.com/dph01/lift-TBUtils
 
     val sitemap = List(
       Menu.i("Home") / "index",
