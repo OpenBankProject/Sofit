@@ -83,6 +83,8 @@ template {
  */
 a {
   background-color: transparent;
+  color: white;
+  text-decoration: none; // Added here becuase we cannot style <a> tags in lift Menu
 }
 
 /**
@@ -564,7 +566,7 @@ table td {
   padding: 0;
 }
 .breadcrumbs__option:after {
-  content: "/";
+  content: " /";
   color: #fff;
   font-size: 14px;
 }
@@ -572,13 +574,16 @@ table td {
   content: "";
 }
 
+/* Note: In default.html the lift:Menu.builder does not apply style to the <a> tags but rather the parent <li> tag and (so) it doesn't get the color we want.
+Thus we add the colour to the generic <a> tag above */
+
 .breadcrumbs__link {
   padding: 18px 2px 17px 2px;
   display: inline-block;
   margin: 0 0 0 0;
   font-size: 12px;
   line-height: 16px;
-  color: #fff;
+  color: #fff; /* see above comment */
   letter-spacing: 0.2px;
   text-decoration: none;
   text-transform: uppercase;
