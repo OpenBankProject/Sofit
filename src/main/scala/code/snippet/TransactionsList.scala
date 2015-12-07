@@ -362,7 +362,8 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   def displayAll = {
     val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
     ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) &  // The previous CSS selector was "* *"
-    ".account_title *" #> getAccountTitle(accountJson)
+    ".account_title *" #> getAccountTitle(accountJson) &
+    ".view_id *" #> transactionsURLParams.viewId
   }
 
  

@@ -371,7 +371,7 @@ class Boot extends Loggable{
     val sitemap = List(
       Menu.i("Home") / "index",
 
-      Menu.i("Define Dashboard") / "dd",
+      //Menu.i("Define Dashboard") / "dd",
 
       Menu.i("OAuth Callback") / "oauthcallback" >> Hidden >> EarlyResponse(() => {
         OAuthClient.handleCallback()

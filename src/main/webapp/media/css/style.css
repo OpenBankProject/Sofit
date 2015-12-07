@@ -573,7 +573,7 @@ table td {
     text-transform: uppercase;
 }
 .breadcrumbs__option:after {
-  content: " /";
+  content: " |";
   color: #fff;
   font-size: 14px;
 }
@@ -702,15 +702,15 @@ table td {
 
 .account-info__box-account-info {
   float: left;
-  width: 141px;
   margin: 10px 0 0;
-  padding: 7px 0 5px 12px;
+  padding: 7px 12px 5px 12px;
   background-color: #3A3A3A;
   color: #fff;
   -moz-border-radius: 20px;
   -webkit-border-radius: 20px;
   border-radius: 20px;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .acc-table-wrap {
