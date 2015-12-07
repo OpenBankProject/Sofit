@@ -55,339 +55,112 @@ Berlin 13359, Germany
 
     <section class="account-info account-info--index">
 
+        <!-- TODO Use embed with parameters. Something like: https://groups.google.com/forum/#!msg/liftweb/2qg-vKdCQoU/L_nODTpwBWIJ -->
+
+
+
         <div class="lift:OBPDashboardLeftSnippet.displayAll">
+           <!--  <div data-lift="embed?what=/templates-hidden/_dashboard_account" /> -->
 
-        <!-- One account fits into an account-info__box. If we want multiple accounts on a page, repeat this. -->
 
-        <div class="account-info__box">
-            <div class="account-info__top-wrapper">
-                <h3 class="account-info__box-headline account_title">Account Title Left Side</h3>
-                <a href="#" class="account-info__box-link"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
-                <div class="account-info__box-account-info">Public account</div>
+            <!-- One account fits into an account-info__box. If we want multiple accounts on a page, repeat this. -->
+
+            <div class="account-info__box">
+                <div class="account-info__top-wrapper">
+                    <h3 class="account-info__box-headline account_title">Account Title Left Side</h3>
+                    <a href="#" class="account-info__box-link"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
+                    <div class="account-info__box-account-info">Public account</div>
+                </div>
+                <table class="acc-table-wrap account_grouped_by_date">
+                    <thead class="acc-table-head">
+                    <tr class="acc-table-head__row">
+                        <td class="acc-table-head__cell date" colspan="2">27.10.2015</td>
+                        <td class="acc-table-head__cell">
+                            <ul class="acc-table-head__cell-row">
+                                <li class="home-cell-row__list balance--cell">BALANCE</li>
+                                <li class="home-cell-row__list balance_number">&euro;53292</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    </thead>
+                    <tbody class="acc-table-body">
+
+
+                    <tr class="acc-table-body__row transaction_row">
+                        <td class="acc-table-body__cell the_name">Account holder</td>
+                        <td class="acc-table-body__cell">
+
+                            <a href="#" class="acc-table-body__cell-link"><img src="/media/images/money-in-icon.png" alt="Money Direction Icon" class="acc-table-body__cell-icon money_direction"></a>
+                            <a href="#" class="acc-table-body__cell-link quote--number comments_ext"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
+                            <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
+                        </td>
+                        <td class="acc-table-body__cell amount">€400</td>
+                    </tr>
+
+                  </tbody>
+                </table>
+
+
             </div>
-            <table class="acc-table-wrap account_grouped_by_date">
-                <thead class="acc-table-head">
-                <tr class="acc-table-head__row">
-                    <td class="acc-table-head__cell date" colspan="2">27.10.2015</td>
-                    <td class="acc-table-head__cell">
-                        <ul class="acc-table-head__cell-row">
-                            <li class="home-cell-row__list balance--cell">BALANCE</li>
-                            <li class="home-cell-row__list balance_number">&euro;53292</li>
-                        </ul>
-                    </td>
-                </tr>
-                </thead>
-                <tbody class="acc-table-body">
-
-
-                <tr class="acc-table-body__row transaction_row">
-                    <td class="acc-table-body__cell the_name">Account holder</td>
-                    <td class="acc-table-body__cell">
-
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/money-in-icon.png" alt="Money Direction Icon" class="acc-table-body__cell-icon money_direction"></a>
-                        <a href="#" class="acc-table-body__cell-link quote--number comments_ext"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell amount">€400</td>
-                </tr>
-
-
-                <!--
-
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Account holder</td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell orange--color">€400</td>
-                </tr>
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Account holder</td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-                        <a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-                    </td>
-                    <td class="acc-table-body__cell orange--color">€400</td>
-                </tr>
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Vodafone Kabel Deutschland </td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell green--color">€400</td>
-                </tr>
-
-                -->
-
-
-                </tbody>
-            </table>
-
-             <!--
-
-            <table class="acc-table-wrap">
-                <thead class="acc-table-head">
-                <tr class="acc-table-head__row">
-                    <td class="acc-table-head__cell" colspan="2">27.10.2015</td>
-                    <td class="acc-table-head__cell">
-                        <ul class="acc-table-head__cell-row">
-                            <li class="home-cell-row__list balance--cell">BALANCE</li>
-                            <li class="home-cell-row__list">&euro;53292</li>
-                        </ul>
-                    </td>
-                </tr>
-                </thead>
-                <tbody class="acc-table-body">
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Account holder</td>
-                    <td class="acc-table-body__cell">
-
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-                        <a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell green--color">€400</td>
-                </tr>
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Account holder</td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell orange--color">€400</td>
-                </tr>
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Account holder</td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-                        <a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-                    </td>
-                    <td class="acc-table-body__cell orange--color">€400</td>
-                </tr>
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Vodafone Kabel Deutschland </td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell green--color">€400</td>
-                </tr>
-                </tbody>
-            </table>
-
-            -->
-
-        </div>
+            <!-- End of one account -->
 
         </div>
 
 
+        <div class="lift:OBPDashboardRightSnippet.displayAll">
 
-        <div class="account-info__box">
-            <div class="account-info__top-wrapper">
-                <h3 class="account-info__box-headline">Right Side</h3>
-                <a href="#" class="account-info__box-link"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
-                <div class="account-info__box-account-info">Public account</div>
+            <!-- TODO: DRY -->
+
+            <!--            <div data-lift="embed?what=/templates-hidden/_dashboard_account" /> -->
+
+            <!-- One account fits into an account-info__box. If we want multiple accounts on a page, repeat this. -->
+
+            <div class="account-info__box">
+                <div class="account-info__top-wrapper">
+                    <h3 class="account-info__box-headline account_title">Account Title Right Side</h3>
+                    <a href="#" class="account-info__box-link"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
+                    <div class="account-info__box-account-info">Public account</div>
+                </div>
+                <table class="acc-table-wrap account_grouped_by_date">
+                    <thead class="acc-table-head">
+                    <tr class="acc-table-head__row">
+                        <td class="acc-table-head__cell date" colspan="2">27.10.2015</td>
+                        <td class="acc-table-head__cell">
+                            <ul class="acc-table-head__cell-row">
+                                <li class="home-cell-row__list balance--cell">BALANCE</li>
+                                <li class="home-cell-row__list balance_number">&euro;53292</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    </thead>
+                    <tbody class="acc-table-body">
+
+
+                    <tr class="acc-table-body__row transaction_row">
+                        <td class="acc-table-body__cell the_name">Account holder</td>
+                        <td class="acc-table-body__cell">
+
+                            <a href="#" class="acc-table-body__cell-link"><img src="/media/images/money-in-icon.png" alt="Money Direction Icon" class="acc-table-body__cell-icon money_direction"></a>
+                            <a href="#" class="acc-table-body__cell-link quote--number comments_ext"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
+                            <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
+                        </td>
+                        <td class="acc-table-body__cell amount">€400</td>
+                    </tr>
+
+                    </tbody>
+                </table>
+
+
             </div>
-            <table class="acc-table-wrap">
-                <thead class="acc-table-head">
-                <tr class="acc-table-head__row">
-                    <td class="acc-table-head__cell" colspan="2">27.10.2015</td>
-                    <td class="acc-table-head__cell">
-                        <ul class="acc-table-head__cell-row">
-                            <li class="home-cell-row__list balance--cell">BALANCE</li>
-                            <li class="home-cell-row__list">&euro;53292</li>
-                        </ul>
-                    </td>
-                </tr>
-                </thead>
-                <tbody class="acc-table-body">
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Account holder</td>
-                    <td class="acc-table-body__cell">
+            <!-- End of one account -->
 
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-                        <a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell green--color">€400</td>
-                </tr>
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Account holder</td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell orange--color">€400</td>
-                </tr>
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Account holder</td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-                        <a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-                    </td>
-                    <td class="acc-table-body__cell orange--color">€400</td>
-                </tr>
-                <tr class="acc-table-body__row">
-                    <td class="acc-table-body__cell">Vodafone Kabel Deutschland </td>
-                    <td class="acc-table-body__cell">
-                        <a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-                    </td>
-                    <td class="acc-table-body__cell green--color">€400</td>
-                </tr>
-                </tbody>
-            </table>
+
+
+
         </div>
+
+
     </section>
     <!-- account-info section_end -->
 
-
-
-
-
-
-
-
-
-
-
-    <!--
-
-
-    <div id="homeContent">
-        <div id="about_text">
-            <p>
-                Dashboard
-            </p>
-            <br />
-        </div>
-
-        <div id="public_accounts">
-            <h2 class="account_header">Account One</h2>
-
-            <div class="lift:OBPDashboardLeftSnippet.displayAll">
-                <table class="transactions">
-                        <thead>
-                                <tr>
-                                        <th colspan="9">
-                                                <h5 class="date">March 10, 2012</h5>
-                                                <h6 class="balance">
-                                                        <span class="text">Balance</span>
-                                                        <span class="number balance_number">€2304.42</span>
-                                                </h6>
-                                        </th>
-                                </tr>
-                        </thead>
-
-                        <tbody>
-                                <tr class="transaction_row">
-                                        <td class="icon"><div class="out">Out</div></td>
-                                        <td class="symbol">-</td>
-                                        <td class="amount">€24.32</td>
-                                        <td class="name">
-                                            <span class="the_name">
-                                                <a class="otherAccountLinkForName" href="#">Ronald Montgomery</a>
-                                            </span>
-                                            <span class="alias_indicator">
-                                                <a class="otherAccountLinkForAlias" href="#"></a>
-                                            </span>
-                                        </td>
-                    <td class="description">description</td>
-                                        <td class="narrative">Transaction specific notes</td>
-                                        <td class="transaction_images">
-                                                <img class="transaction_image" src="/media/images/blank.gif" alt="transaction-image">
-                                        </td>
-                                        <td class="tags">
-                                                <span class="tag">
-                                                        <span class="tagContent"></span><br/>
-                                                </span>
-                                        </td>
-                                        <td class="extra">
-                                            <div class="extra_account_logo">
-                                                <a href="#" class="other_acc_link">
-                                                        <img src="/media/images/blank.gif" class="other_account_logo_img" />
-                                                </a>
-                                            </div>
-                                            <div class="extra_info_and_links">
-                                                    <span class="other_account_more_info">More info</span>
-                                                    <br class="other_account_more_info_br"/>
-                                                    <a href="#" class="open_corporates_link">Open Corporates</a>
-                                           </div>
-                                        </td>
-                                        <td class="comments">
-                                                <a href="#" class="comments_ext">
-                                                        <span class="comment">0</span> 
-                                                </a>
-                                        </td>
-                                </tr>
-                       </tbody>
-                </table>
-          </div>
-        </div>
-
-
-
-        <div id="authorised_accounts">
-            <h2 class="account_header">Account Two</h2>
-
-            <div class="lift:OBPDashboardRightSnippet.displayAll">
-                <table class="transactions">
-                        <thead>
-                                <tr>
-                                        <th colspan="9">
-                                                <h5 class="date">March 10, 2012</h5>
-                                                <h6 class="balance">
-                                                        <span class="text">Balance</span>
-                                                        <span class="number balance_number">€2304.42</span>
-                                                </h6>
-                                        </th>
-                                </tr>
-                        </thead>
-
-                        <tbody>
-                                <tr class="transaction_row">
-                                        <td class="icon"><div class="out">Out</div></td>
-                                        <td class="symbol">-</td>
-                                        <td class="amount">€24.32</td>
-                                        <td class="name">
-                                            <span class="the_name">
-                                                <a class="otherAccountLinkForName" href="#">Ronald Montgomery</a>
-                                            </span>
-                                            <span class="alias_indicator">
-                                                <a class="otherAccountLinkForAlias" href="#"></a>
-                                            </span>
-                                        </td>
-                    <td class="description">description</td>
-                                        <td class="narrative">Transaction specific notes</td>
-                                        <td class="transaction_images">
-                                                <img class="transaction_image" src="/media/images/blank.gif" alt="transaction-image">
-                                        </td>
-                                        <td class="tags">
-                                                <span class="tag">
-                                                        <span class="tagContent"></span><br/>
-                                                </span>
-                                        </td>
-                                        <td class="extra">
-                                            <div class="extra_account_logo">
-                                                <a href="#" class="other_acc_link">
-                                                        <img src="/media/images/blank.gif" class="other_account_logo_img" />
-                                                </a>
-                                            </div>
-                                            <div class="extra_info_and_links">
-                                                    <span class="other_account_more_info">More info</span>
-                                                    <br class="other_account_more_info_br"/>
-                                                    <a href="#" class="open_corporates_link">Open Corporates</a>
-                                           </div>
-                                        </td>
-                                        <td class="comments">
-                                                <a href="#" class="comments_ext">
-                                                        <span class="comment">0</span> 
-                                                </a>
-                                        </td>
-                                </tr>
-                       </tbody>
-                </table>
-          </div>
-        </div>
--->
-
-
-    </div>
 </div>
