@@ -151,18 +151,18 @@ class Boot extends Loggable{
       {
 
         def calculateTransactions() = {
-          val bank = URLParameters(0)
-          val account = URLParameters(1)
-          val viewName = URLParameters(2)
+          val bankId = URLParameters(0)
+          val accountId = URLParameters(1)
+          val viewId = URLParameters(2)
 
-          val transactionsURLParams = TransactionsListURLParams(bankId = bank, accountId = account, viewId = viewName)
+          val transactionsURLParams = TransactionsListURLParams(bankId = bankId, accountId = accountId, viewId = viewId)
 
           val result = logOrReturnResult {
 
             for {
               //TODO: Pagination: This is not totally trivial, since the transaction list groups by date and 2 pages may have some transactions on the same date
-              transactionsJson <- ObpAPI.transactions(bank, account, viewName, Some(10000), Some(0), None, None, None)
-              accountJson <- ObpAPI.getAccount(bank, account, viewName) //TODO: Execute this request and the one above in parallel
+              transactionsJson <- ObpAPI.transactions(bankId, accountId, viewId, Some(10000), Some(0), None, None, None)
+              accountJson <- ObpAPI.getAccount(bankId, accountId, viewId) //TODO: Execute this request and the one above in parallel
             } yield {
               (transactionsJson, accountJson, transactionsURLParams)
             }
@@ -187,26 +187,26 @@ class Boot extends Loggable{
       {
 
         def calculateTransactions() = {
-          val bank1 = URLParameters(0)
-          val account1 = URLParameters(1)
-          val viewName1 = URLParameters(2)
+          val bankId1 = URLParameters(0)
+          val accountId1 = URLParameters(1)
+          val viewId1 = URLParameters(2)
 
-          val bank2 = URLParameters(3)
-          val account2 = URLParameters(4)
-          val viewName2 = URLParameters(5)
+          val bankId2 = URLParameters(3)
+          val accountId2 = URLParameters(4)
+          val viewId2 = URLParameters(5)
 
-          val transactions1URLParams = TransactionsListURLParams(bankId = bank1, accountId = account1, viewId = viewName1)
-          val transactions2URLParams = TransactionsListURLParams(bankId = bank2, accountId = account2, viewId = viewName2)
+          val transactions1URLParams = TransactionsListURLParams(bankId = bankId1, accountId = accountId1, viewId = viewId1)
+          val transactions2URLParams = TransactionsListURLParams(bankId = bankId2, accountId = accountId2, viewId = viewId2)
 
           val result = logOrReturnResult {
 
             for {
               //TODO: Pagination: This is not totally trivial, since the transaction list groups by date and 2 pages may have some transactions on the same date
-              transactions1Json <- ObpAPI.transactions(bank1, account1, viewName1, Some(10000), Some(0), None, None, None)
-              account1Json <- ObpAPI.getAccount(bank1, account1, viewName1) //TODO: Execute this request and the one above in parallel
+              transactions1Json <- ObpAPI.transactions(bankId1, accountId1, viewId1, Some(10000), Some(0), None, None, None)
+              account1Json <- ObpAPI.getAccount(bankId1, accountId1, viewId1) //TODO: Execute this request and the one above in parallel
 
-              transactions2Json <- ObpAPI.transactions(bank2, account2, viewName2, Some(10000), Some(0), None, None, None)
-              account2Json <- ObpAPI.getAccount(bank2, account2, viewName2) //TODO: Execute this request and the one above in parallel
+              transactions2Json <- ObpAPI.transactions(bankId2, accountId2, viewId2, Some(10000), Some(0), None, None, None)
+              account2Json <- ObpAPI.getAccount(bankId2, accountId2, viewId2) //TODO: Execute this request and the one above in parallel
             } yield {
               (transactions1Json, account1Json, transactions1URLParams, transactions2Json, account2Json, transactions2URLParams)
             }
