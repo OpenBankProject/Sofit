@@ -178,4 +178,34 @@ class AccountsOverview extends Loggable {
     if(OAuthClient.loggedIn) loggedInSnippet
     else loggedOutSnippet
   }
+
+
+  def authorisedAccountsDashboard = {
+    def loggedInSnippet = {
+
+      ".account" #> privateAccountJsons.map {case (bankId, accountJson) => {
+        //TODO: It might be nice to ensure that the same view is picked each time the page loads
+        val views = accountJson.views_available.toList.flatten
+        val accountId : String = accountJson.id.getOrElse("")
+        val aPrivateViewId: String = (for {
+          aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
+          viewId <- aPrivateView.id
+        } yield viewId).getOrElse("")
+
+        ".account *" #> accountDisplayName(accountJson) &
+        ".account [value]" #> {
+          "/dashboard/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId + "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
+        }
+      }}
+    }
+
+    def loggedOutSnippet = {
+      ".accountList" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
+    }
+
+    if(OAuthClient.loggedIn) loggedInSnippet
+    else loggedOutSnippet
+  }
+
+
 }
