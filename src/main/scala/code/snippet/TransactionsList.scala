@@ -357,7 +357,6 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   /*
   Used in the display of the transactions list
   e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/public
-  Also used for dashboard
    */
   def displayAll = {
     val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
@@ -366,7 +365,13 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     ".view_id *" #> transactionsURLParams.viewId
   }
 
- 
+  def displayForDashboard = {
+    val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
+    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) &  // The previous CSS selector was "* *"
+      ".account_title *" #> getAccountTitle(accountJson) &
+      ".view_id *" #> transactionsURLParams.viewId
+  }
+
   
   def hasSameDate(t1: TransactionJson, t2: TransactionJson) : Boolean = {
     
