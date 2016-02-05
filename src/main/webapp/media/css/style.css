@@ -1598,3 +1598,15 @@ table td {
 .footer-link-box__link:last-child {
   border-right: 0;
 }
+
+
+#index .acc-table-wrap:last-child {
+  margin: 0 0 10px 0;
+}
+#index .acc-table-body__cell:first-child {
+  width: 380px;
+}
+#index .acc-table-body__cell:last-child {
+  width: 60px;
+}
+

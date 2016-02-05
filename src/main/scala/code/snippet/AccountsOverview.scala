@@ -92,9 +92,9 @@ class AccountsOverview extends Loggable {
 
   def publicAccounts = {
     if (publicAccountJsons.size == 0) {
-      ".accountList" #> "No public accounts"
+      ".accountItem" #> "No public accounts"
     } else {
-      ".accountList" #> publicAccountJsons.map {
+      ".accountItem" #> publicAccountJsons.map {
         case (bankId, accountJson) => {
           //TODO: It might be nice to ensure that the same view is picked each time the page loads
           val views = accountJson.views_available.toList.flatten
@@ -103,11 +103,11 @@ class AccountsOverview extends Loggable {
             viewId <- aPublicView.id
           } yield viewId).getOrElse("")
 
-          ".accLink *" #> accountDisplayName(accountJson) &
-            ".accLink [href]" #> {
-              val accountId = accountJson.id.getOrElse("")
-              "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
-            }
+          ".accName *" #> accountDisplayName(accountJson) &
+          ".accLink [href]" #> {
+            val accountId = accountJson.id.getOrElse("")
+            "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
+          }
         }
       }
     }
@@ -121,7 +121,7 @@ class AccountsOverview extends Loggable {
   def authorisedAccounts = {
     def loggedInSnippet = {
 
-      ".accountList" #> privateAccountJsons.map {case (bankId, accountJson) => {
+      ".accountItem" #> privateAccountJsons.map {case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
         val views = accountJson.views_available.toList.flatten
         val accountId : String = accountJson.id.getOrElse("")
@@ -130,7 +130,7 @@ class AccountsOverview extends Loggable {
           viewId <- aPrivateView.id
         } yield viewId).getOrElse("")
 
-        ".accLink *" #> accountDisplayName(accountJson) &
+        ".accName *" #> accountDisplayName(accountJson) &
         ".accLink [href]" #> {
           "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
         }
@@ -138,7 +138,9 @@ class AccountsOverview extends Loggable {
     }
 
     def loggedOutSnippet = {
-      ".accountList" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
+   //   ".accountItem" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
+      ".accName *" #> "You are logged out. No authorised accounts available." &
+      ".accLink" #> ""
     }
 
     if(OAuthClient.loggedIn) loggedInSnippet

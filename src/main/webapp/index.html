@@ -33,7 +33,7 @@ Berlin 13359, Germany
 
 
 
-<div id="main" class="lift:surround?with=default;at=content">
+<div id="index" class="lift:surround?with=default;at=content">
 
 
 	<!--
@@ -100,170 +100,46 @@ Berlin 13359, Germany
 
 	<!-- account-info section_start -->
 	<section class="account-info account-info--index">
+
+		<!-- left box start -->
 		<div class="account-info__box">
 			<div class="account-info__top-wrapper">
 				<h3 class="account-info__box-headline">Public Accounts</h3>
 				<a href="#" class="account-info__box-link"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
-				<!-- <div class="account-info__box-account-info">Public account</div> -->
 			</div>
-
-
-			<div class="lift:AccountsOverview.publicAccounts">
-				<ul class="accountList">
-					<li class="account"><a class="accLink" href="">Account Name</a>
-					</li>
-				</ul>
-			</div>
-
-
-
 
 			<table class="acc-table-wrap">
-				<thead class="acc-table-head">
-				<tr class="acc-table-head__row">
-					<td class="acc-table-head__cell" colspan="2">27.10.2015</td>
-					<td class="acc-table-head__cell">
-						<ul class="acc-table-head__cell-row">
-							<li class="home-cell-row__list balance--cell">BALANCE</li>
-							<li class="home-cell-row__list">&euro;53292</li>
-						</ul>
+				<tbody>
+				<tr class="acc-table-body__row accountItem" data-lift="AccountsOverview.publicAccounts">
+					<td class="acc-table-body__cell accName">Account Name</td>
+					<td class="acc-table-body__cell green--color">
+						<a href="#" class="acc-table-body__cell-link accLink"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
 					</td>
 				</tr>
-				</thead>
-				<tbody class="accountList" data-lift="AccountsOverview.publicAccounts">
-				<tr  class="acc-table-body__row">
-					<td class="acc-table-body__cell"><a class="accLink" href="">Account Name</a></td>
-					<td class="acc-table-body__cell">
-
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-						<a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
-					</td>
-					<td class="acc-table-body__cell green--color">€400</td>
-				</tr>
-
-
-				<!--
-
-
-				<tr class="acc-table-body__row">
-					<td class="acc-table-body__cell">Account holder</td>
-					<td class="acc-table-body__cell">
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-					</td>
-					<td class="acc-table-body__cell orange--color">€400</td>
-				</tr>
-				<tr class="acc-table-body__row">
-					<td class="acc-table-body__cell">Account holder</td>
-					<td class="acc-table-body__cell">
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-						<a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-					</td>
-					<td class="acc-table-body__cell orange--color">€400</td>
-				</tr>
-				<tr class="acc-table-body__row">
-					<td class="acc-table-body__cell">Vodafone Kabel Deutschland </td>
-					<td class="acc-table-body__cell">
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-					</td>
-					<td class="acc-table-body__cell green--color">€400</td>
-				</tr>
-
-				-->
-
 				</tbody>
 			</table>
+		</div><!-- left box end -->
 
-
-		</div>
+		<!-- right box start -->
 		<div class="account-info__box">
 			<div class="account-info__top-wrapper">
 				<h3 class="account-info__box-headline">Private Accounts</h3>
 				<a href="#" class="account-info__box-link"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
-				<!--<div class="account-info__box-account-info">Public account</div>-->
 			</div>
-
-
-			<div id="authorised_accounts">
-				<h2 class="account_header">Authorised Accounts</h2>
-				<div class="lift:AccountsOverview.authorisedAccounts">
-					<ul class="accountList">
-						<li class="account"><a class="accLink" href="">Account Name</a></li>
-					</ul>
-				</div>
-			</div>
-
-
-
 
 			<table class="acc-table-wrap">
-				<!--
-				<thead class="acc-table-head">
-				<tr class="acc-table-head__row">
-					<td class="acc-table-head__cell" colspan="2">27.10.2015</td>
-					<td class="acc-table-head__cell">
-						<ul class="acc-table-head__cell-row">
-							<li class="home-cell-row__list balance--cell">BALANCE</li>
-							<li class="home-cell-row__list">&euro;53292</li>
-						</ul>
+				<tbody>
+				<tr class="acc-table-body__row accountItem" data-lift="AccountsOverview.authorisedAccounts">
+					<td class="acc-table-body__cell accName">Account Name</td>
+					<td class="acc-table-body__cell green--color">
+						<a href="#" class="acc-table-body__cell-link accLink"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
 					</td>
 				</tr>
-				</thead>
-				-->
-				<tbody class="acc-table-body">
-				<tr class="acc-table-body__row">
-					<td class="acc-table-body__cell">Account holder</td>
-					<!--
-					<td class="acc-table-body__cell">
-
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-						<a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
-					</td>
-					<td class="acc-table-body__cell green--color">€400</td>
-					-->
-				</tr>
-
-				<!--
-
-				<tr class="acc-table-body__row">
-					<td class="acc-table-body__cell">Account holder</td>
-					<td class="acc-table-body__cell">
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-					</td>
-					<td class="acc-table-body__cell orange--color">€400</td>
-				</tr>
-				<tr class="acc-table-body__row">
-					<td class="acc-table-body__cell">Account holder</td>
-					<td class="acc-table-body__cell">
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-exit-icon.png" alt="Exit icon" class="acc-table-body__cell-icon"></a>
-						<a href="#" class="acc-table-body__cell-link quote--number"><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon "></a>
-					</td>
-					<td class="acc-table-body__cell orange--color">€400</td>
-				</tr>
-				<tr class="acc-table-body__row">
-					<td class="acc-table-body__cell">Vodafone Kabel Deutschland </td>
-					<td class="acc-table-body__cell">
-						<a href="#" class="acc-table-body__cell-link"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon"></a>
-					</td>
-					<td class="acc-table-body__cell green--color">€400</td>
-				</tr>
-				-->
-
 				</tbody>
 			</table>
-		</div>
+		</div><!-- right box end -->
+
 	</section>
 	<!-- account-info section_end -->
 
-
-
-
-
-
-
-
-
-
-
-</div>
+</div><!-- index end -->
