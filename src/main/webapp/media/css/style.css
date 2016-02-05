@@ -83,8 +83,6 @@ template {
  */
 a {
   background-color: transparent;
-  // color: white;  // Added here becuase we cannot style <a> tags in lift Menu
-  text-decoration: none;
 }
 
 /**
@@ -496,13 +494,13 @@ table td {
 }
 
 .header__signin__text {
-  font-size: 18px;
+  font-size: 12px;
   line-height: 16px;
   color: #31b8cd;
   display: block;
   padding: 0 0 0 0;
   margin: 0;
-  text-transform: none;
+  text-transform: uppercase;
 }
 
 .header__signin--signed-as {
@@ -563,17 +561,10 @@ table td {
 
 .breadcrumbs__option {
   display: inline-block;
-    padding: 18px 2px 17px 2px;
-    margin: 0 0 0 0;
-    font-size: 12px;
-    line-height: 16px;
-    color: #fff;
-    letter-spacing: 0.2px;
-    text-decoration: none;
-    text-transform: uppercase;
+  padding: 0;
 }
 .breadcrumbs__option:after {
-  content: " |";
+  content: "/";
   color: #fff;
   font-size: 14px;
 }
@@ -581,14 +572,16 @@ table td {
   content: "";
 }
 
-/* Note: In default.html the lift:Menu.builder can not apply style to the <a> tags directly, so use the following selector:  */
-.breadcrumbs__option a {
+.breadcrumbs__link {
+  padding: 18px 2px 17px 2px;
+  display: inline-block;
+  margin: 0 0 0 0;
+  font-size: 12px;
+  line-height: 16px;
   color: #fff;
-  text-decoration: none;
-  /*
   letter-spacing: 0.2px;
+  text-decoration: none;
   text-transform: uppercase;
-  */
 }
 
 .active--link {
@@ -615,7 +608,8 @@ table td {
   -moz-border-radius: 16px;
   -webkit-border-radius: 16px;
   border-radius: 16px;
-  padding: 7px 36px 6px 12px;
+  padding: 7px 0 6px 12px;
+  width: 214px;
   color: #31B8CD;
   -moz-appearance: none;
   -webkit-appearance: none;
@@ -671,7 +665,7 @@ table td {
 
 .account-info__box {
   float: left;
-  width: 48%;
+  width: 49%;
   -moz-border-radius: 24px;
   -webkit-border-radius: 24px;
   border-radius: 24px;
@@ -688,7 +682,7 @@ table td {
   line-height: 28px;
   margin: 0 54px 0 0;
   padding: 0 0 0;
-  width: 80%;
+  width: 61%;
   float: left;
   font-weight: 300;
 }
@@ -701,15 +695,15 @@ table td {
 
 .account-info__box-account-info {
   float: left;
+  width: 141px;
   margin: 10px 0 0;
-  padding: 7px 12px 5px 12px;
+  padding: 7px 0 5px 12px;
   background-color: #3A3A3A;
   color: #fff;
   -moz-border-radius: 20px;
   -webkit-border-radius: 20px;
   border-radius: 20px;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
 }
 
 .acc-table-wrap {
@@ -1545,9 +1539,6 @@ table td {
   color: #EB6028;
 }
 
-.red--color {
-  color: #E84128;
-}
 
 .footer-content-wrapper {
   margin: 0 8px 0 0;
@@ -1582,7 +1573,6 @@ table td {
   display: block;
   float: right;
 }
-
 .footer-logo-box {
   float: right;
   margin: 45px 4px 0 0;
@@ -1608,4 +1598,3 @@ table td {
 .footer-link-box__link:last-child {
   border-right: 0;
 }
-
