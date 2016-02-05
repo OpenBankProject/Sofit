@@ -73,13 +73,17 @@ class Nav {
   def views: net.liftweb.util.CssSel = {
     val url = S.uri.split("/", 0)
     if (url.size > 4) {
-      ".navitem *" #> {
-        viewJsons.map(viewJson => {
-          val viewUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/" + viewJson.id.getOrElse("")
-          ".navlink [href]" #> viewUrl &
-          ".navlink *" #> viewJson.short_name.getOrElse("") &
-          ".navlink [class+]" #> markIfSelected(viewUrl)
-        })
+      if (viewJsons.size == 0) {
+        eraseMenu
+      } else {
+        ".navitem *" #> {
+          viewJsons.map(viewJson => {
+            val viewUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/" + viewJson.id.getOrElse("")
+            ".navlink [href]" #> viewUrl &
+            ".navlink *" #> viewJson.short_name.getOrElse("") &
+            ".navlink [class+]" #> markIfSelected(viewUrl)
+          })
+        }
       }
     } else
       eraseMenu
