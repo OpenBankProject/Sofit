@@ -196,16 +196,26 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
             case Full(isPos) => if (isPos) "green--color" else "orange--color"
             case _ => ""
           }
-        } &
-          ".money_direction [src]" #> {
+        }
+      }
+      
+
+      def icon = {
+          ".icon [src]" #> {
             isPositiveAmount match {
-              case Full(isPos) => if (isPos) "/media/images/money-in-icon.png" else "/media/images/money-out-icon.png"
+              case Full(isPos) => if (isPos) "/media/images/home-table-enter-icon.png" else "/media/images/home-table-exit-icon.png"
+              case _ => ""
+            }
+          } &
+          ".icon [alt]" #> {
+            isPositiveAmount match {
+              case Full(isPos) => if (isPos) "Enter icon" else "Exit icon"
               case _ => ""
             }
           }
-
       }
-      
+
+
       def narrative = {
 
         val narrativeValue = transaction.metadata.flatMap(_.narrative).getOrElse("")
@@ -268,24 +278,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
          } yield (amountAsDouble > 0)
       }
 
-      def symbol = {
-        ".symbol *" #> {
-          isPositiveAmount match {
-            case Full(isPos) => if (isPos) "+" else "-"
-            case _ => ""
-          }
-        }
-      }
-
-      def transactionInOrOut = {
-        ".out [class]" #> {
-          isPositiveAmount match {
-            case Full(isPos) => if (isPos) "in" else "out"
-            case _ => ""
-          }
-        }
-      }
-      
+    
       def comments = {
         val commentSelector = for {
           metadata <- transaction.metadata
@@ -338,12 +331,11 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         
         tagSelector getOrElse hideTags
       }
-      
+
       amount &
+      icon &
       description &
       narrative &
-      symbol &
-      transactionInOrOut &
       comments &
       images &
       tags
@@ -360,9 +352,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
    */
   def displayAll = {
     val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
-    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) &  // The previous CSS selector was "* *"
-    ".account_title *" #> getAccountTitle(accountJson) &
-    ".view_id *" #> transactionsURLParams.viewId
+    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) // The previous CSS selector was "* *"
   }
 
   def displayForDashboard = {
@@ -433,7 +423,7 @@ Used in transactions list
     ".transaction_row *" #> transactionsForDay.map(individualApiTransaction) &
     ".balance--cell [class+]" #> {
       isPositiveSumAmount match {
-        case Full(isPos) => if (isPos) "green--color" else "red--color"
+        case Full(isPos) => if (isPos) "green--color" else "orange--color"
         case _ => ""
       }
     }
@@ -467,7 +457,14 @@ Used in transactions list
 
     accountLabel //&//lastUpdated
   }
+
+
+  def accountLabel = {
+    ".accountLabel *" #> accountJson.label.getOrElse(
+        accountJson.id.getOrElse("unknown account name"))
+  }
   
+
   def hideSocialWidgets = {
     if(transactionsURLParams.viewId != "Public") "#socialButtons *" #> NodeSeq.Empty
     else NOOP_SELECTOR

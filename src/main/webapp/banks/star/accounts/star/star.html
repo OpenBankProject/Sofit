@@ -36,39 +36,46 @@ e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/owner
 
 -->
 
-<div class="lift:surround?with=default;at=content">
+<div id="transactions" class="lift:surround?with=default;at=content">
 
-	<div id="account_details" class="lift:OBPTransactionSnippet.accountDetails">
-		<span id="accountShortDescription" class="account_type">Account Name</span>
-		<span id="lastUpdate"></span>
-	</div>
-	<div id="social">
-		<div class="lift:OBPTransactionSnippet.hideSocialWidgets">
-			<div id="socialButtons">
-				<!-- Facebook -->
-				<script>(function(d, s, id) {
-					  var js, fjs = d.getElementsByTagName(s)[0];
-					  if (d.getElementById(id)) return;
-					  js = d.createElement(s); js.id = id;
-					  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-					  fjs.parentNode.insertBefore(js, fjs);
-					}(document, 'script', 'facebook-jssdk'));
-				</script>
-				<div class="fb-like" data-href="https://sofi.openbankproject.com" data-send="false" data-layout="button_count" data-width="60"data-show-faces="false"></div>
-
-				<!-- Twitter -->
-				<a href="https://twitter.com/share" class="twitter-share-button" data-via="openbankproject" data-hashtags="openbankproject">Tweet</a>
-				<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
-				</script>
-
-				<!-- Google Plus -->
-				<script class="lift:head" type="text/javascript" src="https://apis.google.com/js/plusone.js">
-				    {lang: 'en-GB'}
-				 </script>
-				<g:plusone size="medium" href="https://sofi.openbankproject.com"></g:plusone>
+	<!-- account-info section_start -->
+	<section class="account-info account-info--public">
+		<div class="account-info__box account-info__box--public">
+			<div class="account-info__top-wrapper" data-lift="OBPTransactionSnippet.accountLabel">
+				<h3 class="account-info__box-headline accountLabel">ACCOUNT</h3>
+				<a href="#" class="account-info__box-link account-info__box-link--public"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
 			</div>
+
+			<table class="acc-table-wrap acc-table-wrap--public account_grouped_by_date" data-lift="OBPTransactionSnippet.displayAll">
+				<thead class="acc-table-head acc-table-head--public">
+					<tr class="acc-table-head__row ">
+						<td class="acc-table-head__cell date" colspan="2">01.01.1970</td>
+						<td class="acc-table-head__cell">
+							<ul class="acc-table-head__cell-row">
+								<li class="home-cell-row__list balance--cell">BALANCE</li>
+								<li class="home-cell-row__list balance_number">&euro; 0</li>
+							</ul>
+						</td>
+					</tr>
+				</thead>
+				<tbody class="acc-table-body">
+					<tr class="acc-table-body__row acc-table-body__row--public transaction_row">
+						<td class="acc-table-body__cell the_name"><span class="otherAccountLinkForName">Account holder</span></td>
+						<td class="acc-table-body__cell">
+							<a href="#" class="acc-table-body__cell-link comments_ext"><img src="/media/images/home-table-enter-icon.png" alt="Enter icon" class="acc-table-body__cell-icon icon"></a>
+							<a href="#" class="acc-table-body__cell-link quote--number comments_ext"><span class="comment"></span><img src="/media/images/home-table-quote-icon.png" alt="Quote icon" class="acc-table-body__cell-icon"></a>
+							<a href="#" class="acc-table-body__cell-link comments_ext"><img src="/media/images/home-table-paper-icon.png" alt="Paper icon" class="acc-table-body__cell-icon"></a>
+						</td>
+						<td class="acc-table-body__cell amount">0</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
-    </div>
+	</section>
+	<!-- account-info section_end -->
+
+
+<!--
 	<div class="lift:OBPTransactionSnippet.displayAll">
 		<table class="transactions">
 			<thead>
@@ -127,4 +134,6 @@ e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/owner
 			</tbody>
 		</table>
 	</div>
-</div>
+-->
+
+</div><!-- transactions end -->
