@@ -67,7 +67,7 @@ class Nav {
   }
 
   def eraseMenu =
-    "* * " #> ""
+    "*" #> ""
 
 
   def views: net.liftweb.util.CssSel = {
@@ -159,10 +159,8 @@ class Nav {
       } else None
     }
     
-    def hide = ".navitem *" #> ""
-
-    if (url.size > 4) getPrivilegeAdmin.getOrElse(hide) 
-    else hide
+    if (url.size > 4) getPrivilegeAdmin.getOrElse(eraseMenu) 
+    else eraseMenu
   }
 
   def markIfSelected(href: String): Box[String] = {

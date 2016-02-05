@@ -10,7 +10,7 @@ class ConnectBankAccount {
 
   def connect : NodeSeq => NodeSeq = {
 
-    val hide = "* *" #> NodeSeq.Empty
+    val hide = "*" #> NodeSeq.Empty
 
     def showIfHomepage() = {
       val currentPage = S.uri
