@@ -535,6 +535,7 @@ table td {
   position: relative;
   margin: 0 12px 9px 0;
 }
+/*
 .header__settings-image--logout:after {
   position: absolute;
   content: "";
@@ -544,6 +545,7 @@ table td {
   top: -1px;
   right: -9px;
 }
+*/
 
 .settings-imgs__icon {
   display: block;
