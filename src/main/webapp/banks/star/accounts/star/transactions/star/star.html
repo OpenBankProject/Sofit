@@ -35,86 +35,97 @@ Berlin 13359, Germany
 -->
 
 
-<div id="main" class="lift:surround?with=default;at=content">
-  <table>
-    <thead>
-      <tr>
-        <th class="span-1">Cleared</th>
-        <th class="span-1">Amount</th>
-        <th class="span-1">Counterparty</th>
-        <th class="span-1">Reference</th>
-        <th class="span-1">Narrative</th>
-        <th class="span-1">Balance</th>            
-      </tr>
-    </thead>
-    <tbody>
-      <tr class=lift:Comments.commentPageTitle>
-        <td class="date_cleared">completed date</td>
-        <td class="amount">obp_transaction_amount</td>
-        <td class="other_account_holder">
-          <span class="the_name">Ronald Montgomery</span>
-          <span class="alias_indicator"></span>
-        </td>
-        <td class="description">description aka reference aka label</td>
-        <td class="narrative">narrative</td>
-        <td class="new_balance">obp_transaction_new_balance</td>
-      </tr>
-    </tbody>
-  </table>
-  <p id="tagsBloc">
-    <div id="tagsTitle">Tags:</div>
-    <div id="tags_list" class="lift:Comments.showTags?eager_eval=true tagsContainer">
-      <span id="noTags"></span>
-      <div class="lift:embed?what=_tag"></div>
-    </div>
-    <div id="addTagbloc">
-      <div class="lift:Comments.addTag" >
-        <span class="add">Add a Tag here</span>
-      </div>
-    </div>
-  </p>  
+<div id="comments" class="lift:surround?with=default;at=content">
 
-  <div id="imagesBlock" class="lift:Comments.images?eager_eval=true">
-  	<div class="imagesTitle">Images:</div>
-  	<div class="images_list">
-  		<span class="noImages"></span>
-  		<div class="image-holder">
-  			<div class="lift:embed?what=_transactionImage"></div>
-  		</div>
-  	</div>
-  	<div id="addImageBlock">
-      <div class="add">
-				<form id="imageUploader" method="post" enctype="multipart/form-data">
-					<span>Add a new image: </span>
-					<input class="chooseFile" type="file" name="my_file"></input>
-					<br />
-					<textarea class="description" rows="4" cols="50" name="description" placeholder="A short description of the image being posted."></textarea> 
-					<input type="hidden" name="params"></input>
-					<br />
-					<input class="addImageSubmit" type="submit" value="Add Image"></input>
-				</form>
-				<script type="text/javascript" src="https://assets.transloadit.com/js/jquery.transloadit2.js"></script>
-		<script type="text/javascript">
-   			$(document).ready(function() {
-     			$('#imageUploader').transloadit({
-     				wait: true
-     			});
-   			});
-		</script>
-      </div>
-    </div>
-  </div>
+            <!-- account-info section_start -->
+            <section class="account-info account-info--comments">
+                <div class="account-info__box account-info__box--comments">
+                    <a href="#" class="account-info__box-link account-info__box-link--comments"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
+                    <table class="comments-table">
+                        <thead class="comments-table-head">
+                            <tr class="comments-table-head__row">
+                                <td class="comments-table-head__cell">Cleared</td>
+                                <td class="comments-table-head__cell">Amount </td>
+                                <td class="comments-table-head__cell">Counterparty</td>
+                                <td class="comments-table-head__cell">Reference</td>
+                                <td class="comments-table-head__cell">Narrative</td>
+                                <td class="comments-table-head__cell">Balance</td>
+                            </tr>
+                        </thead>
+                        <tbody class="comments-table-body">
+                            <tr class="comments-table-body__row" data-lift="Comments.commentPageTitle">
+                                <td class="comments-table-body__cell date_cleared">date cleared</td>
+                                <td class="comments-table-body__cell amount">amount</td>
+								<td class="comments-table-body__cell other_account_holder">
+									<span class="the_name">the name</span>
+									<span class="alias_indicator"></span>
+								</td>
+                                <td class="comments-table-body__cell description">description</td>
+                                <td class="comments-table-body__cell narrative">narrative</td>
+                                <td class="comments-table-body__cell new_balance">new balance</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-  <p id="commentsBloc">
-    <div id="commentsTitle">Comments:</div>
-    <ul id="comment_list" class="lift:Comments.showComments?eager_eval=true commentsContainer">
-      <span id="noComments"></span>
-      <div class="lift:embed?what=_comment"></div>
-    </ul>
-    <div id="addCommentbloc">
-    <div class="lift:Comments.addComment" >
-      <span class="add">Add a comment here</span>
-    </div>
-    </div>
-  </p>
+
+                    <div class="tags-box">
+                        <h2 class="comments-headline">Tags</h2>
+						<div id="tags_list" class="tagsContainer" data-lift="Comments.showTags?eager_eval=true">
+						  <span id="noTags"></span>
+						  <div data-lift="embed?what=_tag"></div>
+						</div>
+
+						<div data-lift="Comments.addTag"></div>
+                    </div><!-- end tags-box -->
+
+
+
+                    <div class="images-box" data-lift="Comments.images?eager_eval=true">
+                        <h2 class="comments-headline imagesTitle">Images</h2>
+						<div class="images_list">
+							<span class="noImages"></span>
+							<div class="image-holder">
+								<div data-lift="embed?what=_transactionImage"></div>
+							</div>
+						</div>
+						<form id="imageUploader" method="post" enctype="multipart/form-data">
+							<p class="images-box__paragraph">Add a new image</p>
+							<input type="hidden" name="params"></input>
+							<input class="images-box--browse-button" type="file" name="my_file" id="my_file"></input>
+							<label class="comments-button" for="my_file">BROWSE</label>
+							<p class="images-box--text">&nbsp;</p>
+							<textarea name="img__description" placeholder="Add a short description..." class="images-box__textarea"></textarea>
+							<button class="comments-button images-box--add-button addImageSubmit">ADD IMAGE</button>
+							<script type="text/javascript" src="https://assets.transloadit.com/js/jquery.transloadit2.js"></script>
+							<script type="text/javascript">
+							$(document).ready(function() {
+								$('#imageUploader').transloadit({
+									wait: true
+								});
+							});
+							</script>
+						</form>
+					</div><!-- end images-box -->
+
+
+                    <div id="commentsBloc" class="comments-box">
+                        <h2 id="commentsTitle" class="comments-headline">Comments</h2>
+						<ul id="comment_list" data-lift="Comments.showComments?eager_eval=true" class="commentsContainer">
+						  <span id="noComments"></span>
+						  <div data-lift="embed?what=_comment"></div>
+						</ul>
+
+    					<div id="addCommentbloc">
+    						<div data-lift="Comments.addComment" >
+      							<span class="add">Add a comment here</span>
+    						</div>
+								<!--
+                        		<textarea name="img__description" placeholder="Add a comments" class="comments-box__textarea"></textarea>
+                        		<button class="comments-button add comments-box--button">ADD A COMMENT</button>
+								-->
+						</div><!-- end addCommentbloc -->
+					</div><!-- end comments-box -->
+				</div><!-- end account-info__box-comments -->
+            </section>
+            <!-- account-info section_end -->
 </div>

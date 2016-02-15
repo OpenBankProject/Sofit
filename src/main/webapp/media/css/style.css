@@ -1309,11 +1309,22 @@ table td {
 }
 
 .images-box--browse-button {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+.images-box--browse-button + label {
+  color: white;
+  display: inline-block;
+  cursor: pointer;
   background-color: #5D5D5D;
-  margin: 10px 0 0 4px;
   width: 148px;
   padding: 10px 0 10px 23px;
 }
+
 
 .images-box__text {
   float: left;
@@ -1635,4 +1646,31 @@ table td {
   top: 0;
   left: 0;
   z-index: 0;
+}
+
+
+.account-info--comments .tagsContainer {
+  margin-top: 5px;
+}
+.account-info--comments .tag {
+  margin-right: 5px;
+}
+.account-info--comments .deleteTag {
+  text-decoration: none;
+}
+.account-info--comments .deleteTag img {
+  width: 8px;
+  height: 8px;
+}
+
+
+.comments-box ul {
+  width: 100%;
+  list-style-type: none;
+  padding-left: 0;
+}
+.comments-box li {
+  width: 100%;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #C4C4C4;
 }

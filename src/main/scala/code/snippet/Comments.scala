@@ -287,17 +287,21 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
   def tagsNotAllowed = "* *" #> ""
 
   def deleteTag(tag: TransactionTagJson) = {
-    SHtml.a(() => {
-      tag.id match {
-        case Some(id) => {
-          val worked = ObpAPI.deleteTag(urlParams.bankId, urlParams.accountId, urlParams.viewId,
-            urlParams.transactionId, id)
-            if(!worked) logger.warn("Deleting tag with id " + id + " failed")
+    if (!OAuthClient.loggedIn) {
+      Text("")
+    } else {
+      SHtml.a(() => {
+        tag.id match {
+          case Some(id) => {
+            val worked = ObpAPI.deleteTag(urlParams.bankId, urlParams.accountId, urlParams.viewId,
+              urlParams.transactionId, id)
+              if(!worked) logger.warn("Deleting tag with id " + id + " failed")
+          }
+          case _ => logger.warn("Tried to delete a tag without an id")
         }
-        case _ => logger.warn("Tried to delete a tag without an id")
-      }
-      Hide(tag.id.getOrElse(""))
-    }, Text("x"), ("title", "Remove the tag"))
+        Hide(tag.id.getOrElse(""))
+      }, <img src="/media/images/close-icon.png" />, ("title", "Remove the tag"))
+    }
   }
   
   def showTags = {
@@ -348,6 +352,7 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
             val tagVals = tags.split(" ").toList.filter(tag => !tag.isEmpty)
             tagValues = tagVals
           },
+          ("class", "tags-box__input"),
           ("placeholder", "Add tags seperated by spaces"),
           ("id", "addTagInput"),
           ("size", "30")) ++
@@ -363,7 +368,8 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
               SetHtml("noTags",NodeSeq.Empty) &
               AppendHtml("tags_list", newXml.getOrElse(NodeSeq.Empty))
             },
-            ("id", "submitTag")))
+            ("id", "submitTag"),
+            ("class", "comments-button tags-box--button")))
     }
 
     if(OAuthClient.loggedIn) {
@@ -423,7 +429,6 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
     ".text *" #> commentJson.value.getOrElse("") &
       ".commentLink * " #> { "#" + displayPosition } &
       ".commentLink [id]" #> displayPosition &
-      ".commentLink [href]" #> { "#" + displayPosition } &
       commentDate &
       userInfo
   }
@@ -449,8 +454,9 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
 	          commentText = _,
 	          ("rows", "4"), ("cols", "50"),
 	          ("id", "addCommentTextArea"),
-	          ("placeholder", "add a comment here")) ++
-	          SHtml.ajaxSubmit("add a comment", () => {
+              ("class", "comments-box__textarea"),
+	          ("placeholder", "Type a comment here")) ++
+	          SHtml.ajaxSubmit("ADD COMMENT", () => {
 	            val newCommentXml = for {
 	              newComment <- ObpAPI.addComment(urlParams.bankId, urlParams.accountId, urlParams.viewId, urlParams.transactionId, commentText)
 	              commentXml <- Templates(List("templates-hidden", "_comment"))
@@ -462,7 +468,7 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
 	            SetValById("addCommentTextArea", content) &
 	              SetHtml("noComments", NodeSeq.Empty) &
 	              AppendHtml("comment_list", newCommentXml.getOrElse(NodeSeq.Empty))
-	          }, ("id", "submitComment")))
+	          }, ("id", "submitComment"), ("class", "comments-button comments-box--button")))
     }
 
     if (!OAuthClient.loggedIn) mustLogIn
