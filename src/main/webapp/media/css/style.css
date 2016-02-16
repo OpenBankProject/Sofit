@@ -1676,3 +1676,10 @@ table td {
   margin-bottom: 15px;
   border-bottom: 1px solid #C4C4C4;
 }
+
+.account-info__box .jq-dropdown .jq-dropdown-menu li > a {
+	color: #50B165;
+}
+.account-info__box .jq-dropdown .jq-dropdown-menu li > a:hover {
+	color: #5D5D5D;
+}

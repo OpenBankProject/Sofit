@@ -73,6 +73,12 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     }
   }
 
+  val hasManagementAccess = {
+    val availableViews = accountJson.views_available.toList.flatten
+    availableViews.exists(view => view.id == Some("owner"))
+  }
+
+
   def individualApiTransaction(transaction: TransactionJson): CssSel = {
 
     def otherPartyInfo: CssSel = {
@@ -108,11 +114,6 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         }
         
         def aliasSelector = {
-          val hasManagementAccess = {
-            val availableViews = accountJson.views_available.toList.flatten
-            availableViews.exists(view => view.id == Some("owner"))
-          }
-
           def aliasInfo = {
 
             val name = oAcc.holder.flatMap(_.name)
@@ -461,9 +462,13 @@ Used in transactions list
   }
 
 
-  def accountLabel = {
-    ".accountLabel *" #> accountJson.label.getOrElse(
-        accountJson.id.getOrElse("unknown account name"))
+  def accountInfo = {
+    var label = ".account-label *" #> accountJson.label.getOrElse(accountJson.id.getOrElse("unknown account name"))
+    if (!hasManagementAccess) {
+      label & ".account-info__box-link" #> ""
+    } else {
+      label
+    }
   }
   
 

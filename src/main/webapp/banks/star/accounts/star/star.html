@@ -41,9 +41,22 @@ e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/owner
 	<!-- account-info section_start -->
 	<section class="account-info account-info--public">
 		<div class="account-info__box account-info__box--public">
-			<div class="account-info__top-wrapper" data-lift="OBPTransactionSnippet.accountLabel">
-				<h3 class="account-info__box-headline accountLabel">ACCOUNT</h3>
-				<a href="#" class="account-info__box-link account-info__box-link--public"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
+			<div class="account-info__top-wrapper" data-lift="OBPTransactionSnippet.accountInfo">
+				<h3 class="account-info__box-headline account-label">ACCOUNT</h3>
+				<a href="#" data-jq-dropdown="#jq-dropdown-1" class="account-info__box-link account-info__box-link--public"><img src="/media/images/settings-icon.png" alt="Settings icon" class="account-info__box-setting-icon"></a>
+ 				<div id="jq-dropdown-1" class="jq-dropdown jq-dropdown-tip">
+					<ul class="account-info-actions jq-dropdown-menu">
+						<li class="navitem" data-lift="Nav.management">
+							<a href="#" class="navlink">Management</a>
+						</li>
+						<li class="navitem" data-lift="Nav.editViews">
+							<a href="#" class="navlink">Edit Views</a>
+						</li>
+						<li class="navitem" data-lift="Nav.privilegeAdmin">
+							<a href="#" class="navlink">PrivilegeAdmin</a>
+						</li>
+					</ul>
+				</div>
 			</div>
 
 			<table class="acc-table-wrap acc-table-wrap--public account_grouped_by_date" data-lift="OBPTransactionSnippet.displayAll">
@@ -135,5 +148,4 @@ e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/owner
 		</table>
 	</div>
 -->
-
 </div><!-- transactions end -->
