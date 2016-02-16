@@ -284,7 +284,9 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
           metadata <- transaction.metadata
           comments <- metadata.comments
         } yield {
-          ".comments_ext [href]" #> { "transactions/" + transaction.id.getOrElse("") + "/" + transactionsURLParams.viewId} &
+          var uri = "transactions/" + transaction.id.getOrElse("") + "/" + transactionsURLParams.viewId
+          ".comments_page [href]" #> { uri } &
+          ".comments_bloc [href]" #> { uri + "#commentsBloc"} &
           ".comment *" #> comments.size.toString
         }
         
