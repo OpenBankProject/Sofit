@@ -31,9 +31,9 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
     def viewData = nonBadViews.map(view => ViewData(view, allowed(view)))
     
     def render = {
-      
+
       def process(): JsCmd = {
-        
+
         def showMsg(msg : String) = {
           SetHtml("create-permission-message", Text(msg))
         }
@@ -79,18 +79,16 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
         val onOffSwitch = "onoffswitch-view-" + vData.view.id.getOrElse("")
         ".view_name *" #> vData.view.short_name.getOrElse(vData.view.id.getOrElse("")) &
         ".view_check" #> SHtml.checkbox(
-//          vData.allowed,
-//          vData.allowed = _,
           allowed(vData.view),
           allowed.put(vData.view, _),
           "class" -> "onoffswitch-checkbox view_check",
           "id" -> onOffSwitch) &
         ".onoffswitch-label [for]" #> onOffSwitch
       }) &
-      "name=email" #> (SHtml.text(email, email = _) ++ SHtml.hidden(process))
+      "name=email" #> SHtml.text(email, email = _) &
+      "type=submit" #> SHtml.ajaxSubmit("Grant access", process)
       
     }
-    
-    //def accountInfo = ".account-label *" #> accountJson.label.getOrElse("---")
-    
+
+    def accountInfo = ".account-label *" #> accountJson.label.getOrElse("---")
   }

@@ -34,42 +34,46 @@ Berlin 13359, Germany
 		<p class="home-viewing__text">VIEWING</p>
 		<h4 class="home-viewing__headline">Grant access to another user</h4>
 	</section>
-
-	<!-- <div class="lift:CreatePermissionForm.accountInfo">Add Permission to <span class="account-label">Account</span></div> -->
 	
 	<section class="account-info">
 		<div class="account-info__box account-info__box--public account-info__box--users-border">
-			<form method="post" data-lift="form.ajax">
-				<table data-lift="CreatePermissionForm" class="create_class" id="create_page">
-				<tbody class="users-table-body">
-					<tr class="users-table-body__row row">
-					  <td class="users-table-body__cell">
-						<span>User email</span>
-					  </td>
-					  <td class="users-table-body__cell">
-						<input name="email" type="text" value="">
-					  </td>
-					</tr>
-				
-					<tr class="users-table-body__row row view_row">
-					  <td class="users-table-body__cell">
-						<span class="view_name">View name</span>
-					  </td>
-					  <td class="users-table-body__cell view-checkbox">
-								<div class="onoffswitch">
-									<input type="checkbox" class="onoffswitch-checkbox view_check" id="myonoffswitch-view-one">
-									<label class="onoffswitch-label" for="myonoffswitch-view-one">
-										<span class="onoffswitch-inner"></span>
-										<span class="onoffswitch-switch"></span>
-									</label>
-								</div>
-					  </td>
-					</tr>
-				</tbody>
-				</table>
+			<div class="account-info__top-wrapper" data-lift="CreatePermissionForm.accountInfo">
+				<h3 class="account-info__box-headline account-info__box-headline--users account-label">Account</h3>
+			</div>
 
-				<input class="users-button create-permission" type="submit" value="Grant access">
-				<div id="create-permission-message"></div>
+			<form data-lift="form.ajax">
+				<div data-lift="CreatePermissionForm">
+					<table>
+					<tbody class="users-table-body">
+						<tr class="users-table-body__row row">
+						  <td class="users-table-body__cell">
+							<span>User email</span>
+						  </td>
+						  <td class="users-table-body__cell">
+							<input name="email" type="text" value="">
+						  </td>
+						</tr>
+					
+						<tr class="users-table-body__row row view_row">
+						  <td class="users-table-body__cell">
+							<span class="view_name">View name</span>
+						  </td>
+						  <td class="users-table-body__cell view-checkbox">
+									<div class="onoffswitch">
+										<input type="checkbox" class="onoffswitch-checkbox view_check" id="myonoffswitch-view-one">
+										<label class="onoffswitch-label" for="myonoffswitch-view-one">
+											<span class="onoffswitch-inner"></span>
+											<span class="onoffswitch-switch"></span>
+										</label>
+									</div>
+						  </td>
+						</tr>
+					</tbody>
+					</table>
+
+					<input class="users-button" type="submit" value="Grant access">
+					<div id="create-permission-message"></div>
+				</div>
 			</form>
 		</div>
 	</section>
