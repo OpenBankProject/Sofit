@@ -1694,3 +1694,7 @@ table td {
 	margin-bottom: 10px;
 	padding: 10px;
 }
+
+#permissions-create table {
+	margin-top: 40px;
+}
