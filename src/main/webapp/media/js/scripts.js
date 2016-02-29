@@ -6,6 +6,7 @@
 	project.init = function() {
 		project.evenColumns();
 		project.counterpartiesFilter();
+		project.removeUserFromView();
 	};
 
 	project.evenColumns = function() {
@@ -37,6 +38,12 @@
 		$('.counterparties-table-head__cell').on('click', function() {
 			$('.counterparties-table-head__cell').removeClass('counterparties-table-head__cell--active');
 			$(this).addClass('counterparties-table-head__cell--active');
+		});
+	};
+
+	project.removeUserFromView = function() {
+		$('.users-table-body__cell .remove').click(function () {
+			$(this).closest('.row').css('background-color', '#CC0000').fadeOut(1000, function() {$(this).remove();});
 		});
 	};
 

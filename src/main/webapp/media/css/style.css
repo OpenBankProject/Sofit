@@ -393,7 +393,7 @@ th {
   padding: 0;
 }
 
-.cf:before, .container:before, .account-info:before, .account-info__box:before, .users-table-head:before, .users-table-body__row:before, .views-table-head__row:before, .views-table-body__row:before, .tags-box:before, .images-box:before, .account-info__top-wrapper--counterparties:before, .counterparties-table-head__row:before,
+.cf:before, .container:before, .account-info:before, .account-info__box:before, .users-table-head:before, .views-table-head__row:before, .views-table-body__row:before, .tags-box:before, .images-box:before, .account-info__top-wrapper--counterparties:before, .counterparties-table-head__row:before,
 .cf:after,
 .container:after,
 .account-info:after,
@@ -907,13 +907,14 @@ table td {
   border-bottom: 1px solid #5D5D5D;
 }
 
+.users-table-head__cell:first-child {
+}
 .users-table-head__cell {
   font-size: 20px;
   line-height: 24px;
   color: #3A3A3A;
-  width: 300px;
   padding: 10px 0 8px 13px;
-  float: left;
+  display: table-cell;
 }
 
 .users-table-body__cell {
@@ -921,14 +922,13 @@ table td {
   line-height: 22px;
   color: #3A3A3A;
   padding: 10px 0 10px 13px;
-  float: left;
+  display: table-cell;
 }
 .users-table-body__cell:first-child {
-  width: 300px;
   background-color: #EFF9FB;
+	width: 300px;
 }
-.users-table-body__cell:nth-child(2) {
-  width: 180px;
+.users-table-body__cell:nth-child(1n+2) {
   padding: 6px 0 8px 10px;
   background-color: #DCF4F0;
 }
@@ -936,7 +936,11 @@ table td {
   width: 182px;
   padding: 0 0 0 9px;
   background-color: #DCEFE0;
-  padding: 8px 0 9px 9px;
+  padding: 8px 9px 9px 9px;
+}
+.users-table-body__cell-lastrow {
+  padding: 0;
+  width: 300px;
 }
 
 .onoffswitch {
@@ -1019,11 +1023,11 @@ table td {
   transition: all 0.3s ease-in 0s;
 }
 
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+.onoffswitch-checkbox:checked ~ .onoffswitch-label .onoffswitch-inner {
   margin-left: 0;
 }
 
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+.onoffswitch-checkbox:checked ~ .onoffswitch-label .onoffswitch-switch {
   right: 0;
   background-color: #50B165;
 }
@@ -1042,16 +1046,13 @@ table td {
 }
 
 .users-button-box {
-  background-color: #EFF9FB;
-  width: 100%;
-  float: left;
-  height: 312px;
+	margin-top: 30px;
 }
 
 .users-button {
   width: 238px;
   margin: 21px 0 0 -2px;
-  padding: 7px 0 5px 0;
+  padding: 10px;
   background-color: #3A3A3A;
   color: #fff;
   -moz-border-radius: 20px;
@@ -1062,6 +1063,7 @@ table td {
   outline: 0;
   font-size: 16px;
   line-height: 18px;
+  text-decoration: none;
 }
 
 .account-info__box--views {
@@ -1682,4 +1684,13 @@ table td {
 }
 .account-info__box .jq-dropdown .jq-dropdown-menu li > a:hover {
 	color: #5D5D5D;
+}
+
+
+
+#permissions-create #create-permission-message {
+	color: red;
+	font-size: 24px;
+	margin-bottom: 10px;
+	padding: 10px;
 }

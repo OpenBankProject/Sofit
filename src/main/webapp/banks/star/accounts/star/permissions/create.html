@@ -28,37 +28,49 @@ Berlin 13359, Germany
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
 -->
-<div class="lift:surround?with=default;at=content">
+<div id="permissions-create" data-lift="surround?with=default;at=content">
+
+	<section class="home-viewing">
+		<p class="home-viewing__text">VIEWING</p>
+		<h4 class="home-viewing__headline">Grant access to another user</h4>
+	</section>
 
 	<!-- <div class="lift:CreatePermissionForm.accountInfo">Add Permission to <span class="account-label">Account</span></div> -->
-	<div id="create-permission-message"></div>
 	
-	<form method="post" class="lift:form.ajax">
-	    <table class="lift:CreatePermissionForm create_class" id="create_page">
-      
-        <tbody>
-      
-        <tr>
-          <td>
-            <span>User email</span>
-          </td>
-          <td>
-            <input name="email" type="text" value="">
-          </td>
-        </tr>
-        
-        <tr class="view_row">
-          <td>
-            <span class="view_name">View name</span>
-          </td>
-          <td>
-            <input class="view_check" value="true" type="checkbox">
-          </td>
-        </tr>
-      
-      <tr>
-       <td></td><td><input class="create-permission" type="submit" value="Create"></td>
-      </tr>
-    </tbody></table>
-	</form>
+	<section class="account-info">
+		<div class="account-info__box account-info__box--public account-info__box--users-border">
+			<form method="post" data-lift="form.ajax">
+				<table data-lift="CreatePermissionForm" class="create_class" id="create_page">
+				<tbody class="users-table-body">
+					<tr class="users-table-body__row row">
+					  <td class="users-table-body__cell">
+						<span>User email</span>
+					  </td>
+					  <td class="users-table-body__cell">
+						<input name="email" type="text" value="">
+					  </td>
+					</tr>
+				
+					<tr class="users-table-body__row row view_row">
+					  <td class="users-table-body__cell">
+						<span class="view_name">View name</span>
+					  </td>
+					  <td class="users-table-body__cell view-checkbox">
+								<div class="onoffswitch">
+									<input type="checkbox" class="onoffswitch-checkbox view_check" id="myonoffswitch-view-one">
+									<label class="onoffswitch-label" for="myonoffswitch-view-one">
+										<span class="onoffswitch-inner"></span>
+										<span class="onoffswitch-switch"></span>
+									</label>
+								</div>
+					  </td>
+					</tr>
+				</tbody>
+				</table>
+
+				<input class="users-button create-permission" type="submit" value="Grant access">
+				<div id="create-permission-message"></div>
+			</form>
+		</div>
+	</section>
 </div>

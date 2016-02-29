@@ -28,33 +28,54 @@ Berlin 13359, Germany
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
 -->
-<div class="lift:surround?with=default;at=content">
-
-	<div class="lift:PermissionManagement.accountInfo" id="account_details">
-		<span id="accountShortDescription" class="account-label">Account</span>
-	</div>
-
-	<div class="lift:PermissionManagement.manage">
-		<div class="callback-script"></div>
-		<table>
-			<tr class="lift:PermissionManagement.accountViewHeaders">
-				<th>User</th>
-				<th class="view_name">View Name</th>
-				<th></th>
-			</tr>
-			<tr class="row">
-				<td><span class="user">bob@example.com</span></td>
-				<td class="view-checkbox"><input type="checkbox" class="check"></td>
-				<td><input class="remove" type="button" value="Remove"></td>
-			</tr>
-		</table>
+<div id="permissions" data-lift="surround?with=default;at=content">
+	<section class="home-viewing">
+		<p class="home-viewing__text">VIEWING</p>
+		<h4 class="home-viewing__headline">Set permissions for users</h4>
+	</section>
 
 
-		<script type="text/javascript">
-		  $('.remove').click(function () {
-		    $(this).closest('.row').css('background-color', '#CC0000').fadeOut(1500, function() {$(this).remove();});
-		  });
-		  </script>
-	</div>
-	<a id="add-permission" href="#" class="lift:PermissionManagement.addPermissionLink">Grant access to another user... </a>
+	<!-- account-info section_start -->
+	<section class="account-info account-info--public">
+		<div class="account-info__box account-info__box--public account-info__box--users-border">
+			<div class="account-info__top-wrapper" data-lift="PermissionManagement.accountInfo">
+				<h3 class="account-info__box-headline account-info__box-headline--users account-label">TESOBE</h3>
+			</div>
+			<div data-lift="PermissionManagement.manage">
+				<div class="callback-script"></div>
+				<table class="users-table">
+					<thead class="users-table-head">
+						<tr class="users-table-head__row" data-lift="PermissionManagement.accountViewHeaders">
+							<td class="users-table-head__cell">User</td>
+							<td class="users-table-head__cell view_name">view name</td>
+							<td class="users-table-head__cell"></td>
+						</tr>
+					</thead>
+					<tbody class="users-table-body">
+						<tr class="users-table-body__row row">
+							<td class="users-table-body__cell user">user</td>
+							<td class="users-table-body__cell view-checkbox">
+								<div class="onoffswitch">
+									<input type="checkbox" name="onoffswitch-user-one" class="onoffswitch-checkbox check" id="myonoffswitch-user-one">
+									<label class="onoffswitch-label" for="myonoffswitch-user-one">
+										<span class="onoffswitch-inner"></span>
+										<span class="onoffswitch-switch"></span>
+									</label>
+								</div>
+							</td>
+							<td class="users-table-body__cell">
+								<button class="remove-button remove">Remove</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="users-button-box">
+					<a id="add-permission" href="#" class="users-button" data-lift="PermissionManagement.addPermissionLink">Grant access to another user</a>
+				</div>
+			</div><!-- end Permissionmanagement.manage -->
+
+		</div>
+	</section>
+	<!-- account-info section_end -->
 </div>

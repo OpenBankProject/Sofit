@@ -98,10 +98,15 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson
         if(permissionExists) {{".check [checked]"} #> "checked"}
       else NOOP_SELECTOR
       
+      val userid = permission.user.flatMap(_.id).getOrElse("invalid_userid")
+      val onOffSwitch = "onoffswitch-user-" + userid + "-" + view.id.getOrElse("invalid_view_id")
       checkedSelector &
       ".check [onclick]" #> clickAjax &
-      ".check [data-userid]" #> permission.user.flatMap(_.id) &
-      ".check [data-viewid]" #> view.id
+      ".check [data-userid]" #> userid &
+      ".check [data-viewid]" #> view.id &
+      ".check [name]" #> onOffSwitch &
+      ".check [id]" #> onOffSwitch &
+      ".onoffswitch-label [for]" #> onOffSwitch
     })
   }
   

@@ -40,9 +40,10 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
         
         def invalidEmail() : Boolean = !email.contains("@")
         
-        if(viewData.forall(_.allowed == false)) showMsg("You must select at least one view to grant access to.")
-        else if(email.isEmpty()) showMsg("You must enter an e-mail address")
+        if(email.isEmpty()) showMsg("You must enter an e-mail address")
         else if(invalidEmail()) showMsg("Invalid e-mail address")
+        //else if(viewData.forall(vData => allowed(vData.view) == false)) showMsg("You must select at least one view to grant access to.")
+        else if(viewData.forall(_.allowed == false)) showMsg("You must select at least one view to grant access to.")
         else {
           //create the permission and return any failure
           if(url.length > 4) {
@@ -75,8 +76,16 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
       }
       
       ".view_row *" #> viewData.map(vData => {
+        val onOffSwitch = "onoffswitch-view-" + vData.view.id.getOrElse("")
         ".view_name *" #> vData.view.short_name.getOrElse(vData.view.id.getOrElse("")) &
-        ".view_check" #> SHtml.checkbox(allowed(vData.view), allowed.put(vData.view, _))
+        ".view_check" #> SHtml.checkbox(
+//          vData.allowed,
+//          vData.allowed = _,
+          allowed(vData.view),
+          allowed.put(vData.view, _),
+          "class" -> "onoffswitch-checkbox view_check",
+          "id" -> onOffSwitch) &
+        ".onoffswitch-label [for]" #> onOffSwitch
       }) &
       "name=email" #> (SHtml.text(email, email = _) ++ SHtml.hidden(process))
       
