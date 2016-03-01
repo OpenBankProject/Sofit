@@ -134,7 +134,7 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
         }
       }
 
-      CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _),
+      CustomEditable.editable(currentValue, SHtml.text(currentValue, currentValue = _, "class" -> "counterparties-input"),
         onSubmit = () => {
           saveValue()
           Noop
@@ -160,7 +160,7 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
       var currentValue = initialValue
       var inputDefaultValue = initialValue
 
-      CustomEditable.editable(inputDefaultValue, SHtml.text(inputDefaultValue, currentValue = _),
+      CustomEditable.editable(inputDefaultValue, SHtml.text(inputDefaultValue, currentValue = _, "class" -> "counterparties-input"),
         onSubmit = () => {
           if(currentValue.isEmpty || (holder.toLowerCase == currentValue.toLowerCase && apiProperty == "public_alias")){
             // delete Alias

@@ -1421,7 +1421,7 @@ table td {
 }
 
 .counterparties-table-head__cell {
-  width: 137px;
+  width: 135px;
   padding: 7px 0 4px 5px;
   position: relative;
   float: left;
@@ -1471,12 +1471,13 @@ table td {
 }
 
 .counterparties-table-body__cell {
-  width: 137px;
+  width: 135px;
   padding: 12px 0 10px 4px;
   font-size: 14px;
   line-height: 18px;
   color: #5D5D5D;
   vertical-align: text-top;
+  margin: 0 0 0 -3px; /* floating table header cells with background ::after do awkward things... */
 }
 
 .counterparties-button {
@@ -1489,9 +1490,10 @@ table td {
   line-height: 14px;
   color: #fff;
   text-align: left;
-  padding: 1px 0 1px 5px;
+  padding: 1px 0 1px 1px;
   margin: 0 3px 2px 0;
   outline: 0;
+  text-align: center;
 }
 
 .counterparties-button--edit {
@@ -1502,13 +1504,17 @@ table td {
   background-color: #E94C26;
 }
 
+.counterparties-input {
+	width: 90%;
+}
+
 .counterparties-table-body__cell-paragraph {
   margin: 0 0 0 0;
 }
 
 .plus-button {
-  width: 20px;
-  height: 19px;
+  width: 17px;
+  height: 17px;
   background-color: #31B8CD;
   border: 0;
   -moz-border-radius: 100%;
@@ -1523,8 +1529,8 @@ table td {
   content: "";
   position: absolute;
   z-index: 10;
-  top: 3px;
-  left: 10px;
+  top: 2px;
+  left: 8px;
   width: 1px;
   height: 13px;
   background-color: #fff;
@@ -1533,8 +1539,8 @@ table td {
   content: "";
   position: absolute;
   z-index: 10;
-  top: 9px;
-  left: 3px;
+  top: 8px;
+  left: 2px;
   width: 14px;
   height: 1px;
   background-color: #fff;

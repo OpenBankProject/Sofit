@@ -94,25 +94,24 @@ object CustomEditable {
       case "" => {
         if(removable){
           <div title={ noAliasTooltip } >
-            <a href="#" class={ editClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" } />
-            <br/><span class="text-add-edit">{ defaultValue }</span>
+            <p class="counterparties-table-body__cell-paragraph">{ defaultValue }</p>
+			<button class="counterparties-button counterparties-button--edit { editClass }" onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>Edit</button>
+            <button class="counterparties-button counterparties-button--delete { removeClass }" onclick={ removeAlias("", editForm, onSubmit, onDelete, defaultValue, divName, removable) }>Delete</button>
           </div>
-
         } else{
           <div>
-            <a href="#" class={ addClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>
-              { " " ++ defaultValue }
-            </a>
+            <button class="plus-button { addClass }" onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }></button>
+            <p class="counterparties-table-body__cell-text">{ " " ++ defaultValue }</p>
           </div>
         }
       }
       case _ => {
         <div>
-          <a href="#" class={ editClass } onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }/>
+          <p class="counterparties-table-body__cell-paragraph">{ label }</p>
+          <button class="counterparties-button counterparties-button--edit { editClass }" onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>Edit</button>
           { if (removable)
-            <a href="#" class={ removeClass } onclick={ removeAlias("", editForm, onSubmit, onDelete, defaultValue, divName, removable) } />
+            <button class="counterparties-button counterparties-button--delete { removeClass }" onclick={ removeAlias("", editForm, onSubmit, onDelete, defaultValue, divName, removable) }>Delete</button>
           }
-          <br/><span class="text">{ label }</span>
         </div>
       }
     }

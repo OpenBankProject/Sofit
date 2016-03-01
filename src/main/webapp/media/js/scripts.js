@@ -7,6 +7,7 @@
 		project.evenColumns();
 		project.counterpartiesFilter();
 		project.removeUserFromView();
+		project.managementTableSorter();
 	};
 
 	project.evenColumns = function() {
@@ -46,6 +47,10 @@
 			$(this).closest('.row').css('background-color', '#CC0000').fadeOut(1000, function() {$(this).remove();});
 		});
 	};
+
+	project.managementTableSorter = function() {
+		$("#management .tablesorter").tablesorter();
+	}
 
 	$(document).ready(project.init);
 

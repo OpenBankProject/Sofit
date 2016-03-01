@@ -28,87 +28,43 @@ Berlin 13359, Germany
   Everett Sochowski : everett AT tesobe DOT com
   Ayoub Benali: ayoub AT tesobe DOT com
 -->
-<div class="lift:surround?with=default;at=content">
-
-	<div class="lift:Management.setAccountTitle" id="account_details">
-		<span id="accountShortDescription" class="account_title">Account Title</span>
-	</div>
-
-	<div class="management">
-
-		<table id="other_acc_management" class="management tablesorter">
-			<thead>
-				<tr>
-					<th class="account">Account Name</th>
-					<th class="public">Public Alias</th>
-					<th class="private">Private Alias</th>
-					<th class="website">Website</th>
-					<th class="open_corporates">Open Corporates URL</th>
-					<th class="information">More information</th>
-					<th class="image">Image URL</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr class=lift:Management.showAll>
-					<td class="account" id="123" >Bob Smith</td>
-					<td class="public">
-						Edit interface gets bound here
-					</td>
-					<td class="private">
-					    Edit interface gets bound here
-						<!-- IF NO PRIVATE ALIAS
-                                <div class="private_not_set">
-                                	<a class="add_private add" href="#">Private alias</a>
-                                </div>
-                                <!-- ELSE PRIVATE ALIAS
-                                <div class="private_set">
-                                	<a class="edit" href="#">[edit]</a> <span class="edit_private text">Bobby</span>
-                                </div> -->
-					</td>
-					<td class="website">
-						Edit interface gets bound here
-						<!-- IF NO WEBSITE
-                                <div class="website_not_set">
-                                	<a class="add_website add" href="#">Website</a>
-                                </div>
-                                <!-- ELSE WEBSITE
-                                <div class="website_set">
-                                	<a class="edit" href="#">[edit]</a> <span class="edit_website text">http://openbankproject.com</span>
-                                </div> -->
-					</td>
-					<td class="open_corporates">
-						Edit interface gets bound here
-						<!-- IF NO OPEN CORPORATES
-                                <div class="open_corporates_not_set">
-                                	<a class="add_open_corporates add" href="#">Open Corporates URL</a>
-                               	</div>
-                                <!-- ELSE OPEN CORPORATES
-                                <div class="open_corporates_set">
-                                	<a class="edit" href="#">[edit]</a> <span class="edit_open_corporates text">http://opencorporates.com</span>
-                                </div> -->
-					</td>
-					<td class="information">
-						Edit interface gets bound here
-						<!-- IF NO INFORMATION
-                                <div class="information_not_set">
-                                	<a class="add_information add" href="#">Information</a>
-                                </div>
-                                <!-- ELSE INFORMATION
-                                <div class="information_set">
-                                	<a class="edit" href="#">[edit]</a> <span class="edit_information text">Blah blah</span>
-                                </div> -->
-					</td>
-					<td class="imageURL">
-						Edit interface gets bound here
-						<!-- IF NO IMAGE
-                                <a class="add_image upload" href="#">Upload image</a>
-                                <!-- ELSE IMAGE
-                                <span class="upload"><img class="edit_image" src="#" alt="Image" /></span> -->
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<div class="lift:Management.tableSorter"></div>
-	</div>
-
+<div id="management" data-lift="surround?with=default;at=content">
+	<section class="home-viewing">
+		<p class="home-viewing__text">VIEWING</p>
+		<h4 class="home-viewing__headline">Counterparties</h4>
+	</section>
+	
+   <section class="account-info">
+		<div class="account-info__box account-info__box--counterparties">
+			<div data-lift="Management.setAccountTitle" class="account-info__top-wrapper account-info__top-wrapper--counterparties">
+				<h3 class="account-info__box-headline account-info__box-headline--counterparties account_title">Account</h3>
+				<div data-lift="embed?what=_account_settings"></div>
+			</div>
+			<table class="counterparties-table tablesorter">
+				<thead class="counterparties-table-head">
+					<tr class="counterparties-table-head__row">
+						<td class="counterparties-table-head__cell counterparties-table-head__cell--active">Counterparty</td>
+						<td class="counterparties-table-head__cell">Public Alias</td>
+						<td class="counterparties-table-head__cell">Private Alias</td>
+						<td class="counterparties-table-head__cell">Website</td>
+						<td class="counterparties-table-head__cell">Corporates URL</td>
+						<td class="counterparties-table-head__cell">More info</td>
+						<td class="counterparties-table-head__cell">Image URL</td>
+					</tr>
+				</thead>
+				<tbody class="counterparties-table-body">
+					<tr class="counterparties-table-body__row" data-lift="Management.showAll">
+						<td class="counterparties-table-body__cell account"></td>
+						<td class="counterparties-table-body__cell public"></td>
+						<td class="counterparties-table-body__cell private"></td>
+						<td class="counterparties-table-body__cell website"></td>
+						<td class="counterparties-table-body__cell open_corporates"></td>
+						<td class="counterparties-table-body__cell information"></td>
+						<td class="counterparties-table-body__cell imageURL"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<!-- account-info section_end -->
 </div>
