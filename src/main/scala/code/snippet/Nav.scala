@@ -125,6 +125,20 @@ class Nav {
     } else eraseMenu
   }
 
+  // Menu for settings on account
+  def editSettings : CssSel = {
+    val views = accountJson.flatMap(_.views_available).toList.flatten
+    val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
+    
+    if(hasOwnerPermissions) {
+      val editSettingsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/settings"
+      ".navlink [href]" #> { editSettingsUrl } &
+      ".navlink *" #> "Settings" &
+      ".navlink [class+]" #> markIfSelected(editSettingsUrl)
+    } else eraseMenu
+  }
+
+
   def item = {
     val name = S.attr("name").getOrElse("")
     val loc = (for {

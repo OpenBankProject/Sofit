@@ -364,6 +364,23 @@ class Boot extends Loggable{
       } else Empty
     }
 
+    // Have this to be able to 404 if user not owner
+    def getAccountSettings(URLParameters: List[String]): Box[List[String]] = {
+      if (URLParameters.length == 2) {
+        val bank = URLParameters(0)
+        val account = URLParameters(1)
+
+        logOrReturnResult {
+          for {
+            _ <- ObpAPI.getAccount(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/)
+          } yield {
+            URLParameters
+          }
+        }
+      } else Empty
+    }
+
+
     // Build SiteMap
     // Note: See Nav.scala which modifies the menu
     // Note: This might be worth looking at: https://github.com/dph01/lift-TBUtils
@@ -379,7 +396,10 @@ class Boot extends Loggable{
       //test if the bank exists and if the user has access to the management page
       Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
+      Menu.params[List[String]]("Settings", "Account settings", getAccountSettings , x => List("")) / "banks" / * / "accounts" / * / "settings",
+
       Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
+
 
       Menu.params[(List[ViewJson], AccountJson, PermissionsUrlParams)]("Create Permission", "create permissions", getAccountViewsAndPermission _ , x => List(""))
       / "banks" / * / "accounts" / * / "permissions" / "create" ,

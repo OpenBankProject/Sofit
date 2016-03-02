@@ -1,0 +1,60 @@
+<!--
+Open Bank Project - Transparency / Social Finance Web Application
+Copyright (C) 2011 - 2016, TESOBE  Ltd.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Email: contact@tesobe.com
+TESOBE Ltd.
+Osloer Str. 16/17
+Berlin 13359, Germany
+
+  This product includes software developed at
+  TESOBE (http://www.tesobe.com/)
+  by
+  Simon Redfern : simon AT tesobe DOT com
+  Sebastian Henschel : sebastian AT tesobe DOT com
+-->
+
+<!--
+This renders the settings page for an account.
+e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
+-->
+
+<div id="settings" data-lift="surround?with=default;at=content">
+
+	<section class="home-viewing">
+		<p class="home-viewing__text">VIEWING</p>
+		<h4 class="home-viewing__headline">Account settings</h4>
+	</section>
+	
+	<!-- account-info section_start -->
+	<section class="account-info account-info--public">
+		<div class="account-info__box account-info__box--views">
+			<div class="account-info__top-wrapper" data-lift="Settings.accountLabel" >
+				<h3 class="account-info__box-headline account-label">Account</h3>
+				<div data-lift="embed?what=_account_settings"></div>
+			</div>
+
+			<div class="account-info__views-buttons-wrap" data-lift="Settings.editLabel">
+				<h4>Label</h4>
+				<form data-lift="form.ajax">
+					<input type="text" id="new_label" name="new_label" placeholder="Enter new label..." />
+				  	<input type="submit" value="Edit label" class="settings-buttons-wrap__button"/>
+				</form>
+			</div>
+		</div>
+	</section>
+	<!-- account-info section_end -->
+</div>
