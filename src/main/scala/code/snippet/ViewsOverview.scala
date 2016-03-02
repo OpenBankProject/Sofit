@@ -44,7 +44,6 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
     def saveOnClick(viewId : String): CssSel = {
       implicit val formats = DefaultFormats
 
-      ".save-button [data-id]" #> viewId &
       ".save-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
         val result: Box[Unit] = for {
           data <- tryo{parse(callResult).extract[ViewUpdateData]}
@@ -64,20 +63,18 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
     }
 
     def deleteOnClick(viewId : String): CssSel = {
-      ".delete-button [data-id]" #> viewId &
-        ".delete-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
-          val result = ObpAPI.deleteView(viewsDataJson.bankId, viewsDataJson.accountId, viewId)
+      ".delete-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
+        val result = ObpAPI.deleteView(viewsDataJson.bankId, viewsDataJson.accountId, viewId)
 
-          if(result) {
-            val msg = "View " + viewId + " has been deleted"
-            Call("socialFinanceNotifications.notify", msg).cmd
-            RedirectTo("")
-          }
-          else {
-            val msg = "Error deleting view"
-            Call("socialFinanceNotifications.notifyError", msg).cmd
-          }
-        })
+        if(result) {
+          val msg = "View " + viewId + " has been deleted"
+          Call("socialFinanceNotifications.notifyReload", msg).cmd
+        }
+        else {
+          val msg = "Error deleting view"
+          Call("socialFinanceNotifications.notifyError", msg).cmd
+        }
+      })
     }
 
     val permissionsCollection: List[Map[String, Boolean]] = views.map(view => view.permissions)
@@ -100,11 +97,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
     val aliasSel        = ".alias"       #> views.map( view => "* *" #> aliasType(view.alias) & "* [data-viewid]" #> view.id )
     val descriptionSel  = ".description" #> views.map( view => ".desc *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
     val isPublicSel     = ".is_public *" #> getIfIsPublic()
-    val addEditSel      = ".edit"        #> ids.map(x => "* [data-id]" #> x)
-    val addSaveSel      = ".save"        #> ids.map(x => ("* [data-id]" #> x) & deleteOnClick(x) & saveOnClick(x))
-    val addCancelSel    = ".cancel"      #> ids.map(x => "* [data-id]" #> x)
-
-
+    var actionsSel      = ".action-buttons" #> ids.map(x => ("* [data-id]" #> x) & saveOnClick(x) & deleteOnClick(x))
     val permissionNames = permissions.keys
     val permSel = ".permissions *" #>
       permissionNames.map(
@@ -119,9 +112,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
         descriptionSel &
         isPublicSel &
         permSel &
-        addEditSel &
-        addSaveSel &
-        addCancelSel
+        actionsSel
       ).apply(xhtml)
   }
 
@@ -142,9 +133,12 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
         else
             ".is_public_cb [disabled]" #> "disabled"
 
+        val id = "myonoffswitch-public-" + viewId
         val checkBox =
           checked &
-            ".is_public_cb [data-viewid]" #> viewId
+            ".is_public_cb [data-viewid]" #> viewId &
+            ".onoffswitch-label [for]" #> id &
+            ".is_public_cb [id]" #> id
 
         checkBox
       }
@@ -164,11 +158,14 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
           else
             ".permission_value_cb [disabled]" #> "disabled"
 
+        val id = "myonoffswitch-permission-" + permName + "-" + viewId
         val checkBox =
           checked &
           ".permission_value_cb [value]" #> permName &
           ".permission_value_cb [name]" #> permName &
-          ".permission_value_cb [data-viewid]" #> viewId
+          ".permission_value_cb [data-viewid]" #> viewId &
+          ".onoffswitch-label [for]" #> id &
+          ".permission_value_cb [id]" #> id
 
         checkBox
       }
@@ -190,11 +187,9 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
         val result = addView(bankId, accountId, newViewName)
 
         if (result.isDefined) {
-          val msg = "View " + newViewName + " has been created. Please use the Access tab to grant yourself or others access."
-          Call("socialFinanceNotifications.notify", msg).cmd
+          val msg = "View " + newViewName + " has been created. Don't forget to grant yourself or others access."
+          Call("socialFinanceNotifications.notifyReload", msg).cmd
           // After creation, current user does not have access so, we show message above.
-          // TODO: Redirect to a page where user can give him/her self access - and/or grant access automatically.
-          // For now, don't reload so user can see the message above // reload page for new view to be shown // RedirectTo("")
         } else {
           val msg = "View " + newViewName + " could not be created"
           Call("socialFinanceNotifications.notifyError", msg).cmd
@@ -219,9 +214,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
       val result = updateAccountLabel(bankId, accountId, newLabel)
       if (result.isDefined) {
         val msg = "Label " + newLabel + " has been set"
-        Call("socialFinanceNotifications.notify", msg).cmd
-        // So we can see the new account title which may use the updated label
-        RedirectTo("")
+        Call("socialFinanceNotifications.notifyReload", msg).cmd
       } else {
          val msg = "Sorry, Label" + newLabel + " could not be set ("+ result +")"
          Call("socialFinanceNotifications.notifyError", msg).cmd

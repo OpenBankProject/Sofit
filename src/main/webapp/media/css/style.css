@@ -1077,12 +1077,13 @@ table td {
 }
 
 .account-info__views-buttons-wrap {
-  margin: 0 0 27px;
+  margin: 50px 0 27px;
+  clear: both;
 }
 
 .views-buttons-wrap__button {
   margin: 0;
-  padding: 7px 0 5px 0;
+  padding: 7px 10px 5px 10px;
   background-color: #3A3A3A;
   color: #fff;
   -moz-border-radius: 20px;
@@ -1099,7 +1100,6 @@ table td {
 }
 .views-buttons-wrap__button:last-child {
   float: right;
-  width: 193px;
   margin: 0 18px 0 0;
 }
 
@@ -1116,17 +1116,14 @@ table td {
   padding: 0 0 9px 11px;
   font-size: 20px;
   line-height: 24px;
-  float: left;
+  display: table-cell;
 }
 .views-table-head__cell:first-child {
-  width: 362px;
   height: auto;
 }
 .views-table-head__cell:nth-child(2) {
-  width: 298px;
 }
 .views-table-head__cell:last-child {
-  width: 319px;
 }
 
 .views-table-body__row {
@@ -1136,19 +1133,17 @@ table td {
 }
 
 .views-table-body__cell {
-  float: left;
+  display: table-cell;
 }
 .views-table-body__cell:first-child {
-  width: 362px;
+  background-color: white !important;
   padding: 7px 0 7px 11px;
 }
-.views-table-body__cell:nth-child(2) {
-  width: 298px;
+.views-table-body__cell:nth-child(odd) {
   background-color: #EFF9FB;
   padding: 7px 0 7px 11px;
 }
-.views-table-body__cell:last-child {
-  width: 319px;
+.views-table-body__cell:nth-child(even) {
   background-color: #DCF4F0;
   padding: 7px 0 7px 11px;
 }
@@ -1156,9 +1151,14 @@ table td {
 .views-table-body__cell--bold {
   font-weight: bold;
 }
+.views-table-body__cell input {
+  width: 95%;
+}
+.views-table-body__cell select {
+  width: 95%;
+}
 
 .views-table-body__button {
-  margin: 0;
   padding: 2px 0 3px 7px;
   background-color: #3A3A3A;
   color: #fff;
@@ -1167,8 +1167,8 @@ table td {
   border-radius: 20px;
   letter-spacing: 0.5px;
   border: 0;
-  width: 90px;
-  font-size: 16px;
+  width: 55px;
+  font-size: 12px;
   line-height: 20px;
   text-align: left;
 }
@@ -1421,7 +1421,7 @@ table td {
 }
 
 .counterparties-table-head__cell {
-  width: 135px;
+  width: 139px;
   padding: 7px 0 4px 5px;
   position: relative;
   float: left;
@@ -1471,8 +1471,8 @@ table td {
 }
 
 .counterparties-table-body__cell {
-  width: 135px;
-  padding: 12px 0 10px 4px;
+  width: 138px;
+  padding: 12px 0 10px 8px;
   font-size: 14px;
   line-height: 18px;
   color: #5D5D5D;
@@ -1704,3 +1704,36 @@ table td {
 #permissions-create table {
 	margin-top: 40px;
 }
+
+
+#views #add-view-form {
+	display: none;
+}
+#views #edit-account-label-form {
+	display: none;
+}
+#views .save_head {
+	display: none;
+}
+#views .save-button.action {
+	display: none;
+}
+#views .delete-button.action {
+	display: none;
+}
+#views .cancel-button.action {
+	display: none;
+}
+#views .desc_input {
+	display: none;
+}
+#views button[disabled] {
+	cursor: unset;
+	opacity: 0.2;
+}
+#views input[disabled] + label {
+	cursor: unset;
+	opacity: 0.2;
+}
+
+

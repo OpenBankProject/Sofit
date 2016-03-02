@@ -37,72 +37,91 @@ See views.js for the javascript which manipulates the DOM for editing
 
 -->
 
-<div class="lift:surround?with=default;at=content">
-  <div class="lift:ViewsOverview.setAccountTitle" id="account_details">
-    <span id="accountShortDescription" class="account_title">Account Title</span>
-  </div>
-  <div class="views">
-    <div class="action-bar">
-      <button id="view-add">Add new view</button>
-      <div id="add-view-form" class="lift:ViewsOverview.setupAddView">
-        <form class="lift:form.ajax">
-          <input type="text" name="new_view_name" placeholder="View name">
-          <input type="submit" value="placeholder">
-        </form>
-      </div>
-      <button id="account-edit-label">Change account label</button>
-      <div id="account-edit-label-form" class="lift:ViewsOverview.setupEditLabel">
-        <form class="lift:form.ajax">
-          <input type="text" name="new_label" placeholder="Label">
-          <input type="submit" value="placeholder">
-        </form>
-      </div>
-      <button id="view-edit-advanced-options">Hide advanced options</button>
-    </div>
-    <div class="lift:ViewsOverview.getTableContent">
-      <table id="view_table">
-        <thead>
-          <tr class="view_head">
-            <th class="view_permissions"></th>
-            <th class="view_name" id="123">View name</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="edit_head">
-            <td></td>
-            <td class="edit action"><button>Edit</button></td>
-          </tr>
-          <tr class="save_head">
-            <td></td>
-            <td class="save">
-              <button class="save-button action">Save</button>
-              <button class="delete-button action">Delete</button>
-              <button class="cancel action">Cancel</button>
-            </td>
-            <td></td>
-          </tr>
-<!--           <tr class="short_name_head">
-            <td>View</td>
-            <td class="short_name">View short name</td>
-          </tr> -->
-          <tr class="is_public_head">
-            <td class="main-attributes">Visible to anyone (public)</td>
-            <td class="is_public"><input type="checkbox" class="is_public_cb" name="is_public" value="is_public"></td>
-          </tr>
-          <tr class="description_head advanced-option">
-              <td>Description</td>
-              <td class="description"><span class="desc">description</span><input class="desc_input" type="text" value=""></td>
-          </tr>
-          <tr class="alias_head advanced-option">
-            <td>Alias</td>
-            <td class="alias"></td>
-          </tr>
-          <tr class="permissions advanced-option">
-            <td class="permission_name">Permission name</td>
-            <td class="permission_value"><input type="checkbox" class="permission_value_cb" name="name" value="id"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<div id="views" data-lift="surround?with=default;at=content">
+
+	<section class="home-viewing">
+		<p class="home-viewing__text">VIEWING</p>
+		<h4 class="home-viewing__headline">Manage views</h4>
+	</section>
+	
+	<!-- account-info section_start -->
+	<section class="account-info account-info--public">
+		<div class="account-info__box account-info__box--views">
+			<div class="account-info__top-wrapper" data-lift="ViewsOverview.setAccountTitle" >
+				<h3 class="account-info__box-headline account_title">Account</h3>
+				<div data-lift="embed?what=_account_settings"></div>
+			</div>
+			<div class="account-info__views-buttons-wrap">
+				<button id="add-view" class="views-buttons-wrap__button">Add new view</button>
+		  		<div id="add-view-form" data-lift="ViewsOverview.setupAddView">
+					<form data-lift="form.ajax">
+					  <input type="text" name="new_view_name" placeholder="View name">
+					  <input type="submit" value="OK">
+					</form>
+			 	</div>
+
+				<button id="edit-account-label" class="views-buttons-wrap__button">Edit account label</button>
+		  		<div id="edit-account-label-form" data-lift="ViewsOverview.setupEditLabel">
+					<form data-lift="form.ajax">
+					  <input type="text" name="new_label" placeholder="Label">
+					  <input type="submit" value="OK">
+					</form>
+			 	</div>
+
+				<button id="view-edit-advanced-options" class="views-buttons-wrap__button">Hide advanced options</button>
+			</div>
+			<table data-lift="ViewsOverview.getTableContent" class="views-table">
+				<thead class="views-table-head">
+					<tr class="views-table-head__row">
+						<td class="views-table-head__cell view_permissions"></td>
+						<td class="views-table-head__cell view_name">Public</td>
+					</tr>
+				</thead>
+				<tbody class="views-table-body">
+					<tr class="views-table-body__row">
+						<td class="views-table-body__cell"></td>
+						<td class="views-table-body__cell action-buttons">
+							<button class="views-table-body__button edit-button action">Edit</button>
+							<button class="views-table-body__button save-button action">Save</button>
+						  	<button class="views-table-body__button delete-button action">Delete</button>
+						  	<button class="views-table-body__button cancel-button action">Cancel</button>
+						</td>
+					</tr>
+					<tr class="views-table-body__row">
+						<td class="views-table-body__cell views-table-body__cell--bold main-attributes">Visible to anyone (public)</td>
+						<td class="views-table-body__cell is_public">
+							<div class="onoffswitch">
+								<input type="checkbox" name="onoffswitch-public-view" class="onoffswitch-checkbox is_public_cb" name="is_public" value="is_public" id="myonoffswitch-public-view">
+								<label class="onoffswitch-label" for="myonoffswitch-public-view">
+									<span class="onoffswitch-inner"></span>
+									<span class="onoffswitch-switch"></span>
+								</label>
+							</div>
+						</td>
+					</tr>
+					<tr class="views-table-body__row advanced-option">
+						<td class="views-table-body__cell">Description</td>
+						<td class="views-table-body__cell description"><span class="desc">description</span><input class="desc_input" type="text" value=""></td>
+					</tr>
+					<tr class="views-table-body__row advanced-option">
+						<td class="views-table-body__cell">Alias</td>
+						<td class="views-table-body__cell alias"></td>
+					</tr>
+					<tr class="views-table-body__row permissions advanced-option">
+						<td class="views-table-body__cell permission_name">Permission name</td>
+						<td class="views-table-body__cell permission_value">
+							<div class="onoffswitch">
+								<input type="checkbox" name="myonoffswitch-permission-view" value="id" class="onoffswitch-checkbox permission_value_cb" id="myonoffswitch-permission-view">
+								<label class="onoffswitch-label" for="myonoffswitch-permission-view">
+									<span class="onoffswitch-inner"></span>
+									<span class="onoffswitch-switch"></span>
+								</label>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<!-- account-info section_end -->
 </div>

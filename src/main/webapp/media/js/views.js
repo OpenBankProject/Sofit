@@ -13,7 +13,7 @@ $(document).ready(function(){
 	}
   })
 
-  $('#view-add').click(function(){
+  $('#add-view').click(function(){
     var el = $('#add-view-form')
     if (el.is(":visible")) {
       el.hide()
@@ -23,8 +23,8 @@ $(document).ready(function(){
     }
   })
 
-  $('#account-edit-label').click(function(){
-    var el = $('#account-edit-label-form')
+  $('#edit-account-label').click(function(){
+    var el = $('#edit-account-label-form')
     if (el.is(":visible")) {
       el.hide()
     } else {
@@ -34,7 +34,7 @@ $(document).ready(function(){
   })
 
   /* clicking on edit: change view to edit mode for selected view */
-  $(".edit").on("click", function(){
+  $(".edit-button").on("click", function(){
     var viewId = $(this).attr("data-id")
     
     $(this).addClass("active");
@@ -60,9 +60,10 @@ $(document).ready(function(){
             $action.attr("disabled", "disabled");
     }
 
-    /* edit button disappears, save and cancel button appear */
-    $(".edit_head").hide();
-    $(".cancel_head, .save_head").show();
+    /* save and cancel button appear, edit button disappears */
+	var parent = $(this).parent();
+	parent.find('.action').show();
+	parent.find('.edit-button.action').hide();
 
     var descriptionText = "";
     /* viewId become editable */
@@ -106,11 +107,11 @@ $(document).ready(function(){
 
   });
     /* clicking on cancel: reload the page */
-    $(".cancel").on("click", function(){
+    $(".cancel-button").on("click", function(){
         window.location.reload();
     });
     
-    $(".save").on("click", function(){
+    $(".save-button").on("click", function(){
     	var $this = $(this);
     	var viewId = $this.attr("data-id")
 
@@ -157,9 +158,10 @@ $(document).ready(function(){
             $action.removeAttr("disabled");
         }
     	
-    	/* edit button appears, save and cancel button disappear */
-        $(".edit_head").show();
-        $(".cancel_head, .save_head").hide();
+    	/* save and cancel button disappear, edit button appears */
+		var parent = $(this).parent();
+		parent.find('.action').hide();
+		parent.find('.edit-button.action').show();
     });
 })
 
@@ -183,6 +185,5 @@ $(document).ready(function(){
         viewData.allowed_actions = allowedActions;
         saveJson.updateJson = viewData;
         return JSON.stringify(saveJson);
-    //  console.log("Then reload the page.")
     };
 
