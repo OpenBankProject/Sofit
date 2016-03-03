@@ -387,6 +387,7 @@ class Boot extends Loggable{
 
     val sitemap = List(
       Menu.i("Home") / "index",
+      Menu.i("404") / "404" >> Hidden,
 
       //Menu.i("Define Dashboard") / "dd",
 
