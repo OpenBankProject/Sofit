@@ -1092,12 +1092,6 @@ table td {
   letter-spacing: 0.5px;
   border: 0;
 }
-.views-buttons-wrap__button:first-child {
-  width: 142px;
-}
-.views-buttons-wrap__button:nth-child(2) {
-  width: 195px;
-}
 .views-buttons-wrap__button:last-child {
   float: right;
   margin: 0 18px 0 0;

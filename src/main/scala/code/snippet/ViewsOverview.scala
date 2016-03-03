@@ -201,7 +201,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
       // Bind newViewName field to variable (e.g. http://chimera.labs.oreilly.com/books/1234000000030/ch03.html)
       "@new_view_name" #> text(newViewName, s => newViewName = s) &
       // Replace the type=submit with Javascript that makes the ajax call.
-      "type=submit" #> ajaxSubmit("OK", process)
+      "type=submit" #> ajaxSubmit("Save", process)
     ).apply(xhtml)
   }
 }

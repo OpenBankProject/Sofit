@@ -55,8 +55,9 @@ See views.js for the javascript which manipulates the DOM for editing
 				<button id="add-view" class="views-buttons-wrap__button">Add new view</button>
 		  		<div id="add-view-form" data-lift="ViewsOverview.setupAddView">
 					<form data-lift="form.ajax">
-					  <input type="text" name="new_view_name" placeholder="View name">
-					  <input type="submit" value="OK">
+					  <input type="text" name="new_view_name" placeholder="Enter view name ..." required="required">
+					  <input class="views-buttons-wrap__button" type="submit" value="Save">&nbsp;
+					  <button class="views-buttons-wrap__button" id="add-view-cancel">Cancel</button>
 					</form>
 			 	</div>
 

@@ -14,13 +14,14 @@ $(document).ready(function(){
   })
 
   $('#add-view').click(function(){
-    var el = $('#add-view-form')
-    if (el.is(":visible")) {
-      el.hide()
-    } else {
-      el.css("display", "inline-block")
-      $('#add-view-form form input:first-of-type').focus()
-    }
+	$(this).hide();
+    var form = $('#add-view-form');
+	form.css('display', 'inline-block');
+    form.find('input:first-of-type').focus();
+  })
+  $('#add-view-cancel').click(function(){
+	$('#add-view-form').hide();
+	$('#add-view').show();
   })
 
   /* clicking on edit: change view to edit mode for selected view */
