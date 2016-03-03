@@ -408,10 +408,10 @@ class Boot extends Loggable{
       Menu.params[(PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)]("Permissions", "permissions", getPermissions _ , x => List("")) / "banks" / * / "accounts" / * / "permissions" ,
       Menu.params[List[BarebonesAccountJson]]("Manage Accounts", "manage accounts", getAccounts _ , x => List("")) / "list-accounts" ,
 
-      Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Bank Account", "bank accounts", getTransactions _ ,  t => List("") )
+      Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Transactions", "Transactions", getTransactions _ ,  t => List("") )
       / "banks" / * / "accounts" / * / *,
 
-      Menu.params[(TransactionJson, CommentsURLParams)]("transaction", "transaction", getTransaction _ ,  t => List("") )
+      Menu.params[(TransactionJson, CommentsURLParams)]("Transaction", "Transaction Detail", getTransaction _ ,  t => List("") )
       / "banks" / * / "accounts" / * / "transactions" / * / *,
 
       Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams)]("Dashboard", "dashboard", getDashboard _ ,  t => List("") )
