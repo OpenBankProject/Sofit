@@ -1,15 +1,17 @@
 package code.snippet
 
-import scala.xml.{NodeSeq}
-import net.liftweb.http.js.JE.{Call}
+import scala.xml.{NodeSeq, Text}
+
+import net.liftweb.common.Loggable
+import net.liftweb.http.js.JE.Call
 import net.liftweb.http.js.JsCmd
-import net.liftweb.util.Helpers._
+import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.http.{S, SHtml}
-import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
-import net.liftweb.common.{Loggable}
-import code.util.Helper.getAccountTitle
+import net.liftweb.util.Helpers._
+
 import code.lib.ObpAPI.updateAccountLabel
+import code.util.Helper.getAccountTitle
 
 
 /*
@@ -20,7 +22,7 @@ class AccountSettings(params: List[String]) extends Loggable {
   val accountId = params(1)
   val label = getAccountTitle(bankId, accountId)
 
-  def accountLabel = ".account-label *" #> label
+  def accountLabel = "#account-label *" #> label
 
   //set up ajax handlers to edit account label
   def editLabel(xhtml: NodeSeq): NodeSeq = {
@@ -31,7 +33,8 @@ class AccountSettings(params: List[String]) extends Loggable {
       val result = updateAccountLabel(bankId, accountId, newLabel)
       if (result.isDefined) {
         val msg = "Label " + newLabel + " has been set"
-        Call("socialFinanceNotifications.notifyReload", msg).cmd
+        SetHtml("account-label", Text(newLabel)) &
+        Call("socialFinanceNotifications.notify", msg).cmd
       } else {
          val msg = "Sorry, Label" + newLabel + " could not be set ("+ result +")"
          Call("socialFinanceNotifications.notifyError", msg).cmd
