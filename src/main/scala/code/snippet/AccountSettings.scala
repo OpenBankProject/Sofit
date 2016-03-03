@@ -15,7 +15,7 @@ import code.lib.ObpAPI.updateAccountLabel
 /*
 For maintaining permissions on the views (entitlements on the account)
  */
-class Settings(params: List[String]) extends Loggable {
+class AccountSettings(params: List[String]) extends Loggable {
   val bankId = params(0)
   val accountId = params(1)
   val label = getAccountTitle(bankId, accountId)
@@ -27,7 +27,7 @@ class Settings(params: List[String]) extends Loggable {
     var newLabel = ""
 
     def process(): JsCmd = {
-      logger.debug(s"Settings.setupEditLabel.process: edit label $newLabel")
+      logger.debug(s"AccountSettings.editLabel.process: edit label $newLabel")
       val result = updateAccountLabel(bankId, accountId, newLabel)
       if (result.isDefined) {
         val msg = "Label " + newLabel + " has been set"

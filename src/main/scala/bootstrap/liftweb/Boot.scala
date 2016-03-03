@@ -396,7 +396,7 @@ class Boot extends Loggable{
       //test if the bank exists and if the user has access to the management page
       Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
-      Menu.params[List[String]]("Settings", "Account settings", getAccountSettings , x => List("")) / "banks" / * / "accounts" / * / "settings",
+      Menu.params[List[String]]("AccountSettings", "Account settings", getAccountSettings _, x => List("")) / "banks" / * / "accounts" / * / "settings",
 
       Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
 

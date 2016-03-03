@@ -32,7 +32,7 @@ This renders the settings page for an account.
 e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 -->
 
-<div id="settings" data-lift="surround?with=default;at=content">
+<div id="account-settings" data-lift="surround?with=default;at=content">
 
 	<section class="home-viewing">
 		<p class="home-viewing__text">VIEWING</p>
@@ -42,16 +42,16 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 	<!-- account-info section_start -->
 	<section class="account-info account-info--public">
 		<div class="account-info__box account-info__box--views">
-			<div class="account-info__top-wrapper" data-lift="Settings.accountLabel" >
+			<div class="account-info__top-wrapper" data-lift="AccountSettings.accountLabel" >
 				<h3 class="account-info__box-headline account-label">Account</h3>
-				<div data-lift="embed?what=_account_settings"></div>
+				<div data-lift="embed?what=_nav_account_settings"></div>
 			</div>
 
-			<div class="account-info__views-buttons-wrap" data-lift="Settings.editLabel">
+			<div class="account-info__views-buttons-wrap" data-lift="AccountSettings.editLabel">
 				<h4>Label</h4>
 				<form data-lift="form.ajax">
 					<input type="text" id="new_label" name="new_label" placeholder="Enter new label..." />
-				  	<input type="submit" value="Edit label" class="settings-buttons-wrap__button"/>
+				  	<input type="submit" value="Edit label" class="account-settings-buttons-wrap__button"/>
 				</form>
 			</div>
 		</div>
