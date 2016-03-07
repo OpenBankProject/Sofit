@@ -4,35 +4,9 @@
 	var project = {};
 
 	project.init = function() {
-		project.evenColumns();
 		project.counterpartiesFilter();
 		project.removeUserFromView();
 		project.managementTableSorter();
-	};
-
-	project.evenColumns = function() {
-		$('.account-info .account-info__box').evenColumns(
-			{
-				columns: 2
-			}
-		);
-
-		$('.account-info__top-wrapper .account-info__box-headline').evenColumns(
-			{
-				columns: 2
-			}
-		);
-		$('.users-table-body__row .users-table-body__cell').evenColumns(
-			{
-				columns: 3
-			}
-		);
-
-		$('.views-table-body__row .views-table-body__cell').evenColumns(
-			{
-				columns: 3
-			}
-		);
 	};
 
 	project.counterpartiesFilter = function() {
