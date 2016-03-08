@@ -102,12 +102,12 @@ class AccountsOverview extends Loggable {
             aPublicView <- views.filter(view => view.is_public.getOrElse(false)).headOption
             viewId <- aPublicView.id
           } yield viewId).getOrElse("")
+          val accountId = accountJson.id.getOrElse("")
+          val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
 
-          ".accName *" #> accountDisplayName(accountJson) &
-          ".accLink [href]" #> {
-            val accountId = accountJson.id.getOrElse("")
-            "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
-          }
+          ".accName a *" #> accountDisplayName(accountJson) &
+          ".accName a [href]" #> url &
+          ".accLink [href]" #> url
         }
       }
     }
@@ -129,11 +129,11 @@ class AccountsOverview extends Loggable {
           aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
           viewId <- aPrivateView.id
         } yield viewId).getOrElse("")
+        val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
 
-        ".accName *" #> accountDisplayName(accountJson) &
-        ".accLink [href]" #> {
-          "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
-        }
+        ".accName a *" #> accountDisplayName(accountJson) &
+        ".accName a [href]" #> url &
+        ".accLink [href]" #> url
       }}
     }
 

@@ -756,6 +756,13 @@ table td {
   border-bottom: 1px solid #C4C4C4;
 }
 
+.acc-table-body__cell:first-child a {
+  text-decoration: none;
+  color: #5D5D5D;
+}
+.acc-table-body__cell:first-child a:hover {
+  text-decoration: underline;
+}
 .acc-table-body__cell:first-child {
   width: 720px;
   font-size: 14px;
