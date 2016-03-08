@@ -1285,9 +1285,8 @@ table td {
   -webkit-border-radius: 24px;
   border-radius: 24px;
   padding: 11px 0 9px 20px;
-  width: 102px;
+  width: 140px;
   display: block;
-  float: left;
   text-align: left;
   outline: 0;
 }
@@ -1336,7 +1335,12 @@ table td {
   margin: 24px 0 2px 3px;
 }
 
-.images-box--browse-button {
+.images-box__browse {
+	float: left;
+	width: 250px;
+	overflow: hidden;
+}
+.images-box__browse-button {
   width: 0.1px;
   height: 0.1px;
   opacity: 0;
@@ -1344,7 +1348,7 @@ table td {
   position: absolute;
   z-index: -1;
 }
-.images-box--browse-button + label {
+.images-box__browse-button + label {
   color: white;
   display: inline-block;
   cursor: pointer;
@@ -1352,13 +1356,11 @@ table td {
   width: 148px;
   padding: 10px 0 10px 23px;
 }
-
-
-.images-box__text {
-  float: left;
-  width: 82%;
-  margin: 18px 0 28px 14px;
+.images-box__browse-filename {
+  margin-left: 10px;
+  padding-top: 10px
 }
+
 
 .images-box__textarea {
   float: left;
@@ -1377,10 +1379,10 @@ table td {
   outline: 0;
 }
 
-.images-box--add-button {
+.images-box__add-button {
   float: left;
   width: 174px;
-  margin: 167px 0 0 6px;
+  margin-left: 9px;
   padding: 11px 0 9px 23px;
 }
 
@@ -1413,7 +1415,7 @@ table td {
 .comments-box--button {
   float: left;
   width: 241px;
-  margin: 190px 0 0 9px;
+  margin: 22px 0 0 9px;
   padding: 11px 0 9px 22px;
 }
 

@@ -98,11 +98,13 @@ Berlin 13359, Germany
 						<form id="imageUploader" method="post" enctype="multipart/form-data">
 							<p class="images-box__paragraph">Add a new image</p>
 							<input type="hidden" name="params" value="" />
-							<input class="images-box--browse-button" type="file" name="my_file" id="my_file"></input>
-							<label class="comments-button" for="my_file">BROWSE</label>
-							<p class="images-box--text">&nbsp;</p>
+							<div class="images-box__browse">
+								<input class="images-box__browse-button file-upload" type="file" name="my_file" id="my_file"></input>
+								<label class="comments-button file-upload-label" for="my_file">BROWSE</label>
+								<div class="images-box__browse-filename file-upload-filename"></div>
+							</div>
 							<textarea name="description" placeholder="Add a short description..." class="images-box__textarea"></textarea>
-							<button class="comments-button images-box--add-button">ADD IMAGE</button>
+							<button class="comments-button images-box__add-button">ADD IMAGE</button>
 						</form>
 					</div><!-- end images-box -->
 

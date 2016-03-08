@@ -8,6 +8,7 @@
 		project.removeUserFromView();
 		project.managementTableSorter();
 		project.transloadit();
+		project.fileUpload();
 	};
 
 	project.counterpartiesFilter = function() {
@@ -30,6 +31,12 @@
 	project.transloadit = function() {
 		$('#imageUploader').transloadit({
 			wait: true
+		});
+	}
+
+	project.fileUpload = function() {
+		$(".file-upload").change(function() {
+			    $(this).siblings('.file-upload-filename').html(this.value);
 		});
 	}
 
