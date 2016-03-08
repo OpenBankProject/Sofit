@@ -362,7 +362,7 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
           ("id", "addTagInput"),
           ("size", "30")) ++
           SHtml.ajaxSubmit(
-            "Tag",
+            "ADD TAG",
             () => {
               val newTags = ObpAPI.addTags(urlParams.bankId, urlParams.accountId, urlParams.viewId,
                   urlParams.transactionId, tagValues)
