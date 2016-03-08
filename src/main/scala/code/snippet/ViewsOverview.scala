@@ -1,5 +1,7 @@
 package code.snippet
 
+import scala.collection.immutable.{HashSet, TreeMap}
+import scala.collection._
 import code.util.Helper._
 import net.liftweb.http.js.JE.{Call, Str}
 import net.liftweb.http.js.JsCmd
@@ -98,14 +100,19 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
     val descriptionSel  = ".description" #> views.map( view => ".desc *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
     val isPublicSel     = ".is_public *" #> getIfIsPublic()
     var actionsSel      = ".action-buttons" #> ids.map(x => ("* [data-id]" #> x) & saveOnClick(x) & deleteOnClick(x))
-    val permissionNames = permissions.keys
-    val permSel = ".permissions *" #>
-      permissionNames.map(
+    // permissions.keys need to be converted to sequence to retain the same order when running map over it!
+    // Also sorting it
+    val permissionNames = permissions.keys.toSeq.sortWith(_ < _)
+    val permSel = ".permissions *" #> {
+      val permissionsCssSel = permissionNames.map(
         permName => {
+          val foo = permName
           ".permission_name *"  #> permName.capitalize.replace("_", " ") &
           ".permission_value *" #> getPermissionValues(permName)
         }
       )
+      permissionsCssSel
+    }
       (viewNameSel &
         shortNamesSel &
         aliasSel &
