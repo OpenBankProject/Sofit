@@ -97,20 +97,12 @@ Berlin 13359, Germany
 						</div>
 						<form id="imageUploader" method="post" enctype="multipart/form-data">
 							<p class="images-box__paragraph">Add a new image</p>
-							<input type="hidden" name="params"></input>
+							<input type="hidden" name="params" value="" />
 							<input class="images-box--browse-button" type="file" name="my_file" id="my_file"></input>
 							<label class="comments-button" for="my_file">BROWSE</label>
 							<p class="images-box--text">&nbsp;</p>
-							<textarea name="img__description" placeholder="Add a short description..." class="images-box__textarea"></textarea>
-							<button class="comments-button images-box--add-button addImageSubmit">ADD IMAGE</button>
-							<script type="text/javascript" src="https://assets.transloadit.com/js/jquery.transloadit2.js"></script>
-							<script type="text/javascript">
-							$(document).ready(function() {
-								$('#imageUploader').transloadit({
-									wait: true
-								});
-							});
-							</script>
+							<textarea name="description" placeholder="Add a short description..." class="images-box__textarea"></textarea>
+							<button class="comments-button images-box--add-button">ADD IMAGE</button>
 						</form>
 					</div><!-- end images-box -->
 

@@ -1296,6 +1296,36 @@ table td {
   margin: 29px 0 0 5px;
 }
 
+.image-holder {
+  border: 1px solid #C4C4C4;
+  -moz-border-radius: 24px;
+  -webkit-border-radius: 24px;
+  border-radius: 24px;
+  margin: 10px 0;
+  padding: 15px;
+}
+
+.transaction-image {
+  overflow: auto;
+}
+.transaction-image:after {
+  clear: both;
+}
+.transaction-image .deleteImage {
+  float: right;
+}
+.transaction-image .trans-image {
+  float: left;
+}
+.transaction-image .trans-image-meta {
+  float: left;
+  margin-left: 5px;
+}
+.transaction-image .image-description {
+	margin-bottom: 5px;
+}
+
+
 .images-box {
   color: #5D5D5D;
   font-size: 18px;

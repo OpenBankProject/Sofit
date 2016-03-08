@@ -7,6 +7,7 @@
 		project.counterpartiesFilter();
 		project.removeUserFromView();
 		project.managementTableSorter();
+		project.transloadit();
 	};
 
 	project.counterpartiesFilter = function() {
@@ -24,6 +25,12 @@
 
 	project.managementTableSorter = function() {
 		$("#management .tablesorter").tablesorter();
+	}
+
+	project.transloadit = function() {
+		$('#imageUploader').transloadit({
+			wait: true
+		});
 	}
 
 	$(document).ready(project.init);

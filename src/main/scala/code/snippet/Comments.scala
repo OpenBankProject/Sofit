@@ -198,28 +198,32 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
         //TODO: This could be optimised into calling an ajax function with image id as a parameter to avoid
         //storing multiple closures server side (i.e. one client side function maps to on server side function
         //that takes a parameter)
-        SHtml.ajaxInvoke(() => {
-          imageJson.id match {
-            case Some(id) => {
-              val deleted = ObpAPI.deleteImage(urlParams.bankId, urlParams.accountId,
-              urlParams.viewId, urlParams.transactionId, id)
-              if(!deleted) logger.error("Tried to delete an image but it didn't work")
+        if (!OAuthClient.loggedIn) {
+          Text("")
+        } else {
+          SHtml.a(() => {
+            imageJson.id match {
+              case Some(id) => {
+                val deleted = ObpAPI.deleteImage(urlParams.bankId, urlParams.accountId,
+                  urlParams.viewId, urlParams.transactionId, id)
+                if (!deleted) logger.error("Tried to delete an image but it didn't work")
+              }
+              case _ => logger.warn("Tried to delete an image without an id")
             }
-            case _ => logger.warn("Tried to delete an image without an id")
-          }
-          val jqueryRemoveImage = "$('.image-holder[data-id=\"" + imageHtmlId(imageJson) + "\"]').remove();"
-          JsRaw(jqueryRemoveImage).cmd
-        })
+            Hide(imageJson.id.getOrElse(""))
+          }, <img src="/media/images/close-icon.png" />, ("title", "Remove the image"))
+        }
       }
         
       ".noImages" #> "" &
         ".image-holder" #> imageJsons.map(imageJson => {
           ".image-holder [data-id]" #> imageHtmlId(imageJson) &
+          ".image-holder [id]" #> imageJson.id.getOrElse("") &
             ".trans-image [src]" #> imageJson.URL.getOrElse("") &
             ".image-description *" #> imageJson.label.getOrElse("") &
             ".postedBy *" #> imageJson.user.flatMap(_.display_name).getOrElse("") &
             ".postedTime *" #> imageJson.date.map(commentDateFormat.format(_)).getOrElse("") &
-            ".deleteImage [onclick]" #> deleteImage(imageJson)
+            ".deleteImage" #> deleteImage(imageJson)
         })
     }
       
@@ -237,7 +241,8 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
 
   def addImage = {
 
-    //transloadit requires its parameters to be an escaped json string
+    // transloadit requires its parameters to be a json string, according to docs
+    // but it doesn't like the output of Utility.escape and accepts the string unquoted
     val transloadItParams : String = {
       import net.liftweb.json.JsonDSL._
       import net.liftweb.json._
@@ -251,8 +256,8 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
           )
         ) ~
         ("template_id" -> addImageTemplate)
-
-      Utility.escape(compact(render(json)), new StringBuilder).toString
+      compact(render(json)).toString
+      //Utility.escape(compact(render(json)), new StringBuilder).toString
     }
 
     if(S.post_?) {
