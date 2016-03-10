@@ -94,7 +94,8 @@ class AccountsOverview extends Loggable {
     if (publicAccountJsons.size == 0) {
       ".accountItem" #> "No public accounts"
     } else {
-      ".accountItem" #> publicAccountJsons.map {
+      val sortedPublicAccountJsons = publicAccountJsons.sortBy(_._2.id)
+      ".accountItem" #> sortedPublicAccountJsons.map {
         case (bankId, accountJson) => {
           //TODO: It might be nice to ensure that the same view is picked each time the page loads
           val views = accountJson.views_available.toList.flatten
@@ -120,21 +121,23 @@ class AccountsOverview extends Loggable {
 
   def authorisedAccounts = {
     def loggedInSnippet = {
+      val sortedPrivateAccountJsons = privateAccountJsons.sortBy(_._2.id)
+      ".accountItem" #> sortedPrivateAccountJsons.map {
+        case (bankId, accountJson) => {
+          //TODO: It might be nice to ensure that the same view is picked each time the page loads
+          val views = accountJson.views_available.toList.flatten
+          val accountId : String = accountJson.id.getOrElse("")
+          val aPrivateViewId: String = (for {
+            aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
+            viewId <- aPrivateView.id
+          } yield viewId).getOrElse("")
+          val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
 
-      ".accountItem" #> privateAccountJsons.map {case (bankId, accountJson) => {
-        //TODO: It might be nice to ensure that the same view is picked each time the page loads
-        val views = accountJson.views_available.toList.flatten
-        val accountId : String = accountJson.id.getOrElse("")
-        val aPrivateViewId: String = (for {
-          aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
-          viewId <- aPrivateView.id
-        } yield viewId).getOrElse("")
-        val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
-
-        ".accName a *" #> accountDisplayName(accountJson) &
-        ".accName a [href]" #> url &
-        ".accLink [href]" #> url
-      }}
+          ".accName a *" #> accountDisplayName(accountJson) &
+          ".accName a [href]" #> url &
+          ".accLink [href]" #> url
+        }
+      }
     }
 
     def loggedOutSnippet = {
