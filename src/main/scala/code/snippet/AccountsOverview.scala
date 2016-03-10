@@ -92,7 +92,7 @@ class AccountsOverview extends Loggable {
 
   def publicAccounts = {
     if (publicAccountJsons.size == 0) {
-      ".accountItem" #> "No public accounts"
+      ".accountItem" #> "No public accounts available."
     } else {
       val sortedPublicAccountJsons = publicAccountJsons.sortBy(_._2.id)
       ".accountItem" #> sortedPublicAccountJsons.map {
@@ -121,25 +121,30 @@ class AccountsOverview extends Loggable {
 
   def authorisedAccounts = {
     def loggedInSnippet = {
-      val sortedPrivateAccountJsons = privateAccountJsons.sortBy(_._2.id)
-      ".accountItem" #> sortedPrivateAccountJsons.map {
-        case (bankId, accountJson) => {
-          //TODO: It might be nice to ensure that the same view is picked each time the page loads
-          val views = accountJson.views_available.toList.flatten
-          val accountId : String = accountJson.id.getOrElse("")
-          val aPrivateViewId: String = (for {
-            aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
-            viewId <- aPrivateView.id
-          } yield viewId).getOrElse("")
-          val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
+      if (privateAccountJsons.size == 0) {
+        ".accName *" #> "No authorised accounts available." &
+        ".accLink" #> ""
+      } else {
+        val sortedPrivateAccountJsons = privateAccountJsons.sortBy(_._2.id)
+        ".accountItem" #> sortedPrivateAccountJsons.map {
+          case (bankId, accountJson) => {
+            //TODO: It might be nice to ensure that the same view is picked each time the page loads
+            val views = accountJson.views_available.toList.flatten
+            val accountId : String = accountJson.id.getOrElse("")
+            val aPrivateViewId: String = (for {
+              aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
+              viewId <- aPrivateView.id
+            } yield viewId).getOrElse("")
+            val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
 
-          ".accName a *" #> accountDisplayName(accountJson) &
-          ".accName a [href]" #> url &
-          ".accLink [href]" #> url
+            ".accName a *" #> accountDisplayName(accountJson) &
+            ".accName a [href]" #> url &
+            ".accLink [href]" #> url
+          }
         }
       }
     }
-
+5
     def loggedOutSnippet = {
    //   ".accountItem" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
       ".accName *" #> "You are logged out. No authorised accounts available." &
