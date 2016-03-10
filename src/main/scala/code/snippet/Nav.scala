@@ -42,7 +42,10 @@ import net.liftweb.common.Empty
 import net.liftweb.sitemap.SiteMapSingleton
 import code.lib.ObpJson._
 import code.lib.ObpAPI
+import code.util.Helper
 import net.liftweb.util.CssSel
+
+import scala.xml.NodeSeq
 
 
 class Nav {
@@ -65,6 +68,11 @@ class Nav {
       accJson.views_available
     }).toList.flatten
   }
+  val hasManagementAccess = accountJson match {
+    case Some(x) => Helper.hasManagementAccess(x)
+    case _ => false
+  }
+
 
   def eraseMenu =
     "*" #> ""
@@ -89,17 +97,23 @@ class Nav {
       eraseMenu
   }
 
+
+  def navAccountSettings : CssSel = {
+    if (hasManagementAccess) {
+      "nosuchtag" #> "" // there doesn't seem to be a noop?
+    } else {
+      eraseMenu
+    }
+  }
+
+
   def management = {
     
     val url = S.uri.split("/", 0)
 
     // Menu for a page which lists counterparties and their metadata (and edits the metadata)
     def getManagement = {
-      val views = accountJson.flatMap(_.views_available).toList.flatten
-      //TODO: Determine this in a better way
-      val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
-      
-      if (hasOwnerPermissions) {
+      if (hasManagementAccess) {
         val managementUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/management"
         Some(".navlink [href]" #> { managementUrl } &
         ".navlink *" #> "Counterparties" &
@@ -114,10 +128,7 @@ class Nav {
 
   // Menu For Entitlements / permissions on an account / view
   def editViews : CssSel = {
-    val views = accountJson.flatMap(_.views_available).toList.flatten
-    val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
-    
-    if(hasOwnerPermissions) {
+    if (hasManagementAccess) {
       val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
       ".navlink [href]" #> { editViewsUrl } &
       ".navlink *" #> "Views" &
@@ -127,10 +138,7 @@ class Nav {
 
   // Menu for settings on account
   def accountSettings : CssSel = {
-    val views = accountJson.flatMap(_.views_available).toList.flatten
-    val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
-    
-    if (hasOwnerPermissions) {
+    if (hasManagementAccess) {
       val accountSettingsURL = "/banks/" + url(2) + "/accounts/" + url(4) + "/settings"
       ".navlink [href]" #> { accountSettingsURL } &
       ".navlink *" #> "Settings" &
@@ -163,11 +171,7 @@ class Nav {
     val url = S.uri.split("/", 0)
 
     def getPrivilegeAdmin = {
-      val views = accountJson.flatMap(_.views_available).toList.flatten
-      //TODO: Determine this in a better way
-      val hasOwnerPermissions = views.exists(v => v.id == Some("owner"))
-      
-      if (hasOwnerPermissions) {
+      if (hasManagementAccess) {
         val permissionsUrls = "/banks/" + url(2) + "/accounts/" + url(4) + "/permissions"
         Some(".navitem *" #> {
         ".navlink [href]" #> permissionsUrls &
@@ -186,5 +190,4 @@ class Nav {
     if (href.equals(currentHref)) Full("selected")
     else Empty
   }
-
 }
