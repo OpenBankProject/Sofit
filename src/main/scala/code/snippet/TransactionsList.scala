@@ -80,6 +80,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
 
   def individualApiTransaction(transaction: TransactionJson): CssSel = {
+    val transactionURI = "transactions/" + transaction.id.getOrElse("") + "/" + transactionsURLParams.viewId
 
     def otherPartyInfo: CssSel = {
 
@@ -142,7 +143,8 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
               ".otherAccountLinkForName *" #> oAcc.holder.flatMap(_.name).getOrElse(FORBIDDEN) &
               ".otherAccountLinkForAlias [href]" #> otherAccountLink
             } else {
-              ".the_name *" #> oAcc.holder.flatMap(_.name).getOrElse(FORBIDDEN)
+              ".otherAccountLinkForName [href]" #> transactionURI &
+              ".otherAccountLinkForName *" #> oAcc.holder.flatMap(_.name).getOrElse(FORBIDDEN)
             }
           }
           
@@ -285,9 +287,8 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
           metadata <- transaction.metadata
           comments <- metadata.comments
         } yield {
-          var uri = "transactions/" + transaction.id.getOrElse("") + "/" + transactionsURLParams.viewId
-          ".comments_page [href]" #> { uri } &
-          ".comments_bloc [href]" #> { uri + "#commentsBloc"} &
+          ".comments_page [href]" #> { transactionURI } &
+          ".comments_bloc [href]" #> { transactionURI + "#commentsBloc"} &
           ".comment *" #> comments.size.toString
         }
         
