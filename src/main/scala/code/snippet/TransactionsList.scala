@@ -417,6 +417,9 @@ Used in transactions list
       amt <- newBalance.amount
     } yield amt).getOrElse("")
 
+
+    // If the view doesn't allow the amount to be seen we could get an empty string here
+    // If amount is not a number return None
     val isPositiveSumAmount : Box[Boolean] = {
       try {
         Full(amount.toDouble > 0)
@@ -432,6 +435,12 @@ Used in transactions list
       isPositiveSumAmount match {
         case Full(isPos) => if (isPos) "green--color" else "orange--color"
         case _ => ""
+      }
+    } &
+    ".balance--cell *" #> {
+      isPositiveSumAmount match {
+        case Empty => "" // Hide the balance string if it is None (i.e. the view does not allow it to be seen)
+        case _ => "Balance"
       }
     }
   }
