@@ -418,8 +418,11 @@ Used in transactions list
     } yield amt).getOrElse("")
 
     val isPositiveSumAmount : Box[Boolean] = {
-      val amountAsDouble = amount.toDouble
-      Full(amountAsDouble > 0)
+      try {
+        Full(amount.toDouble > 0)
+      } catch {
+        case e: Exception => None
+      }
     }
     
     ".date *" #> date &
