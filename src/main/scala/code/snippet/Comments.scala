@@ -77,16 +77,16 @@ case class CommentsURLParams(bankId: String, accountId: String, viewId: String, 
 /**
  * This whole class is a rather hastily put together mess
  */
-class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
+class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) extends Loggable{
   
   val FORBIDDEN = "---"
   val transactionJson = params._1
-  val urlParams = params._2
+  val accountJson = params._2
+  val urlParams = params._3
   val details = transactionJson.details
   val transactionMetaData = transactionJson.metadata
   val otherHolder = transactionJson.other_account.flatMap(_.holder)
   val transactionValue = details.flatMap(_.value)
-  val accountJson = ObpAPI.getAccount(urlParams.bankId, urlParams.accountId, "owner").openOrThrowException("Could not open accountJson")
   val hasManagementAccess = Helper.hasManagementAccess(accountJson)
 
   def calcCurrencySymbol(currencyCode: Option[String]) = {

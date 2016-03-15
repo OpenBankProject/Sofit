@@ -266,7 +266,7 @@ class Boot extends Loggable{
     }
 
     //getTransaction can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
-    object transactionMemo extends RequestVar[Box[Box[(code.lib.ObpJson.TransactionJson, code.snippet.CommentsURLParams)]]](Empty)
+    object transactionMemo extends RequestVar[Box[Box[(code.lib.ObpJson.TransactionJson, code.lib.ObpJson.AccountJson, code.snippet.CommentsURLParams)]]](Empty)
     def getTransaction(URLParameters: List[String]) =
       {
 
@@ -285,7 +285,8 @@ class Boot extends Loggable{
             val result = logOrReturnResult {
               for {
                 tJson <- transactionJson
-              } yield (tJson, commentsURLParams)
+                accountJson <- ObpAPI.getAccount(bank, account, viewName)
+              } yield (tJson, accountJson, commentsURLParams)
             }
 
             transactionMemo.set(Full(result))
@@ -411,7 +412,7 @@ class Boot extends Loggable{
       Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams)]("Transactions", "Transactions", getTransactions _ ,  t => List("") )
       / "banks" / * / "accounts" / * / *,
 
-      Menu.params[(TransactionJson, CommentsURLParams)]("Transaction", "Transaction Detail", getTransaction _ ,  t => List("") )
+      Menu.params[(TransactionJson, AccountJson, CommentsURLParams)]("Transaction", "Transaction Detail", getTransaction _ ,  t => List("") )
       / "banks" / * / "accounts" / * / "transactions" / * / *,
 
       Menu.params[(TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams)]("Dashboard", "dashboard", getDashboard _ ,  t => List("") )
