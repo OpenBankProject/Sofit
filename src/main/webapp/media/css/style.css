@@ -1274,7 +1274,7 @@ table td {
 .tags-box__input {
   font-size: 15px;
   line-height: 19px;
-  margin: 29px 5px 0 0;
+  margin-right: 10px;
   padding: 11px 0 11px 18px;
   -moz-border-radius: 20px;
   -webkit-border-radius: 20px;
