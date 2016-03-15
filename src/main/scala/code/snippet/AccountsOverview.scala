@@ -94,7 +94,7 @@ class AccountsOverview extends Loggable {
     if (publicAccountJsons.size == 0) {
       ".accountItem" #> "No public accounts available."
     } else {
-      val sortedPublicAccountJsons = publicAccountJsons.sortBy(a => (a._2.label, a._2.id))
+      val sortedPublicAccountJsons = publicAccountJsons.sortBy(a => (a._2.label.toString.toLowerCase, a._2.id.toString.toLowerCase))
       ".accountItem" #> sortedPublicAccountJsons.map {
         case (bankId, accountJson) => {
           //TODO: It might be nice to ensure that the same view is picked each time the page loads
