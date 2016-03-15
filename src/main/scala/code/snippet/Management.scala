@@ -60,7 +60,7 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
   val options = CustomTableSorter.options(headers, sortList)
 
 
-  def setAccountTitle = ".account_title *" #> getAccountTitle(urlParams.bankId, urlParams.accountId)
+  def accountTitle = ".account_title *" #> getAccountTitle(urlParams.bankId, urlParams.accountId)
 
   def tableSorter(xhtml: NodeSeq) : NodeSeq = {
     CustomTableSorter("#other_acc_management", options)

@@ -23,18 +23,10 @@ object Helper {
 
 /*
 Returns a string which can be used for the title of the account
-Uses the Label else Number if possible
+Uses the Label else Id if possible
 */
   def getAccountTitle(accountJson: AccountJson ) : String = {
-  // Rewrite in more idiomatic style?
-      var title = accountJson.label.getOrElse("Empty Label")
-      if (title.isEmpty) {
-        if (hasManagementAccess(accountJson)) // Is this logic in the API?
-          title = accountJson.number.getOrElse("Empty Number")
-        else
-          title = accountJson.id.getOrElse("---")
-      }
-    title
+    accountJson.label.getOrElse(accountJson.id.getOrElse("---"))
   }
 
 

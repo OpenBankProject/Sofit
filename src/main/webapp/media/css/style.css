@@ -1187,6 +1187,10 @@ table td {
   padding: 3px 1px 21px;
 }
 
+.account-info__top-wrapper--comments {
+	margin-bottom: 50px;
+}
+
 .comments-table {
   width: 100%;
   margin: 0 0 108px;

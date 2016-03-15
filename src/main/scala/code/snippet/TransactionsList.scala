@@ -433,45 +433,9 @@ Used in transactions list
     }
   }
 
-  def accountDetails = {
 
-    //TODO: We don't have access to this information via the api (yet)
-    def lastUpdated = {
-      "#lastUpdate *" #> ""
-    }
+  def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
 
-    def accountLabel = {
-      val accountTitle = getAccountTitle(accountJson)
-      //"#accountShortDescription *" #> accountTitle &
-      ".seb *" #> "simon" // accountTitle
-    }
-
-    /*    LocalStorage.getAccount(url(2), url(4)) match {
-                  case Full(account) => "#lastUpdate *"#> {
-                    val dateFormat = new SimpleDateFormat("kk:mm EEE MMM dd yyyy")
-                     if(!account.lastUpdate.asString.contains("Empty"))
-                       "Last updated : " + dateFormat.format(account.lastUpdate.get)
-                     else
-                       "Not yet updated"
-                  }
-                  case _ =>  NOOP_SELECTOR
-                }
-              }
-    }*/
-
-    accountLabel //&//lastUpdated
-  }
-
-
-  def accountInfo = {
-    var label = ".account-label *" #> accountJson.label.getOrElse(accountJson.id.getOrElse("unknown account name"))
-    if (!hasManagementAccess) {
-      label & ".account-info__box-link" #> ""
-    } else {
-      label
-    }
-  }
-  
 
   def hideSocialWidgets = {
     if(transactionsURLParams.viewId != "Public") "#socialButtons *" #> NodeSeq.Empty

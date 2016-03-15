@@ -38,7 +38,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
   val bankId = viewsDataJson.bankId
   val accountId = viewsDataJson.accountId
 
-  def setAccountTitle = ".account_title *" #> getAccountTitle(bankId, accountId)
+  def accountTitle = ".account-title *" #> getAccountTitle(bankId, accountId)
 
   def getTableContent(xhtml: NodeSeq) :NodeSeq = {
 

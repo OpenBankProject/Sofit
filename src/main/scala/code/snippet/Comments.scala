@@ -86,11 +86,8 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
   val transactionMetaData = transactionJson.metadata
   val otherHolder = transactionJson.other_account.flatMap(_.holder)
   val transactionValue = details.flatMap(_.value)
-  val accountJson = ObpAPI.getAccount(urlParams.bankId, urlParams.accountId, "owner")
-  val hasManagementAccess = accountJson match {
-    case Full(x) => Helper.hasManagementAccess(x)
-    case _ => false
-  }
+  val accountJson = ObpAPI.getAccount(urlParams.bankId, urlParams.accountId, "owner").openOrThrowException("Could not open accountJson")
+  val hasManagementAccess = Helper.hasManagementAccess(accountJson)
 
   def calcCurrencySymbol(currencyCode: Option[String]) = {
     (for {
@@ -102,6 +99,8 @@ class Comments(params : (TransactionJson, CommentsURLParams)) extends Loggable{
   val commentDateFormat = new SimpleDateFormat("kk:mm:ss EEE MMM dd yyyy")
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
 
+
+  def accountTitle = ".account-title *" #> Helper.getAccountTitle(accountJson)
 
 
   /*

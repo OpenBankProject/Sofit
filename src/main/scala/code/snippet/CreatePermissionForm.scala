@@ -13,6 +13,8 @@ import code.lib.ObpJson.PermissionsJson
 import code.lib.ObpJson.AccountJson
 import code.lib.ObpJson.ViewJson
 import net.liftweb.util.CssSel
+import code.util.Helper.getAccountTitle
+
 
 class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrlParams)) extends Loggable {
     case class ViewData(view : ViewJson, allowed: Boolean)
@@ -90,5 +92,5 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
       
     }
 
-    def accountInfo = ".account-label *" #> accountJson.label.getOrElse("---")
+    def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
   }

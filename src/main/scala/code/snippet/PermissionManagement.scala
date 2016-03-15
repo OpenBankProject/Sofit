@@ -73,7 +73,7 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson
     }
     """).cmd
 
-  def accountInfo = ".account-label *" #> getAccountTitle(accountJson)
+  def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
 
   def accountViewHeaders = {
     val viewNames : List[String] = nonPublicViews.map(_.short_name.getOrElse(""))
