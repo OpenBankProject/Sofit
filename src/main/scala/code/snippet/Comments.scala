@@ -270,7 +270,7 @@ class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) exten
       val addedImage = for {
         transloadit <- S.param("transloadit") ?~! "No transloadit data received"
         json <- tryo{parse(transloadit)} ?~! "Could not parse transloadit data as json"
-        imageUrl <- tryo{val JString(a) = json \ "results" \\ "url"; a} ?~! {"Could not extract url string from json: " + compact(render(json))}
+        imageUrl <- tryo{val JString(a) = json \ "results" \\ "ssl_url"; a} ?~! {"Could not extract url string from json: " + compact(render(json))}
         addedImage <- ObpAPI.addImage(urlParams.bankId, urlParams.accountId, urlParams.viewId, urlParams.transactionId, imageUrl, description)
       } yield addedImage
 
