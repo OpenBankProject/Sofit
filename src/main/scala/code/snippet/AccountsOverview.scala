@@ -92,7 +92,7 @@ class AccountsOverview extends Loggable {
 
   def publicAccounts = {
     if (publicAccountJsons.size == 0) {
-      ".accountItem" #> "No public accounts available."
+      ".accountItem" #> "None available."
     } else {
       val sortedPublicAccountJsons = publicAccountJsons.sortBy(a => (a._2.label.toString.toLowerCase, a._2.id.toString.toLowerCase))
       ".accountItem" #> sortedPublicAccountJsons.map {
