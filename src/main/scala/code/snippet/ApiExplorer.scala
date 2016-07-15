@@ -109,7 +109,7 @@ class ApiExplorer extends Loggable {
 
     // The overview contains html. Just need to convert it to a NodeSeq so the template will render it as such
     val resources = for {
-      r <- getResourceDocsJson.map(_.resource_docs).get
+      r <- getResourceDocsJson.map(_.resource_docs).getOrElse(List.empty)
     } yield ResourceDoc(id = r.operation_id, verb = r.request_verb, url = modifiedRequestUrl(r.request_url, presetBankId, presetAccountId), summary = r.summary, description = stringToNodeSeq(r.description), example_request_body = r.example_request_body)
 
     // Controls when we display the request body.
