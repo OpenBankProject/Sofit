@@ -32,23 +32,15 @@ Berlin 13359, Germany
 
 package code.snippet
 
-import net.liftweb.http.js.JE.JsRaw
-import net.liftweb.http.js.JsCmd
-import net.liftweb.util.Helpers._
-import net.liftweb.common.{Box, Full, Loggable}
-import net.liftweb.http.{S, SHtml}
-import scala.xml.{NodeSeq, Text}
-import net.liftweb.http.js.JsCmds.{Script, _Noop, Noop}
-import code.lib.ObpGet
+import code.lib.{OAuthClient, ObpAPI}
 import code.lib.ObpJson._
-import net.liftweb.json.JsonAST.{JInt, JArray}
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JObject
-import net.liftweb.json.JsonAST.JString
-import net.liftweb.json.JsonAST.JValue
-import net.liftweb.json.JBool
-import code.lib.ObpAPI
-import code.lib.OAuthClient
+import net.liftweb.common.Loggable
+import net.liftweb.http.SHtml
+import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.http.js.JsCmds.Noop
+import net.liftweb.util.Helpers._
+
+import scala.xml.Text
 
 class AccountsOverview extends Loggable {
 
@@ -145,7 +137,7 @@ class AccountsOverview extends Loggable {
         }
       }
     }
-5
+
     def loggedOutSnippet = {
    //   ".accountItem" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
       ".accName *" #> "You are logged out. No authorised accounts available." &
