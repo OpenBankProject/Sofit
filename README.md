@@ -1,4 +1,4 @@
-Welcome to the Open Bank Project Social Finance !
+Welcome to the Open Bank Project Sofi !
 
 # ABOUT
 
@@ -83,7 +83,7 @@ should be the easiest way to get started.
 transloadit.authkey
 transloadit.addImageTemplate
 
-The Social Finance app uses transloadit.com to process uploaded images. If these are not filling in, users will not be able to add images to
+The Sofi app uses transloadit.com to process uploaded images. If these are not filling in, users will not be able to add images to
 individual transactions.
 
 transloadit.authkey can be obtained by registering at transloadit.com
