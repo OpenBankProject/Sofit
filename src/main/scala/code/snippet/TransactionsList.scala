@@ -406,7 +406,7 @@ Used in transactions list
   }
   
   def daySummary(transactionsForDay: List[TransactionJson]) = {
-    val aTransaction = transactionsForDay.last
+    val aTransaction = transactionsForDay.sortBy(_.details.get.completed).last
     val date = aTransaction.details.flatMap(_.completed) match {
       case Some(d) => (new SimpleDateFormat("MMMM dd, yyyy")).format(d)
       case _ => ""
