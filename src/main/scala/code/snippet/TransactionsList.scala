@@ -1,5 +1,5 @@
 /**
-Open Bank Project - Transparency / Social Finance Web Application
+Open Bank Project - Sofi Web Application
 Copyright (C) 2011 - 2016, TESOBE  Ltd.
 
 This program is free software: you can redistribute it and/or modify
@@ -406,7 +406,7 @@ Used in transactions list
   }
   
   def daySummary(transactionsForDay: List[TransactionJson]) = {
-    val aTransaction = transactionsForDay.last
+    val aTransaction = transactionsForDay.sortBy(_.details.get.completed).last
     val date = aTransaction.details.flatMap(_.completed) match {
       case Some(d) => (new SimpleDateFormat("MMMM dd, yyyy")).format(d)
       case _ => ""
