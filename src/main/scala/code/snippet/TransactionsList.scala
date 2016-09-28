@@ -355,12 +355,12 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/public
    */
   def displayAll = {
-    val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
+    val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
     ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) // The previous CSS selector was "* *"
   }
 
   def displayForDashboard = {
-    val groupedApiTransactions = groupByDate(transactionsJson.transactions.getOrElse(Nil))
+    val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
     ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) &  // The previous CSS selector was "* *"
       ".account_title *" #> getAccountTitle(accountJson) &
       ".view_id *" #> transactionsURLParams.viewId
@@ -392,6 +392,15 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 Used in transactions list
 
    */
+  def sortByDate(list : List[TransactionJson]) : List[TransactionJson] = {
+    list match {
+      case Nil => Nil
+      case h :: Nil => list
+      case h :: t => {
+        list.sortBy(_.details.get.completed).reverse
+      }
+    }
+  }
 
   def groupByDate(list : List[TransactionJson]) : List[List[TransactionJson]] = {
     list match {
