@@ -399,6 +399,8 @@ Used in transactions list
       case h :: Nil => List(list)
       case h :: t => {
         //transactions that are identical to the head of the list
+        // TODO sort by date or check API sort (should be completed date reverse)
+        // .sortBy(_.details.get.completed)
         val matches = list.filter(hasSameDate(h, _))
         List(matches) ++ groupByDate(list diff matches)
       }
