@@ -37,6 +37,7 @@ import net.liftweb.http._
 import java.util.Calendar
 import xml.NodeSeq
 import net.liftweb.util.Helpers._
+import net.liftweb.util.Props
 import net.liftweb.util._
 import scala.xml.Text
 import net.liftweb.common.{Box, Failure, Empty, Full}
@@ -349,19 +350,31 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     otherPartyInfo
   }
 
+  class PersistentDouble(initialValue: Double) {
+    var _total:Double = initialValue
+
+    def set(total: Double) =
+      _total = total
+
+    def get =
+      _total
+  }
 
   /*
   Used in the display of the transactions list
   e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/public
    */
   def displayAll = {
+    val total = new PersistentDouble(accountJson.balance.get.amount.get.toDouble)
     val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
-    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) // The previous CSS selector was "* *"
+    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) // The previous CSS selector was "* *"
   }
 
+
   def displayForDashboard = {
+    val total = new PersistentDouble(accountJson.balance.get.amount.get.toDouble)
     val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
-    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary) &  // The previous CSS selector was "* *"
+    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) &  // The previous CSS selector was "* *"
       ".account_title *" #> getAccountTitle(accountJson) &
       ".view_id *" #> transactionsURLParams.viewId
   }
@@ -415,8 +428,8 @@ Used in transactions list
       }
     }
   }
-  
-  def daySummary(transactionsForDay: List[TransactionJson]) = {
+
+  def daySummary(transactionsForDay: List[TransactionJson], _total: PersistentDouble ) = {
     val aTransaction = transactionsForDay.sortBy(_.details.get.completed).last
     val date = aTransaction.details.flatMap(_.completed) match {
       case Some(d) => (new SimpleDateFormat("MMMM dd, yyyy")).format(d)
@@ -426,8 +439,16 @@ Used in transactions list
       details <- aTransaction.details
       newBalance <- details.new_balance
       amt <- newBalance.amount
-    } yield amt).getOrElse("")
-
+    } yield {
+      // Workaround when new_balance is not included in transaction details
+      if (Props.getBool("calculateTransactionNewBalance", false)) {
+        val total = _total.get
+        _total.set(total - transactionsForDay.foldLeft(0.0)(_ + _.details.get.value.get.amount.get.toDouble))
+        total.toString
+      }
+      else
+        amt
+    }).getOrElse("")
 
     // If the view doesn't allow the amount to be seen we could get an empty string here
     // If amount is not a number return None
