@@ -76,6 +76,8 @@ case class CommentsURLParams(bankId: String, accountId: String, viewId: String, 
 
 /**
  * This whole class is a rather hastily put together mess
+  *
+  * but it does show the details of one transaction..
  */
 class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) extends Loggable{
   
@@ -166,7 +168,7 @@ class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) exten
           val description = details.flatMap(_.label)
           description.getOrElse(FORBIDDEN)
         } &
-      // Narrative is part of metadata (probably entered after the transaction is posted)
+      // Narrative is part of metadata (probably entered after the transaction is posted) aka owners comment
       ".narrative *" #> {
         val narrative = transactionMetaData.flatMap(_.narrative)
         narrative.getOrElse(FORBIDDEN)
