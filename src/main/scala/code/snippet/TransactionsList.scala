@@ -256,7 +256,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
               Noop
             },
             () => {},
-            "Narrative",
+            "",
           false)
         }
         
