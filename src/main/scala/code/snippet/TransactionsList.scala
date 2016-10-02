@@ -82,12 +82,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
   def individualApiTransaction(transaction: TransactionJson): CssSel = {
     val transactionURI = "transactions/" + transaction.id.getOrElse("") + "/" + transactionsURLParams.viewId
-
-    def counterpartyEqualsDescription (oAcc : OtherAccountJson) : Boolean = {
-      oAcc.holder.flatMap(_.name).getOrElse(FORBIDDEN) ==  transaction.details.flatMap(_.label)
-    }
-
-
+    
     def otherPartyInfo: CssSel = {
 
       def info(oAcc : OtherAccountJson): CssSel = {
@@ -191,8 +186,14 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
             case _ => FORBIDDEN // TODO Different symbol for forbidden / empty?
           }
 
+          val countpartyDisplayValue = transaction.other_account.map(_.holder.flatMap(_.name)) match {
+            case Some(a) => a.getOrElse(FORBIDDEN)
+            case _ => FORBIDDEN // FORBIDDEN might just mean empty here.
+          }
+
           // Only show the Description if its not the same as the Counterparty.
-          if (transaction.other_account.getOrElse(FORBIDDEN) != descriptionDisplayValue) descriptionDisplayValue else ""
+          // It's not really nice to rely on FORBIDDEN in equality tests, because we will use it where it doesn't really mean FORBIDDEN
+          if (countpartyDisplayValue == descriptionDisplayValue) "" else descriptionDisplayValue
         }
       }
 
