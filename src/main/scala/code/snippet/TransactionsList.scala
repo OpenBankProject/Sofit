@@ -83,6 +83,11 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   def individualApiTransaction(transaction: TransactionJson): CssSel = {
     val transactionURI = "transactions/" + transaction.id.getOrElse("") + "/" + transactionsURLParams.viewId
 
+    def counterpartyEqualsDescription (oAcc : OtherAccountJson) : Boolean = {
+      oAcc.holder.flatMap(_.name).getOrElse(FORBIDDEN) ==  transaction.details.flatMap(_.label)
+    }
+
+
     def otherPartyInfo: CssSel = {
 
       def info(oAcc : OtherAccountJson): CssSel = {
@@ -136,9 +141,14 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
           }
 
           def aliasName = {
-            
+
+            // This is where we set the counterparty (aka other account) display value
+            // and id (used for link to its metadata)
+
             val otherAccountLink = "management#" + oAcc.id.getOrElse("")
-            
+
+            // Only show the edit link if allowed
+
             if (hasManagementAccess) {
               ".otherAccountLinkForName [href]" #> otherAccountLink &
               ".otherAccountLinkForName *" #> oAcc.holder.flatMap(_.name).getOrElse(FORBIDDEN) &
@@ -176,11 +186,13 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
       def description = {
         ".description *" #> {
-          val description = transaction.details.flatMap(_.label) match {
+          val descriptionDisplayValue = transaction.details.flatMap(_.label) match {
             case Some(a) => a
             case _ => FORBIDDEN // TODO Different symbol for forbidden / empty?
           }
-          description
+
+          // Only show the Description if its not the same as the Counterparty.
+          if (transaction.other_account.getOrElse(FORBIDDEN) != descriptionDisplayValue) descriptionDisplayValue else ""
         }
       }
 
