@@ -1557,7 +1557,7 @@ table td {
   -moz-border-radius: 100%;
   -webkit-border-radius: 100%;
   border-radius: 100%;
-  float: left;
+  float: right;
   position: relative;
   outline: 0;
   margin: 3px 3px 0 1px;

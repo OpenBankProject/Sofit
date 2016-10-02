@@ -73,7 +73,7 @@ object CustomEditable {
 
     val formData: NodeSeq =
       editForm ++ <br />
-        <input class="submit" style="float:left;" type="image" src="/media/images/submit.png"/> ++
+        <input class="submit" style="float:right;" type="image" src="/media/images/submit.png"/> ++
         SHtml.hidden(onSubmit, ("float", "left")) ++
         <input type="image" src="/media/images/cancel.png" onclick={ swapJsCmd(dispName(divName), editName(divName)).toJsCmd + " return false;" }/>
 
