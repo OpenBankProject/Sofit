@@ -43,7 +43,7 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
         def invalidEmail() : Boolean = !email.contains("@")
         
         if(email.isEmpty()) showMsg("You must enter an e-mail address")
-        else if(invalidEmail()) showMsg("Invalid e-mail address")
+        //else if(invalidEmail()) showMsg("Invalid e-mail address")
         //else if(viewData.forall(vData => allowed(vData.view) == false)) showMsg("You must select at least one view to grant access to.")
         else if(viewData.forall(_.allowed == false)) showMsg("You must select at least one view to grant access to.")
         else {
