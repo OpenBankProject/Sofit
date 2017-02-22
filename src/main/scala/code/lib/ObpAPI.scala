@@ -112,7 +112,7 @@ object ObpAPI extends Loggable {
 
   // Similar to getViews below
   def getViewsForBankAccount(bankId: String, accountId: String) = {
-    ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views").flatMap(_.extractOpt[ViewsJson])
+    ObpGet("/v2.2.0/banks/" + bankId + "/accounts/" + accountId + "/views").flatMap(_.extractOpt[ViewsJson])
   }
 
   def getAccount(bankId: String, accountId: String, viewId: String) : Box[AccountJson] = {
@@ -196,14 +196,14 @@ object ObpAPI extends Loggable {
   def getViews(bankId: String, accountId: String) : Box[List[ViewJson]] = {
     // Note function of similar name above
     for {
-      json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
+      json <- ObpGet("/v2.2.0/banks/" + bankId + "/accounts/" + accountId + "/views")
       viewsJson <- Box(json.extractOpt[ViewsJson])
     } yield viewsJson.views.getOrElse(Nil)
   }
 
   def getCompleteViews(bankId: String, accountId: String) : Box[List[CompleteViewJson]] = {
     for {
-      json <- ObpGet("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views")
+      json <- ObpGet("/v2.2.0/banks/" + bankId + "/accounts/" + accountId + "/views")
     } yield {
       json \ "views" match {
         case JArray(l) => l.map(viewJson =>
