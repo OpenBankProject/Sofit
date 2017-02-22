@@ -17,9 +17,8 @@ defaultAuthProvider=FILL_ME_IN
 obp_consumer_key=FILL_ME_IN
 obp_secret_key=FILL_ME_IN
 
-# The base url of this application (e.g. http://localhost:8080) which is used for the oauth callback url.
-# Note: if you are running a local api instance and a local sofi instance, you will want to access one via
-# Localhost and one via 127.0.0.1 to avoid weird cookie issues
+# The base url of this application (e.g. http://localhost:8081) which is used for the oauth callback url.
+# Note: If you are running a local API instance and a local Sofi instance on the same machine, we recommend you call the API on 127.0.0.1 in your browser and Sofi on localhost to avoid weird cookie issues
 base_url=FILL_ME_IN
 
 ## End of REQUIRED ###################
