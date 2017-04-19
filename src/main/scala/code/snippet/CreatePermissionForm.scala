@@ -1,6 +1,6 @@
 package code.snippet
 
-import net.liftweb.common.Loggable
+import code.util.Helper.MdcLoggable
 import net.liftweb.http.S
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds._
@@ -16,7 +16,7 @@ import net.liftweb.util.CssSel
 import code.util.Helper.getAccountTitle
 
 
-class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrlParams)) extends Loggable {
+class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrlParams)) extends MdcLoggable {
     case class ViewData(view : ViewJson, allowed: Boolean)
     
     val views = params._1

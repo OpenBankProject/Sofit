@@ -2,7 +2,7 @@ package code.snippet
 
 import scala.xml.{NodeSeq, Text}
 
-import net.liftweb.common.Loggable
+import code.util.Helper.MdcLoggable
 import net.liftweb.http.js.JE.Call
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
@@ -17,7 +17,7 @@ import code.util.Helper.getAccountTitle
 /*
 For maintaining permissions on the views (entitlements on the account)
  */
-class AccountSettings(params: List[String]) extends Loggable {
+class AccountSettings(params: List[String]) extends MdcLoggable {
   val bankId = params(0)
   val accountId = params(1)
   val accountJson = getAccount(bankId, accountId, "owner").openOrThrowException("Could not open accountJson")

@@ -45,7 +45,7 @@ import net.liftweb.mapper.By
 import net.liftweb.common.{Full, Failure}
 import net.liftweb.util.Helpers
 import net.liftweb.http.LiftResponse
-import net.liftweb.common.Loggable
+import code.util.Helper.MdcLoggable
 
 sealed trait Provider {
   val name : String
@@ -103,7 +103,7 @@ case class Credential(provider : Provider, consumer : OAuthConsumer, readyToSign
 object credentials extends SessionVar[Option[Credential]](None)
 object mostRecentLoginAttemptProvider extends SessionVar[Box[Provider]](Empty)
 
-object OAuthClient extends Loggable {
+object OAuthClient extends MdcLoggable {
 
   def getAuthorizedCredential() : Option[Credential] = {
     credentials.filter(_.readyToSign)

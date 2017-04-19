@@ -13,7 +13,8 @@ import net.liftweb.http.{S, SHtml}
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
 import net.liftweb.http.js.JsCmds.{SetHtml, Alert, RedirectTo}
-import net.liftweb.common.{Full, Loggable, Box}
+import net.liftweb.common.{Full, Box}
+import code.util.Helper.MdcLoggable
 import code.lib.ObpAPI
 import net.liftweb.http.SHtml.{text,ajaxSubmit, ajaxButton}
 import ObpAPI.{addView, deleteView}
@@ -33,7 +34,7 @@ case class ViewsDataJSON(
 /*
 For maintaining permissions on the views (entitlements on the account)
  */
-class ViewsOverview(viewsDataJson: ViewsDataJSON) extends Loggable {
+class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
   val views = viewsDataJson.views
   val bankId = viewsDataJson.bankId
   val accountId = viewsDataJson.accountId

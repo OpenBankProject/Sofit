@@ -2,7 +2,7 @@ package code.util
 
 import code.lib.ObpAPI._
 import code.lib.ObpJson.AccountJson
-import net.liftweb.common.Full
+import net.liftweb.common._
 import net.liftweb.util.Props
 
 
@@ -45,6 +45,10 @@ Uses the Label else Id if possible
       }
       case _ => "unknown"
     }
+  }
+
+  trait MdcLoggable extends Loggable {
+    MDC.put("host" -> getHostname)
   }
 
 

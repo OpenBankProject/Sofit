@@ -52,7 +52,7 @@ import net.liftweb.json.JsonAST.JArray
 import net.liftweb.http.StringField
 import java.util.Date
 import java.text.SimpleDateFormat
-import net.liftweb.common.Loggable
+import code.util.Helper.MdcLoggable
 import java.util.Currency
 import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
 import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
@@ -79,7 +79,7 @@ case class CommentsURLParams(bankId: String, accountId: String, viewId: String, 
   *
   * but it does show the details of one transaction..
  */
-class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) extends Loggable{
+class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) extends MdcLoggable{
   
   val FORBIDDEN = "---"
   val transactionJson = params._1

@@ -34,7 +34,7 @@ package code.snippet
 
 import code.lib.{OAuthClient, ObpAPI}
 import code.lib.ObpJson._
-import net.liftweb.common.Loggable
+import code.util.Helper.MdcLoggable
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Noop
@@ -42,7 +42,7 @@ import net.liftweb.util.Helpers._
 
 import scala.xml.Text
 
-class AccountsOverview extends Loggable {
+class AccountsOverview extends MdcLoggable {
 
   //val banksJsonBox = ObpAPI.allBanks
   //val bankJsons : List[BankJson] = banksJsonBox.map(_.bankJsons).toList.flatten.distinct
