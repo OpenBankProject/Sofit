@@ -44,10 +44,11 @@ import json.JsonDSL._
 import net.liftmodules.widgets.tablesorter.TableSorter
 import java.io.FileInputStream
 import java.io.File
-import code.lib.{OAuthClient, ObpGet, ObpJson, ObpAPI}
+
+import code.lib.{OAuthClient, ObpAPI, ObpGet, ObpJson}
 import ObpJson._
 import code.snippet._
-import code.util.MyExceptionLogger
+import code.util.{Helper, MyExceptionLogger}
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -55,6 +56,9 @@ import code.util.MyExceptionLogger
  */
 class Boot extends Loggable{
   def boot {
+
+    MDC.clear()
+    MDC.put( ("host", Helper.getHostname()) )
 
     val runningMode = Props.mode match {
       case Props.RunModes.Production => "Production mode"
