@@ -38,9 +38,7 @@ import common._
 import http._
 import net.liftweb.sitemap._
 import Loc._
-import mapper._
 import Helpers._
-import json.JsonDSL._
 import net.liftmodules.widgets.tablesorter.TableSorter
 import java.io.FileInputStream
 import java.io.File
