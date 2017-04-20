@@ -83,28 +83,28 @@ class AccountsOverview extends MdcLoggable {
 
 
   def publicAccounts = {
-    if (publicAccountJsons.size == 0) {
+//    if (publicAccountJsons.size == 0) {
       ".accName *" #> "No public accounts available." &
       ".accLink" #> ""
-    } else {
-      val sortedPublicAccountJsons = publicAccountJsons.sortBy(a => (a._2.label.toString.toLowerCase, a._2.id.toString.toLowerCase))
-      ".accountItem" #> sortedPublicAccountJsons.map {
-        case (bankId, accountJson) => {
-          //TODO: It might be nice to ensure that the same view is picked each time the page loads
-          val views = accountJson.views_available.toList.flatten
-          val aPublicViewId: String = (for {
-            aPublicView <- views.filter(view => view.is_public.getOrElse(false)).headOption
-            viewId <- aPublicView.id
-          } yield viewId).getOrElse("")
-          val accountId = accountJson.id.getOrElse("")
-          val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
-
-          ".accName a *" #> accountDisplayName(accountJson) &
-          ".accName a [href]" #> url &
-          ".accLink [href]" #> url
-        }
-      }
-    }
+//    } else {
+//      val sortedPublicAccountJsons = publicAccountJsons.sortBy(a => (a._2.label.toString.toLowerCase, a._2.id.toString.toLowerCase))
+//      ".accountItem" #> sortedPublicAccountJsons.map {
+//        case (bankId, accountJson) => {
+//          //TODO: It might be nice to ensure that the same view is picked each time the page loads
+//          val views = accountJson.views_available.toList.flatten
+//          val aPublicViewId: String = (for {
+//            aPublicView <- views.filter(view => view.is_public.getOrElse(false)).headOption
+//            viewId <- aPublicView.id
+//          } yield viewId).getOrElse("")
+//          val accountId = accountJson.id.getOrElse("")
+//          val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPublicViewId
+//
+//          ".accName a *" #> accountDisplayName(accountJson) &
+//          ".accName a [href]" #> url &
+//          ".accLink [href]" #> url
+//        }
+//      }
+//    }
   }
 
   def accountDisplayName(accountJson : BarebonesAccountJson) : String = {
