@@ -1,15 +1,12 @@
-Welcome to the Open Bank Project Sofi !
-
 # ABOUT
 
-This application demonstrates some of the principles of the Open Bank Project:
+The Sofit application demonstrates some of the social aims behind the Open Bank Project:
 
 1) Sliding scale of privacy and disclosure. e.g. Use aliases to protect real names but still show the flow of money .
 2) Different views on account data (Public / Share holders / Team etc.) e.g. hide balances on public view.
 3) Comment on transactions
 4) Add other meta data e.g. tags / images to transactions / payees.
 
-The project roadmap is available [here.](https://trello.com/b/aBELCLYA/open-bank-project-sofi) 
 
 # LICENSE
 
@@ -103,7 +100,7 @@ transloadit.addImageTemplate can be obtained by creating a template at transload
 
 The base_url is used to calculate the callback url to give to the Open Bank Project API server. This should just be the
 base url used to access the social finance application. So if you're running a copy of the social finance application at
-sofi.example.com over https, on the standard port, it would be "https://sofi.example.com".
+sofit.example.com over https, on the standard port, it would be "https://sofit.example.com".
 An example value for local development could be: http://127.0.0.1:8080 (as 8080 is the default Lift development port)
 
 *api_hostname*
