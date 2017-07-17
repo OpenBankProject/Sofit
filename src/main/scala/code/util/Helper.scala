@@ -2,7 +2,8 @@ package code.util
 
 import code.lib.ObpAPI._
 import code.lib.ObpJson.AccountJson
-import net.liftweb.common.Full
+import net.liftweb.common._
+import net.liftweb.util.Props
 
 
 object Helper {
@@ -36,7 +37,19 @@ Uses the Label else Id if possible
   }
 
 
+  def getHostname(): String = {
+    Props.get("base_url", "") match {
+      case s: String if s.nonEmpty => s.split(":").lift(1) match {
+        case Some(s) => s.replaceAll("\\/", "").replaceAll("\\.", "-")
+        case None => "unknown"
+      }
+      case _ => "unknown"
+    }
+  }
 
+  trait MdcLoggable extends Loggable {
+    MDC.put("host" -> getHostname)
+  }
 
 
 }

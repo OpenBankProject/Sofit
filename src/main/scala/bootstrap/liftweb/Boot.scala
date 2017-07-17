@@ -38,23 +38,25 @@ import common._
 import http._
 import net.liftweb.sitemap._
 import Loc._
-import mapper._
 import Helpers._
-import json.JsonDSL._
 import net.liftmodules.widgets.tablesorter.TableSorter
 import java.io.FileInputStream
 import java.io.File
-import code.lib.{OAuthClient, ObpGet, ObpJson, ObpAPI}
+
+import code.lib.{OAuthClient, ObpAPI, ObpGet, ObpJson}
 import ObpJson._
 import code.snippet._
-import code.util.MyExceptionLogger
+import code.util.{Helper, MyExceptionLogger}
+import code.util.Helper.MdcLoggable
 
 /**
  * A class that's instantiated early and run.  It allows the application
  * to modify lift's environment
  */
-class Boot extends Loggable{
+class Boot extends MdcLoggable{
   def boot {
+
+    MDC.put( ("host", Helper.getHostname()) )
 
     val runningMode = Props.mode match {
       case Props.RunModes.Production => "Production mode"

@@ -25,7 +25,7 @@ Berlin 13359, Germany
 
 package code.snippet
 
-import net.liftweb.common.Loggable
+import code.util.Helper.MdcLoggable
 
 import net.liftweb.util.{CssSel, Props}
 
@@ -35,7 +35,7 @@ import Helpers._
 
 
 
-class WebUI extends Loggable{
+class WebUI extends MdcLoggable{
 
   // Note: Most of these are not used yet
 

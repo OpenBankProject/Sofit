@@ -4,7 +4,7 @@ import net.liftweb.http.S
 import net.liftweb.util.Helpers._
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.JsRaw
-import net.liftweb.common.Loggable
+import code.util.Helper.MdcLoggable
 import net.liftweb.http.JsonHandler
 import net.liftweb.json._
 import net.liftweb.common.Full
@@ -29,7 +29,7 @@ import code.util.Helper._
 case class PermissionsUrlParams(bankId : String, accountId: String)
 case class ClickJson(userId: String, checked: Boolean, viewId : String)
 
-class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)) extends Loggable {
+class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson], PermissionsUrlParams)) extends MdcLoggable {
   
   val permissionsJson = params._1
   val accountJson = params._2

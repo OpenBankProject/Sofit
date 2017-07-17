@@ -43,6 +43,7 @@ import net.liftweb.common.{Box, Failure, Empty, Full}
 import code.lib.ObpJson._
 import code.lib._
 import net.liftweb.json.Serialization._
+import code.util.Helper.MdcLoggable
 
 class OBPDashboardLeftSnippet (params : (TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams)) extends OBPTransactionSnippet ((params._1, params._2, params._3)) {
 }
@@ -91,7 +92,7 @@ import net.liftweb.http.CurrentReq
 /*
 Present a list of OBP resource URLs
  */
-class OBPDashboard extends Loggable {
+class OBPDashboard extends MdcLoggable {
 
 
 
