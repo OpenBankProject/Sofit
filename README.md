@@ -80,7 +80,7 @@ should be the easiest way to get started.
 transloadit.authkey
 transloadit.addImageTemplate
 
-The Sofi app uses transloadit.com to process uploaded images. If these are not filling in, users will not be able to add images to
+The Sofit app uses transloadit.com to process uploaded images. If these are not filling in, users will not be able to add images to
 individual transactions.
 
 transloadit.authkey can be obtained by registering at transloadit.com
@@ -99,7 +99,7 @@ transloadit.addImageTemplate can be obtained by creating a template at transload
 *base_url*
 
 The base_url is used to calculate the callback url to give to the Open Bank Project API server. This should just be the
-base url used to access the social finance application. So if you're running a copy of the social finance application at
+base url used to access the social finance application. So if you're running a copy of the Sofit application at
 sofit.example.com over https, on the standard port, it would be "https://sofit.example.com".
 An example value for local development could be: http://127.0.0.1:8080 (as 8080 is the default Lift development port)
 
