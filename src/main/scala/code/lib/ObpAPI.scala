@@ -691,7 +691,7 @@ object ObpJson {
     amount: Option[String])
 		  					  
   case class TransactionDetailsJson(`type`: Option[String],
-    label: Option[String],
+    description: Option[String],
     posted: Option[Date], //TODO: Check if the default date formatter is okay
     completed: Option[Date], //TODO: Check if the default date formatter is okay
     new_balance: Option[AccountBalanceJson],

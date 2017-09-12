@@ -181,7 +181,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
       def description = {
         ".description *" #> {
-          val descriptionDisplayValue = transaction.details.flatMap(_.label) match {
+          val descriptionDisplayValue = transaction.details.flatMap(_.description) match {
             case Some(a) => a
             case _ => FORBIDDEN // TODO Different symbol for forbidden / empty?
           }
