@@ -120,14 +120,14 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
       def saveValue() = {
         if(currentValue.isEmpty) {
           //Send a delete
-          ObpDeleteBoolean("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
+          ObpDeleteBoolean("/v1.2.1/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/metadata/" + apiProperty)
           exists = false
         } else {
           if(exists) {
-            ObpPut("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
+            ObpPut("/v1.2.1/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/metadata/" + apiProperty,
               json())
           } else {
-            ObpPost("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
+            ObpPost("/v1.2.1/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/metadata/" + apiProperty,
               json())
             exists = true
           }
@@ -164,19 +164,19 @@ class Management(params : (OtherAccountsJson, ManagementURLParams)) {
         onSubmit = () => {
           if(currentValue.isEmpty || (holder.toLowerCase == currentValue.toLowerCase && apiProperty == "public_alias")){
             // delete Alias
-            ObpDeleteBoolean("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
+            ObpDeleteBoolean("/v1.2.1/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
             inputDefaultValue = ""
             Noop
           } else{
             val json = jsonKey -> currentValue
-            ObpPut("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
+            ObpPut("/v1.2.1/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty,
               json)
             inputDefaultValue = currentValue
             Noop
           }
         },
         onDelete = () => {
-          ObpDeleteBoolean("/v1.2/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
+          ObpDeleteBoolean("/v1.2.1/banks/" + urlParams.bankId + "/accounts/" + urlParams.accountId + "/owner/other_accounts/" + otherAccountId + "/" + apiProperty)
         },
         defaultValue = defaultLabel,
         removable = removable
