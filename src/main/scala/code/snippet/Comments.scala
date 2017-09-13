@@ -165,7 +165,7 @@ class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) exten
         // Used for the reference / description entered by the account holder when the transaction is posted
         // In one version of the API, "label" was the name of this
         ".description *" #> {
-          val description = details.flatMap(_.label)
+          val description = details.flatMap(_.description)
           description.getOrElse(FORBIDDEN)
         } &
       // Narrative is part of metadata (probably entered after the transaction is posted) aka owners comment

@@ -181,7 +181,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
       def description = {
         ".description *" #> {
-          val descriptionDisplayValue = transaction.details.flatMap(_.label) match {
+          val descriptionDisplayValue = transaction.details.flatMap(_.description) match {
             case Some(a) => a
             case _ => FORBIDDEN // TODO Different symbol for forbidden / empty?
           }
@@ -237,7 +237,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
         val narrativeValue = transaction.metadata.flatMap(_.narrative).getOrElse("")
         // TODO use v1.4.0
-        val narrativeUrl = "/v1.2/banks/" + transactionsURLParams.bankId + "/accounts/" + transactionsURLParams.accountId + "/" + transactionsURLParams.viewId +
+        val narrativeUrl = "/v1.2.1/banks/" + transactionsURLParams.bankId + "/accounts/" + transactionsURLParams.accountId + "/" + transactionsURLParams.viewId +
           "/transactions/" + transaction.id.getOrElse("") + "/metadata/narrative"
         
         var newNarrativeValue = narrativeValue
