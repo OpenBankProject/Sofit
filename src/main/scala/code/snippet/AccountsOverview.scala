@@ -61,7 +61,7 @@ class AccountsOverview extends MdcLoggable {
     bankId <- barebonesAccountJson.bank_id
   } yield (bankId, barebonesAccountJson)
 
-  logger.info("Accounts Overview: Public accounts found: " + publicAccountJsons)
+  logger.debug("Accounts Overview: Public accounts found: " + publicAccountJsons)
 
   val privateAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
     privateAccountsJson <- ObpAPI.privateAccounts.toList
@@ -69,7 +69,7 @@ class AccountsOverview extends MdcLoggable {
     bankId <- barebonesAccountJson.bank_id
   } yield (bankId, barebonesAccountJson)
 
-  logger.info("Accounts Overview: Private accounts found: " + privateAccountJsons)
+  logger.debug("Accounts Overview: Private accounts found: " + privateAccountJsons)
 
 
 
