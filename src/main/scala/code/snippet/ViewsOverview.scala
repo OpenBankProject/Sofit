@@ -99,6 +99,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
     val shortNamesSel   = ".short_name"  #> views.map( view => "* *" #> view.shortName.getOrElse("") & "* [data-viewid]" #> view.id )
     val aliasSel        = ".alias"       #> views.map( view => "* *" #> aliasType(view.alias) & "* [data-viewid]" #> view.id )
     val descriptionSel  = ".description" #> views.map( view => ".desc *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
+    val metadataViewSel = ".metadata_view"#> views.map( view => ".metadataView *" #> view.metadataView.getOrElse("") & "* [data-viewid]" #> view.id )
     val isPublicSel     = ".is_public *" #> getIfIsPublic()
     var actionsSel      = ".action-buttons" #> ids.map(x => ("* [data-id]" #> x) & saveOnClick(x) & deleteOnClick(x))
     // permissions.keys need to be converted to sequence to retain the same order when running map over it!
@@ -118,6 +119,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         shortNamesSel &
         aliasSel &
         descriptionSel &
+        metadataViewSel &
         isPublicSel &
         permSel &
         actionsSel
@@ -183,6 +185,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
   //set up ajax handlers to add a new view
   def setupAddView(xhtml: NodeSeq): NodeSeq = {
     var newViewName = ""
+    var newMetadataView = ""
 
     def process(): JsCmd = {
       logger.debug(s"ViewsOverview.setupAddView.process: create view called $newViewName")
@@ -192,7 +195,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         Call("socialFinanceNotifications.notifyError", msg).cmd
       } else {
         // This only adds the view (does not grant the current user access)
-        val result = addView(bankId, accountId, newViewName)
+        val result = addView(bankId, accountId, newViewName, newMetadataView)
 
         if (result.isDefined) {
           val msg = "View " + newViewName + " has been created. Don't forget to grant yourself or others access."

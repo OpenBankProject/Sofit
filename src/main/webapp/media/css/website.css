@@ -926,6 +926,10 @@ td.main-attributes{
   display: none;
 }
 
+.metadata_view_input {
+  display: none;
+}
+
 td.imageURL {
   max-width: 200px;
 }

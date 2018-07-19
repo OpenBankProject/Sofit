@@ -74,6 +74,24 @@ $(document).ready(function(){
         }
     })
 
+    var metadataViewText = "";  
+    /* metadataVie become editable */
+    $(".metadataView").each(function(i){
+      var $metadataView = $(this);
+      if($metadataView.attr("data-viewid") === viewId){
+    	  metadataViewText = $metadataView.text();
+    	  $metadataView.hide();
+      }
+    })
+    
+    $(".metadata_view_input").each(function(i){
+    	var $metadataViewInput = $(this);
+        if($metadataViewInput.attr("data-viewid") === viewId){
+        	$metadataViewInput.val(metadataViewText)
+        	$metadataViewInput.show();
+        }
+    })
+      
     /* alias field will become a select box */
     $(".alias").each(function(i){
       var $alias = $(this)
@@ -129,6 +147,20 @@ $(document).ready(function(){
     		}
     	});
     	
+    	//show the metadataView again and hide the metadataView input
+    	$(".metadata_view").each(function(i){
+    		var $metadataView = $(this);
+    		if($metadataView.attr("data-viewid") === viewId){
+    			var $metadataViewInput = $metadataView.find(".metadata_view_input")
+    			var newMetadaView = $metadataViewInput.val();
+    			$metadataViewInput.hide();
+    			
+    			var $metadataView = $metadataView.find(".metadataView");
+    			$metadataView.text(newMetadaView);
+    			$metadataView.show();
+    		}
+    	});
+    	
     	/* permissions and is public checkboxes get deactivated */
         $(".permission_value_cb").each(function(i){
           if($(this).attr("data-viewid") === viewId){
@@ -161,6 +193,7 @@ $(document).ready(function(){
         saveJson.viewId = viewId;
         var viewData = new Object();
         viewData.description = $(".desc_input[data-viewId=" + viewId + "]").val();
+        viewData.metadata_view = $(".metadata_view_input[data-viewId=" + viewId + "]").val();
         viewData.which_alias_to_use = $(".alias[data-viewId=" + viewId + "] select").val();
         viewData.is_public = $(".is_public_cb[data-viewId=" + viewId + "]").is(':checked');
         viewData.hide_metadata_if_alias_used = $(".hide_metadata_if_alias_used[data-viewId=" + viewId + "]").is(':checked');
