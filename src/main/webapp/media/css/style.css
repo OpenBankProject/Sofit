@@ -1761,6 +1761,9 @@ table td {
 #views .desc_input {
 	display: none;
 }
+#views .metadata_view_input {
+	display: none;
+}
 #views button[disabled] {
 	cursor: unset;
 	opacity: 0.2;

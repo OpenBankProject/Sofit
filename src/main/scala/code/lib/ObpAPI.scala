@@ -219,10 +219,11 @@ object ObpAPI {
     }
   }
 
-  def addView(bankId: String, accountId: String, viewId: String) : Box[JValue] = {
+  def addView(bankId: String, accountId: String, viewId: String, newMetadataView: String) : Box[JValue] = {
     val json =
       ("name" -> viewId) ~
         ("description" -> "default description") ~
+        ("metadata_view" -> "") ~
         ("is_public" -> false) ~
         ("which_alias_to_use" -> "public") ~
         ("hide_metadata_if_alias_used" -> true) ~
@@ -231,7 +232,7 @@ object ObpAPI {
           "can_see_transaction_label",
           "can_see_transaction_other_bank_account")
       )
-    ObpPost("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views", json)
+    ObpPost("/v3.1.0/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views", json)
   }
 
   def deleteView(bankId: String, accountId: String, viewId: String) : Boolean = {
@@ -240,7 +241,7 @@ object ObpAPI {
 
   def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
     for {
-      response <- ObpPut("/v1.2.1/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
+      response <- ObpPut("/v3.1.0/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
     } yield Unit
   }
 
@@ -563,6 +564,11 @@ object ObpJson {
     }
 
     val description: Option[String] = json.get("description") match {
+      case Some(s : String) => Some(s)
+      case _ => None
+    }
+    
+    val metadataView: Option[String] = json.get("metadata_view") match {
       case Some(s : String) => Some(s)
       case _ => None
     }
