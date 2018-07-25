@@ -83,6 +83,8 @@ template {
  */
 a {
   background-color: transparent;
+  color: #666666;
+  text-decoration: none;
 }
 
 /**
@@ -92,6 +94,7 @@ a {
 a:active,
 a:hover {
   outline: 0;
+  text-decoration: underline;
 }
 
 /* Text-level semantics
