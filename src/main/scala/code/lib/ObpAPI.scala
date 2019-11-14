@@ -219,6 +219,10 @@ object ObpAPI {
     }
   }
 
+  def getViews(bankId: String, accountId: String, viewId: String) : Box[JValue] = {
+    ObpGet("/v3.1.0/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views")
+  }
+
   def addView(bankId: String, accountId: String, viewId: String, newMetadataView: String) : Box[JValue] = {
     val json =
       ("name" -> viewId) ~
@@ -234,14 +238,37 @@ object ObpAPI {
       )
     ObpPost("/v3.1.0/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views", json)
   }
+  def addSystemView(bankId: String, accountId: String, viewId: String, newMetadataView: String) : Box[JValue] = {
+    val json =
+      ("name" -> viewId) ~
+        ("description" -> "default description") ~
+        ("metadata_view" -> "") ~
+        ("is_public" -> false) ~
+        ("which_alias_to_use" -> "public") ~
+        ("hide_metadata_if_alias_used" -> true) ~
+        ("allowed_actions", List(
+          "can_see_transaction_this_bank_account",
+          "can_see_transaction_label",
+          "can_see_transaction_other_bank_account")
+      )
+    ObpPost("/v3.1.0/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/system-views", json)
+  }
 
   def deleteView(bankId: String, accountId: String, viewId: String) : Boolean = {
     ObpDeleteBoolean("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
+  }
+  def deleteSystemView(bankId: String, accountId: String, viewId: String) : Boolean = {
+    ObpDeleteBoolean("/v3.1.0/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/system-views/" + viewId)
   }
 
   def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
     for {
       response <- ObpPut("/v3.1.0/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
+    } yield Unit
+  }
+  def updateSystemView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
+    for {
+      response <- ObpPut("/v3.1.0/banks/" + bankId + "/accounts/" + accountId + "/system-views/" + viewId, viewUpdateJson)
     } yield Unit
   }
 
