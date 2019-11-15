@@ -1,32 +1,35 @@
 package code.snippet
 
-import code.lib.ObpAPI
-import code.lib.ObpAPI.{addSystemView, addView}
-import code.lib.ObpJson.CompleteViewJson
-import code.util.Helper.{MdcLoggable, _}
-import net.liftweb.common.Box
-import net.liftweb.http.SHtml
-import net.liftweb.http.SHtml.{ajaxSubmit, text}
+import scala.collection.immutable.{HashSet, TreeMap}
+import scala.collection._
+import code.util.Helper._
 import net.liftweb.http.js.JE.{Call, Str}
 import net.liftweb.http.js.JsCmd
+import net.liftweb.util.Helpers._
+import scala.xml.{Node, NodeSeq, Text}
+import code.lib.ObpJson.CompleteViewJson
+import net.liftweb.util.CssSel
+import net.liftweb.http.{S, SHtml}
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
-import net.liftweb.util.CssSel
-import net.liftweb.util.Helpers._
-
-import scala.collection._
-import scala.xml.NodeSeq
+import net.liftweb.http.js.JsCmds.{SetHtml, Alert, RedirectTo}
+import net.liftweb.common.{Full, Box}
+import code.util.Helper.MdcLoggable
+import code.lib.ObpAPI
+import net.liftweb.http.SHtml.{text,ajaxSubmit, ajaxButton}
+import ObpAPI.{addView, deleteView}
+import SHtml._
 
 case class ViewUpdateData(
-                           viewId: String,
-                           updateJson: JValue
-                         )
+  viewId: String,
+  updateJson: JValue
+)
 
 case class ViewsDataJSON(
-                          views: List[CompleteViewJson],
-                          bankId: String,
-                          accountId: String
-                        )
+   views: List[CompleteViewJson],
+   bankId: String,
+   accountId: String
+)
 
 /*
 For maintaining permissions on the views (entitlements on the account)
@@ -38,17 +41,6 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
 
   def accountTitle = ".account-title *" #> getAccountTitle(bankId, accountId)
 
-  def isSystemView(viewId: String) = {
-    val views = ObpAPI.getViews(viewsDataJson.bankId, viewsDataJson.accountId, viewId).getOrElse(JNothing)
-    val isSystemList = for {
-      JObject(child) <- views
-      JField("id", JString(id)) <- child
-      if id == viewId
-      JField("is_system", JBool(isSystem)) <- child
-    } yield isSystem
-    isSystemList.headOption.getOrElse(false)
-  }
-
   def getTableContent(xhtml: NodeSeq) :NodeSeq = {
 
     //add ajax callback to save view
@@ -58,10 +50,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
       ".save-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
         val result: Box[Unit] = for {
           data <- tryo{parse(callResult).extract[ViewUpdateData]}
-          response <- isSystemView(viewId) match {
-            case true => ObpAPI.updateSystemView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
-            case false => ObpAPI.updateView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
-          }
+          response <- ObpAPI.updateView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
         } yield{
           response
         }
@@ -78,11 +67,8 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
 
     def deleteOnClick(viewId : String): CssSel = {
       ".delete-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
-        val result =
-          isSystemView(viewId) match {
-            case true => ObpAPI.deleteSystemView(viewsDataJson.bankId, viewsDataJson.accountId, viewId)
-            case false => ObpAPI.deleteView(viewsDataJson.bankId, viewsDataJson.accountId, viewId)
-          }
+        val result = ObpAPI.deleteView(viewsDataJson.bankId, viewsDataJson.accountId, viewId)
+
         if(result) {
           val msg = "View " + viewId + " has been deleted"
           Call("socialFinanceNotifications.notifyReload", msg).cmd
@@ -107,7 +93,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         case _ => ""
       }
     }
-
+    
     val ids = getIds()
     val viewNameSel     = ".view_name *" #> views.map( view => view.shortName.getOrElse(""))
     val shortNamesSel   = ".short_name"  #> views.map( view => "* *" #> view.shortName.getOrElse("") & "* [data-viewid]" #> view.id )
@@ -124,19 +110,19 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         permName => {
           val foo = permName
           ".permission_name *"  #> permName.capitalize.replace("_", " ") &
-            ".permission_value *" #> getPermissionValues(permName)
+          ".permission_value *" #> getPermissionValues(permName)
         }
       )
       permissionsCssSel
     }
-    (viewNameSel &
-      shortNamesSel &
-      aliasSel &
-      descriptionSel &
-      metadataViewSel &
-      isPublicSel &
-      permSel &
-      actionsSel
+      (viewNameSel &
+        shortNamesSel &
+        aliasSel &
+        descriptionSel &
+        metadataViewSel &
+        isPublicSel &
+        permSel &
+        actionsSel
       ).apply(xhtml)
   }
 
@@ -153,8 +139,8 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         val checked =
           if(isPublic)
             ".is_public_cb [checked]" #> "checked" &
-              ".is_public_cb [disabled]" #> "disabled"
-          else
+            ".is_public_cb [disabled]" #> "disabled"
+        else
             ".is_public_cb [disabled]" #> "disabled"
 
         val id = "myonoffswitch-public-" + viewId
@@ -177,7 +163,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         val checked =
           if(permValue){
             ".permission_value_cb [checked]" #> "checked" &
-              ".permission_value_cb [disabled]" #> "disabled"
+            ".permission_value_cb [disabled]" #> "disabled"
           }
           else
             ".permission_value_cb [disabled]" #> "disabled"
@@ -185,11 +171,11 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         val id = "myonoffswitch-permission-" + permName + "-" + viewId
         val checkBox =
           checked &
-            ".permission_value_cb [value]" #> permName &
-            ".permission_value_cb [name]" #> permName &
-            ".permission_value_cb [data-viewid]" #> viewId &
-            ".onoffswitch-label [for]" #> id &
-            ".permission_value_cb [id]" #> id
+          ".permission_value_cb [value]" #> permName &
+          ".permission_value_cb [name]" #> permName &
+          ".permission_value_cb [data-viewid]" #> viewId &
+          ".onoffswitch-label [for]" #> id &
+          ".permission_value_cb [id]" #> id
 
         checkBox
       }
@@ -209,11 +195,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         Call("socialFinanceNotifications.notifyError", msg).cmd
       } else {
         // This only adds the view (does not grant the current user access)
-        val result =
-          isSystemView(newViewName) match {
-            case true => addSystemView(bankId, accountId, newViewName, newMetadataView)
-            case false => addView(bankId, accountId, newViewName, newMetadataView)
-          }
+        val result = addView(bankId, accountId, newViewName, newMetadataView)
 
         if (result.isDefined) {
           val msg = "View " + newViewName + " has been created. Don't forget to grant yourself or others access."
@@ -227,10 +209,10 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
     }
 
     (
-
+      // Bind newViewName field to variable (e.g. http://chimera.labs.oreilly.com/books/1234000000030/ch03.html)
       "@new_view_name" #> text(newViewName, s => newViewName = s) &
-        // Replace the type=submit with Javascript that makes the ajax call.
-        "type=submit" #> ajaxSubmit("Save", process)
-      ).apply(xhtml)
+      // Replace the type=submit with Javascript that makes the ajax call.
+      "type=submit" #> ajaxSubmit("Save", process)
+    ).apply(xhtml)
   }
 }
