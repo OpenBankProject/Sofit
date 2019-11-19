@@ -76,7 +76,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
   val hasManagementAccess = {
     val availableViews = accountJson.views_available.toList.flatten
-    availableViews.exists(view => view.id == Some("owner"))
+    availableViews.exists(view => view.id == Some("_owner"))
   }
 
 
@@ -274,7 +274,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         }
         
         //TODO: Get this from the api
-        def canEditNarrative = transactionsURLParams.viewId == "owner"
+        def canEditNarrative = transactionsURLParams.viewId == "_owner"
 
         ".narrative *" #> {
           if (canEditNarrative) apiEditableNarrative
@@ -378,9 +378,17 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/public
    */
   def displayAll = {
-    val total = new PersistentDouble(accountJson.balance.get.amount.get.toDouble)
-    val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
-    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) // The previous CSS selector was "* *"
+    accountJson.balance match {
+      case Some(balance) if balance.amount.isDefined =>
+        val total = new PersistentDouble(accountJson.balance.get.amount.get.toDouble)
+        val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
+        ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) // The previous CSS selector was "* *"
+      case _ =>
+        val total = new PersistentDouble(0.toDouble)
+        val groupedApiTransactions = Nil
+        ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) // The previous CSS selector was "* *"
+    } 
+    
   }
 
 

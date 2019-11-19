@@ -12,7 +12,7 @@ object Helper {
 
   // From bankId / accountId
   def getAccountTitle (bankId: String, accountId: String) : String = {
-    val accountJsonBox = getAccount(bankId, accountId, "owner")
+    val accountJsonBox = getAccount(bankId, accountId, "_owner")
 
     val accountTitle = accountJsonBox match {
       case Full(accountJson) => getAccountTitle(accountJson)
@@ -33,7 +33,7 @@ Uses the Label else Id if possible
 
   def hasManagementAccess (accountJson: AccountJson ) : Boolean  = {
     val availableViews = accountJson.views_available.toList.flatten
-    availableViews.exists(view => view.id == Some("owner"))
+    availableViews.exists(view => view.id == Some("_owner"))
   }
 
 

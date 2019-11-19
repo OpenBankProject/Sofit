@@ -20,7 +20,7 @@ For maintaining permissions on the views (entitlements on the account)
 class AccountSettings(params: List[String]) extends MdcLoggable {
   val bankId = params(0)
   val accountId = params(1)
-  val accountJson = getAccount(bankId, accountId, "owner").openOrThrowException("Could not open accountJson")
+  val accountJson = getAccount(bankId, accountId, "_owner").openOrThrowException("Could not open accountJson")
   def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
 
   //set up ajax handlers to edit account label

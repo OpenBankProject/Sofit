@@ -54,7 +54,7 @@ class Nav {
   val accountJson : Option[AccountJson]= {
     if (url.size > 4) {
 
-      val viewId = "owner"  //if we can't access the owner view, account returns nothing
+      val viewId = "_owner"  //if we can't access the owner view, account returns nothing
       val bankId = url( url.indexOf("banks")+1 )
       val accountId = url( url.indexOf("accounts")+1 )
 
