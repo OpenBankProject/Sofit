@@ -1,17 +1,15 @@
 package code.snippet
 
-import scala.xml.{NodeSeq, Text}
-
-import code.util.Helper.MdcLoggable
+import code.Constant._
+import code.lib.ObpAPI.{getAccount, updateAccountLabel}
+import code.util.Helper.{MdcLoggable, getAccountTitle}
+import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.Call
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
-import net.liftweb.http.{S, SHtml}
-import net.liftweb.json._
 import net.liftweb.util.Helpers._
 
-import code.lib.ObpAPI.{updateAccountLabel, getAccount}
-import code.util.Helper.getAccountTitle
+import scala.xml.{NodeSeq, Text}
 
 
 /*
@@ -20,7 +18,7 @@ For maintaining permissions on the views (entitlements on the account)
 class AccountSettings(params: List[String]) extends MdcLoggable {
   val bankId = params(0)
   val accountId = params(1)
-  val accountJson = getAccount(bankId, accountId, "_owner").openOrThrowException("Could not open accountJson")
+  val accountJson = getAccount(bankId, accountId, CUSTOM_OWNER_VIEW_ID).openOrThrowException("Could not open accountJson")
   def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
 
   //set up ajax handlers to edit account label
