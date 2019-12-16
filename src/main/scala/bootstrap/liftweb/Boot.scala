@@ -360,7 +360,7 @@ class Boot extends MdcLoggable{
           for {
             permissionsJson <- ObpAPI.getPermissions(bank, account)
             accountViewsJson <- ObpAPI.getViews(bank, account)
-            accountJson <- ObpAPI.getAccount(bank, account, "_owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
+            accountJson <- ObpAPI.getAccount(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
           } yield (permissionsJson, accountJson, accountViewsJson, PermissionsUrlParams(bank, account))
         }
       } else Empty
@@ -374,7 +374,7 @@ class Boot extends MdcLoggable{
 
         logOrReturnResult {
           for {
-            _ <- ObpAPI.getAccount(bank, account, "_owner" /*TODO: This shouldn't be hardcoded*/)
+            _ <- ObpAPI.getAccount(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/)
           } yield {
             URLParameters
           }
