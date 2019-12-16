@@ -125,7 +125,7 @@ class AccountsOverview extends MdcLoggable {
             val views = accountJson.views_available.toList.flatten
             val accountId : String = accountJson.id.getOrElse("")
             val aPrivateViewId: String = (for {
-              aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
+              aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false) || view.short_name.equals(Some("Firehose"))).headOption
               viewId <- aPrivateView.id
             } yield viewId).getOrElse("")
             val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
