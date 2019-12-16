@@ -272,7 +272,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         }
         
         //TODO: Get this from the api
-        def canEditNarrative = transactionsURLParams.viewId == "_owner"
+        def canEditNarrative = transactionsURLParams.viewId == CUSTOM_OWNER_VIEW_ID
 
         ".narrative *" #> {
           if (canEditNarrative) apiEditableNarrative
