@@ -1,19 +1,15 @@
 package code.snippet
 
-import code.util.Helper.MdcLoggable
-import net.liftweb.http.S
+import code.lib.ObpAPI
+import code.lib.ObpJson.{AccountJson, ViewJson}
+import code.util.Helper.{MdcLoggable, getAccountTitle}
+import net.liftweb.common.Failure
+import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds._
-import scala.xml.Text
 import net.liftweb.util.Helpers._
-import code.lib.ObpAPI
-import net.liftweb.http.SHtml
-import net.liftweb.common.Failure
-import code.lib.ObpJson.PermissionsJson
-import code.lib.ObpJson.AccountJson
-import code.lib.ObpJson.ViewJson
-import net.liftweb.util.CssSel
-import code.util.Helper.getAccountTitle
+
+import scala.xml.Text
 
 
 class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrlParams)) extends MdcLoggable {
@@ -24,7 +20,7 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
     val urlParams = params._3
     
     val url = S.uri.split("/")
-    var email = ""
+    var username = ""
         
     val allowed : scala.collection.mutable.Map[ViewJson, Boolean] = scala.collection.mutable.Map(views.map(v => (v, false)).toSeq : _*)
       
@@ -40,9 +36,7 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
           SetHtml("create-permission-message", Text(msg))
         }
         
-        def invalidEmail() : Boolean = !email.contains("@")
-        
-        if(email.isEmpty()) showMsg("You must enter an e-mail address")
+        if(username.isEmpty()) showMsg("You must enter a username")
         //else if(invalidEmail()) showMsg("Invalid e-mail address")
         //else if(viewData.forall(vData => allowed(vData.view) == false)) showMsg("You must select at least one view to grant access to.")
         else if(viewData.forall(_.allowed == false)) showMsg("You must select at least one view to grant access to.")
@@ -57,7 +51,7 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
               vId <- vData.view.id
             } yield vId
             
-            val result = ObpAPI.addPermissions(bankId, accountId, email, viewIds)
+            val result = ObpAPI.addPermissions(bankId, accountId, username, viewIds)
             result match {
               case Failure(msg, _, _) => showMsg(msg)
               case _ => {
@@ -87,7 +81,7 @@ class CreatePermissionForm(params : (List[ViewJson], AccountJson, PermissionsUrl
           "id" -> onOffSwitch) &
         ".onoffswitch-label [for]" #> onOffSwitch
       }) &
-      "name=email" #> SHtml.text(email, email = _) &
+      "name=email" #> SHtml.text(username, username = _) &
       "type=submit" #> SHtml.ajaxSubmit("Grant access", process)
       
     }

@@ -1,31 +1,27 @@
 package code.lib
 
-import net.liftweb.json._
-import net.liftweb.json.JObject
-import net.liftweb.json.JsonDSL._
-import net.liftweb.common.Box
-import net.liftweb.common.Full
-import net.liftweb.json.JsonAST.{JValue, JInt}
-import net.liftweb.json.JDouble
-import net.liftweb.common.Empty
-import java.net.URL
-import java.io.{BufferedWriter, OutputStreamWriter}
-import org.apache.http.client.HttpClient
-import java.net.HttpURLConnection
-import net.liftweb.common.Failure
-import java.io.{PrintWriter, StringWriter, BufferedReader, InputStreamReader}
-import net.liftweb.util.Helpers._
-import java.util.Date
-import net.liftweb.http.RequestVar
-import code.lib.ObpJson._
-import sun.reflect.generics.reflectiveObjects.NotImplementedException
+import java.io._
+import java.net.{HttpURLConnection, URL}
 import java.text.SimpleDateFormat
+import java.util.Date
+
+import code.lib.ObpJson._
 import code.util.Helper.MdcLoggable
+import net.liftweb.common.{Box, Empty, Failure, Full}
+import net.liftweb.http.RequestVar
+import net.liftweb.json.JsonAST.JValue
+import net.liftweb.json.JsonDSL._
+import net.liftweb.json.{JObject, _}
+import net.liftweb.util.Helpers._
 import net.liftweb.util.Props
 
 import scala.xml.NodeSeq
 
 case class Header(key: String, value: String)
+
+case class ErrorMessage(code: Int,
+                        message: String
+                       )
 
 object ObpAPI {
   implicit val formats = DefaultFormats
@@ -239,10 +235,10 @@ object ObpAPI {
     ObpDeleteBoolean("/v1.2.1/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/views/" + viewId)
   }
 
-  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue) : Box[Unit] = {
+  def updateView(bankId: String, accountId: String, viewId: String, viewUpdateJson : JValue): Box[JValue] = {
     for {
       response <- ObpPut("/v3.1.0/banks/" + bankId + "/accounts/" + accountId + "/views/" + viewId, viewUpdateJson)
-    } yield Unit
+    } yield response
   }
 
   /**
@@ -499,7 +495,7 @@ object APIUtils extends MdcLoggable {
       case _ => {
         val failMsg = "Bad response code (" + responseCode + ") from OBP API server: " + body
         logger.warn(failMsg)
-        Failure(failMsg)
+        Failure(body)
       }
     }
   }

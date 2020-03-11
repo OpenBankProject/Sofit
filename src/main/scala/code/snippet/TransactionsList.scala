@@ -31,23 +31,21 @@ Berlin 13359, Germany
  */
 package code.snippet
 
-import net.liftweb.http.{PaginatorSnippet, StatefulSnippet}
 import java.text.SimpleDateFormat
-import net.liftweb.http._
-import java.util.Calendar
-import xml.NodeSeq
-import net.liftweb.util.Helpers._
-import net.liftweb.util.Props
-import net.liftweb.util._
-import scala.xml.Text
-import net.liftweb.common.{Box, Failure, Empty, Full}
-import java.util.Date
-import net.liftweb.http.js.JsCmds.Noop
-import java.util.Currency
+import java.util.{Calendar, Currency, Date}
+
+import code.Constant._
 import code.lib.ObpJson._
 import code.lib._
-import net.liftweb.json.JsonDSL._
 import code.util.Helper._
+import net.liftweb.common.{Box, Empty, Full}
+import net.liftweb.http._
+import net.liftweb.http.js.JsCmds.Noop
+import net.liftweb.json.JsonDSL._
+import net.liftweb.util.Helpers._
+import net.liftweb.util.{Props, _}
+
+import scala.xml.{NodeSeq, Text}
 
 case class TransactionsListURLParams(bankId: String, accountId: String, viewId: String)
 
@@ -76,7 +74,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
   val hasManagementAccess = {
     val availableViews = accountJson.views_available.toList.flatten
-    availableViews.exists(view => view.id == Some("owner"))
+    availableViews.exists(view => view.id == Some(CUSTOM_OWNER_VIEW_ID))
   }
 
 
@@ -274,7 +272,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
         }
         
         //TODO: Get this from the api
-        def canEditNarrative = transactionsURLParams.viewId == "owner"
+        def canEditNarrative = transactionsURLParams.viewId == CUSTOM_OWNER_VIEW_ID
 
         ".narrative *" #> {
           if (canEditNarrative) apiEditableNarrative
@@ -378,9 +376,17 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/public
    */
   def displayAll = {
-    val total = new PersistentDouble(accountJson.balance.get.amount.get.toDouble)
-    val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
-    ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) // The previous CSS selector was "* *"
+    accountJson.balance match {
+      case Some(balance) if balance.amount.isDefined =>
+        val total = new PersistentDouble(accountJson.balance.get.amount.get.toDouble)
+        val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
+        ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) // The previous CSS selector was "* *"
+      case _ =>
+        val total = new PersistentDouble(0.toDouble)
+        val groupedApiTransactions = Nil
+        ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) // The previous CSS selector was "* *"
+    } 
+    
   }
 
 

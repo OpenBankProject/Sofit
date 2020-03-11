@@ -1,24 +1,21 @@
 package code.snippet
 
-import scala.collection.immutable.{HashSet, TreeMap}
-import scala.collection._
-import code.util.Helper._
+import code.lib.ObpAPI.addView
+import code.lib.ObpJson.CompleteViewJson
+import code.lib.{ErrorMessage, ObpAPI}
+import code.util.Helper.{MdcLoggable, _}
+import net.liftweb.common.{Box, Failure, Full}
+import net.liftweb.http.SHtml
+import net.liftweb.http.SHtml.{ajaxSubmit, text}
 import net.liftweb.http.js.JE.{Call, Str}
 import net.liftweb.http.js.JsCmd
-import net.liftweb.util.Helpers._
-import scala.xml.{Node, NodeSeq, Text}
-import code.lib.ObpJson.CompleteViewJson
-import net.liftweb.util.CssSel
-import net.liftweb.http.{S, SHtml}
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
-import net.liftweb.http.js.JsCmds.{SetHtml, Alert, RedirectTo}
-import net.liftweb.common.{Full, Box}
-import code.util.Helper.MdcLoggable
-import code.lib.ObpAPI
-import net.liftweb.http.SHtml.{text,ajaxSubmit, ajaxButton}
-import ObpAPI.{addView, deleteView}
-import SHtml._
+import net.liftweb.util.CssSel
+import net.liftweb.util.Helpers._
+
+import scala.collection._
+import scala.xml.NodeSeq
 
 case class ViewUpdateData(
   viewId: String,
@@ -35,6 +32,8 @@ case class ViewsDataJSON(
 For maintaining permissions on the views (entitlements on the account)
  */
 class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
+  implicit val formats = DefaultFormats // Brings in default date formats etc.
+  
   val views = viewsDataJson.views
   val bankId = viewsDataJson.bankId
   val accountId = viewsDataJson.accountId
@@ -48,20 +47,26 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
       implicit val formats = DefaultFormats
 
       ".save-button [onclick+]" #> SHtml.ajaxCall(Call("collectData", Str(viewId)), callResult => {
-        val result: Box[Unit] = for {
+        val result: Box[JValue] = for {
           data <- tryo{parse(callResult).extract[ViewUpdateData]}
           response <- ObpAPI.updateView(viewsDataJson.bankId, viewsDataJson.accountId, viewId, data.updateJson)
         } yield{
           response
         }
-        if(result.isDefined) {
-          val msg = "View " + viewId + " has been updated"
-          Call("socialFinanceNotifications.notify", msg).cmd
+
+        result match  {
+          case Full(_) =>
+            val msg = "View " + viewId + " has been updated."
+            Call("socialFinanceNotifications.notify", msg).cmd
+          // After creation, current user does not have access so, we show message above.
+          case Failure(message,_,_) =>
+            val msg = "Error updating view. " + parse(message).extract[ErrorMessage].message
+            Call("socialFinanceNotifications.notifyError", msg).cmd
+          case _ =>
+            val msg = "Error updating view."
+            Call("socialFinanceNotifications.notifyError", msg).cmd
         }
-        else {
-          val msg = "Error updating view"
-          Call("socialFinanceNotifications.notifyError", msg).cmd
-        }
+        
       })
     }
 
@@ -197,13 +202,17 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
         // This only adds the view (does not grant the current user access)
         val result = addView(bankId, accountId, newViewName, newMetadataView)
 
-        if (result.isDefined) {
-          val msg = "View " + newViewName + " has been created. Don't forget to grant yourself or others access."
-          Call("socialFinanceNotifications.notifyReload", msg).cmd
-          // After creation, current user does not have access so, we show message above.
-        } else {
-          val msg = "View " + newViewName + " could not be created"
-          Call("socialFinanceNotifications.notifyError", msg).cmd
+        result match  {
+          case Full(_) =>
+            val msg = "View " + newViewName + " has been created. Don't forget to grant yourself or others access."
+            Call("socialFinanceNotifications.notifyReload", msg).cmd
+            // After creation, current user does not have access so, we show message above.
+          case Failure(message,_,_) =>
+            val msg = "View " + newViewName + " could not be created. " + parse(message).extract[ErrorMessage].message
+            Call("socialFinanceNotifications.notifyError", msg).cmd
+          case _ =>
+            val msg = "View " + newViewName + " could not be created"
+            Call("socialFinanceNotifications.notifyError", msg).cmd
         }
       }
     }

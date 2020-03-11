@@ -31,23 +31,22 @@ Berlin 13359, Germany
  */
 package bootstrap.liftweb
 
+import java.io.{File, FileInputStream}
 
-import net.liftweb._
-import util._
-import common._
-import http._
-import net.liftweb.sitemap._
-import Loc._
-import Helpers._
-import net.liftmodules.widgets.tablesorter.TableSorter
-import java.io.FileInputStream
-import java.io.File
-
+import code.Constant._
+import code.lib.ObpJson._
 import code.lib.{OAuthClient, ObpAPI, ObpGet, ObpJson}
-import ObpJson._
 import code.snippet._
-import code.util.{Helper, MyExceptionLogger}
 import code.util.Helper.MdcLoggable
+import code.util.{Helper, MyExceptionLogger}
+import net.liftmodules.widgets.tablesorter.TableSorter
+import net.liftweb._
+import net.liftweb.common._
+import net.liftweb.http._
+import net.liftweb.sitemap.Loc._
+import net.liftweb.sitemap._
+import net.liftweb.util.Helpers._
+import net.liftweb.util._
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -311,7 +310,7 @@ class Boot extends MdcLoggable{
         logOrReturnResult {
           for {
             viewsJson <- ObpAPI.getViews(bank, account)
-            accountJson <- ObpAPI.getAccount(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
+            accountJson <- ObpAPI.getAccount(bank, account, CUSTOM_OWNER_VIEW_ID) //TODO: Execute this request and the one above in parallel
           } yield {
             (viewsJson, accountJson, PermissionsUrlParams(bank, account))
           }
@@ -361,7 +360,7 @@ class Boot extends MdcLoggable{
           for {
             permissionsJson <- ObpAPI.getPermissions(bank, account)
             accountViewsJson <- ObpAPI.getViews(bank, account)
-            accountJson <- ObpAPI.getAccount(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/) //TODO: Execute this request and the one above in parallel
+            accountJson <- ObpAPI.getAccount(bank, account, CUSTOM_OWNER_VIEW_ID) //TODO: Execute this request and the one above in parallel
           } yield (permissionsJson, accountJson, accountViewsJson, PermissionsUrlParams(bank, account))
         }
       } else Empty
@@ -375,7 +374,7 @@ class Boot extends MdcLoggable{
 
         logOrReturnResult {
           for {
-            _ <- ObpAPI.getAccount(bank, account, "owner" /*TODO: This shouldn't be hardcoded*/)
+            _ <- ObpAPI.getAccount(bank, account, CUSTOM_OWNER_VIEW_ID)
           } yield {
             URLParameters
           }

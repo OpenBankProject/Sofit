@@ -1,5 +1,6 @@
 package code.util
 
+import code.Constant._
 import code.lib.ObpAPI._
 import code.lib.ObpJson.AccountJson
 import net.liftweb.common._
@@ -12,7 +13,7 @@ object Helper {
 
   // From bankId / accountId
   def getAccountTitle (bankId: String, accountId: String) : String = {
-    val accountJsonBox = getAccount(bankId, accountId, "owner")
+    val accountJsonBox = getAccount(bankId, accountId, CUSTOM_OWNER_VIEW_ID)
 
     val accountTitle = accountJsonBox match {
       case Full(accountJson) => getAccountTitle(accountJson)
@@ -33,7 +34,7 @@ Uses the Label else Id if possible
 
   def hasManagementAccess (accountJson: AccountJson ) : Boolean  = {
     val availableViews = accountJson.views_available.toList.flatten
-    availableViews.exists(view => view.id == Some("owner"))
+    availableViews.exists(view => view.id == Some(CUSTOM_OWNER_VIEW_ID))
   }
 
 

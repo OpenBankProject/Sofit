@@ -1,30 +1,15 @@
 package code.snippet
 
-import net.liftweb.http.S
-import net.liftweb.util.Helpers._
-import net.liftweb.http.SHtml
-import net.liftweb.http.js.JE.JsRaw
-import code.util.Helper.MdcLoggable
-import net.liftweb.http.JsonHandler
-import net.liftweb.json._
-import net.liftweb.common.Full
-import net.liftweb.common.Failure
-import code.lib.Provider
-import code.lib.OAuthClient
-import net.liftweb.http.js.JsCmds.{Script, Noop}
 import code.lib.ObpAPI
 import code.lib.ObpJson._
+import code.util.Helper.{MdcLoggable, _}
+import net.liftweb.common.{Failure, Full}
+import net.liftweb.http.{S, SHtml}
+import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.http.js.JsCmds.{Noop, Script}
+import net.liftweb.json._
 import net.liftweb.util.CssSel
-import net.liftweb.http.js.JsCmds.Replace
-import scala.xml.NodeSeq
-import net.liftweb.http.js.jquery.JqJsCmds.FadeOut
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds.SetHtml
-import scala.xml.Text
-import net.liftweb.http.js.jquery.JqJsCmds.Show
-
-
-import code.util.Helper._
+import net.liftweb.util.Helpers._
 
 case class PermissionsUrlParams(bankId : String, accountId: String)
 case class ClickJson(userId: String, checked: Boolean, viewId : String)
@@ -121,7 +106,7 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson
               val userId = permission.user.flatMap(_.id).getOrElse("")
               
               "* [id]" #> rowId(userId) &
-                ".user *" #> permission.user.flatMap(_.display_name).getOrElse("") &
+                ".user *" #> permission.user.flatMap(_.id).getOrElse("") &
                 checkBoxes(permission) &
                 ".remove [data-userid]" #> userId &
                 ".remove [onclick]" #> removeAjax

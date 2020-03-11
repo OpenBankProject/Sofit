@@ -32,6 +32,7 @@
 
 package code.snippet
 
+import code.Constant._
 import net.liftweb.http.S
 import net.liftweb.http.LiftRules
 import net.liftweb.util.Helpers._
@@ -54,7 +55,7 @@ class Nav {
   val accountJson : Option[AccountJson]= {
     if (url.size > 4) {
 
-      val viewId = "owner"  //if we can't access the owner view, account returns nothing
+      val viewId = CUSTOM_OWNER_VIEW_ID //if we can't access the owner view, account returns nothing
       val bankId = url( url.indexOf("banks")+1 )
       val accountId = url( url.indexOf("accounts")+1 )
 
