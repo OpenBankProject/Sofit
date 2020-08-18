@@ -4,7 +4,7 @@ import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.text.SimpleDateFormat
 import java.util.Date
-import code.Constant.versionOfApi
+import code.Constant._
 import code.lib.ObpJson._
 import code.util.Helper.MdcLoggable
 import net.liftweb.common.{Box, Empty, Failure, Full}
@@ -161,7 +161,7 @@ object ObpAPI {
   }
   
   def addPermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val grantPermissionUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + 
+    val grantPermissionUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + 
       "/permissions/" + urlEncode(defaultProvider) + "/" +urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpPost(grantPermissionUrl, new JObject(Nil))
   }
@@ -181,13 +181,13 @@ object ObpAPI {
   }
 
   def removePermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val removePermissionUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
+    val removePermissionUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
       urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpDeleteBoolean(removePermissionUrl)
   }
   
   def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
-    val removeAllPermissionsUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
+    val removeAllPermissionsUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
       urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
     ObpDeleteBoolean(removeAllPermissionsUrl)
   }
