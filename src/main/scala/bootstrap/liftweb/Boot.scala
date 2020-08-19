@@ -238,7 +238,7 @@ class Boot extends MdcLoggable{
 
           val result = logOrReturnResult {
             for {
-              otherAccountsJson <- ObpGet("/v1.2.1/banks/" + bankUrl + "/accounts/" + accountUrl + "/owner/" + "other_accounts").flatMap(x => x.extractOpt[OtherAccountsJson])
+              otherAccountsJson <- ObpGet(s"/$versionOfApi/banks/" + bankUrl + "/accounts/" + accountUrl + "/owner/" + "other_accounts").flatMap(x => x.extractOpt[OtherAccountsJson])
             } yield (otherAccountsJson, urlParams)
           }
 
@@ -257,7 +257,7 @@ class Boot extends MdcLoggable{
     {
       val result =
         for {
-          accountJson <- ObpGet("/v1.2.1/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
+          accountJson <- ObpGet(s"/$versionOfApi/accounts/private").flatMap(_.extractOpt[BarebonesAccountsJson])
         } yield (accountJson.accounts)
 
       result match {
@@ -278,7 +278,7 @@ class Boot extends MdcLoggable{
             val transactionID = URLParameters(2)
             val viewName = URLParameters(3)
 
-            val transactionJson = ObpGet("/v1.2.1/banks/" + bank + "/accounts/" + account + "/" + viewName +
+            val transactionJson = ObpGet(s"/$versionOfApi/banks/" + bank + "/accounts/" + account + "/" + viewName +
               "/transactions/" + transactionID + "/transaction").flatMap(x => x.extractOpt[TransactionJson])
 
             val commentsURLParams = CommentsURLParams(bankId = bank, accountId = account, transactionId = transactionID, viewId = viewName)

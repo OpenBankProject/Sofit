@@ -48,3 +48,7 @@ transloadit.addImageTemplate=FILL_ME_IN
 
 # Link to the API Explorer
 webui_api_explorer_url=
+
+# API version
+# Default value is v4.0.0
+api_version=v4.0.0

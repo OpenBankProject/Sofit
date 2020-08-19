@@ -91,7 +91,7 @@ class AccountsOverview extends MdcLoggable {
       ".accountItem" #> sortedPublicAccountJsons.map {
         case (bankId, accountJson) => {
           //TODO: It might be nice to ensure that the same view is picked each time the page loads
-          val views = accountJson.views_available.toList.flatten
+          val views = accountJson.views.toList.flatten
           val aPublicViewId: String = (for {
             aPublicView <- views.filter(view => view.is_public.getOrElse(false)).headOption
             viewId <- aPublicView.id
@@ -122,7 +122,7 @@ class AccountsOverview extends MdcLoggable {
         ".accountItem" #> sortedPrivateAccountJsons.map {
           case (bankId, accountJson) => {
             //TODO: It might be nice to ensure that the same view is picked each time the page loads
-            val views = accountJson.views_available.toList.flatten
+            val views = accountJson.views.toList.flatten
             val accountId : String = accountJson.id.getOrElse("")
             val aPrivateViewId: String = (for {
               aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false) || view.short_name.equals(Some("Firehose"))).headOption
@@ -153,7 +153,7 @@ class AccountsOverview extends MdcLoggable {
 
       ".accountList" #> privateAccountJsons.map { case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
-        val views = accountJson.views_available.toList.flatten
+        val views = accountJson.views.toList.flatten
         val accountId: String = accountJson.id.getOrElse("")
         val aPrivateViewId: String = (for {
           aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
@@ -188,7 +188,7 @@ class AccountsOverview extends MdcLoggable {
 
       ".account" #> privateAccountJsons.map {case (bankId, accountJson) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
-        val views = accountJson.views_available.toList.flatten
+        val views = accountJson.views.toList.flatten
         val accountId : String = accountJson.id.getOrElse("")
         val aPrivateViewId: String = (for {
           aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false)).headOption
