@@ -167,7 +167,7 @@ object ObpAPI {
   }
   
   def addPermissions(bankId: String, accountId: String, userId: String, viewIds : List[String]) : Box[JValue] = {
-    val addPermissionsUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + 
+    val addPermissionsUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + 
          urlEncode(accountId) + "/permissions/" + urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
     val json = ("views" -> viewIds)
     
