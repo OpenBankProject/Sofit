@@ -32,6 +32,7 @@ Berlin 13359, Germany
 
 package code.lib
 
+import code.util.Helper
 import net.liftweb.http.SessionVar
 import net.liftweb.common.Box
 import net.liftweb.common.Empty
@@ -42,7 +43,7 @@ import net.liftweb.http.S
 import oauth.signpost.OAuthConsumer
 import oauth.signpost.basic.DefaultOAuthConsumer
 import net.liftweb.mapper.By
-import net.liftweb.common.{Full, Failure}
+import net.liftweb.common.{Failure, Full}
 import net.liftweb.util.Helpers
 import net.liftweb.http.LiftResponse
 import code.util.Helper.MdcLoggable
@@ -162,7 +163,9 @@ object OAuthClient extends MdcLoggable {
   def loggedIn : Boolean = credentials.map(_.readyToSign).getOrElse(false)
 
   def logoutAll() = {
+    val apiExplorerHost = {Props.get("base_url", S.hostName)}
+    val obpApiHost = {Props.get("api_hostname", "Unknown")}
     credentials.set(None)
-    S.redirectTo("/")
+    S.redirectTo(s"$obpApiHost/user_mgt/logout?redirect=$apiExplorerHost")
   }
 }
