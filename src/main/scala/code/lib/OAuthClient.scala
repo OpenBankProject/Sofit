@@ -47,6 +47,7 @@ import net.liftweb.common.{Failure, Full}
 import net.liftweb.util.Helpers
 import net.liftweb.http.LiftResponse
 import code.util.Helper.MdcLoggable
+import oauth.signpost.signature.HmacSha256MessageSigner
 
 sealed trait Provider {
   val name : String
@@ -151,7 +152,7 @@ object OAuthClient extends MdcLoggable {
   private def redirect(provider : Provider) = {
     mostRecentLoginAttemptProvider.set(Full(provider))
     val credential = setNewCredential(provider)
-
+    credential.consumer.setMessageSigner(new HmacSha256MessageSigner())
     val authUrl = provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("base_url", S.hostName) + "/oauthcallback")
     S.redirectTo(authUrl)
   }
