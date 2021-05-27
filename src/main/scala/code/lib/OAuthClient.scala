@@ -32,21 +32,12 @@ Berlin 13359, Germany
 
 package code.lib
 
-import code.util.Helper
-import net.liftweb.http.SessionVar
-import net.liftweb.common.Box
-import net.liftweb.common.Empty
-import oauth.signpost.OAuthProvider
-import oauth.signpost.basic.DefaultOAuthProvider
-import net.liftweb.util.Props
-import net.liftweb.http.S
-import oauth.signpost.OAuthConsumer
-import oauth.signpost.basic.DefaultOAuthConsumer
-import net.liftweb.mapper.By
-import net.liftweb.common.{Failure, Full}
-import net.liftweb.util.Helpers
-import net.liftweb.http.LiftResponse
 import code.util.Helper.MdcLoggable
+import net.liftweb.common.{Box, Empty, Failure, Full}
+import net.liftweb.http.{LiftResponse, S, SessionVar}
+import net.liftweb.util.Props
+import oauth.signpost.{OAuthConsumer, OAuthProvider}
+import oauth.signpost.basic.DefaultOAuthConsumer
 import oauth.signpost.signature.HmacSha256MessageSigner
 
 sealed trait Provider {
@@ -78,7 +69,7 @@ trait DefaultProvider extends Provider {
   val authorizeUrl = baseUrl + "/oauth/authorize"
   val signupUrl = Some(baseUrl + "/user_mgt/sign_up")
 
-  lazy val oAuthProvider : OAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
+  lazy val oAuthProvider : OAuthProvider = new ObpOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
 
   val consumerKey = Props.get("obp_consumer_key", "")
   val consumerSecret = Props.get("obp_secret_key", "")
