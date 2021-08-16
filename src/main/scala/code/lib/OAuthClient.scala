@@ -32,6 +32,7 @@ Berlin 13359, Germany
 
 package code.lib
 
+import code.util.Helper
 import code.util.Helper.MdcLoggable
 import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.http.{LiftResponse, S, SessionVar}
@@ -61,12 +62,13 @@ sealed trait Provider {
 
 trait DefaultProvider extends Provider {
   val name = "The Open Bank Project Demo"
-
+  
   val baseUrl = Props.get("api_hostname", S.hostName)
+  val oauthBaseUrlPortal = Props.get("portal.hostname").getOrElse(baseUrl)
   val apiBaseUrl = baseUrl + "/obp"
   val requestTokenUrl = baseUrl + "/oauth/initiate"
   val accessTokenUrl = baseUrl + "/oauth/token"
-  val authorizeUrl = baseUrl + "/oauth/authorize"
+  val authorizeUrl = oauthBaseUrlPortal + "/oauth/authorize"
   val signupUrl = Some(baseUrl + "/user_mgt/sign_up")
 
   lazy val oAuthProvider : OAuthProvider = new ObpOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
@@ -156,7 +158,7 @@ object OAuthClient extends MdcLoggable {
 
   def logoutAll() = {
     val apiExplorerHost = {Props.get("base_url", S.hostName)}
-    val obpApiHost = {Props.get("api_hostname", "Unknown")}
+    val obpApiHost = { Props.get("api_portal_hostname").or(Props.get("api_hostname")).getOrElse("Unknown") }
     credentials.set(None)
     S.redirectTo(s"$obpApiHost/user_mgt/logout?redirect=$apiExplorerHost")
   }

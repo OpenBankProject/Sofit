@@ -39,6 +39,7 @@ import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Noop
 import net.liftweb.util.Helpers._
+import net.liftweb.util.Props
 
 import scala.xml.Text
 
@@ -81,7 +82,14 @@ class AccountsOverview extends MdcLoggable {
 
    */
 
-
+  def ssoInPreferenceToPublicAccounts = {
+    if(Props.get("sso.enabled", "false").toBoolean) {
+      logger.debug("Single Sign On is enabled")
+      if(OAuthClient.loggedIn) publicAccounts else OAuthClient.redirectToOauthLogin()
+    } else {
+      publicAccounts
+    }
+  }
   def publicAccounts = {
     if (publicAccountJsons.size == 0) {
       ".accName *" #> "No public accounts available." &

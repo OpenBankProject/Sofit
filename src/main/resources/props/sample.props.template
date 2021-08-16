@@ -52,3 +52,13 @@ webui_api_explorer_url=
 # API version
 # Default value is v4.0.0
 api_version=v4.0.0
+
+# Sngle Sign On 
+# sso.enabled=false
+
+### OBP-API mode ############################## 
+# If OBP-API split to two instances, eg: apis,portal
+# Then API_Explorer need to set two api hosts: api_hostname and this api_portal_hostname, for all Rest Apis will call api_hostname
+# but for all the portal home page link, we need to use this props. If do not set this, it will use api_hostname value instead.
+# api_portal_hostname=http://127.0.0.1:8080
+# --------------------------------------------
