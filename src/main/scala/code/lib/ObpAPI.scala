@@ -4,8 +4,9 @@ import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.text.SimpleDateFormat
 import java.util.Date
+
 import code.Constant._
-import code.lib.ObpJson._
+import code.lib.ObpJson.{CurrentUserJson, _}
 import code.util.Helper.MdcLoggable
 import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.http.RequestVar
@@ -24,6 +25,7 @@ case class ErrorMessage(code: Int,
                        )
 
 object ObpAPI {
+  
   implicit val formats = DefaultFormats
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
   
@@ -49,6 +51,10 @@ object ObpAPI {
   }
   object ASC extends SortDirection { val value = "ASC" }
   object DESC extends SortDirection { val value = "DESC" }
+
+  def currentUser : Box[CurrentUserJson]= if(OAuthClient.loggedIn){
+    ObpGet(s"/v2.0.0/users/current").flatMap(_.extractOpt[CurrentUserJson])
+  } else Failure("OBP-20001: User not logged in. Authentication is required!")
   
   /**
    * @return Json for transactions of a particular bank account
@@ -881,5 +887,12 @@ object ObpJson {
 
 
   case class ResourceDocs (resourceDocs : List[ResourceDoc])
+
+  case class CurrentUserJson(user_id: String,
+                             email: String,
+                             provider_id: String,
+                             provider: String,
+                             username: String
+                            )
   
 }

@@ -36,7 +36,8 @@ import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers
 import Helpers._
 import net.liftweb.http.SHtml
-import code.lib.OAuthClient
+import code.lib.{OAuthClient, ObpAPI}
+import net.liftweb.common.Box
 import net.liftweb.http.js.JsCmds.Noop
 
 class Login {
@@ -44,8 +45,18 @@ class Login {
   // TODO show currently logged-in user / name
   // maybe via getting the 'customer' for the logged in user?
   private def loggedIn = {
+    def getDisplayNameOfUser(): Box[String] = {
+      ObpAPI.currentUser.map {
+        u =>
+          u.provider.toLowerCase() match {
+            case provider if provider.contains("google") => u.email
+            case provider if provider.contains("yahoo")  => u.email
+            case _                                       => u.username
+          }
+      }
+    }
     ".logged-out *" #> "" &
-//    "#logged-in-name *" #> "Unknown" &
+    "#logged-in-name *" #> getDisplayNameOfUser() &
     "#logout [onclick+]" #> SHtml.onEvent(s => {
       OAuthClient.logoutAll()
       Noop
