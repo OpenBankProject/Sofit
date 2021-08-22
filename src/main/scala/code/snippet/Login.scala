@@ -41,9 +41,6 @@ import net.liftweb.common.Box
 import net.liftweb.http.js.JsCmds.Noop
 
 class Login {
-
-  // TODO show currently logged-in user / name
-  // maybe via getting the 'customer' for the logged in user?
   private def loggedIn = {
     def getDisplayNameOfUser(): Box[String] = {
       ObpAPI.currentUser.map {
