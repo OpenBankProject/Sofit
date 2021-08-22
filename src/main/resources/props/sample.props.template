@@ -62,3 +62,8 @@ api_version=v4.0.0
 # but for all the portal home page link, we need to use this props. If do not set this, it will use api_hostname value instead.
 # api_portal_hostname=http://127.0.0.1:8080
 # --------------------------------------------
+
+# Enable/Disable features of the application
+management.counterparties.enabled=true
+management.views.enabled=true
+management.users.enabled=true

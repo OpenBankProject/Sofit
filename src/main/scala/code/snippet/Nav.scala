@@ -44,7 +44,7 @@ import net.liftweb.sitemap.SiteMapSingleton
 import code.lib.ObpJson._
 import code.lib.ObpAPI
 import code.util.Helper
-import net.liftweb.util.CssSel
+import net.liftweb.util.{CssSel, Props}
 
 import scala.xml.NodeSeq
 
@@ -114,7 +114,7 @@ class Nav {
 
     // Menu for a page which lists counterparties and their metadata (and edits the metadata)
     def getManagement = {
-      if (hasManagementAccess) {
+      if (hasManagementAccess && Props.get("management.counterparties.enabled", "true").toBoolean) {
         val managementUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/management"
         Some(".navlink [href]" #> { managementUrl } &
         ".navlink *" #> "Counterparties" &
@@ -129,7 +129,7 @@ class Nav {
 
   // Menu For Entitlements / permissions on an account / view
   def editViews : CssSel = {
-    if (hasManagementAccess) {
+    if (hasManagementAccess && Props.get("management.views.enabled", "true").toBoolean) {
       val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
       ".navlink [href]" #> { editViewsUrl } &
       ".navlink *" #> "Views" &
@@ -172,7 +172,7 @@ class Nav {
     val url = S.uri.split("/", 0)
 
     def getPrivilegeAdmin = {
-      if (hasManagementAccess) {
+      if (hasManagementAccess && Props.get("management.users.enabled", "true").toBoolean) {
         val permissionsUrls = "/banks/" + url(2) + "/accounts/" + url(4) + "/permissions"
         Some(".navitem *" #> {
         ".navlink [href]" #> permissionsUrls &
