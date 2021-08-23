@@ -1793,3 +1793,10 @@ table td {
 	clear: both;
 	border-bottom: 3px solid #C4C4C4;
 }
+
+.account-info__box.account-info__box--views {
+	overflow: auto;
+}
+.account-info__box.account-info__box--public.account-info__box--users-border {
+	overflow: auto;
+}
