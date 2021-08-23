@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Email: contact@tesobe.com
-TESOBE Ltd.
+TESOBE GmbH.
 Osloer Str. 16/17
 Berlin 13359, Germany
 
@@ -31,19 +31,10 @@ Berlin 13359, Germany
  */
 package code.snippet
 
-import code.lib.OAuthClient
-import code.lib.ObpAPI
-import code.lib.ObpAPI._
-import code.lib.ObpDelete
-import code.lib.ObpGet
-import code.lib.ObpJson.ResourceDoc
-import code.lib.ObpPost
-import code.lib.ObpPut
-import net.liftweb.common.{Box, Failure, Empty, Full}
+import code.lib.{OAuthClient, ObpAPI}
 import code.lib.ObpJson._
-import code.lib._
-import net.liftweb.json.Serialization._
 import code.util.Helper.MdcLoggable
+import net.liftweb.common.Full
 
 class OBPDashboardLeftSnippet (params : (TransactionsJson, AccountJson, TransactionsListURLParams, TransactionsJson, AccountJson, TransactionsListURLParams)) extends OBPTransactionSnippet ((params._1, params._2, params._3)) {
 }
@@ -55,38 +46,15 @@ class OBPDashboardRightSnippet (params : (TransactionsJson, AccountJson, Transac
 
 ///////////////
 
-
-
-import _root_.net.liftweb._
-import code.lib.ObpJson.{BarebonesAccountJson, BarebonesAccountsJson, ResourceDoc}
-import code.lib._
-import net.liftweb.http.js.jquery.JqJsCmds.DisplayMessage
-
 //import code.snippet.CallUrlForm._
-import net.liftweb.http.{SHtml, S}
+import net.liftweb.http.S
 
-import net.liftweb.json.{Extraction, JsonParser, JsonAST}
-import net.liftweb.json.JsonAST.{JField, JObject, JValue}
-import scala.xml.{XML, NodeSeq, Text}
-
-
-import net.liftweb._
+import scala.xml.NodeSeq
 // for compact render
-import net.liftweb.json._
-
-
-import common._
-
-import net.liftweb.util.Helpers._
-import net.liftweb.http.SHtml.{text,ajaxSubmit, textarea, select, ajaxSelect}
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds.{Run, SetHtml}
-
-import net.liftweb.json.Serialization.writePretty
-
-import code.lib.ObpAPI.{getResourceDocsJson, allBanks, allAccountsAtOneBank}
-
+import code.lib.ObpAPI.allBanks
 import net.liftweb.http.CurrentReq
+import net.liftweb.http.SHtml.ajaxSelect
+import net.liftweb.util.Helpers._
 
 
 /*

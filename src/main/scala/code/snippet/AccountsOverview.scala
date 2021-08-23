@@ -1,6 +1,6 @@
 /**
 Open Bank Project - Sofi Web Application
-Copyright (C) 2011 - 2016, TESOBE Ltd.
+Copyright (C) 2011 - 2016, TESOBE GmbH.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Email: contact@tesobe.com
-TESOBE Ltd.
+TESOBE GmbH.
 Osloer Str. 16/17
 Berlin 13359, Germany
 
@@ -39,6 +39,7 @@ import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Noop
 import net.liftweb.util.Helpers._
+import net.liftweb.util.Props
 
 import scala.xml.Text
 
@@ -81,7 +82,14 @@ class AccountsOverview extends MdcLoggable {
 
    */
 
-
+  def ssoInPreferenceToPublicAccounts = {
+    if(Props.get("sso.enabled", "false").toBoolean) {
+      logger.debug("Single Sign On is enabled")
+      if(OAuthClient.loggedIn) publicAccounts else OAuthClient.redirectToOauthLogin()
+    } else {
+      publicAccounts
+    }
+  }
   def publicAccounts = {
     if (publicAccountJsons.size == 0) {
       ".accName *" #> "No public accounts available." &

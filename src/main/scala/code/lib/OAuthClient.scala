@@ -1,6 +1,6 @@
 /**
 Open Bank Project - Sofi Web Application
-Copyright (C) 2011 - 2016, TESOBE Ltd.
+Copyright (C) 2011 - 2016, TESOBE GmbH.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Email: contact@tesobe.com
-TESOBE Ltd.
+TESOBE GmbH.
 Osloer Str. 16/17
 Berlin 13359, Germany
 
@@ -33,20 +33,13 @@ Berlin 13359, Germany
 package code.lib
 
 import code.util.Helper
-import net.liftweb.http.SessionVar
-import net.liftweb.common.Box
-import net.liftweb.common.Empty
-import oauth.signpost.OAuthProvider
-import oauth.signpost.basic.DefaultOAuthProvider
-import net.liftweb.util.Props
-import net.liftweb.http.S
-import oauth.signpost.OAuthConsumer
-import oauth.signpost.basic.DefaultOAuthConsumer
-import net.liftweb.mapper.By
-import net.liftweb.common.{Failure, Full}
-import net.liftweb.util.Helpers
-import net.liftweb.http.LiftResponse
 import code.util.Helper.MdcLoggable
+import net.liftweb.common.{Box, Empty, Failure, Full}
+import net.liftweb.http.{LiftResponse, S, SessionVar}
+import net.liftweb.util.Props
+import oauth.signpost.{OAuthConsumer, OAuthProvider}
+import oauth.signpost.basic.DefaultOAuthConsumer
+import oauth.signpost.signature.HmacSha256MessageSigner
 
 sealed trait Provider {
   val name : String
@@ -69,15 +62,16 @@ sealed trait Provider {
 
 trait DefaultProvider extends Provider {
   val name = "The Open Bank Project Demo"
-
+  
   val baseUrl = Props.get("api_hostname", S.hostName)
+  val oauthBaseUrlPortal = Props.get("portal.hostname").getOrElse(baseUrl)
   val apiBaseUrl = baseUrl + "/obp"
   val requestTokenUrl = baseUrl + "/oauth/initiate"
   val accessTokenUrl = baseUrl + "/oauth/token"
-  val authorizeUrl = baseUrl + "/oauth/authorize"
+  val authorizeUrl = oauthBaseUrlPortal + "/oauth/authorize"
   val signupUrl = Some(baseUrl + "/user_mgt/sign_up")
 
-  lazy val oAuthProvider : OAuthProvider = new DefaultOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
+  lazy val oAuthProvider : OAuthProvider = new ObpOAuthProvider(requestTokenUrl, accessTokenUrl, authorizeUrl)
 
   val consumerKey = Props.get("obp_consumer_key", "")
   val consumerSecret = Props.get("obp_secret_key", "")
@@ -151,7 +145,7 @@ object OAuthClient extends MdcLoggable {
   private def redirect(provider : Provider) = {
     mostRecentLoginAttemptProvider.set(Full(provider))
     val credential = setNewCredential(provider)
-
+    credential.consumer.setMessageSigner(new HmacSha256MessageSigner())
     val authUrl = provider.oAuthProvider.retrieveRequestToken(credential.consumer, Props.get("base_url", S.hostName) + "/oauthcallback")
     S.redirectTo(authUrl)
   }
@@ -164,7 +158,7 @@ object OAuthClient extends MdcLoggable {
 
   def logoutAll() = {
     val apiExplorerHost = {Props.get("base_url", S.hostName)}
-    val obpApiHost = {Props.get("api_hostname", "Unknown")}
+    val obpApiHost = { Props.get("api_portal_hostname").or(Props.get("api_hostname")).getOrElse("Unknown") }
     credentials.set(None)
     S.redirectTo(s"$obpApiHost/user_mgt/logout?redirect=$apiExplorerHost")
   }

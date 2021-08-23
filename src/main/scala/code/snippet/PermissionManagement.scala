@@ -69,10 +69,6 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson
   def checkBoxes(permission : PermissionJson) = {
     ".view-checkbox *" #> nonPublicViews.map(view => {
       
-      val onClick = "." + view + " [onclick]"
-      val userIdData = "." + view + " [data-userid]"
-      val viewIdData = "." + view + " [data-viewid]"
-      
       val permissionExists = (for {
         views <- permission.views
       }yield {
