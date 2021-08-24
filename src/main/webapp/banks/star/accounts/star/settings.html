@@ -1,6 +1,6 @@
 <!--
 Open Bank Project - Sofi Web Application
-Copyright (C) 2011 - 2016, TESOBE  Ltd.
+Copyright (C) 2011 - 2021, TESOBE GmbH
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,6 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 <div id="account-settings" data-lift="surround?with=default;at=content">
 
 	<section class="home-viewing">
-		<p class="home-viewing__text">VIEWING</p>
 		<h4 class="home-viewing__headline">Account settings</h4>
 	</section>
 	
@@ -48,10 +47,10 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 			</div>
 
 			<div class="account-settings-section" data-lift="AccountSettings.editLabel">
-				<h4>Label</h4>
+				<h4>Account label</h4>
 				<form data-lift="form.ajax">
 					<input type="text" id="new_label" name="new_label" placeholder="Enter new label..." />
-				  	<input type="submit" value="Edit label" />
+				  	<input type="submit" value="Save account label" />
 				</form>
 			</div>
 		</div>

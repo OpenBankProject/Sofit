@@ -652,7 +652,8 @@ table td {
 
 .home-viewing__headline {
   margin: 0 0 0;
-  padding: 0 0 12px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   color: #fff;
   font-size: 18px;
   line-height: 22px;
