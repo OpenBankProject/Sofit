@@ -95,7 +95,7 @@ object CustomEditable {
         if(removable){
           <div title={ noAliasTooltip } >
             <p class="counterparties-table-body__cell-paragraph">{ defaultValue }</p>
-			<button class="counterparties-button counterparties-button--edit { editClass }" onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>Edit</button>
+			<button class="counterparties-button counterparties-button--edit { editClass }" onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>Edit Transaction Narrative</button>
             <button class="counterparties-button counterparties-button--delete { removeClass }" onclick={ removeAlias("", editForm, onSubmit, onDelete, defaultValue, divName, removable) }>Delete</button>
           </div>
         } else{
@@ -108,7 +108,7 @@ object CustomEditable {
       case _ => {
         <div>
           <p class="counterparties-table-body__cell-paragraph">{ label }</p>
-          <button class="counterparties-button counterparties-button--edit { editClass }" onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>Edit</button>
+          <button class="counterparties-button counterparties-button--edit { editClass }" onclick={ setAndSwap(editName(divName), editMarkup(label, editForm, onSubmit, onDelete, defaultValue, divName, removable), dispName(divName)).toJsCmd + " return false;" }>Edit Transaction Narrative</button>
           { if (removable)
             <button class="counterparties-button counterparties-button--delete { removeClass }" onclick={ removeAlias("", editForm, onSubmit, onDelete, defaultValue, divName, removable) }>Delete</button>
           }
