@@ -80,13 +80,17 @@ class Nav {
 
 
   def views: net.liftweb.util.CssSel = {
+    val allowedSystemViews: List[String] = Props.get("sytems_views_to_display") match {
+      case Full(value) => value.split(",").map(_.trim()).toList
+      case _ => Nil
+    }
     val url = S.uri.split("/", 0)
     if (url.size > 4) {
       if (viewJsons.size == 0) {
         eraseMenu
       } else {
         ".navitem *" #> {
-          viewJsons.map(viewJson => {
+          viewJsons.filter(i => allowedSystemViews.exists(i.id.getOrElse("").toLowerCase == _.toLowerCase) || i.id.getOrElse("").startsWith("_")).map(viewJson => {
             val viewUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/" + viewJson.id.getOrElse("")
             ".navlink [href]" #> viewUrl &
             ".navlink *" #> viewJson.short_name.getOrElse("") &
