@@ -80,10 +80,8 @@ class Nav {
 
 
   def views: net.liftweb.util.CssSel = {
-    val allowedSystemViews: List[String] = Props.get("sytems_views_to_display") match {
-      case Full(value) => value.split(",").map(_.trim()).toList
-      case _ => Nil
-    }
+    val allowedSystemViews: List[String] = Props.get("sytems_views_to_display", "owner,accountant,auditor")
+      .split(",").map(_.trim()).toList
     val url = S.uri.split("/", 0)
     if (url.size > 4) {
       if (viewJsons.size == 0) {

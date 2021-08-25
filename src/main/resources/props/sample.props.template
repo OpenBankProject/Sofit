@@ -64,4 +64,4 @@ management.views.enabled=true
 management.users.enabled=true
 
 # Limit the System views displayed by Sofit.
-sytems_views_to_display=owner,accountant,auditor,firehose
+sytems_views_to_display=owner,accountant,auditor
