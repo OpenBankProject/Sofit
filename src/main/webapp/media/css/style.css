@@ -459,8 +459,8 @@ body {
 }
 
 table td {
-  overflow: hidden;
-  display: inline-block;
+  /*overflow: hidden;
+  display: inline-block;*/
 }
 
 .header {
@@ -670,17 +670,12 @@ table td {
 }
 
 .account-info__box {
-  float: left;
-  width: 49%;
   -moz-border-radius: 24px;
   -webkit-border-radius: 24px;
   border-radius: 24px;
   background-color: #fff;
   margin: 16px 0 0 0;
   padding: 25px 18px 0 25px;
-}
-.account-info__box:first-child {
-  margin: 16px 14px 0 0;
 }
 
 .account-info__box-headline {
@@ -768,7 +763,7 @@ table td {
   text-decoration: underline;
 }
 .acc-table-body__cell:first-child {
-  width: 720px;
+  /*width: 720px;*/
   font-size: 14px;
   line-height: 16px;
   color: #5D5D5D;
@@ -1664,7 +1659,7 @@ table td {
   margin: 0 0 10px 0;
 }
 #index .acc-table-body__cell:first-child {
-  width: 380px;
+  /**width: 380px;*/
 }
 #index .acc-table-body__cell:last-child {
   width: 60px;
