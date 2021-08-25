@@ -82,6 +82,13 @@ class AccountsOverview extends MdcLoggable {
 
    */
 
+  def shouldShowPublicAccounts = {
+    if(Props.get("hide_public_accounts_panel", "false").toBoolean) {
+      "#public_account_info_box [style]" #> "display:none"
+    } else {
+      "#public_account_info_box [style]" #> "display:block"
+    }
+  }
   def ssoInPreferenceToPublicAccounts = {
     if(Props.get("sso.enabled", "false").toBoolean) {
       logger.debug("Single Sign On is enabled")
