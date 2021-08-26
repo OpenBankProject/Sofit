@@ -426,12 +426,12 @@ th {
 }
 
 body {
-  min-width: 1035px;
+
 }
 
 .container {
   margin: 39px auto 0 auto;
-  width: 1035px;
+  width: 80%;
 }
 
 .container--public {
@@ -1457,7 +1457,7 @@ table td {
 }
 
 .counterparties-table-head__cell {
-  width: 139px;
+  width: 14%;
   padding: 7px 0 4px 5px;
   position: relative;
   float: left;
@@ -1507,7 +1507,7 @@ table td {
 }
 
 .counterparties-table-body__cell {
-  width: 138px;
+  width: 14%;
   padding: 12px 0 10px 8px;
   font-size: 14px;
   line-height: 18px;
