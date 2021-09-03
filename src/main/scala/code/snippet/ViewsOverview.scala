@@ -11,7 +11,7 @@ import net.liftweb.http.js.JE.{Call, Str}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
-import net.liftweb.util.CssSel
+import net.liftweb.util.{CssSel, Props}
 import net.liftweb.util.Helpers._
 
 import scala.collection._
@@ -100,16 +100,17 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
     }
     
     val ids = getIds()
-    val viewNameSel     = ".view_name *" #> views.map( view => view.shortName.getOrElse(""))
-    val shortNamesSel   = ".short_name"  #> views.map( view => "* *" #> view.shortName.getOrElse("") & "* [data-viewid]" #> view.id )
-    val aliasSel        = ".alias"       #> views.map( view => "* *" #> aliasType(view.alias) & "* [data-viewid]" #> view.id )
-    val descriptionSel  = ".description" #> views.map( view => ".desc *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
-    val metadataViewSel = ".metadata_view"#> views.map( view => ".metadataView *" #> view.metadataView.getOrElse("") & "* [data-viewid]" #> view.id )
+    val viewNameSel     = ".view_name *" #> getAllowedViews().map( view => view.shortName.getOrElse(""))
+    val shortNamesSel   = ".short_name"  #> getAllowedViews().map( view => "* *" #> view.shortName.getOrElse("") & "* [data-viewid]" #> view.id )
+    val aliasSel        = ".alias"       #> getAllowedViews().map( view => "* *" #> aliasType(view.alias) & "* [data-viewid]" #> view.id )
+    val descriptionSel  = ".description" #> getAllowedViews().map( view => ".desc *" #> view.description.getOrElse("") & "* [data-viewid]" #> view.id )
+    val metadataViewSel = ".metadata_view"#> getAllowedViews().map( view => ".metadataView *" #> view.metadataView.getOrElse("") & "* [data-viewid]" #> view.id )
     val isPublicSel     = ".is_public *" #> getIfIsPublic()
     var actionsSel      = ".action-buttons" #> ids.map(x => ("* [data-id]" #> x) & saveOnClick(x) & deleteOnClick(x))
     // permissions.keys need to be converted to sequence to retain the same order when running map over it!
     // Also sorting it
     val permissionNames = permissions.keys.toSeq.sortWith(_ < _)
+      //.filter(i => getAllowedSystemVies.exists(i.toLowerCase == _.toLowerCase) || i.startsWith("_"))
     val permSel = ".permissions *" #> {
       val permissionsCssSel = permissionNames.map(
         permName => {
@@ -131,13 +132,22 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
       ).apply(xhtml)
   }
 
+  private def getAllowedSystemVies = {
+    val allowedSystemViews: List[String] = Props.get("sytems_views_to_display", "owner,accountant,auditor")
+      .split(",").map(_.trim()).toList
+    allowedSystemViews
+  }
+
   def getIds(): List[String] = {
-    views.map( view => view.id.getOrElse(""))
+    getAllowedViews.map( view => view.id.getOrElse(""))
+  }
+  def getAllowedViews(): List[CompleteViewJson] = {
+    views.filter(i => getAllowedSystemVies.exists(i.id.getOrElse("").toLowerCase == _.toLowerCase) || i.id.getOrElse("").startsWith("_"))
   }
 
 
   def getIfIsPublic() :List[CssSel] = {
-    views.map(
+    getAllowedViews().map(
       view => {
         val isPublic = view.isPublic.getOrElse(false)
         val viewId: String = view.id.getOrElse("")
@@ -161,7 +171,7 @@ class ViewsOverview(viewsDataJson: ViewsDataJSON) extends MdcLoggable {
   }
 
   def getPermissionValues(permName: String) :List[CssSel] = {
-    views.map(
+    getAllowedViews().map(
       view => {
         val permValue: Boolean = view.permissions(permName)
         val viewId: String = view.id.getOrElse("")
