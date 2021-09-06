@@ -37,6 +37,11 @@ import Helpers._
 
 class WebUI extends MdcLoggable{
 
+  def hideTwitterLink = {
+    val display: Boolean = Props.getBool("display_twitter_link", true)
+    if(display) "#twitter_link [style]" #> "visibility: visible;" else "#twitter_link [style]" #> "display: none;"
+  }
+
   // Note: Most of these are not used yet
 
   def headerLogoLeft = {

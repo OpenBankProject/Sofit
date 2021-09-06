@@ -68,3 +68,6 @@ sytems_views_to_display=owner,accountant,auditor
 
 # Limit the System views displayed by Sofit.
 hide_public_accounts_panel=false
+
+# Show/Hide Twitter link at the footer.
+display_twitter_link=true
