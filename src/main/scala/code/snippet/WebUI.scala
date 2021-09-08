@@ -37,6 +37,11 @@ import Helpers._
 
 class WebUI extends MdcLoggable{
 
+  def setChangePasswordLink = {
+    val host = Props.get("api_portal_hostname").or(Props.get("api_hostname")).getOrElse("unknown")
+    "#change-password-link a [href]" #> scala.xml.Unparsed(s"$host/user_mgt/change_password")
+  }
+  
   def setForgottenPasswordLink = {
     val host = Props.get("api_portal_hostname").or(Props.get("api_hostname")).getOrElse("unknown")
     "#reset-password-link a [href]" #> scala.xml.Unparsed(s"$host/user_mgt/lost_password")
