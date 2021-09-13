@@ -1,6 +1,6 @@
 <!--
 Open Bank Project - Sofi Web Application
-Copyright (C) 2011 - 2016, TESOBE  Ltd.
+Copyright (C) 2011 - 2021, TESOBE GmbH
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -94,9 +94,6 @@ Berlin 13359, Germany
                     <li class="breadcrumbs__option navitem" data-lift="Nav.item?name=Home">
                         <a href="#" class="breadcrumbs__link active--link navlink">Home</a>
                     </li>
-                    <li class="breadcrumbs__option navitem" data-lift="ConnectBankAccount.connect">
-                        <a href="#" class="breadcrumbs__link active--link navlink">Connect your Bank Account</a>
-                    </li>
 					<span data-lift="Nav.views">
 						<li class="breadcrumbs__option navitem">
 							<a href="#" class="breadcrumbs__link active--link navlink">Views</a>
@@ -123,10 +120,12 @@ Berlin 13359, Germany
 							<a href="#" class="footer-box__link"><img src="/media/images/logo-footer.png" alt="TESOBE Logo" class="footer-box__logo"></a>
 						</div>
 					</div>
-					<div class="footer-links-box">
-						<a href="http://twitter.com/#!/OpenBankProject" class="footer-link-box__link">Twitter</a>
+					<div class="footer-links-box" data-lift="WebUI.hideTwitterLink">
+						<a href="http://twitter.com/#!/OpenBankProject" id="twitter_link" class="footer-link-box__link">Twitter</a>
 						<a href="https://github.com/OpenBankProject/Social-Finance" class="footer-link-box__link">Github</a>
 						<a href="" class="api-explorer-link footer-link-box__link" data-lift="WebUI.apiExplorerLink">API Documentation</a>
+						<a href="" id="reset-password-link" data-lift="WebUI.setForgottenPasswordLink" class="api-explorer-link footer-link-box__link">Forgotten password?</a>
+						<a href="" id="change-password-link" data-lift="WebUI.setChangePasswordLink" class="api-explorer-link footer-link-box__link">Change password</a>
 					</div>
 			</footer>
 

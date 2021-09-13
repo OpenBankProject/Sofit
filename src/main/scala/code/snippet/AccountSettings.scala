@@ -42,7 +42,7 @@ class AccountSettings(params: List[String]) extends MdcLoggable {
       // Bind newViewName field to variable (e.g. http://chimera.labs.oreilly.com/books/1234000000030/ch03.html)
       "@new_label" #> SHtml.text(accountJson.label.getOrElse(""), s => newLabel = s) &
         // Replace the type=submit with Javascript that makes the ajax call.
-        "type=submit" #> SHtml.ajaxSubmit("Edit label", process)
+        "type=submit" #> SHtml.ajaxSubmit("Save account label", process)
       ).apply(xhtml)
   }
 }

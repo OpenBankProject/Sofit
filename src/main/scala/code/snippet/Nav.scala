@@ -1,6 +1,6 @@
 /**
  * Open Bank Project - Sofi Web Application
- * Copyright (C) 2011 - 2016, TESOBE  Ltd.
+ * Copyright (C) 2011 - 2021, TESOBE GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -80,13 +80,15 @@ class Nav {
 
 
   def views: net.liftweb.util.CssSel = {
+    val allowedSystemViews: List[String] = Props.get("sytems_views_to_display", "owner,accountant,auditor")
+      .split(",").map(_.trim()).toList
     val url = S.uri.split("/", 0)
     if (url.size > 4) {
       if (viewJsons.size == 0) {
         eraseMenu
       } else {
         ".navitem *" #> {
-          viewJsons.map(viewJson => {
+          viewJsons.filter(i => allowedSystemViews.exists(i.id.getOrElse("").toLowerCase == _.toLowerCase) || i.id.getOrElse("").startsWith("_")).map(viewJson => {
             val viewUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/" + viewJson.id.getOrElse("")
             ".navlink [href]" #> viewUrl &
             ".navlink *" #> viewJson.short_name.getOrElse("") &

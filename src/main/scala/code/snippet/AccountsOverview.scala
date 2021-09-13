@@ -1,6 +1,6 @@
 /**
 Open Bank Project - Sofi Web Application
-Copyright (C) 2011 - 2016, TESOBE GmbH.
+Copyright (C) 2011 - 2021, TESOBE GmbH.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -82,6 +82,13 @@ class AccountsOverview extends MdcLoggable {
 
    */
 
+  def shouldShowPublicAccounts = {
+    if(Props.get("hide_public_accounts_panel", "false").toBoolean) {
+      "#public_account_info_box [style]" #> "display:none"
+    } else {
+      "#public_account_info_box [style]" #> "display:block"
+    }
+  }
   def ssoInPreferenceToPublicAccounts = {
     if(Props.get("sso.enabled", "false").toBoolean) {
       logger.debug("Single Sign On is enabled")

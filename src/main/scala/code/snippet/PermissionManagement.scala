@@ -8,7 +8,7 @@ import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{Noop, Script}
 import net.liftweb.json._
-import net.liftweb.util.CssSel
+import net.liftweb.util.{CssSel, Props}
 import net.liftweb.util.Helpers._
 
 case class PermissionsUrlParams(bankId : String, accountId: String)
@@ -60,14 +60,20 @@ class PermissionManagement(params : (PermissionsJson, AccountJson, List[ViewJson
 
   def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
 
+  private def getAllowedSystemVies = {
+    val allowedSystemViews: List[String] = Props.get("sytems_views_to_display", "owner,accountant,auditor")
+      .split(",").map(_.trim()).toList
+    allowedSystemViews
+  }
+  
   def accountViewHeaders = {
-    val viewNames : List[String] = nonPublicViews.map(_.short_name.getOrElse(""))
+      val viewNames : List[String] = nonPublicViews.filter(i => getAllowedSystemVies.exists(i.id.getOrElse("").toLowerCase == _.toLowerCase) || i.id.getOrElse("").startsWith("_")).map(_.short_name.getOrElse(""))
     
     ".view_name *" #> viewNames
   }
-  
+
   def checkBoxes(permission : PermissionJson) = {
-    ".view-checkbox *" #> nonPublicViews.map(view => {
+    ".view-checkbox *" #> nonPublicViews.filter(i => getAllowedSystemVies.exists(i.id.getOrElse("").toLowerCase == _.toLowerCase) || i.id.getOrElse("").startsWith("_")).map(view => {
       
       val permissionExists = (for {
         views <- permission.views

@@ -32,11 +32,6 @@ dev.port=8081
 
 
 
-#set to true if you want to display a link to the alternate api login flow that allows a user to connect their bank account via HBCI
-#sofi currently is not very flexible and hardcodes this link to api_hostname/login, so it will probably only be useful to show if you
-#are working against https://api.openbankproject.com, where that path actually exists
-showConnectBankAccountLink=true
-
 #Your transloadit auth key (used to upload transaction images)
 #not needed unless you want to upload images
 transloadit.authkey=FILL_ME_IN
@@ -67,3 +62,12 @@ api_version=v4.0.0
 management.counterparties.enabled=true
 management.views.enabled=true
 management.users.enabled=true
+
+# Limit the System views displayed by Sofit.
+sytems_views_to_display=owner,accountant,auditor
+
+# Limit the System views displayed by Sofit.
+hide_public_accounts_panel=false
+
+# Show/Hide Twitter link at the footer.
+display_twitter_link=true

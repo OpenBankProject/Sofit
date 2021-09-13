@@ -1,6 +1,6 @@
 <!--
 Open Bank Project - Sofi Web Application
-Copyright (C) 2011 - 2016, TESOBE  Ltd.
+Copyright (C) 2011 - 2021, TESOBE GmbH
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -29,71 +29,10 @@ Berlin 13359, Germany
   Ayoub Benali: ayoub AT tesobe DOT com
 -->
 
-
-
-
-
 <div id="index" class="lift:surround?with=default;at=content">
-
-
-	<!--
-
-
-	<div id="homeContent">
-    	<div id="about_text">
-			<p>
-				Welcome to The Open Bank Project’s Sofi application.
-			</p>
-			<br />
-
-	-->
-
-
-
-	<!--
-
-
-        </div>
-		<div id="public_accounts">
-			<h2 class="account_header">Public Accounts</h2>
-			<div class="lift:AccountsOverview.publicAccounts">
-				<ul class="accountList">
-					<li class="account"><a class="accLink" href="">Account Name</a>
-					</li>
-				</ul>
-			</div>
-		</div>
-		<div id="authorised_accounts">
-			<h2 class="account_header">Authorised Accounts</h2>
-			<div class="lift:AccountsOverview.authorisedAccounts">
-				<ul class="accountList">
-					<li class="account"><a class="accLink" href="">Account Name</a></li>
-				</ul>
-			</div>
-		</div>
-	</div>
-
-
-        -->
-
-
-
-	<!-- accounts section_start -->
-	<!--
-	<section class="accounts">
-		<p class="accounts__text">YOUR ACCOUNTS</p>
-		<select name="accounts" class="accounts__select">
-			<option value="Particip" class="accounts__option">Particip</option>
-			<option value="Placeholder" class="accounts__option">Placeholder</option>
-			<option value="Placeholder" class="accounts__option">Placeholder</option>
-		</select>
-	</section>
-	-->
-	<!-- accounts section_end -->
 
 	<!-- home-viewing section_start -->
 	<section class="home-viewing">
-		<p class="home-viewing__text">VIEWING</p>
 		<h4 class="home-viewing__headline">Public &amp; Private accounts</h4>
 	</section>
 	<!-- home-viewing section_end -->
@@ -101,8 +40,26 @@ Berlin 13359, Germany
 	<!-- account-info section_start -->
 	<section class="account-info account-info--index">
 
-		<!-- left box start -->
+		<!-- My Accounts start -->
 		<div class="account-info__box">
+			<div class="account-info__top-wrapper">
+				<h3 class="account-info__box-headline">My Accounts</h3>
+			</div>
+
+			<table class="acc-table-wrap">
+				<tbody>
+				<tr class="acc-table-body__row accountItem" data-lift="AccountsOverview.authorisedAccounts">
+					<td style="width:80%; text-align:left;" class="acc-table-body__cell accName"><a href="#">Account Name</a></td>
+					<td style="width:19%; text-align:right;" class="acc-table-body__cell green--color">
+						<a href="#" class="acc-table-body__cell-link accLink"><img src="/media/images/arrow-right.png" alt="Follow me" class="acc-table-body__cell-icon"></a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div><!-- My Accounts end -->
+		
+		<!-- Public Accounts start -->
+		<div class="account-info__box" id="public_account_info_box" data-lift="AccountsOverview.shouldShowPublicAccounts">
 			<div class="account-info__top-wrapper">
 				<h3 class="account-info__box-headline">Public Accounts</h3>
 			</div>
@@ -110,32 +67,14 @@ Berlin 13359, Germany
 			<table class="acc-table-wrap">
 				<tbody>
 				<tr class="acc-table-body__row accountItem" data-lift="AccountsOverview.ssoInPreferenceToPublicAccounts">
-					<td class="acc-table-body__cell accName"><a href="#">Account Name</a></td>
-					<td class="acc-table-body__cell green--color">
+					<td style="width:80%; text-align:left;" class="acc-table-body__cell accName"><a href="#">Account Name</a></td>
+					<td style="width:19%; text-align:right;" class="acc-table-body__cell green--color">
 						<a href="#" class="acc-table-body__cell-link accLink"><img src="/media/images/arrow-right.png" alt="Follow me" class="acc-table-body__cell-icon"></a>
 					</td>
 				</tr>
 				</tbody>
 			</table>
-		</div><!-- left box end -->
-
-		<!-- right box start -->
-		<div class="account-info__box">
-			<div class="account-info__top-wrapper">
-				<h3 class="account-info__box-headline">Private Accounts</h3>
-			</div>
-
-			<table class="acc-table-wrap">
-				<tbody>
-				<tr class="acc-table-body__row accountItem" data-lift="AccountsOverview.authorisedAccounts">
-					<td class="acc-table-body__cell accName"><a href="#">Account Name</a></td>
-					<td class="acc-table-body__cell green--color">
-						<a href="#" class="acc-table-body__cell-link accLink"><img src="/media/images/arrow-right.png" alt="Follow me" class="acc-table-body__cell-icon"></a>
-					</td>
-				</tr>
-				</tbody>
-			</table>
-		</div><!-- right box end -->
+		</div><!-- Public Accounts end -->
 
 	</section>
 	<!-- account-info section_end -->
