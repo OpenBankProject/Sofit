@@ -11,9 +11,9 @@
     <name>Social Finance</name>
     <inceptionYear>2011</inceptionYear>
     <properties>
-        <scala.version>2.11</scala.version>
-        <scala.compiler>2.11.8</scala.compiler>
-        <lift.version>2.6.3</lift.version>
+        <scala.version>2.12</scala.version>
+        <scala.compiler>2.12.10</scala.compiler>
+        <lift.version>3.4.1</lift.version>
         <jetty.version>9.4.12.v20180830</jetty.version>
         <!-- Common plugin settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -62,26 +62,6 @@
             <version>${lift.version}</version>
         </dependency>
         <dependency>
-            <groupId>net.liftmodules</groupId>
-            <artifactId>widgets_2.6_${scala.version}</artifactId>
-            <version>1.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>net.databinder</groupId>
-            <artifactId>dispatch-http_${scala.version}</artifactId>
-            <version>0.8.10</version>
-        </dependency>
-        <dependency>
-            <groupId>net.databinder</groupId>
-            <artifactId>dispatch-oauth_${scala.version}</artifactId>
-            <version>0.8.10</version>
-        </dependency>
-        <dependency>
-            <groupId>net.databinder.dispatch</groupId>
-            <artifactId>dispatch-lift-json_${scala.version}</artifactId>
-            <version>0.11.3</version>
-        </dependency>
-        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
@@ -96,7 +76,7 @@
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.version}</artifactId>
-            <version>2.2.6</version>
+            <version>3.0.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -341,20 +321,4 @@
                 </plugin>
             </plugins>
     </build>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <version>3.2.2</version>
-                <configuration>
-                    <charset>${project.build.sourceEncoding}</charset>
-                    <jvmArgs>
-                        <jvmArg>-Xmx1024m</jvmArg>
-                        <jvmArg>-DpackageLinkDefs=file://${project.build.directory}/packageLinkDefs.properties</jvmArg>
-                    </jvmArgs>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>

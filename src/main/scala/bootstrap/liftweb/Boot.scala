@@ -35,12 +35,10 @@ import java.io.{File, FileInputStream}
 
 import code.Constant._
 import code.lib.ObpJson._
-import code.lib.{OAuthClient, ObpAPI, ObpGet, ObpJson}
+import code.lib.{OAuthClient, ObpAPI, ObpGet}
 import code.snippet._
 import code.util.Helper.MdcLoggable
 import code.util.{Helper, MyExceptionLogger}
-import net.liftmodules.widgets.tablesorter.TableSorter
-import net.liftweb._
 import net.liftweb.common._
 import net.liftweb.http._
 import net.liftweb.sitemap.Loc._
@@ -454,8 +452,6 @@ class Boot extends MdcLoggable{
       new Html5Properties(r.userAgent))
 
     LiftRules.explicitlyParsedSuffixes = Helpers.knownSuffixes &~ (Set("com"))
-
-    TableSorter.init
 
     LiftRules.exceptionHandler.prepend{
       case MyExceptionLogger(_, _, t) => throw t // this will never happen
