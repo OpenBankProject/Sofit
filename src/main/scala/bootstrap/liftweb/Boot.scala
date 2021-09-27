@@ -448,14 +448,19 @@ class Boot extends MdcLoggable{
     // Force the request to be UTF-8
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
 
-    //set base localization to english (instead of computer default)
-    Locale.setDefault(Locale.ITALIAN)
-    logger.info("Current Project Locale is :" +Locale.getDefault)
-
+    //set base localization according to a props value (instead of computer default)
+    val locale = Locale.getAvailableLocales().toList.filter { l =>
+      l.toLanguageTag == Props.get("language_tag", "en-GB")
+    }.map { l =>
+      l
+    }.head
+    Locale.setDefault(locale)
+    logger.info("Current Project Locale is :" + locale)
+    
     //override locale calculated from client request with default (until we have translations)
     LiftRules.localeCalculator = {
-      case fullReq @ Full(req) => Locale.ITALIAN
-      case _ => Locale.ITALIAN
+      case fullReq @ Full(req) => locale
+      case _ => locale
     }
 
     // LiftRules.resourceNames = "i18n.lift-core" :: Nil
