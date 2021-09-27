@@ -32,6 +32,7 @@ Berlin 13359, Germany
 package bootstrap.liftweb
 
 import java.io.{File, FileInputStream}
+import java.util.Locale
 
 import code.Constant._
 import code.lib.ObpJson._
@@ -446,6 +447,18 @@ class Boot extends MdcLoggable{
 
     // Force the request to be UTF-8
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
+
+    //set base localization to english (instead of computer default)
+    Locale.setDefault(Locale.ITALIAN)
+    logger.info("Current Project Locale is :" +Locale.getDefault)
+
+    //override locale calculated from client request with default (until we have translations)
+    LiftRules.localeCalculator = {
+      case fullReq @ Full(req) => Locale.ITALIAN
+      case _ => Locale.ITALIAN
+    }
+
+    // LiftRules.resourceNames = "i18n.lift-core" :: Nil
 
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>

@@ -35,7 +35,7 @@ package code.snippet
 import code.lib.{OAuthClient, ObpAPI}
 import code.lib.ObpJson._
 import code.util.Helper.MdcLoggable
-import net.liftweb.http.SHtml
+import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Noop
 import net.liftweb.util.Helpers._
@@ -154,8 +154,8 @@ class AccountsOverview extends MdcLoggable {
     }
 
     def loggedOutSnippet = {
-   //   ".accountItem" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
-      ".accName *" #> "You are logged out. No authorised accounts available." &
+   //   ".accountItem" #> SHtml.span(Text("S.?("you_are_logged_out")"), Noop,("id","accountsMsg"))
+      ".accName *" #> S.?("you_are_logged_out") &
       ".accLink" #> ""
     }
 
@@ -190,7 +190,7 @@ class AccountsOverview extends MdcLoggable {
       }
     }
     def loggedOutSnippet = {
-      ".accountList" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
+      ".accountList" #> SHtml.span(Text(S.?("you_are_logged_out")), Noop,("id","accountsMsg"))
     }
 
     if(OAuthClient.loggedIn) loggedInSnippet
@@ -218,7 +218,7 @@ class AccountsOverview extends MdcLoggable {
     }
 
     def loggedOutSnippet = {
-      ".accountList" #> SHtml.span(Text("You are logged out. No authorised accounts available."), Noop,("id","accountsMsg"))
+      ".accountList" #> SHtml.span(Text(S.?("you_are_logged_out")), Noop,("id","accountsMsg"))
     }
 
     if(OAuthClient.loggedIn) loggedInSnippet
