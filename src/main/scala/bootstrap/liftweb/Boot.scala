@@ -42,6 +42,7 @@ import code.util.Helper.MdcLoggable
 import code.util.{Helper, MyExceptionLogger}
 import net.liftweb.common._
 import net.liftweb.http._
+import net.liftweb.http.provider.HTTPCookie
 import net.liftweb.sitemap.Loc._
 import net.liftweb.sitemap._
 import net.liftweb.util.Helpers._
@@ -451,15 +452,37 @@ class Boot extends MdcLoggable{
     //set base localization according to a props value (instead of computer default)
     val locale = Locale.getAvailableLocales().toList.filter { l =>
       l.toLanguageTag == Props.get("language_tag", "en-GB")
-    }.map { l =>
-      l
     }.head
     Locale.setDefault(locale)
-    logger.info("Current Project Locale is :" + locale)
+    logger.info("Default Project Locale is :" + locale)
     
-    //override locale calculated from client request with default (until we have translations)
+    // Properly convert a language tag to a Locale
+    def computeLocale(tag : String) = tag.split(Array('-', '_')) match {
+      case Array(lang) => new Locale(lang)
+      case Array(lang, country) => new Locale(lang, country)
+      case Array(lang, country, variant) => new Locale(lang, country, variant)
+    }
+    // Cookie name
+    val localeCookieName = "SELECTED_LOCALE"
     LiftRules.localeCalculator = {
-      case fullReq @ Full(req) => locale
+      case fullReq @ Full(req) => {
+        // Check against a set cookie, or the locale sent in the request 
+        def currentLocale : Locale = {
+          S.findCookie(localeCookieName).flatMap {
+            cookie => cookie.value.map(computeLocale)
+          } openOr locale
+        }
+        
+        // Check to see if the user explicitly requests a new locale 
+        S.param("locale") match {
+          case Full(requestedLocale) if requestedLocale != null => {
+            val computedLocale = computeLocale(requestedLocale)
+            S.addCookie(HTTPCookie(localeCookieName, requestedLocale))
+            computedLocale
+          }
+          case _ => currentLocale
+        }
+      }
       case _ => locale
     }
 
