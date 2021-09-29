@@ -4,7 +4,7 @@ import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.text.SimpleDateFormat
 import java.util.Date
-
+import net.liftweb.json.Serialization.write
 import code.Constant._
 import code.lib.ObpJson.{CurrentUserJson, _}
 import code.util.Helper.MdcLoggable
@@ -16,6 +16,7 @@ import net.liftweb.json.{JObject, _}
 import net.liftweb.util.Helpers._
 import net.liftweb.util.Props
 
+import scala.collection.immutable.List
 import scala.xml.NodeSeq
 
 case class Header(key: String, value: String)
@@ -150,6 +151,19 @@ object ObpAPI {
       ("label" -> label) ~
       ("bank_id" -> bankId)
     ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId), json)
+  }
+  
+  def createAccount(bankId: String, label: String, userId: String): Box[JValue] = {
+    val json =
+      CreateAccountRequestJsonV310(
+        user_id = userId,
+        label = label,
+        product_code = "None",
+        balance = AmountOfMoneyJsonV121(currency = "EUR", "0"),
+        branch_id = "None",
+        account_routings = Nil
+      )
+    ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts", Extraction.decompose(json))
   }
 
    /**
@@ -532,13 +546,53 @@ object ObpJson {
     logo : Option[String],
     website : Option[String],
     bank_routing: Option[BankRoutingJsonV121])
+  
+  case class BankAttributeBankResponseJsonV400(name: String,
+                                               value: String)
+  case class BankJson400(
+                          id: String,
+                          short_name: String,
+                          full_name: String,
+                          logo: String,
+                          website: String,
+                          bank_routings: List[BankRoutingJsonV121],
+                          attributes: Option[List[BankAttributeBankResponseJsonV400]]
+                        )
+
+  case class BanksJson400(banks: List[BankJson400])
+  
+  case class BankJsonV400(id : Option[String],
+    short_name : Option[String],
+    full_name : Option[String],
+    logo : Option[String],
+    website : Option[String],
+    bank_routing: Option[BankRoutingJsonV121])
 		  		  
   case class UserJSONV121(id: Option[String],
     provider: Option[String],
     display_name: Option[String])
 
   case class AccountBalanceJson(currency: Option[String],
-    amount: Option[String])		  	
+    amount: Option[String])
+
+  case class AmountOfMoneyJsonV121(
+                                    currency: String,
+                                    amount: String
+                                  )
+
+  case class AccountRoutingJsonV121(
+                                     scheme: String,
+                                     address: String
+                                   )
+
+  case class CreateAccountRequestJsonV310(
+                                           user_id: String,
+                                           label: String,
+                                           product_code: String,
+                                           balance: AmountOfMoneyJsonV121,
+                                           branch_id: String,
+                                           account_routings: List[AccountRoutingJsonV121]
+                                         )
 	
     //simplified version of what we actually get back from the api
   case class ViewJson(

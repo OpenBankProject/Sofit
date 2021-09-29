@@ -71,7 +71,7 @@ class Nav {
   }
   val hasManagementAccess = accountJson match {
     case Some(x) => Helper.hasManagementAccess(x)
-    case _ => false
+    case _ => true
   }
 
 
@@ -146,6 +146,15 @@ class Nav {
       ".navlink [href]" #> { accountSettingsURL } &
       ".navlink *" #> "Settings" &
       ".navlink [class+]" #> markIfSelected(accountSettingsURL)
+    } else eraseMenu
+  }
+
+  def createAccount : CssSel = {
+    if (hasManagementAccess) {
+      val accountSettingsURL = "/banks/" + url(2) + "/accounts/create-bank-account"
+      ".navlink [href]" #> { accountSettingsURL } &
+        ".navlink *" #> "Create account" &
+        ".navlink [class+]" #> markIfSelected(accountSettingsURL)
     } else eraseMenu
   }
 
