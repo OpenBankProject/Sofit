@@ -414,6 +414,8 @@ class Boot extends MdcLoggable{
       Menu.params[List[String]]("AccountSettings", "Account settings", getAccountSettings _, x => List("")) / "banks" / * / "accounts" / * / "settings",
       
       Menu.params[List[BankJson400]]("CreateBankAccount", "Create bank account", getBanks _, x => List("")) / "banks" / * / "accounts" / "create-bank-account",
+      
+      Menu.params[List[String]]("CreateIncome", "Create Income", getAccountSettings _, x => List("")) / "banks" / * / "accounts"  / * /  "create-income",
 
       Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
 
