@@ -1,7 +1,7 @@
 package code.snippet
 
 import code.Constant._
-import code.lib.ObpAPI.{getAccount, updateAccountLabel}
+import code.lib.ObpAPI.{getAccount, createIncome}
 import code.util.Helper.{MdcLoggable, getAccountTitle}
 import net.liftweb.common.Empty
 import net.liftweb.http.SHtml
@@ -26,7 +26,7 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
 
     def process(): JsCmd = {
       logger.debug(s"CreateIncome.addIncome.process: edit label $incomeDescription")
-      val result = Empty
+      val result = createIncome(bankId, accountId, incomeDescription, incomeAmount, "EUR")
       if (result.isDefined) {
         val msg = "Income " + incomeDescription + " has been set"
         SetHtml("account-title", Text(incomeDescription)) &

@@ -3,7 +3,9 @@ package code.lib
 import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.text.SimpleDateFormat
+import java.time.{ZoneId, ZonedDateTime}
 import java.util.Date
+
 import net.liftweb.json.Serialization.write
 import code.Constant._
 import code.lib.ObpJson.{CurrentUserJson, _}
@@ -29,6 +31,7 @@ object ObpAPI {
   
   implicit val formats = DefaultFormats
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+  val dateFormatWithoutMilis = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
   
   val defaultProvider = Props.get("defaultAuthProvider").getOrElse("")
   
@@ -164,6 +167,25 @@ object ObpAPI {
         account_routings = Nil
       )
     ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts", Extraction.decompose(json))
+  }  
+  def createIncome(bankId: String, accountId: String, incomeDescription: String, incomeAmount: String, incomeCurrency: String): Box[JValue] = {
+    val utcZoneId = ZoneId.of("UTC")
+    val zonedDateTime = ZonedDateTime.now
+    val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
+    import java.time.format.DateTimeFormatter
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    val json =
+      PostHistoricalTransactionJson(
+        from = HistoricalTransactionAccountJsonV310(bank_id = Some(bankId), account_id = Some(accountId), None),
+        to = HistoricalTransactionAccountJsonV310(bank_id = Some(bankId), account_id = Some(accountId), None),
+        value = AmountOfMoneyJsonV121(currency = incomeCurrency, amount = incomeAmount),
+        description = incomeDescription,
+        posted = utcDateTime.format(formatter),
+        completed= utcDateTime.format(formatter),
+        `type`= "SANDBOX_TAN",
+        charge_policy= "SHARED"
+      )
+    ObpPost(s"/$versionOfApi/management/historical/transactions", Extraction.decompose(json))
   }
 
    /**
@@ -593,7 +615,23 @@ object ObpJson {
                                            branch_id: String,
                                            account_routings: List[AccountRoutingJsonV121]
                                          )
-	
+  
+  case class HistoricalTransactionAccountJsonV310(
+                                                   bank_id: Option[String],
+                                                   account_id : Option[String],
+                                                   counterparty_id : Option[String],
+                                                 )
+  case class PostHistoricalTransactionJson(
+                                            from: HistoricalTransactionAccountJsonV310,
+                                            to: HistoricalTransactionAccountJsonV310,
+                                            value: AmountOfMoneyJsonV121,
+                                            description: String,
+                                            posted: String,
+                                            completed: String,
+                                            `type`: String,
+                                            charge_policy: String
+                                          )
+  
     //simplified version of what we actually get back from the api
   case class ViewJson(
     id: Option[String],

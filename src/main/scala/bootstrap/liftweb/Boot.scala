@@ -162,7 +162,7 @@ class Boot extends MdcLoggable{
 
             for {
               //TODO: Pagination: This is not totally trivial, since the transaction list groups by date and 2 pages may have some transactions on the same date
-              transactionsJson <- ObpAPI.transactions(bankId, accountId, viewId, Some(10000), Some(0), None, None, None)
+              transactionsJson <- ObpAPI.transactions(bankId, accountId, viewId, Some(10000), Some(0), None, Some(now), None)
               accountJson <- ObpAPI.getAccount(bankId, accountId, viewId) //TODO: Execute this request and the one above in parallel
             } yield {
               (transactionsJson, accountJson, transactionsURLParams)
