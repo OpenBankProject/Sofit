@@ -153,7 +153,7 @@ class Nav {
     if (hasManagementAccess) {
       val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-income"
       ".navlink [href]" #> { addIncomeUrl } &
-      ".navlink *" #> "Settings" &
+      ".navlink *" #> "Create Income/Outcome" &
       ".navlink [class+]" #> markIfSelected(addIncomeUrl)
     } else eraseMenu
   }

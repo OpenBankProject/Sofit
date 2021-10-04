@@ -169,6 +169,8 @@ object ObpAPI {
     ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts", Extraction.decompose(json))
   }  
   def createIncome(bankId: String, accountId: String, incomeDescription: String, incomeAmount: String, incomeCurrency: String): Box[JValue] = {
+    val incomeBankId = Props.get("income.bank_id", "")
+    val incomeAccountId = Props.get("income.account_id", "")
     val utcZoneId = ZoneId.of("UTC")
     val zonedDateTime = ZonedDateTime.now
     val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
@@ -176,7 +178,7 @@ object ObpAPI {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
     val json =
       PostHistoricalTransactionJson(
-        from = HistoricalTransactionAccountJsonV310(bank_id = Some(bankId), account_id = Some(accountId), None),
+        from = HistoricalTransactionAccountJsonV310(bank_id = Some(incomeBankId), account_id = Some(incomeAccountId), None),
         to = HistoricalTransactionAccountJsonV310(bank_id = Some(bankId), account_id = Some(accountId), None),
         value = AmountOfMoneyJsonV121(currency = incomeCurrency, amount = incomeAmount),
         description = incomeDescription,
