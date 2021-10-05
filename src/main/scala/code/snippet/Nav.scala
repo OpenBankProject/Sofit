@@ -160,9 +160,9 @@ class Nav {
   // Menu for adding an income
   def outcomeSettings : CssSel = {
     if (hasManagementAccess) {
-      val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-outcome"
+      val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-expenditure"
       ".navlink [href]" #> { addIncomeUrl } &
-      ".navlink *" #> "Create outcome" &
+      ".navlink *" #> "Create expenditure" &
       ".navlink [class+]" #> markIfSelected(addIncomeUrl)
     } else eraseMenu
   }

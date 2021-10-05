@@ -169,8 +169,8 @@ object ObpAPI {
     ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts", Extraction.decompose(json))
   }  
   def createIncome(bankId: String, accountId: String, incomeDescription: String, incomeAmount: String, incomeCurrency: String): Box[JValue] = {
-    val incomeBankId = Props.get("income.bank_id", "")
-    val incomeAccountId = Props.get("income.account_id", "")
+    val incomeBankId = Props.get("incoming.bank_id", "")
+    val incomeAccountId = Props.get("incoming.account_id", "")
     val utcZoneId = ZoneId.of("UTC")
     val zonedDateTime = ZonedDateTime.now
     val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
@@ -191,8 +191,8 @@ object ObpAPI {
   }
 
   def createOutcome(bankId: String, accountId: String, outcomeDescription: String, outcomeAmount: String, outcomeCurrency: String): Box[JValue] = {
-    val outcomeBankId = Props.get("outcome.bank_id", "outcome.bank_id")
-    val outcomeAccountId = Props.get("outcome.account_id", "outcome.account_id")
+    val outcomeBankId = Props.get("outgoing.bank_id", "outgoing.bank_id")
+    val outcomeAccountId = Props.get("outgoing.account_id", "outgoing.account_id")
     val utcZoneId = ZoneId.of("UTC")
     val zonedDateTime = ZonedDateTime.now
     val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
