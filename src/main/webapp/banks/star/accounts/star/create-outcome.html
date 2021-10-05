@@ -35,7 +35,7 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 <div id="create-income" data-lift="surround?with=default;at=content">
 
 	<section class="home-viewing">
-		<h4 class="home-viewing__headline"><span class="lift:Loc.income">Income</span></h4>
+		<h4 class="home-viewing__headline"><span class="lift:Loc.outcome">outcome</span></h4>
 	</section>
 	
 	<!-- account-info section_start -->
@@ -46,22 +46,22 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 				<div data-lift="embed?what=_nav_account_settings"></div>
 			</div>
 
-			<div class="create-income-section" data-lift="CreateIncome.addIncome">
-				<h4><span class="lift:Loc.income">Income</span></h4>
+			<div class="create-income-section" data-lift="CreateOutcome.addOutcome">
+				<h4><span class="lift:Loc.outcome">Outcome</span></h4>
 				<form data-lift="form.ajax">
 					<div>
-						<label for="income_description">
-							<h4><span class="lift:Loc.income_description">Income description</span></h4>
+						<label for="outcome_description">
+							<h4><span class="lift:Loc.outcome_description">Outcome description</span></h4>
 						</label>
-						<input type="text" id="income_description" name="income_description"/>
-						<label for="income_amount">
-							<h4><span class="lift:Loc.income_amount">Income amount</span></h4>
+						<input type="text" id="outcome_description" name="outcome_description"/>
+						<label for="outcome_amount">
+							<h4><span class="lift:Loc.outcome_amount">Outcome amount</span></h4>
 						</label>
-						<input type="text" id="income_amount" name="income_amount"/>
+						<input type="text" id="outcome_amount" name="outcome_amount"/>
 					</div>
 					<br>
 					<div>
-						<input type="submit" value="Add income"/>
+						<input type="submit" value="Add outcome"/>
 						<input type="reset" value="Cancel"/>
 					</div>
 				</form>

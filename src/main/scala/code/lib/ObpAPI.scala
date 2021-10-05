@@ -190,6 +190,28 @@ object ObpAPI {
     ObpPost(s"/$versionOfApi/management/historical/transactions", Extraction.decompose(json))
   }
 
+  def createOutcome(bankId: String, accountId: String, outcomeDescription: String, outcomeAmount: String, outcomeCurrency: String): Box[JValue] = {
+    val outcomeBankId = Props.get("outcome.bank_id", "outcome.bank_id")
+    val outcomeAccountId = Props.get("outcome.account_id", "outcome.account_id")
+    val utcZoneId = ZoneId.of("UTC")
+    val zonedDateTime = ZonedDateTime.now
+    val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
+    import java.time.format.DateTimeFormatter
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    val json =
+      PostHistoricalTransactionJson(
+        from = HistoricalTransactionAccountJsonV310(bank_id = Some(bankId), account_id = Some(accountId), None),
+        to = HistoricalTransactionAccountJsonV310(bank_id = Some(outcomeBankId), account_id = Some(outcomeAccountId), None),
+        value = AmountOfMoneyJsonV121(currency = outcomeCurrency, amount = outcomeAmount),
+        description = outcomeDescription,
+        posted = utcDateTime.format(formatter),
+        completed= utcDateTime.format(formatter),
+        `type`= "SANDBOX_TAN",
+        charge_policy= "SHARED"
+      )
+    ObpPost(s"/$versionOfApi/management/historical/transactions", Extraction.decompose(json))
+  }
+
    /**
    * @return The json for the comment if it was successfully added
    */

@@ -153,7 +153,16 @@ class Nav {
     if (hasManagementAccess) {
       val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-income"
       ".navlink [href]" #> { addIncomeUrl } &
-      ".navlink *" #> "Create Income/Outcome" &
+      ".navlink *" #> "Create income" &
+      ".navlink [class+]" #> markIfSelected(addIncomeUrl)
+    } else eraseMenu
+  }
+  // Menu for adding an income
+  def outcomeSettings : CssSel = {
+    if (hasManagementAccess) {
+      val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-outcome"
+      ".navlink [href]" #> { addIncomeUrl } &
+      ".navlink *" #> "Create outcome" &
       ".navlink [class+]" #> markIfSelected(addIncomeUrl)
     } else eraseMenu
   }

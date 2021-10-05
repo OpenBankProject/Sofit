@@ -1,7 +1,7 @@
 package code.snippet
 
 import code.Constant._
-import code.lib.ObpAPI.{createIncome, getAccount}
+import code.lib.ObpAPI.{createOutcome, getAccount}
 import code.util.Helper.{MdcLoggable, getAccountTitle}
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.Call
@@ -12,35 +12,35 @@ import net.liftweb.util.Helpers._
 import scala.xml.{NodeSeq, Text}
 
 
-class CreateIncome(params: List[String]) extends MdcLoggable {
+class CreateOutcome(params: List[String]) extends MdcLoggable {
   val bankId = params(0)
   val accountId = params(1)
   val accountJson = getAccount(bankId, accountId, CUSTOM_OWNER_VIEW_ID).openOrThrowException("Could not open accountJson")
   def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
 
   //set up ajax handlers to edit account label
-  def addIncome(xhtml: NodeSeq): NodeSeq = {
-    var incomeDescription = ""
-    var incomeAmount = "0"
+  def addOutcome(xhtml: NodeSeq): NodeSeq = {
+    var outcomeDescription = ""
+    var outcomeAmount = "0"
 
     def process(): JsCmd = {
-      logger.debug(s"CreateIncome.addIncome.process: edit label $incomeDescription")
-      val result = createIncome(bankId, accountId, incomeDescription, incomeAmount, "EUR")
+      logger.debug(s"CreateOutcome.addOutcome.process: edit label $outcomeDescription")
+      val result = createOutcome(bankId, accountId, outcomeDescription, outcomeAmount, "EUR")
       if (result.isDefined) {
-        val msg = "Income " + incomeDescription + " has been set"
-        SetHtml("account-title", Text(incomeDescription)) &
+        val msg = "Income " + outcomeDescription + " has been set"
+        SetHtml("account-title", Text(outcomeDescription)) &
         Call("socialFinanceNotifications.notify", msg).cmd
       } else {
-         val msg = "Sorry, Income" + incomeDescription + " could not be added ("+ result +")"
+         val msg = "Sorry, Income" + outcomeDescription + " could not be added ("+ result +")"
          Call("socialFinanceNotifications.notifyError", msg).cmd
       }
     }
 
     (
-      "@income_description" #> SHtml.text("", s => incomeDescription = s) &
-      "@income_amount" #> SHtml.text("", s => incomeAmount = s) &
+      "@outcome_description" #> SHtml.text("", s => outcomeDescription = s) &
+      "@outcome_amount" #> SHtml.text("", s => outcomeAmount = s) &
         // Replace the type=submit with Javascript that makes the ajax call.
-        "type=submit" #> SHtml.ajaxSubmit("Add income", process)
+        "type=submit" #> SHtml.ajaxSubmit("Add outcome", process)
       ).apply(xhtml)
   }
 }

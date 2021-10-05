@@ -1,9 +1,8 @@
 package code.snippet
 
 import code.Constant._
-import code.lib.ObpAPI.{getAccount, createIncome}
+import code.lib.ObpAPI.{createIncome, getAccount}
 import code.util.Helper.{MdcLoggable, getAccountTitle}
-import net.liftweb.common.Empty
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.Call
 import net.liftweb.http.js.JsCmd
