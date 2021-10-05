@@ -78,3 +78,7 @@ language_tag = en-GB
 # Income account
 income.bank_id=FILL_ME_IN
 income.account_id=FILL_ME_IN
+
+# Outcome account
+outcome.bank_id=FILL_ME_IN
+outcome.account_id=FILL_ME_IN
