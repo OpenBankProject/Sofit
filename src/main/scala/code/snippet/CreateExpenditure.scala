@@ -3,7 +3,7 @@ package code.snippet
 import code.Constant._
 import code.lib.ObpAPI.{createOutcome, getAccount}
 import code.util.Helper.{MdcLoggable, getAccountTitle}
-import net.liftweb.http.SHtml
+import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JE.Call
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
@@ -40,7 +40,7 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
       "@payment_description" #> SHtml.text("", s => outcomeDescription = s) &
       "@payment_amount" #> SHtml.text("", s => outcomeAmount = s) &
         // Replace the type=submit with Javascript that makes the ajax call.
-        "type=submit" #> SHtml.ajaxSubmit("Add payment", process)
+        "type=submit" #> SHtml.ajaxSubmit(S.?("button.save"), process)
       ).apply(xhtml)
   }
 }
