@@ -71,3 +71,14 @@ hide_public_accounts_panel=false
 
 # Show/Hide Twitter link at the footer.
 display_twitter_link=true
+
+# Set Locale
+language_tag = en-GB
+
+# Incoming account
+incoming.bank_id=FILL_ME_IN
+incoming.account_id=FILL_ME_IN
+
+# Outgoing account
+outgoing.bank_id=FILL_ME_IN
+outgoing.account_id=FILL_ME_IN

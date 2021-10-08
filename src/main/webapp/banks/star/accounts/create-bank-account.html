@@ -1,0 +1,71 @@
+<!--
+Open Bank Project - Sofi Web Application
+Copyright (C) 2011 - 2021, TESOBE GmbH
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Email: contact@tesobe.com
+TESOBE GmbH.
+Osloer Str. 16/17
+Berlin 13359, Germany
+
+  This product includes software developed at
+  TESOBE (http://www.tesobe.com/)
+-->
+
+<!--
+This renders the settings page for an account.
+e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
+-->
+
+<div id="create-bank-account" data-lift="surround?with=default;at=content">
+
+	<section class="home-viewing">
+		<h4 class="home-viewing__headline">Create account</h4>
+	</section>
+	
+	<!-- create-bank-account section_start -->
+	<section class="account-info account-info--public">
+		<div class="account-info__box account-info__box--views">
+			<div class="account-info__top-wrapper">
+				<h3 id="account-title" class="account-info__box-headline create-account-title">
+					<span class="lift:Loc.create_account_label">Create a bank account</span>
+				</h3>
+				<div data-lift="embed?what=_nav_account_settings"></div>
+			</div>
+			<div class="create-bank-account-section" data-lift="CreateBankAccount.editLabel">
+				<form data-lift="form.ajax">
+					<div>
+						<label for="bank-id">
+							<h4><span class="lift:Loc.bank_name">Bank name</span></h4>
+						</label>
+						<select name="bank-id" id="bank-id">
+							<option value="">none</option>
+						</select>
+						<label for="new_label">
+							<h4><span class="lift:Loc.account_label">Account label</span></h4>
+						</label>
+						<input type="text" id="new_label" name="new_label" />
+					</div>
+					<br>
+					<div>
+						<input type="submit" value="Create"/>
+						<input type="reset" value="Cancel"/>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
+	<!-- account-info section_end -->
+</div>

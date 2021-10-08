@@ -32,17 +32,17 @@ Berlin 13359, Germany
 package bootstrap.liftweb
 
 import java.io.{File, FileInputStream}
+import java.util.Locale
 
 import code.Constant._
 import code.lib.ObpJson._
-import code.lib.{OAuthClient, ObpAPI, ObpGet, ObpJson}
+import code.lib.{OAuthClient, ObpAPI, ObpGet}
 import code.snippet._
 import code.util.Helper.MdcLoggable
 import code.util.{Helper, MyExceptionLogger}
-import net.liftmodules.widgets.tablesorter.TableSorter
-import net.liftweb._
 import net.liftweb.common._
 import net.liftweb.http._
+import net.liftweb.http.provider.HTTPCookie
 import net.liftweb.sitemap.Loc._
 import net.liftweb.sitemap._
 import net.liftweb.util.Helpers._
@@ -162,7 +162,7 @@ class Boot extends MdcLoggable{
 
             for {
               //TODO: Pagination: This is not totally trivial, since the transaction list groups by date and 2 pages may have some transactions on the same date
-              transactionsJson <- ObpAPI.transactions(bankId, accountId, viewId, Some(10000), Some(0), None, None, None)
+              transactionsJson <- ObpAPI.transactions(bankId, accountId, viewId, Some(10000), Some(0), None, Some(now), None)
               accountJson <- ObpAPI.getAccount(bankId, accountId, viewId) //TODO: Execute this request and the one above in parallel
             } yield {
               (transactionsJson, accountJson, transactionsURLParams)
@@ -264,6 +264,18 @@ class Boot extends MdcLoggable{
         case Full(s) => s
         case _ => None
       }
+    }
+    
+    def getBanks(URLParameters : List[String]): Box[List[BankJson400]] = {
+      if (URLParameters.length == 2) {
+        val bank = URLParameters(0)
+      }
+      val result =
+        for {
+          json <- ObpGet(s"/$versionOfApi/banks").flatMap(_.extractOpt[BanksJson400])
+        } yield (json.banks)
+
+      result
     }
 
     //getTransaction can be called twice by lift, so it's best to memoize the result of the potentially expensive calculation
@@ -400,6 +412,11 @@ class Boot extends MdcLoggable{
       Menu.params[(OtherAccountsJson, ManagementURLParams)]("Management", "management", getAccount _ , t => List("")) / "banks" / * / "accounts" / * / "management",
 
       Menu.params[List[String]]("AccountSettings", "Account settings", getAccountSettings _, x => List("")) / "banks" / * / "accounts" / * / "settings",
+      
+      Menu.params[List[BankJson400]]("CreateBankAccount", "Create bank account", getBanks _, x => List("")) / "banks" / * / "accounts" / "create-bank-account",
+      
+      Menu.params[List[String]]("CreateIncome", "Create Income", getAccountSettings _, x => List("")) / "banks" / * / "accounts"  / * /  "create-income",
+      Menu.params[List[String]]("CreateExpenditure", "Create Expenditure", getAccountSettings _, x => List("")) / "banks" / * / "accounts"  / * /  "create-expenditure",
 
       Menu.params[ViewsDataJSON]("Views","Views Overview", getCompleteAccountViews _ , x => List("")) / "banks" / * / "accounts" / * / "views" / "list",
 
@@ -449,13 +466,50 @@ class Boot extends MdcLoggable{
     // Force the request to be UTF-8
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
 
+    //set base localization according to a props value (instead of computer default)
+    val locale = Locale.getAvailableLocales().toList.filter { l =>
+      l.toLanguageTag == Props.get("language_tag", "en-GB")
+    }.head
+    Locale.setDefault(locale)
+    logger.info("Default Project Locale is :" + locale)
+    
+    // Properly convert a language tag to a Locale
+    def computeLocale(tag : String) = tag.split(Array('-', '_')) match {
+      case Array(lang) => new Locale(lang)
+      case Array(lang, country) => new Locale(lang, country)
+      case Array(lang, country, variant) => new Locale(lang, country, variant)
+    }
+    // Cookie name
+    val localeCookieName = "SELECTED_LOCALE"
+    LiftRules.localeCalculator = {
+      case fullReq @ Full(req) => {
+        // Check against a set cookie, or the locale sent in the request 
+        def currentLocale : Locale = {
+          S.findCookie(localeCookieName).flatMap {
+            cookie => cookie.value.map(computeLocale)
+          } openOr locale
+        }
+        
+        // Check to see if the user explicitly requests a new locale 
+        S.param("locale") match {
+          case Full(requestedLocale) if requestedLocale != null => {
+            val computedLocale = computeLocale(requestedLocale)
+            S.addCookie(HTTPCookie(localeCookieName, requestedLocale))
+            computedLocale
+          }
+          case _ => currentLocale
+        }
+      }
+      case _ => locale
+    }
+
+    // LiftRules.resourceNames = "i18n.lift-core" :: Nil
+
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
       new Html5Properties(r.userAgent))
 
     LiftRules.explicitlyParsedSuffixes = Helpers.knownSuffixes &~ (Set("com"))
-
-    TableSorter.init
 
     LiftRules.exceptionHandler.prepend{
       case MyExceptionLogger(_, _, t) => throw t // this will never happen

@@ -32,7 +32,7 @@ Berlin 13359, Germany
 <html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=1070">
+	<meta name="viewport" content="width=1070">
 	<title data-lift="Menu.title">Open Bank Project: %*%</title>
 	<link href="/media/css/style.css" rel="stylesheet" type="text/css" />
 	<link href="/media/css/toastr.min.css" rel="stylesheet"/>
@@ -55,18 +55,20 @@ Berlin 13359, Germany
 						<!--<a id="start-login" href="#" class="header__settings-image header__settings-image&#45;&#45;login">-->
 							<!--<img src="/media/images/login-icon.png" alt="Log in icon" class="settings-imgs__icon">-->
 						<!--</a>-->
-						<a id="start-login" class="sign-box__text signed"  href="#">Login</a>
+						<a id="start-login" class="sign-box__text signed" href="#">
+							<span class="lift:Loc.login">In case you see this message the localization is broken</span>
+						</a>
 
 					</div>
 
 					<div class="logged-in">
 						<div class="header__signin-content">
-							<p class="header__signin__text">Signed in as</p>
+							<p class="header__signin__text"><span class="lift:Loc.sign_in_as">Signed in as</span></p>
 							<span id="logged-in-name" class="header__signin header__signin--signed-as"></span>
 						</div>
 						<div class="header__settings-images">
 							<a class="settings-imgs__link" id="logout" href="#">
-								<span class="logout-link">Logout</span>
+								<span class="logout-link"><span class="lift:Loc.logout">Logout</span></span>
 							</a>
 							<!--<a id="logout" href="#" class="header__settings-image header__settings-image&#45;&#45;logout">-->
 								<!--<img src="/media/images/logout-icon.png" alt="Log out icon" class="settings-imgs__icon">-->
@@ -96,7 +98,7 @@ Berlin 13359, Germany
                     </li>
 					<span data-lift="Nav.views">
 						<li class="breadcrumbs__option navitem">
-							<a href="#" class="breadcrumbs__link active--link navlink">Views</a>
+							<a href="#" class="breadcrumbs__link active--link navlink"><span class="lift:Loc.logout">Views</span></a>
 						</li>
 					</span>
 				</ul>
@@ -119,6 +121,12 @@ Berlin 13359, Germany
 						<div class="footer-logo-box">
 							<a href="#" class="footer-box__link"><img src="/media/images/logo-footer.png" alt="TESOBE Logo" class="footer-box__logo"></a>
 						</div>
+					</div>
+					<div class="footer-content-wrapper" data-lift="WebUI.homePage">
+						<a href="#" >Language </a>
+						<a id="uk" href="/" > UK </a>
+						<a id="it" href="/" >| IT </a>
+						<a id="ua" href="/" >| UA </a>
 					</div>
 					<div class="footer-links-box" data-lift="WebUI.hideTwitterLink">
 						<a href="http://twitter.com/#!/OpenBankProject" id="twitter_link" class="footer-link-box__link">Twitter</a>
@@ -143,6 +151,6 @@ Berlin 13359, Germany
 	<script src="/media/js/highlight.min.js"></script>
 	<script src="/media/js/vendor/jquery.dropdown.min.js" type="text/javascript"></script>
 	<script src="/media/js/vendor/jquery.tablesorter.min.js" type="text/javascript"></script>
-	<script src="//assets.transloadit.com/js/jquery.transloadit2-v3-latest.js"></script>
+	<script src="/media/js/vendor/jquery.transloadit2-v3-latest.js" type="text/javascript"></script>
 </body>
 </html>

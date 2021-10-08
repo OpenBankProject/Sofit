@@ -3,8 +3,10 @@ package code.lib
 import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.text.SimpleDateFormat
+import java.time.{ZoneId, ZonedDateTime}
 import java.util.Date
 
+import net.liftweb.json.Serialization.write
 import code.Constant._
 import code.lib.ObpJson.{CurrentUserJson, _}
 import code.util.Helper.MdcLoggable
@@ -16,6 +18,7 @@ import net.liftweb.json.{JObject, _}
 import net.liftweb.util.Helpers._
 import net.liftweb.util.Props
 
+import scala.collection.immutable.List
 import scala.xml.NodeSeq
 
 case class Header(key: String, value: String)
@@ -28,6 +31,7 @@ object ObpAPI {
   
   implicit val formats = DefaultFormats
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+  val dateFormatWithoutMilis = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
   
   val defaultProvider = Props.get("defaultAuthProvider").getOrElse("")
   
@@ -150,6 +154,62 @@ object ObpAPI {
       ("label" -> label) ~
       ("bank_id" -> bankId)
     ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId), json)
+  }
+  
+  def createAccount(bankId: String, label: String, userId: String): Box[JValue] = {
+    val json =
+      CreateAccountRequestJsonV310(
+        user_id = userId,
+        label = label,
+        product_code = "None",
+        balance = AmountOfMoneyJsonV121(currency = "EUR", "0"),
+        branch_id = "None",
+        account_routings = Nil
+      )
+    ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts", Extraction.decompose(json))
+  }  
+  def createIncome(bankId: String, accountId: String, incomeDescription: String, incomeAmount: String, incomeCurrency: String): Box[JValue] = {
+    val incomeBankId = Props.get("incoming.bank_id", "")
+    val incomeAccountId = Props.get("incoming.account_id", "")
+    val utcZoneId = ZoneId.of("UTC")
+    val zonedDateTime = ZonedDateTime.now
+    val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
+    import java.time.format.DateTimeFormatter
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    val json =
+      PostHistoricalTransactionJson(
+        from = HistoricalTransactionAccountJsonV310(bank_id = Some(incomeBankId), account_id = Some(incomeAccountId), None),
+        to = HistoricalTransactionAccountJsonV310(bank_id = Some(bankId), account_id = Some(accountId), None),
+        value = AmountOfMoneyJsonV121(currency = incomeCurrency, amount = incomeAmount),
+        description = incomeDescription,
+        posted = utcDateTime.format(formatter),
+        completed= utcDateTime.format(formatter),
+        `type`= "SANDBOX_TAN",
+        charge_policy= "SHARED"
+      )
+    ObpPost(s"/$versionOfApi/management/historical/transactions", Extraction.decompose(json))
+  }
+
+  def createOutcome(bankId: String, accountId: String, outcomeDescription: String, outcomeAmount: String, outcomeCurrency: String): Box[JValue] = {
+    val outcomeBankId = Props.get("outgoing.bank_id", "outgoing.bank_id")
+    val outcomeAccountId = Props.get("outgoing.account_id", "outgoing.account_id")
+    val utcZoneId = ZoneId.of("UTC")
+    val zonedDateTime = ZonedDateTime.now
+    val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
+    import java.time.format.DateTimeFormatter
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    val json =
+      PostHistoricalTransactionJson(
+        from = HistoricalTransactionAccountJsonV310(bank_id = Some(bankId), account_id = Some(accountId), None),
+        to = HistoricalTransactionAccountJsonV310(bank_id = Some(outcomeBankId), account_id = Some(outcomeAccountId), None),
+        value = AmountOfMoneyJsonV121(currency = outcomeCurrency, amount = outcomeAmount),
+        description = outcomeDescription,
+        posted = utcDateTime.format(formatter),
+        completed= utcDateTime.format(formatter),
+        `type`= "SANDBOX_TAN",
+        charge_policy= "SHARED"
+      )
+    ObpPost(s"/$versionOfApi/management/historical/transactions", Extraction.decompose(json))
   }
 
    /**
@@ -329,7 +389,7 @@ object OBPRequest extends MdcLoggable {
       if(jsonBody.isDefined) {
         val output = request.getOutputStream()
         val writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"))
-        writer.write(compact(render(jsonBody.get)).toString)
+        writer.write(compactRender(jsonBody.get))
         writer.flush()
         writer.close()
       }
@@ -391,7 +451,7 @@ object OBPInternalRequest extends MdcLoggable {
       //Set the request body
       if(jsonBody.isDefined) {
         val output = request.getOutputStream()
-        val body = compact(render(jsonBody.get)).getBytes()
+        val body = compactRender(jsonBody.get).getBytes()
         output.write(body)
         output.flush()
         output.close()
@@ -532,14 +592,70 @@ object ObpJson {
     logo : Option[String],
     website : Option[String],
     bank_routing: Option[BankRoutingJsonV121])
+  
+  case class BankAttributeBankResponseJsonV400(name: String,
+                                               value: String)
+  case class BankJson400(
+                          id: String,
+                          short_name: String,
+                          full_name: String,
+                          logo: String,
+                          website: String,
+                          bank_routings: List[BankRoutingJsonV121],
+                          attributes: Option[List[BankAttributeBankResponseJsonV400]]
+                        )
+
+  case class BanksJson400(banks: List[BankJson400])
+  
+  case class BankJsonV400(id : Option[String],
+    short_name : Option[String],
+    full_name : Option[String],
+    logo : Option[String],
+    website : Option[String],
+    bank_routing: Option[BankRoutingJsonV121])
 		  		  
   case class UserJSONV121(id: Option[String],
     provider: Option[String],
     display_name: Option[String])
 
   case class AccountBalanceJson(currency: Option[String],
-    amount: Option[String])		  	
-	
+    amount: Option[String])
+
+  case class AmountOfMoneyJsonV121(
+                                    currency: String,
+                                    amount: String
+                                  )
+
+  case class AccountRoutingJsonV121(
+                                     scheme: String,
+                                     address: String
+                                   )
+
+  case class CreateAccountRequestJsonV310(
+                                           user_id: String,
+                                           label: String,
+                                           product_code: String,
+                                           balance: AmountOfMoneyJsonV121,
+                                           branch_id: String,
+                                           account_routings: List[AccountRoutingJsonV121]
+                                         )
+  
+  case class HistoricalTransactionAccountJsonV310(
+                                                   bank_id: Option[String],
+                                                   account_id : Option[String],
+                                                   counterparty_id : Option[String],
+                                                 )
+  case class PostHistoricalTransactionJson(
+                                            from: HistoricalTransactionAccountJsonV310,
+                                            to: HistoricalTransactionAccountJsonV310,
+                                            value: AmountOfMoneyJsonV121,
+                                            description: String,
+                                            posted: String,
+                                            completed: String,
+                                            `type`: String,
+                                            charge_policy: String
+                                          )
+  
     //simplified version of what we actually get back from the api
   case class ViewJson(
     id: Option[String],

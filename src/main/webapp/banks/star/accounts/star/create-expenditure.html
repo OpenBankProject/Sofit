@@ -1,0 +1,72 @@
+<!--
+Open Bank Project - Sofi Web Application
+Copyright (C) 2011 - 2021, TESOBE GmbH
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Email: contact@tesobe.com
+TESOBE GmbH.
+Osloer Str. 16/17
+Berlin 13359, Germany
+
+  This product includes software developed at
+  TESOBE (http://www.tesobe.com/)
+  by
+  Simon Redfern : simon AT tesobe DOT com
+  Sebastian Henschel : sebastian AT tesobe DOT com
+-->
+
+<!--
+This renders the settings page for an account.
+e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
+-->
+
+<div id="create-income" data-lift="surround?with=default;at=content">
+
+	<section class="home-viewing">
+		<h4 class="home-viewing__headline"><span class="lift:Loc.payment">payment</span></h4>
+	</section>
+	
+	<!-- account-info section_start -->
+	<section class="account-info account-info--public">
+		<div class="account-info__box account-info__box--views">
+			<div class="account-info__top-wrapper" data-lift="CreateIncome.accountTitle" >
+				<h3 id="account-title" class="account-info__box-headline account-title">ACCOUNT</h3>
+				<div data-lift="embed?what=_nav_account_settings"></div>
+			</div>
+
+			<div class="create-income-section" data-lift="CreateExpenditure.addPayment">
+				<h4><span class="lift:Loc.add_expenditure">Expenditure</span></h4>
+				<form data-lift="form.ajax">
+					<div>
+						<label for="payment_description">
+							<h4><span class="lift:Loc.payment_description">Payment description</span></h4>
+						</label>
+						<input type="text" id="payment_description" name="payment_description"/>
+						<label for="payment_amount">
+							<h4><span class="lift:Loc.payment_amount">payment amount</span></h4>
+						</label>
+						<input type="text" id="payment_amount" name="payment_amount"/>
+					</div>
+					<br>
+					<div>
+						<input type="submit" value="Add payment"/>
+						<input type="reset" value="Cancel"/>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
+	<!-- account-info section_end -->
+</div>

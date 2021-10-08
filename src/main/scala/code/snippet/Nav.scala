@@ -71,7 +71,7 @@ class Nav {
   }
   val hasManagementAccess = accountJson match {
     case Some(x) => Helper.hasManagementAccess(x)
-    case _ => false
+    case _ => true
   }
 
 
@@ -146,6 +146,33 @@ class Nav {
       ".navlink [href]" #> { accountSettingsURL } &
       ".navlink *" #> "Settings" &
       ".navlink [class+]" #> markIfSelected(accountSettingsURL)
+    } else eraseMenu
+  }
+  // Menu for adding an income
+  def incomeSettings : CssSel = {
+    if (hasManagementAccess) {
+      val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-income"
+      ".navlink [href]" #> { addIncomeUrl } &
+      ".navlink *" #> "Create income" &
+      ".navlink [class+]" #> markIfSelected(addIncomeUrl)
+    } else eraseMenu
+  }
+  // Menu for adding an income
+  def outcomeSettings : CssSel = {
+    if (hasManagementAccess) {
+      val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-expenditure"
+      ".navlink [href]" #> { addIncomeUrl } &
+      ".navlink *" #> "Create expenditure" &
+      ".navlink [class+]" #> markIfSelected(addIncomeUrl)
+    } else eraseMenu
+  }
+
+  def createAccount : CssSel = {
+    if (hasManagementAccess) {
+      val accountSettingsURL = "/banks/" + url(2) + "/accounts/create-bank-account"
+      ".navlink [href]" #> { accountSettingsURL } &
+        ".navlink *" #> "Create account" &
+        ".navlink [class+]" #> markIfSelected(accountSettingsURL)
     } else eraseMenu
   }
 
