@@ -57,6 +57,14 @@ class WebUI extends MdcLoggable{
   def hideTwitterLink = {
     val display: Boolean = Props.getBool("display_twitter_link", true)
     if(display) "#twitter_link [style]" #> "visibility: visible;" else "#twitter_link [style]" #> "display: none;"
+  }  
+  def hideGitHubLink = {
+    val display: Boolean = Props.getBool("display_github_link", true)
+    if(display) "#github_link [style]" #> "visibility: visible;" else "#github_link [style]" #> "display: none;"
+  }  
+  def hideApiDocsLink = {
+    val display: Boolean = Props.getBool("display_api_docs_link", true)
+    if(display) "#api_documentation_link [style]" #> "visibility: visible;" else "#api_documentation_link [style]" #> "display: none;"
   }
 
   // Note: Most of these are not used yet
@@ -78,7 +86,8 @@ class WebUI extends MdcLoggable{
   }
 
   def apiExplorerLink: CssSel = {
-    ".api-explorer-link a [href]" #> scala.xml.Unparsed(Props.get("webui_api_explorer_url", ""))
+    ".api-explorer-link a [href]" #> scala.xml.Unparsed(Props.get("webui_api_explorer_url", "")) &
+      hideApiDocsLink
   }
 
 

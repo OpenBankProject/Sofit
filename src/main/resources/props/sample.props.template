@@ -72,6 +72,12 @@ hide_public_accounts_panel=false
 # Show/Hide Twitter link at the footer.
 display_twitter_link=true
 
+# Show/Hide GitHub link at the footer.
+display_github_link=true
+
+# Show/Hide API documentation link at the footer.
+display_api_docs_link=true
+
 # Set Locale
 language_tag = en-GB
 
