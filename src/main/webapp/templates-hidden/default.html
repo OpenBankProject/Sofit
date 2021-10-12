@@ -93,14 +93,9 @@ Berlin 13359, Germany
 			<!-- Looks like design template mixed up breadcrumbs and navigation -->
 			<nav class="breadcrumbs">
                 <ul class="breadcrumbs__options">
-                    <li class="breadcrumbs__option navitem" data-lift="Nav.item?name=Home">
-                        <a href="#" class="breadcrumbs__link active--link navlink">Home</a>
+                    <li class="breadcrumbs__option navitem">
+						<div data-lift="embed?what=_nav_account_settings"></div>
                     </li>
-					<span data-lift="Nav.views">
-						<li class="breadcrumbs__option navitem">
-							<a href="#" class="breadcrumbs__link active--link navlink"><span class="lift:Loc.logout">Views</span></a>
-						</li>
-					</span>
 				</ul>
 			</nav>
 
@@ -124,16 +119,16 @@ Berlin 13359, Germany
 					</div>
 					<div class="footer-content-wrapper" data-lift="WebUI.homePage">
 						<a href="#" >Language </a>
-						<a id="uk" href="/" > UK </a>
+						<a id="uk" href="/" > EN </a>
 						<a id="it" href="/" >| IT </a>
 						<a id="ua" href="/" >| UA </a>
 					</div>
-					<div class="footer-links-box" data-lift="WebUI.hideTwitterLink">
-						<a href="http://twitter.com/#!/OpenBankProject" id="twitter_link" class="footer-link-box__link">Twitter</a>
-						<a href="https://github.com/OpenBankProject/Social-Finance" class="footer-link-box__link">Github</a>
-						<a href="" class="api-explorer-link footer-link-box__link" data-lift="WebUI.apiExplorerLink">API Documentation</a>
-						<a href="" id="reset-password-link" data-lift="WebUI.setForgottenPasswordLink" class="api-explorer-link footer-link-box__link">Forgotten password?</a>
-						<a href="" id="change-password-link" data-lift="WebUI.setChangePasswordLink" class="api-explorer-link footer-link-box__link">Change password</a>
+					<div class="footer-links-box">
+						<a href="http://twitter.com/#!/OpenBankProject" id="twitter_link" class="footer-link-box__link" data-lift="WebUI.hideTwitterLink">Twitter</a>
+						<a href="https://github.com/OpenBankProject/Social-Finance" id="github_link" class="footer-link-box__link" data-lift="WebUI.hideGitHubLink">Github</a>
+						<a href="" id="api_documentation_link" class="api-explorer-link footer-link-box__link" data-lift="WebUI.apiExplorerLink"><span class="lift:Loc.api_documentation">API Documentation</span></a>
+						<a href="" id="reset-password-link" data-lift="WebUI.setForgottenPasswordLink" class="api-explorer-link footer-link-box__link"><span class="lift:Loc.forgotten_password">Forgotten password?</span></a>
+						<a href="" id="change-password-link" data-lift="WebUI.setChangePasswordLink" class="api-explorer-link footer-link-box__link"><span class="lift:Loc.change_password">Change password</span></a>
 					</div>
 			</footer>
 

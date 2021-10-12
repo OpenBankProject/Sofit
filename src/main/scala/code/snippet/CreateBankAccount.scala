@@ -10,6 +10,7 @@ import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.http.{RequestVar, SHtml}
 import net.liftweb.util.Helpers._
+import net.liftweb.util.Props
 
 import scala.collection.immutable.List
 import scala.xml.{NodeSeq, Text}
@@ -23,21 +24,28 @@ class CreateBankAccount(params: List[BankJson400]) extends MdcLoggable {
   
   def editLabel(xhtml: NodeSeq): NodeSeq = {
     var newLabel = ""
-    val listOfBanks = params.map(b => (b.id, b.full_name))
+    val listOfBanks = params
+      .filter(_.id == Props.get("manual_transaction_bank_id", "manual_transaction_bank_id"))
+      .map(b => (b.id, b.full_name))
 
     def process(): JsCmd = {
       ObpAPI.currentUser.map {
         u => userIdVar.set(u.user_id)
       }
       logger.debug(s"CreateBankAccount.editLabel.process: edit label $newLabel")
-      val result = createAccount(bankVar.is, newLabel, userIdVar.is)
-      if (result.isDefined) {
-        val msg = "A new account with label " + newLabel + " has been set"
-        SetHtml("account-title", Text(newLabel)) &
-        Call("socialFinanceNotifications.notify", msg).cmd
+      if(listOfBanks.size == 0) {
+        val msg = "Sorry, the new account with the label" + newLabel + " could not be set due to undefined props manual_transaction_bank_id"
+        Call("socialFinanceNotifications.notifyError", msg).cmd
       } else {
-         val msg = "Sorry, the new account with the label" + newLabel + " could not be set ("+ result +")"
-         Call("socialFinanceNotifications.notifyError", msg).cmd
+        val result = createAccount(bankVar.is, newLabel, userIdVar.is)
+        if (result.isDefined) {
+          val msg = "A new account with label " + newLabel + " has been set"
+          SetHtml("account-title", Text(newLabel)) &
+            Call("socialFinanceNotifications.notify", msg).cmd
+        } else {
+          val msg = "Sorry, the new account with the label" + newLabel + " could not be set ("+ result +")"
+          Call("socialFinanceNotifications.notifyError", msg).cmd
+        }
       }
     }
 

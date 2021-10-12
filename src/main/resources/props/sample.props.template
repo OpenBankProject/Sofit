@@ -72,6 +72,12 @@ hide_public_accounts_panel=false
 # Show/Hide Twitter link at the footer.
 display_twitter_link=true
 
+# Show/Hide GitHub link at the footer.
+display_github_link=true
+
+# Show/Hide API documentation link at the footer.
+display_api_docs_link=true
+
 # Set Locale
 language_tag = en-GB
 
@@ -82,3 +88,6 @@ incoming.account_id=FILL_ME_IN
 # Outgoing account
 outgoing.bank_id=FILL_ME_IN
 outgoing.account_id=FILL_ME_IN
+
+# Defines bank_id in case of Create Bank Account feature
+manual_transaction_bank_id=FILL_ME_IN
