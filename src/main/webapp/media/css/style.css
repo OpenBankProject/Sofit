@@ -467,7 +467,7 @@ table td {
   background-color: #fff;
   border: 1px solid #666666;
   height: auto;
-  margin: 0 0 1px 0;
+  margin: 0 0 10 0;
 }
 
 .header-logo {
@@ -556,7 +556,7 @@ table td {
 
 .breadcrumbs {
   height: auto;
-  background-color: #333333;
+  background-color: #31B8CD;
 }
 
 .breadcrumbs__options {

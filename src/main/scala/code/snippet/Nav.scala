@@ -141,7 +141,7 @@ class Nav {
 
   // Menu for settings on account
   def accountSettings : CssSel = {
-    if (hasManagementAccess) {
+    if (hasManagementAccess && url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
       val accountSettingsURL = "/banks/" + url(2) + "/accounts/" + url(4) + "/settings"
       ".navlink [href]" #> { accountSettingsURL } &
       ".navlink *" #> "Settings" &
@@ -150,7 +150,7 @@ class Nav {
   }
   // Menu for adding an income
   def incomeSettings : CssSel = {
-    if (hasManagementAccess) {
+    if (hasManagementAccess && url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
       val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-income"
       ".navlink [href]" #> { addIncomeUrl } &
       ".navlink *" #> "Create income" &
@@ -159,7 +159,7 @@ class Nav {
   }
   // Menu for adding an income
   def outcomeSettings : CssSel = {
-    if (hasManagementAccess) {
+    if (hasManagementAccess && url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
       val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-expenditure"
       ".navlink [href]" #> { addIncomeUrl } &
       ".navlink *" #> "Create expenditure" &
@@ -168,8 +168,9 @@ class Nav {
   }
 
   def createAccount : CssSel = {
-    if (hasManagementAccess) {
-      val accountSettingsURL = "/banks/" + url(2) + "/accounts/create-bank-account"
+    val manualBankId = Props.get("manual_transaction_bank_id")
+    if (hasManagementAccess && manualBankId.isDefined) {
+      val accountSettingsURL = "/banks/" + manualBankId.getOrElse("None") + "/accounts/create-bank-account"
       ".navlink [href]" #> { accountSettingsURL } &
         ".navlink *" #> "Create account" &
         ".navlink [class+]" #> markIfSelected(accountSettingsURL)
