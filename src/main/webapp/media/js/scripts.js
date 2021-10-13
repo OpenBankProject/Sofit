@@ -7,7 +7,7 @@
 		project.counterpartiesFilter();
 		project.removeUserFromView();
 		project.managementTableSorter();
-		project.transloadit();
+		// project.transloadit();
 		project.fileUpload();
 	};
 
