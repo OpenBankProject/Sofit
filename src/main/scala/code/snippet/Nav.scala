@@ -127,8 +127,14 @@ class Nav {
     if (url.size > 4) getManagement getOrElse eraseMenu
     else eraseMenu
   }
-
-
+  
+  // Menu For home page
+  def homePage : CssSel = {
+    val homePageUrl = Props.get("base_url").getOrElse("unknown")
+    ".navlink [href]" #> { homePageUrl } &
+      ".navlink *" #> "Home"
+  }
+  
   // Menu For Entitlements / permissions on an account / view
   def editViews : CssSel = {
     if (hasManagementAccess && Props.get("management.views.enabled", "true").toBoolean) {

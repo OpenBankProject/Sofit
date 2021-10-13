@@ -478,12 +478,21 @@ table td {
 .header__logo-text {
   display: inline-block;
   margin: 41px 0 0 10px;
-  text-transform: uppercase;
   vertical-align: top;
   font-size: 22px;
   font-weight: bold;
   line-height: 26px;
   color: #666666;
+}
+
+#account-overview {
+  margin-bottom: 20px;
+}
+.logout-link {
+  font-size: 18px;
+}
+#start-login {
+  font-size: 18px;
 }
 
 .header__settings {
@@ -497,13 +506,12 @@ table td {
 }
 
 .header__signin__text {
-  font-size: 12px;
+  font-size: 18px;
   line-height: 16px;
   color: #31b8cd;
   display: block;
   padding: 0 0 0 0;
   margin: 0;
-  text-transform: uppercase;
 }
 
 .header__signin--signed-as {
@@ -586,7 +594,6 @@ table td {
   color: #fff;
   letter-spacing: 0.2px;
   text-decoration: none;
-  text-transform: uppercase;
 }
 
 .active--link {
@@ -608,7 +615,6 @@ table td {
 }
 
 .accounts__select {
-  text-transform: uppercase;
   background-color: #fff;
   -moz-border-radius: 16px;
   -webkit-border-radius: 16px;
@@ -647,7 +653,6 @@ table td {
   color: #fff;
   font-size: 12px;
   line-height: 16px;
-  text-transform: uppercase;
 }
 
 .home-viewing__headline {
@@ -679,7 +684,6 @@ table td {
 }
 
 .account-info__box-headline {
-  font-size: 24px;
   line-height: 28px;
   margin: 0 54px 0 0;
   padding: 0 0 0;
@@ -885,7 +889,6 @@ table td {
   line-height: 27px;
   margin: 0 0 6px;
   color: #50B165;
-  text-transform: uppercase;
 }
 
 .account-info__box--users-border {
@@ -1285,7 +1288,6 @@ table td {
 }
 
 .comments-button {
-  text-transform: uppercase;
   font-size: 22px;
   line-height: 26px;
   color: #fff;
