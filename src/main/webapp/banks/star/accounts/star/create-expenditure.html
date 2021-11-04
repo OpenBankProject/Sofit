@@ -46,20 +46,22 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 			<div class="create-income-section" data-lift="CreateExpenditure.addPayment">
 				<h4><span class="lift:Loc.add_expenditure">Expenditure</span></h4>
 				<form data-lift="form.ajax">
-					<div>
+					<div class="form-group">
 						<label for="payment_description">
 							<h4><span class="lift:Loc.payment_description">Payment description</span></h4>
 						</label>
-						<input type="text" id="payment_description" name="payment_description"/>
+						<input class="form-control" type="text" id="payment_description" name="payment_description"/>
+					</div>
+					<div class="form-group">
 						<label for="payment_amount">
 							<h4><span class="lift:Loc.payment_amount">payment amount</span></h4>
 						</label>
-						<input type="text" id="payment_amount" name="payment_amount"/>
+						<input class="form-control" type="text" id="payment_amount" name="payment_amount"/>
 					</div>
 					<br>
 					<div>
-						<input type="submit" value="Add payment"/>
-						<input type="reset" value="Cancel"/>
+						<input class="btn btn-outline-success" type="submit" value="Add payment"/>
+						<input class="btn btn-outline-danger" type="reset" value="Cancel"/>
 					</div>
 				</form>
 			</div>

@@ -46,20 +46,22 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 			<div class="create-income-section" data-lift="CreateIncome.addIncome">
 				<h4><span class="lift:Loc.add_income">Add income...</span></h4>
 				<form data-lift="form.ajax">
-					<div>
+					<div class="form-group">
 						<label for="income_description">
 							<h4><span class="lift:Loc.income_description">Income description</span></h4>
 						</label>
-						<input type="text" id="income_description" name="income_description"/>
+						<input class="form-control" type="text" id="income_description" name="income_description"/>
+					<div class="form-group">
+					</div>
 						<label for="income_amount">
 							<h4><span class="lift:Loc.income_amount">Income amount</span></h4>
 						</label>
-						<input type="text" id="income_amount" name="income_amount"/>
+						<input class="form-control" type="text" id="income_amount" name="income_amount"/>
 					</div>
 					<br>
 					<div>
-						<input type="submit" value="Add income"/>
-						<input type="reset" value="Cancel"/>
+						<input class="btn btn-outline-success" type="submit" value="Add income"/>
+						<input class="btn btn-outline-danger" type="reset" value="Cancel"/>
 					</div>
 				</form>
 			</div>
