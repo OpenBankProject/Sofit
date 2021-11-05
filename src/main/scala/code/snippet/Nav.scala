@@ -137,7 +137,9 @@ class Nav {
   
   // Menu For Entitlements / permissions on an account / view
   def editViews : CssSel = {
-    if (hasManagementAccess && Props.get("management.views.enabled", "true").toBoolean) {
+    if (hasManagementAccess &&
+      Props.get("management.views.enabled", "true").toBoolean &&
+      url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
       val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
       ".navlink [href]" #> { editViewsUrl } &
       ".navlink *" #> "Views" &
