@@ -733,7 +733,7 @@ table td {
 }
 
 .acc-table-head__cell:first-child {
-  width: 771px;
+  width: 60%;
 }
 
 .acc-table-head__cell-row {
@@ -778,7 +778,7 @@ table td {
   padding: 2px;
 }
 .acc-table-body__cell:last-child {
-  width: 106px;
+  width: 10%;
   font-size: 14px;
   line-height: 16px;
   text-align: right;
@@ -913,6 +913,7 @@ table td {
 
 .users-table-body__row {
   width: 100%;
+  display: table-row;
   border-bottom: 1px solid #5D5D5D;
 }
 
@@ -935,14 +936,12 @@ table td {
 }
 .users-table-body__cell:first-child {
   background-color: #EFF9FB;
-	width: 300px;
 }
 .users-table-body__cell:nth-child(1n+2) {
   padding: 6px 0 8px 10px;
   background-color: #DCF4F0;
 }
 .users-table-body__cell:last-child {
-  width: 182px;
   padding: 0 0 0 9px;
   background-color: #DCEFE0;
   padding: 8px 9px 9px 9px;
