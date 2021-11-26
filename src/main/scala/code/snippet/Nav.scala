@@ -176,9 +176,9 @@ class Nav {
   }
 
   def createAccount : CssSel = {
-    val manualBankId = Props.get("manual_transaction_bank_id")
-    if (hasManagementAccess && manualBankId.isDefined) {
-      val accountSettingsURL = "/banks/" + manualBankId.getOrElse("None") + "/accounts/create-bank-account"
+    val bankId: String = "user." + ObpAPI.currentUser.map(_.user_id).getOrElse(System.currentTimeMillis())
+    if (hasManagementAccess) {
+      val accountSettingsURL = "/banks/" + bankId + "/accounts/create-bank-account"
       ".navlink [href]" #> { accountSettingsURL } &
         ".navlink *" #> "Create account" &
         ".navlink [class+]" #> markIfSelected(accountSettingsURL)

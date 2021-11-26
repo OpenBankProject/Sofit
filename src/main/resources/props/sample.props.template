@@ -81,11 +81,8 @@ display_api_docs_link=true
 # Set Locale
 language_tag = en-GB
 
-# Defines bank_id in case of Create Bank Account feature
-manual_transaction_bank_id=FILL_ME_IN
-
 # Incoming account at manual_transaction_bank_id
-incoming.account_id=FILL_ME_IN
+incoming.account_id=OBP_DEFAULT_INCOMING_ACCOUNT_ID
 
 # Outgoing account at manual_transaction_bank_id
-outgoing.account_id=FILL_ME_IN
+outgoing.account_id=OBP_DEFAULT_OUTGOING_ACCOUNT_ID
