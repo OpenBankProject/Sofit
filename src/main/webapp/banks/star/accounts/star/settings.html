@@ -45,8 +45,16 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 			<div class="account-settings-section" data-lift="AccountSettings.editLabel">
 				<h4>Account label</h4>
 				<form data-lift="form.ajax">
-					<input type="text" id="new_label" name="new_label" placeholder="Enter new label..." />
-				  	<input type="submit" value="Save account label" />
+					<div class="form-group">
+						<label for="new_label">
+							<h5><span class="lift:Loc.new_label">Enter new label...</span></h5>
+						</label>
+						<input class="form-control" type="text" id="new_label" name="new_label"/>
+					<div class="form-group">
+					<br>
+					<div>
+						<input class="btn btn-outline-success" type="submit" value="Save account label"/>
+					</div>
 				</form>
 			</div>
 		</div>

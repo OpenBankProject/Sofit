@@ -431,7 +431,6 @@ body {
 
 .container {
   margin: 39px auto 0 auto;
-  width: 80%;
 }
 
 .container--public {
@@ -460,7 +459,7 @@ body {
 
 table td {
   overflow: hidden;
-  display: inline-block;
+  /*! display: inline-block; */
 }
 
 .header {
@@ -687,7 +686,7 @@ table td {
   line-height: 28px;
   margin: 0 54px 0 0;
   padding: 0 0 0;
-  width: 61%;
+  /*! width: 61%; */
   float: left;
   font-weight: 300;
 }
@@ -739,7 +738,7 @@ table td {
 .acc-table-head__cell-row {
   margin: 0;
   padding: 0;
-  width: 200px;
+  /*! width: 200px; */
 }
 
 .home-cell-row__list {
@@ -774,11 +773,9 @@ table td {
   padding: 7px 0 10px 0;
 }
 .acc-table-body__cell:nth-child(2) {
-  width: 140px;
   padding: 2px;
 }
 .acc-table-body__cell:last-child {
-  width: 10%;
   font-size: 14px;
   line-height: 16px;
   text-align: right;
@@ -1775,7 +1772,7 @@ table td {
 #account-settings .account-settings-section {
 	padding: 10px 0;
 	clear: both;
-	border-bottom: 3px solid #C4C4C4;
+	/*! border-bottom: 3px solid #C4C4C4; */
 }
 
 .account-info__box.account-info__box--views {
