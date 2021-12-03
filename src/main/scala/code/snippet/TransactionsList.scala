@@ -480,9 +480,9 @@ Used in transactions list
     }
     
     ".date *" #> date &
-    ".balance_number *" #> {currencySymbol + "" + amount} &
+    ".balance_number *" #> {currencySymbol + " " + amount} &
     ".transaction_row *" #> transactionsForDay.map(individualApiTransaction) &
-    ".balance--cell [class+]" #> {
+    ".balance_number [class+]" #> {
       isPositiveSumAmount match {
         case Full(isPos) => if (isPos) "green--color" else "orange--color"
         case _ => ""

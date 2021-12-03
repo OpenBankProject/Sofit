@@ -686,7 +686,7 @@ table td {
   line-height: 28px;
   margin: 0 54px 0 0;
   padding: 0 0 0;
-  /*! width: 61%; */
+  width: 100%; 
   float: left;
   font-weight: 300;
 }
@@ -784,7 +784,6 @@ table td {
 .balance--cell {
   font-size: 12px;
   line-height: 14px;
-  color: #E84128;
   text-align: right;
   padding: 1px 0 0 0;
 }
