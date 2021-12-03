@@ -26,11 +26,11 @@ Berlin 13359, Germany
 package code.snippet
 
 import code.util.Helper.MdcLoggable
-
 import net.liftweb.util.{CssSel, Props}
-
 import net.liftweb.util._
 import Helpers._
+import net.liftweb.common.Full
+import net.liftweb.http.S
 
 
 
@@ -40,6 +40,16 @@ class WebUI extends MdcLoggable{
   def setChangePasswordLink = {
     val host = Props.get("api_portal_hostname").or(Props.get("api_hostname")).getOrElse("unknown")
     "#change-password-link a [href]" #> scala.xml.Unparsed(s"$host/user_mgt/change_password")
+  }
+  
+  def hideFooter: CssBindFunc = {
+    val display: Boolean = S.request.map(_.uri) match {
+      case Full("/") => true
+      case Full("/index") => true
+      case Full("/index.html") => true
+      case _ => false
+    }
+    if(display) "#footer-about [style]" #> "visibility: visible;" else "#footer-about [style]" #> "display: none;"
   }
   
   def homePage = {
