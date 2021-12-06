@@ -134,6 +134,12 @@ class Nav {
     ".navlink [href]" #> { homePageUrl } &
       ".navlink *" #> "Home"
   }
+  // Menu For about page
+  def aboutPage : CssSel = {
+    val aboutPageUrl = Props.get("base_url").getOrElse("unknown")
+    ".navlink [href]" #> { aboutPageUrl + "/about.html"} &
+      ".navlink *" #> "About"
+  }
   
   // Menu For Entitlements / permissions on an account / view
   def editViews : CssSel = {

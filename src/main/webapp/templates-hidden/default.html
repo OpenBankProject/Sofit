@@ -49,11 +49,14 @@ Berlin 13359, Germany
 
 			<header class="header">
 				<!-- Would like to use <lift:Menu.item name="Home" : doesn't work :( /> -->
-				<a href="/" class="header-logo"><img src="/media/images/logo-header.png" alt="Logo" class="header-logo__img"></a>
+				<!-- <div style="display:flex; width:100%; align-items:center"> -->
 
-				<p class="header__logo-text">Sofit</p>
+				<a href="/" class="header-logo"><img style="width:5rem; height:5rem" src="/media/images/logo-header1.png" alt="Logo" class="header-logo__img"></a>
+				<!--<span>IncludeMi</span>-->
 
-				<div class="header__settings" data-lift="Login.login">
+				<!-- <p class="header__logo-text">Sofit</p> -->
+
+				<div class="header__settings" data-lift="Login.login" style="display:flex; ">
 					<div class="logged-out">
 						<!--<a id="start-login" href="#" class="header__settings-image header__settings-image&#45;&#45;login">-->
 							<!--<img src="/media/images/login-icon.png" alt="Log in icon" class="settings-imgs__icon">-->
@@ -81,8 +84,9 @@ Berlin 13359, Germany
 							<a id="settings" href="#" class="header__settings-image header__settings-image--settings">
 								<img src="/media/images/settings-icon.png" alt="Settings icon" class="settings-imgs__icon">
 							</a>
--->
-						</div>
+-->							</div>
+
+					<!-- </div> -->
 					</div><!-- logged in -->
 				</div><!-- header__settings -->
 			</header>
@@ -111,14 +115,14 @@ Berlin 13359, Germany
 
 
 			<footer class="footer">
-					<div class="footer-content-wrapper" id="footer-about" data-lift="WebUI.hideFooter">
-						<div class="footer-box">
+					<div class="footer-content-wrapper">
+						<!--<div class="footer-box">
 							<p class="footer-box__paragraph">Open Bank Project </p>
 							<p class="footer-box__paragraph">&copy; 2011-<span id="current_year" data-lift="TimeHelpers.currentYear">CurrentYear</span> TESOBE GmbH and distributed under the AGPL and commercial licenses.</p>
 						</div>
 						<div class="footer-logo-box">
 							<a href="#" class="footer-box__link"><img src="/media/images/logo-footer.png" alt="TESOBE Logo" class="footer-box__logo"></a>
-						</div>
+						</div>-->
 					</div>
 					<div class="footer-content-wrapper" data-lift="WebUI.homePage">
 						<a href="#" >Language </a>
