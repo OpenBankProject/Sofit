@@ -776,8 +776,15 @@ table td {
   padding: 2px;
 }
 .acc-table-body__cell:last-child {
-  font-size: 14px;
-  line-height: 16px;
+  font-size: x-large;
+  text-align: right;
+}
+.acc-table-body__cell-link.expenditureLink {
+  font-size: x-large;
+  text-align: right;
+}
+.acc-table-body__cell-link.incomeLink {
+  font-size: x-large;
   text-align: right;
 }
 

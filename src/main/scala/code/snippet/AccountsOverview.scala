@@ -144,7 +144,21 @@ class AccountsOverview extends MdcLoggable {
               viewId <- aPrivateView.id
             } yield viewId).getOrElse("")
             val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
+            val (incomeLink, show) =
+              if(accountId == "cash") {
+                ("/banks/" + bankId + "/accounts/" + accountId + "/create-income", true)
+              } else ("#", false)
+            val (expenditureLink, showExpenditure) =
+              if(accountId == "cash") {
+                ("/banks/" + bankId + "/accounts/" + accountId + "/create-expenditure", true)
+              } else ("#", false)
 
+            ".incomeLink [class+]" #> "green--color" &
+            ".expenditureLink [class+]" #> "orange--color" &
+            ".incomeLink [style]" #> {if(show) "visibility: visible" else "visibility: hidden"} &
+            ".expenditureLink [style]" #> {if(showExpenditure) "visibility: visible" else "visibility: hidden"} &
+            ".incomeLink [href]" #> incomeLink &
+            ".expenditureLink [href]" #> expenditureLink &
             ".accName a *" #> accountDisplayName(accountJson) &
             ".accName a [href]" #> url &
             ".accLink [href]" #> url
