@@ -119,7 +119,7 @@ class Nav {
       if (hasManagementAccess && Props.get("management.counterparties.enabled", "true").toBoolean) {
         val managementUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/management"
         Some(".navlink [href]" #> { managementUrl } &
-        ".navlink *" #> "Counterparties" &
+        // ".navlink *" #> "Counterparties" &
         ".navlink [class+]" #> markIfSelected(managementUrl))
       } else None
     }
@@ -131,14 +131,12 @@ class Nav {
   // Menu For home page
   def homePage : CssSel = {
     val homePageUrl = Props.get("base_url").getOrElse("unknown")
-    ".navlink [href]" #> { homePageUrl } &
-      ".navlink *" #> "Home"
+    ".navlink [href]" #> { homePageUrl } // & ".navlink *" #> "Home"
   }
   // Menu For about page
   def aboutPage : CssSel = {
     val aboutPageUrl = Props.get("base_url").getOrElse("unknown")
-    ".navlink [href]" #> { aboutPageUrl + "/about.html"} &
-      ".navlink *" #> "About"
+    ".navlink [href]" #> { aboutPageUrl + "/about.html"} // & ".navlink *" #> "About"
   }
   
   // Menu For Entitlements / permissions on an account / view
@@ -148,7 +146,7 @@ class Nav {
       url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
       val editViewsUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/views/list"
       ".navlink [href]" #> { editViewsUrl } &
-      ".navlink *" #> "Views" &
+      // ".navlink *" #> "Views" &
       ".navlink [class+]" #> markIfSelected(editViewsUrl)
     } else eraseMenu
   }
@@ -158,7 +156,7 @@ class Nav {
     if (hasManagementAccess && url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
       val accountSettingsURL = "/banks/" + url(2) + "/accounts/" + url(4) + "/settings"
       ".navlink [href]" #> { accountSettingsURL } &
-      ".navlink *" #> "Settings" &
+      //".navlink *" #> "Settings" &
       ".navlink [class+]" #> markIfSelected(accountSettingsURL)
     } else eraseMenu
   }
@@ -167,7 +165,7 @@ class Nav {
     if (hasManagementAccess && url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
       val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-income"
       ".navlink [href]" #> { addIncomeUrl } &
-      ".navlink *" #> "Create income" &
+      // ".navlink *" #> "Create income" &
       ".navlink [class+]" #> markIfSelected(addIncomeUrl)
     } else eraseMenu
   }
@@ -176,7 +174,7 @@ class Nav {
     if (hasManagementAccess && url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
       val addIncomeUrl = "/banks/" + url(2) + "/accounts/" + url(4) + "/create-expenditure"
       ".navlink [href]" #> { addIncomeUrl } &
-      ".navlink *" #> "Create expenditure" &
+      //".navlink *" #> "Create expenditure" &
       ".navlink [class+]" #> markIfSelected(addIncomeUrl)
     } else eraseMenu
   }
@@ -186,7 +184,7 @@ class Nav {
     if (hasManagementAccess) {
       val accountSettingsURL = "/banks/" + bankId + "/accounts/create-bank-account"
       ".navlink [href]" #> { accountSettingsURL } &
-        ".navlink *" #> "Create account" &
+        // ".navlink *" #> "Create account" &
         ".navlink [class+]" #> markIfSelected(accountSettingsURL)
     } else eraseMenu
   }
