@@ -89,3 +89,6 @@ outgoing.account_id=OBP_DEFAULT_OUTGOING_ACCOUNT_ID
 
 # Expenditure tags
 expenditure.tags=None,Food,Rent,Transport,Health_Insurance,Other
+
+# Display link to the counterpart account
+display_other_account_link_at_transaction=true

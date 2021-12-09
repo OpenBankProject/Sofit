@@ -45,6 +45,7 @@ import net.liftweb.json.JsonDSL._
 import net.liftweb.util.Helpers._
 import net.liftweb.util.{Props, _}
 
+import scala.collection.immutable
 import scala.xml.{NodeSeq, Text}
 
 case class TransactionsListURLParams(bankId: String, accountId: String, viewId: String)
@@ -144,7 +145,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
 
             if (hasManagementAccess) {
               ".otherAccountLinkForName [href]" #> otherAccountLink &
-              ".otherAccountLinkForName *" #> oAcc.holder.flatMap(_.name).getOrElse(FORBIDDEN) &
+              ".otherAccountLinkForName *" #> {if(Props.getBool("display_other_account_link_at_transaction", true)) oAcc.holder.flatMap(_.name).getOrElse(FORBIDDEN)else ""} &
               ".otherAccountLinkForAlias [href]" #> otherAccountLink
             } else {
               ".otherAccountLinkForName [href]" #> transactionURI &
@@ -379,7 +380,7 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
     accountJson.balance match {
       case Some(balance) if balance.amount.isDefined =>
         val total = new PersistentDouble(accountJson.balance.get.amount.get.toDouble)
-        val groupedApiTransactions = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
+        val groupedApiTransactions: immutable.Seq[List[TransactionJson]] = groupByDate(sortByDate(transactionsJson.transactions.getOrElse(Nil)))
         ".account_grouped_by_date *" #> groupedApiTransactions.map(daySummary(_, total)) // The previous CSS selector was "* *"
       case _ =>
         val total = new PersistentDouble(0.toDouble)
