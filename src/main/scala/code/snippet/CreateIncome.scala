@@ -27,9 +27,9 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
       logger.debug(s"CreateIncome.addIncome.process: edit label $incomeDescription")
       val result = createIncome(bankId, accountId, incomeDescription, incomeAmount, "EUR")
       if (result.isDefined) {
-        val msg = "Income " + incomeDescription + " has been set"
-        SetHtml("account-title", Text(incomeDescription)) &
+        val msg = "Saved"
         Call("socialFinanceNotifications.notify", msg).cmd
+        S.redirectTo(s"/banks/$bankId/accounts/$accountId/owner")
       } else {
          val msg = "Sorry, Income" + incomeDescription + " could not be added ("+ result +")"
          Call("socialFinanceNotifications.notifyError", msg).cmd

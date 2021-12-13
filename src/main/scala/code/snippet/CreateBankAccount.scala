@@ -37,7 +37,7 @@ class CreateBankAccount(params: List[BankJson400]) extends MdcLoggable {
       if(listOfBanks.size == 1) {
         val result = createAccount(bankVar.is, newLabel, userIdVar.is)
         if (result.isDefined) {
-          val msg = "A new account with label " + newLabel + " has been set"
+          val msg = "Saved"
           SetHtml("account-title", Text(newLabel)) &
             Call("socialFinanceNotifications.notify", msg).cmd
         } else {
