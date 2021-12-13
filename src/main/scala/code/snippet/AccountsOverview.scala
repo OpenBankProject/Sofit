@@ -35,6 +35,7 @@ package code.snippet
 import code.lib.{OAuthClient, ObpAPI}
 import code.lib.ObpJson._
 import code.util.Helper.MdcLoggable
+import net.liftweb.common.Full
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Noop
@@ -144,19 +145,9 @@ class AccountsOverview extends MdcLoggable {
               viewId <- aPrivateView.id
             } yield viewId).getOrElse("")
             val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
-            val (incomeLink, show) =
-              if(accountId == "cash") {
-                ("/banks/" + bankId + "/accounts/" + accountId + "/create-income", true)
-              } else ("#", false)
-            val (expenditureLink, showExpenditure) =
-              if(accountId == "cash") {
-                ("/banks/" + bankId + "/accounts/" + accountId + "/create-expenditure", true)
-              } else ("#", false)
-
-            ".incomeLink [class+]" #> "green--color" &
-            ".expenditureLink [class+]" #> "orange--color" &
-            ".incomeLink [style]" #> {if(show) "visibility: visible" else "visibility: hidden"} &
-            ".expenditureLink [style]" #> {if(showExpenditure) "visibility: visible" else "visibility: hidden"} &
+            val incomeLink = "/banks/" + bankId + "/accounts/" + accountId + "/create-income"
+            val expenditureLink = "/banks/" + bankId + "/accounts/" + accountId + "/create-expenditure"
+            
             ".incomeLink [href]" #> incomeLink &
             ".expenditureLink [href]" #> expenditureLink &
             ".accName a *" #> accountDisplayName(accountJson) &
@@ -170,7 +161,9 @@ class AccountsOverview extends MdcLoggable {
     def loggedOutSnippet = {
    //   ".accountItem" #> SHtml.span(Text("S.?("you_are_logged_out")"), Noop,("id","accountsMsg"))
       ".accName *" #> S.?("you_are_logged_out") &
-      ".accLink" #> ""
+      ".accLink" #> "" &
+      ".incomeLink" #> "" &
+      ".expenditureLink" #> ""
     }
 
     if(OAuthClient.loggedIn) loggedInSnippet
