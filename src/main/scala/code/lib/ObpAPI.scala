@@ -111,6 +111,10 @@ object ObpAPI {
   def privateAccounts : Box[BarebonesAccountsJson] = {
     ObpGet(s"/$versionOfApi/my/accounts").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
+  
+  def getAccountBalances(bankId : String) : Box[AccountsBalancesJsonV400] = {
+    ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/balances").flatMap(_.extractOpt[AccountsBalancesJsonV400])
+  }
 
   def allAccountsAtOneBank(bankId : String) : Box[BarebonesAccountsJson] = {
     ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts").flatMap(_.extractOpt[BarebonesAccountsJson])
@@ -725,6 +729,23 @@ object ObpJson {
                                   label: Option[String],
                                   views: Option[List[ViewJson]],
                                   bank_id: Option[String])
+
+  case class AccountsBalancesJsonV400(accounts:List[AccountBalanceJsonV400])
+
+  case class BalanceJsonV400(`type`: String, currency: String, amount: String)
+
+  case class AccountBalanceJsonV400(
+                                     account_id: String,
+                                     bank_id: String,
+                                     account_routings: List[AccountRouting],
+                                     label: String,
+                                     balances: List[BalanceJsonV400]
+                                   )
+  case class AccountRouting(
+                             scheme: String,
+                             address: String
+                           )
+  
 		  						  
   case class HolderJson(name: Option[String],
 		is_alias : Option[Boolean])
