@@ -1197,6 +1197,7 @@ table td {
 
 .comments-table {
   width: 100%;
+  overflow: scroll;
   margin: 0 0 108px;
 }
 

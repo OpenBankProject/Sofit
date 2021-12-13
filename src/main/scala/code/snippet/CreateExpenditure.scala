@@ -24,13 +24,13 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
   
   def addPayment(xhtml: NodeSeq): NodeSeq = {
     var outcomeDescription = ""
-    var outcomeAmount = "0"
+    var outcomeAmount = 0
     val listOfTags: Seq[(String, String)] = Props.get("expenditure.tags", "None,Food,Rent,Transport,Health_Insurance,Other").
       split(",").toList.map(_.trim).map(i => i.replaceAll("_", "/")).map(i => (i,i))
 
     def process(): JsCmd = {
       logger.debug(s"CreateOutcome.addOutcome.process: edit label $outcomeDescription")
-      val result = createOutcome(bankId, accountId, outcomeDescription, outcomeAmount, "EUR")
+      val result = createOutcome(bankId, accountId, outcomeDescription, outcomeAmount.toString, "EUR")
       if (result.isDefined) {
         val msg = "Saved"
         Call("socialFinanceNotifications.notify", msg).cmd
@@ -44,7 +44,7 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
     (
       "@payment_description" #> SHtml.text("", s => outcomeDescription = s) &
        "#payment_category" #> SHtml.select(listOfTags, Box!! tagVar.is, tagVar(_)) &
-      "@payment_amount" #> SHtml.text("", s => outcomeAmount = s) &
+      "@payment_amount" #> SHtml.number(0, s => outcomeAmount = s, 0, 1000000000) &
         // Replace the type=submit with Javascript that makes the ajax call.
         "type=submit" #> SHtml.ajaxSubmit(S.?("button.save"), process)
       ).apply(xhtml)
