@@ -49,7 +49,7 @@ class WebUI extends MdcLoggable{
       case Full("/index.html") => true
       case _ => false
     }
-    if(display) "#footer-about [style]" #> "visibility: visible;" else "#footer-about [style]" #> "display: none;"
+    if(false) "#footer-about [style]" #> "visibility: visible;" else "#footer-about [style]" #> "display: none;"
   }
   
   def homePage = {
