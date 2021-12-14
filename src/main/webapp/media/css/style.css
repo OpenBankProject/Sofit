@@ -665,7 +665,8 @@ table td {
 }
 
 .account-info {
-  background-color: #F4F4F4;
+  /*! background-color: #F4F4F4; */
+  border: 1px solid #666666;
   padding: 0 10px 50px 10px;
 }
 
