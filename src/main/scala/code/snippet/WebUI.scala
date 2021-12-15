@@ -76,13 +76,13 @@ class WebUI extends MdcLoggable{
     val display: Boolean = Props.getBool("display_api_docs_link", true)
     if(display) "#api_documentation_link [style]" #> "visibility: visible;" else "#api_documentation_link [style]" #> "display: none;"
   }
-
-  // Note: Most of these are not used yet
-
+  
   def headerLogoLeft = {
-    "img [src]" #> Props.get("webui_header_logo_left_url", "")
+    "img [src]" #> Props.get("webui_header_logo_left_url", "/media/images/logo-header.png")
   }
-
+  
+  // Note: Most of these are not used yet
+  
   def headerLogoRight: CssSel = {
     "img [src]" #> Props.get("webui_header_logo_right_url", "")
   }

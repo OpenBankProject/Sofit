@@ -50,6 +50,8 @@ api_version=v4.0.0
 
 # Sngle Sign On 
 # sso.enabled=false
+# Left logo at the header
+webui_header_logo_left_url=/media/images/logo-header.png
 
 ### OBP-API mode ############################## 
 # If OBP-API split to two instances, eg: apis,portal
