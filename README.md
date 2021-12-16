@@ -37,7 +37,6 @@ Alternatively, maven can also be used:
 
 mvn jetty:run
 
-
 Note: You may need to add the pluginGroup to the $HOME/.m2/settings.xml
 
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
@@ -75,7 +74,7 @@ the application to work.
 The sample.props.template file must be renamed for Lift to find it (https://www.assembla.com/wiki/show/liftweb/Properties). Renaming it to default.props
 should be the easiest way to get started.
 
-2. Filling in values:
+2. Filling in values: (This step can skip)
 
 transloadit.authkey
 transloadit.addImageTemplate
@@ -96,28 +95,31 @@ transloadit.addImageTemplate can be obtained by creating a template at transload
   }
 }
 
-*base_url*
+## These change will be performe in default.props file (/src/main/resources/props/default.props).  
+
+### *base_url*
 
 The base_url is used to calculate the callback url to give to the Open Bank Project API server. This should just be the
 base url used to access the social finance application. So if you're running a copy of the Sofit application at
 sofit.example.com over https, on the standard port, it would be "https://sofit.example.com".
-An example value for local development could be: http://127.0.0.1:8080 (as 8080 is the default Lift development port)
+An example value for local development could be: http://localhost:8081 (as 8081 is the default Lift development port)
 
-*api_hostname*
+### *api_hostname*
 
-The api_hostname should be the base url of the Open Bank Project API. For example, https://api.openbankproject.com/api
+The api_hostname should be the base url (https://api.openbankproject.com/api) of the Open Bank Project API. If, Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in default.props file. For this purpose, OBP-API must be running locally, without it is Sofit will not work. 
 
-*obp_consumer_key*
-*obp_secret_key*
+### *obp_consumer_key* \
+### *obp_secret_key*
 
-The keys are obtained by registering as a developer on the Open Bank Project API server located at "api_hostname".
+The keys are obtained by registering as a developer on the Open Bank Project API server (https://apisandbox.openbankproject.com/) located at "api_hostname". For this, Register as a user, after registration then click on *Get API Key*. Next, important step is, in Redirect URL (Optional) give Sofit’s base url (http://localhost:8081/) , if sofit is running locally. 
 
 
 All in all, a props file could look something like:
 
-transloadit.authkey=89hs8fho98fsho8hsf48sfo98sh
-transloadit.addImageTemplate=s9fe8sh8h4sof98hf84s8fs48f4
-api_hostname=https://api.openbankproject.com/api
-obp_consumer_key=uodsifnodsfifdsliufdsliufdsfdsfsdfsx
-obp_secret_key=iuesbfiyvglxzgifg7eisgei7fglesfi
-base_url=http://localhost:8080
+transloadit.authkey=89hs8fho98fsho8hsf48sfo98sh\
+transloadit.addImageTemplate=s9fe8sh8h4sof98hf84s8fs48f4\
+api_hostname=https://api.openbankproject.com/api \
+defaultAuthProvider=https://api.openbankproject.com/api \
+obp_consumer_key=uodsifnodsfifdsliufdsliufdsfdsfsdfsx\
+obp_secret_key=iuesbfiyvglxzgifg7eisgei7fglesfi\
+base_url=http://localhost:8080 
