@@ -106,7 +106,7 @@ An example value for local development could be: http://localhost:8081 (as 8081 
 
 ### *api_hostname*
 
-The api_hostname should be the base url (https://api.openbankproject.com/api) of the Open Bank Project API. If, Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in default.props file. For this purpose, OBP-API must be running locally, without it is Sofit will not work. 
+The api_hostname should be the base url (https://api.openbankproject.com) of the Open Bank Project API. If, Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in default.props file. For this purpose, OBP-API must be running locally, without it is Sofit will not work. 
 
 ### *obp_consumer_key* \
 ### *obp_secret_key*
