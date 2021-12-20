@@ -42,7 +42,7 @@ import net.liftweb.common.Full
 import net.liftweb.common.Empty
 import net.liftweb.sitemap.SiteMapSingleton
 import code.lib.ObpJson._
-import code.lib.ObpAPI
+import code.lib.{OAuthClient, ObpAPI}
 import code.util.Helper
 import net.liftweb.util.{CssSel, Props}
 
@@ -181,7 +181,7 @@ class Nav {
 
   def createAccount : CssSel = {
     val bankId: String = "user." + ObpAPI.currentUser.map(_.user_id).getOrElse(System.currentTimeMillis())
-    if (hasManagementAccess) {
+    if (OAuthClient.loggedIn && hasManagementAccess) {
       val accountSettingsURL = "/banks/" + bankId + "/accounts/create-bank-account"
       ".navlink [href]" #> { accountSettingsURL } &
         // ".navlink *" #> "Create account" &
