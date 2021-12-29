@@ -1,11 +1,14 @@
+Welcome to the SOFIT
+=====================
+
 # ABOUT
 
 The Sofit application demonstrates some of the social aims behind the Open Bank Project:
 
-1) Sliding scale of privacy and disclosure. e.g. Use aliases to protect real names but still show the flow of money .
+1) Sliding scale of privacy and disclosure. e.g. Use aliases to protect real names but still show the flow of money.
 2) Different views on account data (Public / Share holders / Team etc.) e.g. hide balances on public view.
 3) Comment on transactions
-4) Add other meta data e.g. tags / images to transactions / payees.
+4) Add other metadata e.g. tags / images to transactions / payees.
 
 
 # LICENSE
@@ -26,7 +29,7 @@ $ sbt
 > compile
 > ~;container:start; container:reload /
 
-(Note that you first have to start sbt and then on its console start jetty with the container:start task, otherwise it will exit immediately. More here: https://github.com/siasia/xsbt-web-plugin/wiki)
+(Note that you first have to start sbt and then on its console start jetty with the container:start task, otherwise, it will exit immediately. More here: https://github.com/siasia/xsbt-web-plugin/wiki)
 
 In OS X, sbt can be installed with $ sudo port install sbt
 
@@ -63,11 +66,17 @@ If you use Ubuntu (or a derivate) and encrypted home directories (e.g. you have 
 
 The current workaround is to move the project directory onto a different partition, e.g. under /opt/ .
 
+## To run Sofit with IntelliJ IDEA
 
-# PROPS FILE
+1. Make sure you have the IntelliJ Scala plugin installed.
+2. Create a new folder e.g. OpenBankProject and cd there
+3. git clone https://github.com/OpenBankProject/Sofit.git
+4. In IntelliJ IDEA do File -> New -> Project from existing sources, navigate to the folder, and select pom.xml
+5. If you see a message about an unmanaged pom.xml, click the option to let Maven manage it.
+6. There is a props file template provided at src/main/resource/prop/sample.props.template. It needs to be renamed and modified or just copy and paste with a new file name for the application to work. 
+7.These change will be performe in default.props file (/src/main/resources/props/default.props).  
 
-There is a props file template provided at src/main/resources/props/sample.props.template. It needs to be renamed and modified in order for
-the application to work.
+## PROPS FILE
 
 1. Renaming:
 
@@ -83,7 +92,7 @@ The Sofit app uses transloadit.com to process uploaded images. If these are not 
 individual transactions.
 
 transloadit.authkey can be obtained by registering at transloadit.com
-transloadit.addImageTemplate can be obtained by creating a template at transloadit. A sample template which resizes images to 250px width is :
+transloadit.addImageTemplate can be obtained by creating a template at transloadit. A sample template that resizes images to 250px width is :
 
 {
   "steps": {
@@ -95,8 +104,6 @@ transloadit.addImageTemplate can be obtained by creating a template at transload
   }
 }
 
-## These change will be performe in default.props file (/src/main/resources/props/default.props).  
-
 ### *base_url*
 
 The base_url is used to calculate the callback url to give to the Open Bank Project API server. This should just be the
@@ -106,20 +113,26 @@ An example value for local development could be: http://localhost:8081 (as 8081 
 
 ### *api_hostname*
 
-The api_hostname should be the base url (https://api.openbankproject.com) of the Open Bank Project API. If, Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in default.props file. For this purpose, OBP-API must be running locally, without it is Sofit will not work. 
+The api_hostname should be the base url (https://api.openbankproject.com) of the Open Bank Project API. If, Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in your props file. 
 
 ### *obp_consumer_key* \
 ### *obp_secret_key*
 
-The keys are obtained by registering as a developer on the Open Bank Project API server (https://apisandbox.openbankproject.com/) located at "api_hostname". For this, Register as a user, after registration then click on *Get API Key*. Next, important step is, in Redirect URL (Optional) give Sofit’s base url (http://localhost:8081/) , if sofit is running locally. 
+For the obp_consumer_key and obp_secret_key, should be run OBP-API in your local environment. Instruction are [here](https://github.com/OpenBankProject/OBP-API) for run OBP-API locally. In OBP-API, register as a user for *Get API Key*. 
 
+Note: In Redirect URL(Optional) give sofit base_url(http://localhost:8081/), when Register your consumer window will pop-up. 
 
 All in all, a props file could look something like:
 
 transloadit.authkey=89hs8fho98fsho8hsf48sfo98sh\
 transloadit.addImageTemplate=s9fe8sh8h4sof98hf84s8fs48f4\
 api_hostname=https://api.openbankproject.com/api \
-defaultAuthProvider=https://api.openbankproject.com/api \
+defaultAuthProvider=https://api.openbankproject.com/api 
+### OR 
+This is a for local envronment. \
+api_hostname=http://127.0.0.1:8080          
+defaultAuthProvider=http://127.0.0.1:8080
+
 obp_consumer_key=uodsifnodsfifdsliufdsliufdsfdsfsdfsx\
 obp_secret_key=iuesbfiyvglxzgifg7eisgei7fglesfi\
 base_url=http://localhost:8080 
