@@ -431,7 +431,6 @@ body {
 
 .container {
   margin: 39px auto 0 auto;
-  width: 80%;
 }
 
 .container--public {
@@ -460,7 +459,7 @@ body {
 
 table td {
   overflow: hidden;
-  display: inline-block;
+  /*! display: inline-block; */
 }
 
 .header {
@@ -666,7 +665,8 @@ table td {
 }
 
 .account-info {
-  background-color: #F4F4F4;
+  /*! background-color: #F4F4F4; */
+  border: 1px solid #666666;
   padding: 0 10px 50px 10px;
 }
 
@@ -687,7 +687,7 @@ table td {
   line-height: 28px;
   margin: 0 54px 0 0;
   padding: 0 0 0;
-  width: 61%;
+  width: 100%; 
   float: left;
   font-weight: 300;
 }
@@ -733,13 +733,13 @@ table td {
 }
 
 .acc-table-head__cell:first-child {
-  width: 771px;
+  width: 60%;
 }
 
 .acc-table-head__cell-row {
   margin: 0;
   padding: 0;
-  width: 200px;
+  /*! width: 200px; */
 }
 
 .home-cell-row__list {
@@ -774,20 +774,24 @@ table td {
   padding: 7px 0 10px 0;
 }
 .acc-table-body__cell:nth-child(2) {
-  width: 140px;
   padding: 2px;
 }
 .acc-table-body__cell:last-child {
-  width: 106px;
-  font-size: 14px;
-  line-height: 16px;
+  font-size: x-large;
+  text-align: right;
+}
+.acc-table-body__cell-link.expenditureLink {
+  font-size: x-large;
+  text-align: right;
+}
+.acc-table-body__cell-link.incomeLink {
+  font-size: x-large;
   text-align: right;
 }
 
 .balance--cell {
   font-size: 12px;
   line-height: 14px;
-  color: #E84128;
   text-align: right;
   padding: 1px 0 0 0;
 }
@@ -913,6 +917,7 @@ table td {
 
 .users-table-body__row {
   width: 100%;
+  display: table-row;
   border-bottom: 1px solid #5D5D5D;
 }
 
@@ -935,14 +940,12 @@ table td {
 }
 .users-table-body__cell:first-child {
   background-color: #EFF9FB;
-	width: 300px;
 }
 .users-table-body__cell:nth-child(1n+2) {
   padding: 6px 0 8px 10px;
   background-color: #DCF4F0;
 }
 .users-table-body__cell:last-child {
-  width: 182px;
   padding: 0 0 0 9px;
   background-color: #DCEFE0;
   padding: 8px 9px 9px 9px;
@@ -1773,21 +1776,10 @@ table td {
 }
 
 
-#account-settings input[type="submit"] {
-  margin: 0;
-  padding: 7px 10px 5px 10px;
-  background-color: #3A3A3A;
-  color: #fff;
-  -moz-border-radius: 20px;
-  -webkit-border-radius: 20px;
-  border-radius: 20px;
-  letter-spacing: 0.5px;
-  border: 0;
-}
 #account-settings .account-settings-section {
 	padding: 10px 0;
 	clear: both;
-	border-bottom: 3px solid #C4C4C4;
+	/*! border-bottom: 3px solid #C4C4C4; */
 }
 
 .account-info__box.account-info__box--views {
@@ -1797,53 +1789,10 @@ table td {
 	overflow: auto;
 }
 
-#create-bank-account input[type="submit"] {
-  margin: 0;
-  padding: 7px 10px 5px 10px;
-  background-color: #3A3A3A;
-  color: #fff;
-  -moz-border-radius: 20px;
-  -webkit-border-radius: 20px;
-  border-radius: 20px;
-  letter-spacing: 0.5px;
-  border: 0;
-}
-#create-bank-account input[type="reset"] {
-  margin: 0;
-  padding: 7px 10px 5px 10px;
-  background-color: #3A3A3A;
-  color: #fff;
-  -moz-border-radius: 20px;
-  -webkit-border-radius: 20px;
-  border-radius: 20px;
-  letter-spacing: 0.5px;
-  border: 0;
-}
+
 #create-bank-account .create-bank-account-section {
 	padding: 10px 0;
 	clear: both;
-}
-#create-income input[type="submit"] {
-  margin: 0;
-  padding: 7px 10px 5px 10px;
-  background-color: #3A3A3A;
-  color: #fff;
-  -moz-border-radius: 20px;
-  -webkit-border-radius: 20px;
-  border-radius: 20px;
-  letter-spacing: 0.5px;
-  border: 0;
-}
-#create-income input[type="reset"] {
-  margin: 0;
-  padding: 7px 10px 5px 10px;
-  background-color: #3A3A3A;
-  color: #fff;
-  -moz-border-radius: 20px;
-  -webkit-border-radius: 20px;
-  border-radius: 20px;
-  letter-spacing: 0.5px;
-  border: 0;
 }
 #create-income .create-income-section {
 	padding: 10px 0;

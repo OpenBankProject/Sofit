@@ -26,11 +26,11 @@ Berlin 13359, Germany
 package code.snippet
 
 import code.util.Helper.MdcLoggable
-
 import net.liftweb.util.{CssSel, Props}
-
 import net.liftweb.util._
 import Helpers._
+import net.liftweb.common.Full
+import net.liftweb.http.S
 
 
 
@@ -40,6 +40,16 @@ class WebUI extends MdcLoggable{
   def setChangePasswordLink = {
     val host = Props.get("api_portal_hostname").or(Props.get("api_hostname")).getOrElse("unknown")
     "#change-password-link a [href]" #> scala.xml.Unparsed(s"$host/user_mgt/change_password")
+  }
+  
+  def hideFooter: CssBindFunc = {
+    val display: Boolean = S.request.map(_.uri) match {
+      case Full("/") => true
+      case Full("/index") => true
+      case Full("/index.html") => true
+      case _ => false
+    }
+    if(false) "#footer-about [style]" #> "visibility: visible;" else "#footer-about [style]" #> "display: none;"
   }
   
   def homePage = {
@@ -66,13 +76,13 @@ class WebUI extends MdcLoggable{
     val display: Boolean = Props.getBool("display_api_docs_link", true)
     if(display) "#api_documentation_link [style]" #> "visibility: visible;" else "#api_documentation_link [style]" #> "display: none;"
   }
-
-  // Note: Most of these are not used yet
-
+  
   def headerLogoLeft = {
-    "img [src]" #> Props.get("webui_header_logo_left_url", "")
+    "img [src]" #> Props.get("webui_header_logo_left_url", "/media/images/logo-header.png")
   }
-
+  
+  // Note: Most of these are not used yet
+  
   def headerLogoRight: CssSel = {
     "img [src]" #> Props.get("webui_header_logo_right_url", "")
   }

@@ -38,6 +38,7 @@ object RunMtlsWebApp extends App {
   val server = new Server
   //set run mode value to "development", So the value is true of Props.devMode
   System.setProperty("run.mode", "development")
+  val devPort: Int = Props.get("dev.port", "8081").toInt
 
   // set MTLS
   val connectors: Array[Connector] = {
@@ -55,7 +56,7 @@ object RunMtlsWebApp extends App {
     sslContextFactory.setProtocol("TLSv1.2")
 
     val connector = new ServerConnector(server, new SslConnectionFactory(sslContextFactory, "http/1.1"), new HttpConnectionFactory(https))
-    connector.setPort(Props.get("dev.port", "8082").toInt)
+    connector.setPort(devPort)
 
     Array(connector)
   }
@@ -69,7 +70,7 @@ object RunMtlsWebApp extends App {
   server.setHandler(context)
 
   try {
-    println(">>> STARTING EMBEDDED JETTY SERVER, PRESS ANY KEY TO STOP")
+    println(s">>> STARTING EMBEDDED JETTY SERVER, Start https at port $devPort, PRESS ANY KEY TO STOP")
     server.start()
     while (System.in.available() == 0) {
       Thread.sleep(5000)

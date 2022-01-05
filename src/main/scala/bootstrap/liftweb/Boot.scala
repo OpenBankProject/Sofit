@@ -401,6 +401,7 @@ class Boot extends MdcLoggable{
 
     val sitemap = List(
       Menu.i("Home") / "index",
+      Menu.i("About") / "about",
       Menu.i("404") / "404" >> Hidden,
 
       //Menu.i("Define Dashboard") / "dd",

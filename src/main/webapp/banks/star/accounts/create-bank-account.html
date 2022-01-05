@@ -36,28 +36,31 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 		<div class="account-info__box account-info__box--views">
 			<div class="account-info__top-wrapper">
 				<h2 id="account-title" class="account-info__box-headline create-account-title">
-					<span class="lift:Loc.create_account_label">Create a bank account</span>
+					<span class="lift:Loc.create_account_label">Create an account</span>
 				</h2>
 				<div data-lift="embed?what=_nav_account_settings"></div>
 			</div>
 			<div class="create-bank-account-section" data-lift="CreateBankAccount.editLabel">
 				<form data-lift="form.ajax">
-					<div>
+					<div class="form-group">
 						<label for="bank-id" hidden>
-							<h4><span class="lift:Loc.bank_name">Bank name</span></h4>
+							<h4><span class="lift:Loc.bank_name">Bank Name</span></h4>
+
 						</label>
-						<select name="bank-id" id="bank-id" hidden>
+						<select class="form-control" name="bank-id" id="bank-id" hidden>
 							<option value="">none</option>
 						</select>
+					<div class="form-group">
+					</div>
 						<label for="new_label">
-							<h4><span class="lift:Loc.account_label">Account label</span></h4>
+							<h4><span class="lift:Loc.account_label">Account name</span></h4>
 						</label>
-						<input type="text" id="new_label" name="new_label" />
+						<input class="form-control" type="text" id="new_label" name="new_label" />
 					</div>
 					<br>
 					<div>
-						<input type="submit" value="Create"/>
-						<input type="reset" value="Cancel"/>
+						<input class="btn btn-outline-success" type="submit" value="Create"/>
+						<input class="btn btn-outline-danger" type="reset" value="Cancel"/>
 					</div>
 				</form>
 			</div>

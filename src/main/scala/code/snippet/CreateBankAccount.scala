@@ -24,8 +24,9 @@ class CreateBankAccount(params: List[BankJson400]) extends MdcLoggable {
   
   def editLabel(xhtml: NodeSeq): NodeSeq = {
     var newLabel = ""
+    val bankId = "user." + ObpAPI.currentUser.map(_.user_id).getOrElse(System.currentTimeMillis())
     val listOfBanks = params
-      .filter(_.id == Props.get("manual_transaction_bank_id", "manual_transaction_bank_id"))
+      .filter(_.id == bankId)
       .map(b => (b.id, b.full_name))
 
     def process(): JsCmd = {
@@ -33,19 +34,19 @@ class CreateBankAccount(params: List[BankJson400]) extends MdcLoggable {
         u => userIdVar.set(u.user_id)
       }
       logger.debug(s"CreateBankAccount.editLabel.process: edit label $newLabel")
-      if(listOfBanks.size == 0) {
-        val msg = "Sorry, the new account with the label" + newLabel + " could not be set due to undefined props manual_transaction_bank_id"
-        Call("socialFinanceNotifications.notifyError", msg).cmd
-      } else {
+      if(listOfBanks.size == 1) {
         val result = createAccount(bankVar.is, newLabel, userIdVar.is)
         if (result.isDefined) {
-          val msg = "A new account with label " + newLabel + " has been set"
+          val msg = "Saved"
           SetHtml("account-title", Text(newLabel)) &
             Call("socialFinanceNotifications.notify", msg).cmd
         } else {
           val msg = "Sorry, the new account with the label" + newLabel + " could not be set ("+ result +")"
           Call("socialFinanceNotifications.notifyError", msg).cmd
         }
+      } else {
+        val msg = "Sorry, the new account with the label" + newLabel + " could not be set due to unresolved bank id value"
+        Call("socialFinanceNotifications.notifyError", msg).cmd
       }
     }
 

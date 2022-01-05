@@ -35,6 +35,7 @@ package code.snippet
 import code.lib.{OAuthClient, ObpAPI}
 import code.lib.ObpJson._
 import code.util.Helper.MdcLoggable
+import net.liftweb.common.Full
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Noop
@@ -64,11 +65,12 @@ class AccountsOverview extends MdcLoggable {
 
   logger.debug("Accounts Overview: Public accounts found: " + publicAccountJsons)
 
-  val privateAccountJsons : List[(BankID, BarebonesAccountJson)] = for {
+  val privateAccountJsons : List[(BankID, BarebonesAccountJson, AccountsBalancesJsonV400)] = for {
     privateAccountsJson <- ObpAPI.privateAccounts.toList
     barebonesAccountJson <- privateAccountsJson.accounts.toList.flatten
     bankId <- barebonesAccountJson.bank_id
-  } yield (bankId, barebonesAccountJson)
+    balances <- ObpAPI.getAccountBalances(bankId)
+  } yield (bankId, barebonesAccountJson, balances)
 
   logger.debug("Accounts Overview: Private accounts found: " + privateAccountJsons)
 
@@ -135,7 +137,7 @@ class AccountsOverview extends MdcLoggable {
       } else {
         val sortedPrivateAccountJsons = privateAccountJsons.sortBy(_._2.id)
         ".accountItem" #> sortedPrivateAccountJsons.map {
-          case (bankId, accountJson) => {
+          case (bankId, accountJson, balances) => {
             //TODO: It might be nice to ensure that the same view is picked each time the page loads
             val views = accountJson.views.toList.flatten
             val accountId : String = accountJson.id.getOrElse("")
@@ -144,7 +146,17 @@ class AccountsOverview extends MdcLoggable {
               viewId <- aPrivateView.id
             } yield viewId).getOrElse("")
             val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
+            val incomeLink = "/banks/" + bankId + "/accounts/" + accountId + "/create-income"
+            val expenditureLink = "/banks/" + bankId + "/accounts/" + accountId + "/create-expenditure"
 
+            val balance: String = balances.accounts.filter(_.account_id==accountId)
+              .flatMap(_.balances)
+              .map(b => b.amount + " " + b.currency)
+              .headOption.getOrElse("")
+            
+            ".balanceValue *" #> balance &
+            ".incomeLink [href]" #> incomeLink &
+            ".expenditureLink [href]" #> expenditureLink &
             ".accName a *" #> accountDisplayName(accountJson) &
             ".accName a [href]" #> url &
             ".accLink [href]" #> url
@@ -156,7 +168,9 @@ class AccountsOverview extends MdcLoggable {
     def loggedOutSnippet = {
    //   ".accountItem" #> SHtml.span(Text("S.?("you_are_logged_out")"), Noop,("id","accountsMsg"))
       ".accName *" #> S.?("you_are_logged_out") &
-      ".accLink" #> ""
+      ".accLink" #> "" &
+      ".incomeLink" #> "" &
+      ".expenditureLink" #> ""
     }
 
     if(OAuthClient.loggedIn) loggedInSnippet
@@ -166,7 +180,7 @@ class AccountsOverview extends MdcLoggable {
   def authorisedAccountsWithManageLinks = {
     def loggedInSnippet = {
 
-      ".accountList" #> privateAccountJsons.map { case (bankId, accountJson) => {
+      ".accountList" #> privateAccountJsons.map { case (bankId, accountJson, _) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
         val views = accountJson.views.toList.flatten
         val accountId: String = accountJson.id.getOrElse("")
@@ -201,7 +215,7 @@ class AccountsOverview extends MdcLoggable {
   def authorisedAccountsDashboard = {
     def loggedInSnippet = {
 
-      ".account" #> privateAccountJsons.map {case (bankId, accountJson) => {
+      ".account" #> privateAccountJsons.map {case (bankId, accountJson, _) => {
         //TODO: It might be nice to ensure that the same view is picked each time the page loads
         val views = accountJson.views.toList.flatten
         val accountId : String = accountJson.id.getOrElse("")

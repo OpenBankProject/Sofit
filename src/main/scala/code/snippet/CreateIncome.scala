@@ -21,15 +21,15 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
   //set up ajax handlers to edit account label
   def addIncome(xhtml: NodeSeq): NodeSeq = {
     var incomeDescription = ""
-    var incomeAmount = "0"
+    var incomeAmount: Int = 0
 
     def process(): JsCmd = {
       logger.debug(s"CreateIncome.addIncome.process: edit label $incomeDescription")
-      val result = createIncome(bankId, accountId, incomeDescription, incomeAmount, "EUR")
+      val result = createIncome(bankId, accountId, incomeDescription, incomeAmount.toString, "EUR")
       if (result.isDefined) {
-        val msg = "Income " + incomeDescription + " has been set"
-        SetHtml("account-title", Text(incomeDescription)) &
+        val msg = "Saved"
         Call("socialFinanceNotifications.notify", msg).cmd
+        S.redirectTo(s"/banks/$bankId/accounts/$accountId/owner")
       } else {
          val msg = "Sorry, Income" + incomeDescription + " could not be added ("+ result +")"
          Call("socialFinanceNotifications.notifyError", msg).cmd
@@ -38,7 +38,7 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
 
     (
       "@income_description" #> SHtml.text("", s => incomeDescription = s) &
-      "@income_amount" #> SHtml.text("", s => incomeAmount = s) &
+      "@income_amount" #> SHtml.number(0, s => incomeAmount = s, 0, 1000000000) &
         // Replace the type=submit with Javascript that makes the ajax call.
         "type=submit" #> SHtml.ajaxSubmit(S.?("button.save"), process)
       ).apply(xhtml)
