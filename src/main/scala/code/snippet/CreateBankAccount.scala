@@ -45,7 +45,7 @@ class CreateBankAccount(params: List[BankJson400]) extends MdcLoggable {
           Call("socialFinanceNotifications.notifyError", msg).cmd
         }
       } else {
-        val msg = "Sorry, the new account with the label" + newLabel + " could not be set due to unresolved bank id value"
+        val msg = "Sorry, the new account with the label " + newLabel + " could not be set due to unresolved bank id value"
         Call("socialFinanceNotifications.notifyError", msg).cmd
       }
     }
