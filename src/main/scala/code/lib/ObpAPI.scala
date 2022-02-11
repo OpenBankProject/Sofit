@@ -11,7 +11,8 @@ import code.Constant._
 import code.lib.ObpJson.{CurrentUserJson, _}
 import code.util.Helper.MdcLoggable
 import net.liftweb.common.{Box, Empty, Failure, Full}
-import net.liftweb.http.RequestVar
+import net.liftweb.http.provider.HTTPCookie
+import net.liftweb.http.{RequestVar, S}
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.{JObject, _}
@@ -375,6 +376,14 @@ object OBPRequest extends MdcLoggable {
       val apiUrl = OAuthClient.currentApiBaseUrl
       val url = new URL(apiUrl + apiPath)
       logger.info(s"OBP Server Request URL: ${url.getHost}${url.getPath}")
+
+      // Cookie name
+      val correlatedUserIdCookieName = "CORRELATED_USER_ID"
+      S.param("correlated_user_id") match {
+        case Full(correlatedUserId) if correlatedUserId != null => {
+          S.addCookie(HTTPCookie(correlatedUserIdCookieName, correlatedUserId))
+        }
+      }
 
       val request = SSLHelper.getConnection(apiUrl + apiPath)
       request.setDoOutput(true)
