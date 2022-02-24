@@ -35,12 +35,14 @@ package code.snippet
 import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers
 import Helpers._
-import net.liftweb.http.SHtml
+import net.liftweb.http.{S, SHtml}
 import code.lib.{OAuthClient, ObpAPI}
 import net.liftweb.common.Box
 import net.liftweb.http.js.JsCmds.Noop
 
 class Login {
+  
+  
   private def loggedIn = {
     def getDisplayNameOfUser(): Box[String] = {
       ObpAPI.currentUser.map {

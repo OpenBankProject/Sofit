@@ -1,16 +1,16 @@
 package code.lib
 
 import java.io._
+import java.lang
 import java.net.{HttpURLConnection, URL}
 import java.text.SimpleDateFormat
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.Date
 
-import net.liftweb.json.Serialization.write
 import code.Constant._
 import code.lib.ObpJson.{CurrentUserJson, _}
 import code.util.Helper.MdcLoggable
-import net.liftweb.common.{Box, Empty, Failure, Full}
+import net.liftweb.common.{Box, Empty, Failure, Full, ParamFailure}
 import net.liftweb.http.provider.HTTPCookie
 import net.liftweb.http.{RequestVar, S}
 import net.liftweb.json.JsonAST.JValue
@@ -60,6 +60,71 @@ object ObpAPI {
   def currentUser : Box[CurrentUserJson]= if(OAuthClient.loggedIn){
     ObpGet(s"/v2.0.0/users/current").flatMap(_.extractOpt[CurrentUserJson])
   } else Failure("OBP-20001: User not logged in. Authentication is required!")
+  
+  
+  def getUserCustomerLinksByUserId(userId: String) : Box[UserCustomerLinksJson]= {
+    ObpGet(s"/v4.0.0/user_customer_links/users/$userId").flatMap(_.extractOpt[UserCustomerLinksJson])
+  }  
+  def getUserCustomerLinksByCustomerId(customerId: String) : Box[UserCustomerLinksJson]= {
+    ObpGet(s"/v4.0.0/user_customer_links/customers/$customerId").flatMap(_.extractOpt[UserCustomerLinksJson])
+  }  
+
+  def createUserCustomerLink(bankId: String, userId: String, customerId: String): Box[UserCustomerLinkJson] = {
+    val json =
+      CreateUserCustomerLinkJson(
+        user_id = userId,
+        customer_id = customerId
+      )
+    ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/user_customer_links", Extraction.decompose(json))
+      .flatMap(_.extractOpt[UserCustomerLinkJson])
+  }
+
+  def getCustomersForCurrentUser() : Box[CustomersWithAttributesJsonV300]= {
+    ObpGet(s"/v4.0.0/users/current/customers").flatMap(_.extractOpt[CustomersWithAttributesJsonV300])
+  }
+  def getOrCreateCustomer(bankId: String, legal_name: String) : Box[String]= {
+    getCustomersForCurrentUser() match {
+      case Full(list) => list.customers.find(_.legal_name == legal_name) match {
+        case Some(customer) => Full(customer.customer_id)
+        case None => createCustomer(bankId, legal_name).map(_.customer_id)
+      }
+      case Empty => createCustomer(bankId, legal_name).map(_.customer_id)
+      case ParamFailure(msg,_,_,_) =>
+        throw new Exception(msg)
+      case obj@Failure(msg, _, _) =>
+        throw new Exception(msg)
+      case _ =>
+        throw new Exception("Unknown Error.")
+    }
+  }
+  def createCustomer(bankId: String, legal_name: String): Box[CustomerJsonV310] = {
+    val json =
+      PostCustomerJsonV310(
+        legal_name = legal_name,
+        mobile_phone_number = "",
+        email = "",
+        face_image = CustomerFaceImageJson("", new Date()),
+        date_of_birth = new Date(),
+        relationship_status = "",
+        dependants = 0,
+        dob_of_dependants = List(),
+        credit_rating = CustomerCreditRatingJSON("",""),
+        credit_limit = AmountOfMoneyJsonV121("",""),
+        highest_education_attained = "",
+        employment_status = "",
+        kyc_status = true,
+        last_ok_date = new Date(),
+        title  = "",
+        branch_id = "",
+        name_suffix = ""
+      )
+    val result = ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/customers", Extraction.decompose(json))
+    println("--------------------------")
+    println(result)
+    result.flatMap(_.extractOpt[CustomerJsonV310])
+  }
+
+  
   
   /**
    * @return Json for transactions of a particular bank account
@@ -376,14 +441,7 @@ object OBPRequest extends MdcLoggable {
       val apiUrl = OAuthClient.currentApiBaseUrl
       val url = new URL(apiUrl + apiPath)
       logger.info(s"OBP Server Request URL: ${url.getHost}${url.getPath}")
-
-      // Cookie name
-      val correlatedUserIdCookieName = "CORRELATED_USER_ID"
-      S.param("correlated_user_id") match {
-        case Full(correlatedUserId) if correlatedUserId != null => {
-          S.addCookie(HTTPCookie(correlatedUserIdCookieName, correlatedUserId))
-        }
-      }
+      
 
       val request = SSLHelper.getConnection(apiUrl + apiPath)
       request.setDoOutput(true)
@@ -436,6 +494,7 @@ object OBPRequest extends MdcLoggable {
       case _ => Unit
     }
   }
+  
 }
 
 //Ugly duplicate of above to be able to get rid of /obp prefix.
@@ -1049,5 +1108,93 @@ object ObpJson {
                              provider: String,
                              username: String
                             )
+
+  case class UserCustomerLinkJson(
+                                   user_customer_link_id: String,
+                                   customer_id: String,
+                                   user_id: String,
+                                   date_inserted: Date,
+                                   is_active: Boolean
+                                 )
+  case class UserCustomerLinksJson(user_customer_links: List[UserCustomerLinkJson])
+
+  case class CreateUserCustomerLinkJson(user_id: String, customer_id: String)
+
+  case class PostCustomerJsonV310(
+                                   legal_name: String,
+                                   mobile_phone_number: String,
+                                   email: String,
+                                   face_image: CustomerFaceImageJson,
+                                   date_of_birth: Date,
+                                   relationship_status: String,
+                                   dependants: Int,
+                                   dob_of_dependants: List[Date],
+                                   credit_rating: CustomerCreditRatingJSON,
+                                   credit_limit: AmountOfMoneyJsonV121,
+                                   highest_education_attained: String,
+                                   employment_status: String,
+                                   kyc_status: Boolean,
+                                   last_ok_date: Date,
+                                   title: String,
+                                   branch_id: String,
+                                   name_suffix: String
+                                 )
+  case class CustomerFaceImageJson(url : String, date : Date)
+  case class CustomerCreditRatingJSON(rating: String, source: String)
+
+  case class CustomerJsonV310(
+                               bank_id: String,
+                               customer_id: String,
+                               customer_number : String,
+                               legal_name : String,
+                               mobile_phone_number : String,
+                               email : String,
+                               face_image : CustomerFaceImageJson,
+                               date_of_birth: Date,
+                               relationship_status: String,
+                               dependants: Integer,
+                               dob_of_dependants: List[Date],
+                               credit_rating: Option[CustomerCreditRatingJSON],
+                               credit_limit: Option[AmountOfMoneyJsonV121],
+                               highest_education_attained: String,
+                               employment_status: String,
+                               kyc_status: lang.Boolean,
+                               last_ok_date: Date,
+                               title: String,
+                               branch_id: String,
+                               name_suffix: String
+                             )
+
+  case class CustomerWithAttributesJsonV300(
+                                             bank_id: String,
+                                             customer_id: String,
+                                             customer_number : String,
+                                             legal_name : String,
+                                             mobile_phone_number : String,
+                                             email : String,
+                                             face_image : CustomerFaceImageJson,
+                                             date_of_birth: String,
+                                             relationship_status: String,
+                                             dependants: Integer,
+                                             dob_of_dependants: List[String],
+                                             credit_rating: Option[CustomerCreditRatingJSON],
+                                             credit_limit: Option[AmountOfMoneyJsonV121],
+                                             highest_education_attained: String,
+                                             employment_status: String,
+                                             kyc_status: lang.Boolean,
+                                             last_ok_date: Date,
+                                             title: String,
+                                             branch_id: String,
+                                             name_suffix: String,
+                                             customer_attributes: List[CustomerAttributeResponseJsonV300]
+                                           )
+  case class CustomerAttributeResponseJsonV300(
+                                                customer_attribute_id: String,
+                                                name: String,
+                                                `type`: String,
+                                                value: String
+                                              )
+
+  case class CustomersWithAttributesJsonV300(customers: List[CustomerWithAttributesJsonV300])
   
 }
