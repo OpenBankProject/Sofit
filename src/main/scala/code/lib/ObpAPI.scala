@@ -82,13 +82,13 @@ object ObpAPI {
   def getCustomersForCurrentUser() : Box[CustomersWithAttributesJsonV300]= {
     ObpGet(s"/v4.0.0/users/current/customers").flatMap(_.extractOpt[CustomersWithAttributesJsonV300])
   }
-  def getOrCreateCustomer(bankId: String, legal_name: String) : Box[String]= {
+  def getOrCreateCustomer(bankId: String, legalName: String) : Box[String]= {
     getCustomersForCurrentUser() match {
-      case Full(list) => list.customers.find(_.legal_name == legal_name) match {
+      case Full(list) => list.customers.find(_.legal_name == legalName) match {
         case Some(customer) => Full(customer.customer_id)
-        case None => createCustomer(bankId, legal_name).map(_.customer_id)
+        case None => createCustomer(bankId, legalName).map(_.customer_id)
       }
-      case Empty => createCustomer(bankId, legal_name).map(_.customer_id)
+      case Empty => createCustomer(bankId, legalName).map(_.customer_id)
       case ParamFailure(msg,_,_,_) =>
         throw new Exception(msg)
       case obj@Failure(msg, _, _) =>

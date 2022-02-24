@@ -399,8 +399,10 @@ class Boot extends MdcLoggable{
         case Full(currentUser) =>
           val currentUserId: String = currentUser.user_id
           val bankId = "user." + currentUserId
-          ObpAPI.getOrCreateCustomer(bankId, correlatedUserId) match {
-            case Full(customerId) => ObpAPI.createUserCustomerLink(bankId, currentUserId, customerId)
+          ObpAPI.getOrCreateCustomer(bankId, legalName = currentUser.username) match {
+            case Full(customerId) => 
+              ObpAPI.createUserCustomerLink(bankId, currentUserId, customerId)
+              ObpAPI.createUserCustomerLink(bankId, correlatedUserId, customerId)
             case _ => Empty
           }
         case _ => Empty
