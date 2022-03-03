@@ -238,7 +238,7 @@ object ObpAPI {
       )
     ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts", Extraction.decompose(json))
   }  
-  def createIncome(bankId: String, accountId: String, incomeDescription: String, incomeAmount: String, incomeCurrency: String): Box[JValue] = {
+  def createIncome(bankId: String, accountId: String, incomeDescription: String, incomeAmount: String, incomeCurrency: String): Box[PostHistoricalTransactionResponseJson] = {
     val incomeAccountId = Props.get("incoming.account_id", "")
     val utcZoneId = ZoneId.of("UTC")
     val zonedDateTime = ZonedDateTime.now
@@ -258,9 +258,10 @@ object ObpAPI {
       )
     
     ObpPost(s"/$versionOfApi/banks/$bankId/management/historical/transactions", Extraction.decompose(json))
+      .flatMap(_.extractOpt[PostHistoricalTransactionResponseJson])
   }
 
-  def createOutcome(bankId: String, accountId: String, outcomeDescription: String, outcomeAmount: String, outcomeCurrency: String): Box[JValue] = {
+  def createOutcome(bankId: String, accountId: String, outcomeDescription: String, outcomeAmount: String, outcomeCurrency: String): Box[PostHistoricalTransactionResponseJson] = {
     val outcomeAccountId = Props.get("outgoing.account_id", "outgoing.account_id")
     val utcZoneId = ZoneId.of("UTC")
     val zonedDateTime = ZonedDateTime.now
@@ -279,8 +280,26 @@ object ObpAPI {
         charge_policy= "SHARED"
       )
     ObpPost(s"/$versionOfApi/banks/$bankId/management/historical/transactions", Extraction.decompose(json))
+      .flatMap(_.extractOpt[PostHistoricalTransactionResponseJson])
   }
 
+   /**
+   * @return The json for the attribute if it was successfully added
+   */
+  def addTransactionAttribute(bankId : String, 
+                              accountId : String, 
+                              transactionId: String, 
+                              name: String, 
+                              `type`: String, 
+                              value: String) : Box[TransactionAttributeResponseJson] = {
+    
+    val json = TransactionAttributeJsonV400(name = name, `type` = `type`, value = value)
+    
+    val url = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" +
+      "/transactions/" + urlEncode(transactionId) + "/attribute"
+    
+    ObpPost(url, Extraction.decompose(json)).flatMap(_.extractOpt[TransactionAttributeResponseJson])
+  }
    /**
    * @return The json for the comment if it was successfully added
    */
@@ -736,7 +755,28 @@ object ObpJson {
                                                   `type`: String,
                                                   charge_policy: String
                                                 )
-  
+  case class PostHistoricalTransactionResponseJson(
+                                                    transaction_id: String,
+                                                    from: HistoricalTransactionAccountJsonV310,
+                                                    to: HistoricalTransactionAccountJsonV310,
+                                                    value: AmountOfMoneyJsonV121,
+                                                    description: String,
+                                                    posted: Date,
+                                                    completed: Date,
+                                                    transaction_request_type: String,
+                                                    charge_policy: String
+                                                  )
+  case class TransactionAttributeJsonV400(
+                                           name: String,
+                                           `type`: String,
+                                           value: String,
+                                         )
+  case class TransactionAttributeResponseJson(
+                                               transaction_attribute_id: String,
+                                               name: String,
+                                               `type`: String,
+                                               value: String
+                                             )
     //simplified version of what we actually get back from the api
   case class ViewJson(
     id: Option[String],

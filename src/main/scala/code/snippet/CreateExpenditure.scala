@@ -1,7 +1,9 @@
 package code.snippet
 
 import code.Constant._
-import code.lib.ObpAPI.{createOutcome, getAccount}
+import code.lib.ObpAPI
+import code.lib.ObpAPI.{addTransactionAttribute, createOutcome, getAccount}
+import code.lib.ObpJson.PostHistoricalTransactionResponseJson
 import code.util.Helper.{MdcLoggable, getAccountTitle}
 import net.liftweb.common.Box
 import net.liftweb.http.{RequestVar, S, SHtml}
@@ -32,6 +34,8 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
       logger.debug(s"CreateOutcome.addOutcome.process: edit label $outcomeDescription")
       val result = createOutcome(bankId, accountId, outcomeDescription, outcomeAmount.toString, "EUR")
       if (result.isDefined) {
+        val transactionId = result.map(_.transaction_id).getOrElse("")
+        ObpAPI.addTags(bankId, accountId, "owner", transactionId, List(tagVar.is))
         val msg = "Saved"
         Call("socialFinanceNotifications.notify", msg).cmd
         S.redirectTo(s"/banks/$bankId/accounts/$accountId/owner")
