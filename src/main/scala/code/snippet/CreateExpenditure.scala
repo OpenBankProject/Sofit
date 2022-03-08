@@ -27,7 +27,7 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
   def addPayment(xhtml: NodeSeq): NodeSeq = {
     var outcomeDescription = ""
     var outcomeAmount = 0
-    val listOfTags: Seq[(String, String)] = Props.get("expenditure.tags", "None,Food,Rent,Transport,Health_Insurance,Other").
+    val listOfTags: Seq[(String, String)] = S.?("expenditure.tags").
       split(",").toList.map(_.trim).map(i => i.replaceAll("_", "/")).map(i => (i,i))
 
     def process(): JsCmd = {

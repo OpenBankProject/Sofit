@@ -26,7 +26,7 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
   def addIncome(xhtml: NodeSeq): NodeSeq = {
     var incomeDescription = ""
     var incomeAmount: Int = 0
-    val listOfTags: Seq[(String, String)] = Props.get("income.tags", "None,Main income sources,Bank transfer receipt,Expense-related receipt,Cash deposit,Rewards,Gambling").
+    val listOfTags: Seq[(String, String)] = S.?("income.tags").
       split(",").toList.map(_.trim).map(i => i.replaceAll("_", "/")).map(i => (i,i))
 
     def process(): JsCmd = {
