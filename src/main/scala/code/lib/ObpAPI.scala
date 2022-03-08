@@ -203,6 +203,17 @@ object ObpAPI {
     counterparties
   }
 
+  
+  def getDoubleEntryTransaction(bankId: String, 
+                                accountId: String, 
+                                viewId: String, 
+                                transactionId: String): Box[DoubleEntryTransactionJson] = {
+    val result  = ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + 
+      urlEncode(viewId) +  "/transactions/" + transactionId + "/double-entry-transaction")
+      .flatMap(x => x.extractOpt[DoubleEntryTransactionJson])
+    result
+  }
+
 
 
   // Returns Json containing Resource Docs
@@ -918,7 +929,24 @@ object ObpJson {
     is_alias : Boolean
     )
 
+  case class DoubleEntryTransactionJson(
+                                         transaction_request: TransactionRequestBankAccountJson,
+                                         debit_transaction: TransactionBankAccountJson,
+                                         credit_transaction: TransactionBankAccountJson
+                                       )
 
+  case class TransactionRequestBankAccountJson(
+                                                bank_id: String,
+                                                account_id: String,
+                                                transaction_request_id: String
+                                              )
+
+  case class TransactionBankAccountJson(
+                                         bank_id: String,
+                                         account_id: String,
+                                         transaction_id: String
+                                       )
+  
   case class DirectMinimalBankJSON(
   national_identifier : String,
   name : String
