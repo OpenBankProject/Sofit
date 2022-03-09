@@ -40,7 +40,7 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
         Call("socialFinanceNotifications.notify", msg).cmd
         S.redirectTo(s"/banks/$bankId/accounts/$accountId/owner")
       } else {
-         val msg = "Sorry, Income" + outcomeDescription + " could not be added ("+ result +")"
+         val msg = s"Sorry, Expenditure $outcomeDescription could not be added ($result)"
          Call("socialFinanceNotifications.notifyError", msg).cmd
       }
     }

@@ -42,7 +42,7 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
         Call("socialFinanceNotifications.notify", msg).cmd
         S.redirectTo(s"/banks/$bankId/accounts/$accountId/owner")
       } else {
-         val msg = "Sorry, Income" + incomeDescription + " could not be added ("+ result +")"
+         val msg = s"Sorry, Income $incomeDescription could not be added ($result)"
          Call("socialFinanceNotifications.notifyError", msg).cmd
       }
     }
