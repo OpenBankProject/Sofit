@@ -393,7 +393,21 @@ class Boot extends MdcLoggable{
         }
       } else Empty
     }
-
+    
+    def correlatedUserFlow(correlatedUserId: String): Box[UserCustomerLinkJson] = {
+      ObpAPI.currentUser match {
+        case Full(currentUser) =>
+          val currentUserId: String = currentUser.user_id
+          val bankId = "user." + currentUserId
+          ObpAPI.getOrCreateCustomer(bankId, legalName = currentUser.username) match {
+            case Full(customerId) => 
+              ObpAPI.createUserCustomerLink(bankId, currentUserId, customerId)
+              ObpAPI.createUserCustomerLink(bankId, correlatedUserId, customerId)
+            case _ => Empty
+          }
+        case _ => Empty
+      }
+    }
 
     // Build SiteMap
     // Note: See Nav.scala which modifies the menu
@@ -401,6 +415,18 @@ class Boot extends MdcLoggable{
 
     val sitemap = List(
       Menu.i("Home") / "index",
+      Menu.i("Correlated-user") / "correlated-user" >> EarlyResponse(() => {
+        // Cookie name
+        val correlatedUserIdCookieName = "CORRELATED_USER_ID"
+        S.param("correlated_user_id") match {
+          case Full(correlatedUserId) if correlatedUserId != null => {
+            S.addCookie(HTTPCookie(correlatedUserIdCookieName, correlatedUserId))
+            correlatedUserFlow(correlatedUserId)
+            S.redirectTo("/")
+          }
+          case _ => S.redirectTo("/")
+        }
+      }),
       Menu.i("About") / "about",
       Menu.i("404") / "404" >> Hidden,
 

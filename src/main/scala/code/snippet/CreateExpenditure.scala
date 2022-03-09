@@ -1,7 +1,9 @@
 package code.snippet
 
 import code.Constant._
-import code.lib.ObpAPI.{createOutcome, getAccount}
+import code.lib.ObpAPI
+import code.lib.ObpAPI.{addTransactionAttribute, createOutcome, getAccount}
+import code.lib.ObpJson.PostHistoricalTransactionResponseJson
 import code.util.Helper.{MdcLoggable, getAccountTitle}
 import net.liftweb.common.Box
 import net.liftweb.http.{RequestVar, S, SHtml}
@@ -25,18 +27,20 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
   def addPayment(xhtml: NodeSeq): NodeSeq = {
     var outcomeDescription = ""
     var outcomeAmount = 0
-    val listOfTags: Seq[(String, String)] = Props.get("expenditure.tags", "None,Food,Rent,Transport,Health_Insurance,Other").
+    val listOfTags: Seq[(String, String)] = S.?("expenditure.tags").
       split(",").toList.map(_.trim).map(i => i.replaceAll("_", "/")).map(i => (i,i))
 
     def process(): JsCmd = {
       logger.debug(s"CreateOutcome.addOutcome.process: edit label $outcomeDescription")
       val result = createOutcome(bankId, accountId, outcomeDescription, outcomeAmount.toString, "EUR")
       if (result.isDefined) {
+        val transactionId = result.map(_.transaction_id).getOrElse("")
+        ObpAPI.addTags(bankId, accountId, "owner", transactionId, List(tagVar.is))
         val msg = "Saved"
         Call("socialFinanceNotifications.notify", msg).cmd
         S.redirectTo(s"/banks/$bankId/accounts/$accountId/owner")
       } else {
-         val msg = "Sorry, Income" + outcomeDescription + " could not be added ("+ result +")"
+         val msg = s"Sorry, Expenditure $outcomeDescription could not be added ($result)"
          Call("socialFinanceNotifications.notifyError", msg).cmd
       }
     }
