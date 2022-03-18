@@ -395,6 +395,7 @@ class Boot extends MdcLoggable{
     }
     
     def correlatedUserFlow(correlatedUserId: String): Box[UserCustomerLinkJson] = {
+      logger.debug("Hello from the correlatedUserFlow, Correlated User ID: " + correlatedUserId)
       ObpAPI.currentUser match {
         case Full(currentUser) =>
           val currentUserId: String = currentUser.user_id
