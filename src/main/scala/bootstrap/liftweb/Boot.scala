@@ -400,12 +400,18 @@ class Boot extends MdcLoggable{
           val currentUserId: String = currentUser.user_id
           val bankId = "user." + currentUserId
           ObpAPI.getOrCreateCustomer(bankId, legalName = currentUser.username) match {
-            case Full(customerId) => 
+            case Full(customerId) =>
+              logger.debug("Before create user customer link Customer ID: " + " Current User ID: " + currentUser.user_id)
               ObpAPI.createUserCustomerLink(bankId, currentUserId, customerId)
+              logger.debug("Before create user customer link Customer ID: " + customerId + " Correlated User ID: " + correlatedUserId)
               ObpAPI.createUserCustomerLink(bankId, correlatedUserId, customerId)
-            case _ => Empty
+            case someIssue => 
+              logger.error("Correlated User Flow Error: " + someIssue)
+              Empty
           }
-        case _ => Empty
+        case _ =>
+          logger.debug("Correlated User Flow - user is not logged in")
+          Empty
       }
     }
 
