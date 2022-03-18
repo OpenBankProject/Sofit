@@ -10,7 +10,6 @@ import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.http.{RequestVar, SHtml}
 import net.liftweb.util.Helpers._
-import net.liftweb.util.Props
 
 import scala.collection.immutable.List
 import scala.xml.{NodeSeq, Text}
