@@ -5,14 +5,13 @@ import code.lib.ObpAPI
 import code.lib.ObpAPI.{createIncome, getAccount, getDoubleEntryTransaction}
 import code.util.Helper.{MdcLoggable, getAccountTitle}
 import net.liftweb.common.Box
-import net.liftweb.http.{RequestVar, S, SHtml}
 import net.liftweb.http.js.JE.Call
 import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.http.{RequestVar, S, SHtml}
 import net.liftweb.util.Helpers._
 import net.liftweb.util.Props
 
-import scala.xml.{NodeSeq, Text}
+import scala.xml.NodeSeq
 
 
 class CreateIncome(params: List[String]) extends MdcLoggable {
