@@ -28,7 +28,7 @@ case class ErrorMessage(code: Int,
                         message: String
                        )
 
-object ObpAPI extends MdcLoggable {
+object ObpAPI {
   
   implicit val formats = DefaultFormats
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
@@ -76,7 +76,7 @@ object ObpAPI extends MdcLoggable {
         customer_id = customerId
       )
     val result = ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/user_customer_links", Extraction.decompose(json))
-    logger.debug("Create User Customer Link: " + result)
+    //logger.debug("Create User Customer Link: " + result)
     result.flatMap(_.extractOpt[UserCustomerLinkJson])
   }
 
@@ -120,8 +120,6 @@ object ObpAPI extends MdcLoggable {
         name_suffix = ""
       )
     val result = ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/customers", Extraction.decompose(json))
-    println("--------------------------")
-    println(result)
     result.flatMap(_.extractOpt[CustomerJsonV310])
   }
 
