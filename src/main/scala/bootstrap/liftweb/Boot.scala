@@ -39,7 +39,7 @@ import code.lib.ObpJson._
 import code.lib.{OAuthClient, ObpAPI, ObpGet}
 import code.snippet._
 import code.util.Helper.MdcLoggable
-import code.util.{Helper, MyExceptionLogger}
+import code.util.{Helper, MyExceptionLogger, Util}
 import net.liftweb.common._
 import net.liftweb.http._
 import net.liftweb.http.provider.HTTPCookie
@@ -394,27 +394,6 @@ class Boot extends MdcLoggable{
       } else Empty
     }
     
-    def correlatedUserFlow(correlatedUserId: String): Box[UserCustomerLinkJson] = {
-      logger.debug("Hello from the correlatedUserFlow, Correlated User ID: " + correlatedUserId)
-      ObpAPI.currentUser match {
-        case Full(currentUser) =>
-          val currentUserId: String = currentUser.user_id
-          val bankId = "user." + currentUserId
-          ObpAPI.getOrCreateCustomer(bankId, legalName = currentUser.username) match {
-            case Full(customerId) =>
-              logger.debug("Before create user customer link Customer ID: " + " Current User ID: " + currentUser.user_id)
-              ObpAPI.createUserCustomerLink(bankId, currentUserId, customerId)
-              logger.debug("Before create user customer link Customer ID: " + customerId + " Correlated User ID: " + correlatedUserId)
-              ObpAPI.createUserCustomerLink(bankId, correlatedUserId, customerId)
-            case someIssue => 
-              logger.error("Correlated User Flow Error: " + someIssue)
-              Empty
-          }
-        case _ =>
-          logger.debug("Correlated User Flow - user is not logged in")
-          Empty
-      }
-    }
 
     // Build SiteMap
     // Note: See Nav.scala which modifies the menu
@@ -423,12 +402,11 @@ class Boot extends MdcLoggable{
     val sitemap = List(
       Menu.i("Home") / "index",
       Menu.i("Correlated-user") / "correlated-user" >> EarlyResponse(() => {
-        // Cookie name
-        val correlatedUserIdCookieName = "CORRELATED_USER_ID"
+        // Set Cookie
         S.param("correlated_user_id") match {
           case Full(correlatedUserId) if correlatedUserId != null => {
             S.addCookie(HTTPCookie(correlatedUserIdCookieName, correlatedUserId))
-            correlatedUserFlow(correlatedUserId)
+            Util.correlatedUserFlow(correlatedUserId)
             S.redirectTo("/")
           }
           case _ => S.redirectTo("/")

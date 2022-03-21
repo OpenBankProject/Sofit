@@ -32,18 +32,29 @@ Berlin 13359, Germany
 
 package code.snippet
 
-import net.liftweb.http.js.JsCmd
-import net.liftweb.util.Helpers
-import Helpers._
-import net.liftweb.http.{S, SHtml}
+import code.Constant
 import code.lib.{OAuthClient, ObpAPI}
-import net.liftweb.common.Box
+import code.util.{Helper, Util}
+import net.liftweb.common.{Box, Full}
+import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.Noop
+import net.liftweb.http.provider.HTTPCookie
+import net.liftweb.http.{S, SHtml}
+import net.liftweb.util.Helpers._
 
 class Login {
   
   
   private def loggedIn = {
+    // Correlated User ID Flow
+    S.cookieValue(Constant.correlatedUserIdCookieName) match {
+      case Full(correlatedUserId) if correlatedUserId != null => {
+        Util.correlatedUserFlow(correlatedUserId)
+        S.deleteCookie(Constant.correlatedUserIdCookieName)
+        S.addCookie(HTTPCookie(Constant.correlatedUserIdCookieName + "_BOUND", correlatedUserId))
+      }
+      case _ => 
+    }
     def getDisplayNameOfUser(): Box[String] = {
       ObpAPI.currentUser.map {
         u =>
@@ -77,5 +88,8 @@ class Login {
     if(OAuthClient.loggedIn) loggedIn
     else loggedOut
   }
+
+
+
 
 }
