@@ -51,7 +51,7 @@ class Login {
       case Full(correlatedUserId) if correlatedUserId != null => {
         Util.correlatedUserFlow(correlatedUserId)
         S.deleteCookie(Constant.correlatedUserIdCookieName)
-        S.addCookie(HTTPCookie(Constant.correlatedUserIdCookieName + "_BOUND", correlatedUserId))
+        S.addCookie(HTTPCookie(Constant.correlatedUserIdBoundCookieName, correlatedUserId))
       }
       case _ => 
     }
