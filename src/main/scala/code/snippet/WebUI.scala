@@ -160,8 +160,8 @@ class WebUI extends MdcLoggable{
 
   def debugInfo = {
 
-    val correlatedUserIdCookieValue = S.cookieValue(correlatedUserIdCookieName).getOrElse("does not exist yet")
-    val correlatedUserIdBoundCookieValue =  S.cookieValue(correlatedUserIdBoundCookieName).getOrElse("does not exist yet")
+    val correlatedUserIdCookieValue = S.cookieValue(correlatedUserIdCookieName).getOrElse("does not exist")
+    val correlatedUserIdBoundCookieValue =  S.cookieValue(correlatedUserIdBoundCookieName).getOrElse("does not exist")
     
     "#correlatedUserIdCookie *" #> correlatedUserIdCookieValue &
     "#correlatedUserIdBoundCookie *" #> correlatedUserIdBoundCookieValue
