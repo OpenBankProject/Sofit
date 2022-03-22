@@ -529,8 +529,13 @@ class Boot extends MdcLoggable{
 
 
 
-    LiftRules.uriNotFound.prepend(NamedPF("404handler"){ case (req,failure) =>
-      NotFoundAsTemplate(ParsePath(List("404"),"html",true,false)) })
+    LiftRules.uriNotFound.prepend(NamedPF("404handler"){ 
+      case (req,failure) =>
+        if(!OAuthClient.loggedIn) // Force logon. This app does not provide functionalities in other case anyway.
+          OAuthClient.redirectToOauthLogin()
+        else // If user is logged on and path is still invalid show the not found page
+          NotFoundAsTemplate(ParsePath(List("404"),"html",true,false)) 
+    })
 
   }
 }
