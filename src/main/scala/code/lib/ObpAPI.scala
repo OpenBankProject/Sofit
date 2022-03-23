@@ -83,6 +83,11 @@ object ObpAPI {
   def getCustomersForCurrentUser() : Box[CustomersWithAttributesJsonV300]= {
     ObpGet(s"/v4.0.0/users/current/customers").flatMap(_.extractOpt[CustomersWithAttributesJsonV300])
   }
+  
+  def getMyCorrelatedEntities: Box[CorrelatedEntities]= {
+    ObpGet(s"/v4.0.0//my/correlated-entities").flatMap(_.extractOpt[CorrelatedEntities])
+  }
+  
   def getOrCreateCustomer(bankId: String, legalName: String) : Box[String]= {
     getCustomersForCurrentUser() match {
       case Full(list) => list.customers.find(_.legal_name == legalName) match {
@@ -1263,5 +1268,30 @@ object ObpJson {
                                               )
 
   case class CustomersWithAttributesJsonV300(customers: List[CustomerWithAttributesJsonV300])
+
+  case class UserAttributeResponseJsonV400(
+    user_attribute_id: String,
+    name: String,
+    `type`: String,
+    value: String,
+    insert_date: Date
+  )
+  
+  case class UserWithAttributesResponseJson(
+    user_id: String,
+    email : String,
+    provider_id: String,
+    provider : String,
+    username : String,
+    user_attributes: List[UserAttributeResponseJsonV400]
+  )
+  case class CustomerAndUsersWithAttributesResponseJson(
+    customer: CustomerJsonV310,
+    users: List[UserWithAttributesResponseJson]
+  )
+
+  case class CorrelatedEntities(
+    correlated_entities: List[CustomerAndUsersWithAttributesResponseJson]
+  )
   
 }
