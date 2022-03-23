@@ -76,8 +76,19 @@ object ObpAPI {
         customer_id = customerId
       )
     val result = ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/user_customer_links", Extraction.decompose(json))
-    //logger.debug("Create User Customer Link: " + result)
     result.flatMap(_.extractOpt[UserCustomerLinkJson])
+  }
+  def createUserCustomerLinkIfDoesNotExists(bankId: String, userId: String, customerId: String): Boolean = {
+    createUserCustomerLink(bankId, userId, customerId) match {
+      case Full(_) => true
+      case Failure(msg, _, _) if msg.contains("OBP-30007:") => true
+      case _ => false
+    }
+  }
+  def getUserCustomerLink(bankId: String, userId: String, customerId: String): Box[UserCustomerLinkJson] = {
+    ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/user_customer_links/users/" + userId)
+      .flatMap(_.extractOpt[UserCustomerLinksJson])
+      .flatMap(_.user_customer_links.filter(_.customer_id == customerId).headOption)
   }
 
   def getCustomersForCurrentUser() : Box[CustomersWithAttributesJsonV300]= {

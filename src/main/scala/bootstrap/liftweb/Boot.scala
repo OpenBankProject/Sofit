@@ -402,15 +402,7 @@ class Boot extends MdcLoggable{
     val sitemap = List(
       Menu.i("Home") / "index",
       Menu.i("Correlated-user") / "correlated-user" >> EarlyResponse(() => {
-        // Set Cookie
-        S.param("correlated_user_id") match {
-          case Full(correlatedUserId) if correlatedUserId != null => {
-            S.addCookie(HTTPCookie(correlatedUserIdCookieName, correlatedUserId))
-            Util.correlatedUserFlow(correlatedUserId)
-            S.redirectTo("/")
-          }
-          case _ => S.redirectTo("/")
-        }
+        setCorrelatedCookie
       }),
       Menu.i("About") / "about",
       Menu.i("404") / "404" >> Hidden,
@@ -537,5 +529,21 @@ class Boot extends MdcLoggable{
           NotFoundAsTemplate(ParsePath(List("404"),"html",true,false)) 
     })
 
+  }
+
+  private def setCorrelatedCookie = {
+    S.param("correlated_user_id") match {
+      case Full(correlatedUserId) if correlatedUserId != null => {
+        // Clean up cookies
+        S.deleteCookie(correlatedCustomerIdCookieName)
+        S.deleteCookie(loggedOnUserIdCookieName)
+        S.deleteCookie(correlatedUserIdBoundCookieName)
+        // Set the cookie
+        S.addCookie(HTTPCookie(correlatedUserIdCookieName, correlatedUserId))
+        Util.correlatedUserFlow(correlatedUserId)
+        S.redirectTo("/")
+      }
+      case _ => S.redirectTo("/")
+    }
   }
 }

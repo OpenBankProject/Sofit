@@ -48,11 +48,8 @@ class Login {
   private def loggedIn = {
     // Correlated User ID Flow
     S.cookieValue(Constant.correlatedUserIdCookieName) match {
-      case Full(correlatedUserId) if correlatedUserId != null => {
+      case Full(correlatedUserId) if correlatedUserId != null =>
         Util.correlatedUserFlow(correlatedUserId)
-        S.deleteCookie(Constant.correlatedUserIdCookieName)
-        S.addCookie(HTTPCookie(Constant.correlatedUserIdBoundCookieName, correlatedUserId))
-      }
       case _ => 
     }
     def getDisplayNameOfUser(): Box[String] = {
