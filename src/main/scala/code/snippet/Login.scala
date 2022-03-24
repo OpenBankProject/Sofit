@@ -47,7 +47,7 @@ class Login {
   
   private def loggedIn = {
     // Correlated User ID Flow
-    S.cookieValue(Constant.correlatedUserIdCookieName) match {
+    S.cookieValue(Constant.correlatedUserIdTargetCookieName) match {
       case Full(correlatedUserId) if correlatedUserId != null =>
         Util.correlatedUserFlow(correlatedUserId)
       case _ => 

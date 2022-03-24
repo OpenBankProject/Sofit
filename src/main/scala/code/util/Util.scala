@@ -16,15 +16,15 @@ object Util extends MdcLoggable {
         val bankId = "user." + currentUserId
         ObpAPI.getOrCreateCustomer(bankId, legalName = currentUser.username) match {
           case Full(customerId) =>
-            S.addCookie(HTTPCookie(Constant.correlatedCustomerIdCookieName, customerId))
+            S.addCookie(HTTPCookie(Constant.correlatedCustomerIdCreatedCookieName, customerId))
             logger.debug("Before create user customer link Customer ID: " + " Current User ID: " + currentUser.user_id)
             val loggedOnUserIdDone = ObpAPI.createUserCustomerLinkIfDoesNotExists(bankId, currentUserId, customerId)
-            if(loggedOnUserIdDone) S.addCookie(HTTPCookie(Constant.loggedOnUserIdCookieName, currentUserId))
+            if(loggedOnUserIdDone) S.addCookie(HTTPCookie(Constant.linkBetweenCorrelatedUserAndCustomerCreatedCookieName, currentUserId))
             logger.debug("Before create user customer link Customer ID: " + customerId + " Correlated User ID: " + correlatedUserId)
             val correlatedUserIdDone = ObpAPI.createUserCustomerLinkIfDoesNotExists(bankId, correlatedUserId, customerId)
             if(loggedOnUserIdDone) S.addCookie(HTTPCookie(Constant.correlatedUserIdBoundCookieName, correlatedUserId))
             if(loggedOnUserIdDone && correlatedUserIdDone) {
-              S.deleteCookie(Constant.correlatedUserIdCookieName)
+              S.deleteCookie(Constant.correlatedUserIdTargetCookieName)
               true
             } else {
               false

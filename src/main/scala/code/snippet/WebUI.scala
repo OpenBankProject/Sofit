@@ -162,7 +162,7 @@ class WebUI extends MdcLoggable{
 
   def debugInfo = {
 
-    val correlatedUserIdCookieValue = S.cookieValue(correlatedUserIdCookieName).getOrElse("does not exist")
+    val correlatedUserIdCookieValue = S.cookieValue(correlatedUserIdTargetCookieName).getOrElse("does not exist")
     val correlatedUserIdBoundCookieValue =  S.cookieValue(correlatedUserIdBoundCookieName).getOrElse("does not exist")
     val correlatedEntities = ObpAPI.getMyCorrelatedEntities
     val correlatedEntitiesJson = correlatedEntities.map(correlatedEntities => compactRender(Extraction.decompose(correlatedEntities))).getOrElse("does not exist")
