@@ -30,9 +30,11 @@ import net.liftweb.util.{CssSel, Props}
 import net.liftweb.util._
 import Helpers._
 import code.Constant._
-import code.lib.ObpAPI
-import net.liftweb.common.Full
+import code.lib.{ObpAPI}
+import code.lib.ObpAPI._
+import net.liftweb.common.{Full}
 import net.liftweb.http.S
+import net.liftweb.json.{Extraction, compactRender}
 
 
 
@@ -162,9 +164,12 @@ class WebUI extends MdcLoggable{
 
     val correlatedUserIdCookieValue = S.cookieValue(correlatedUserIdCookieName).getOrElse("does not exist")
     val correlatedUserIdBoundCookieValue =  S.cookieValue(correlatedUserIdBoundCookieName).getOrElse("does not exist")
+    val correlatedEntities = ObpAPI.getMyCorrelatedEntities
+    val correlatedEntitiesJson = correlatedEntities.map(correlatedEntities => compactRender(Extraction.decompose(correlatedEntities))).getOrElse("does not exist")
     
     "#correlatedUserIdCookie *" #> correlatedUserIdCookieValue &
-    "#correlatedUserIdBoundCookie *" #> correlatedUserIdBoundCookieValue
+    "#correlatedUserIdBoundCookie *" #> correlatedUserIdBoundCookieValue &
+    "#correlatedEntities" #> correlatedEntitiesJson
     
   }
 
