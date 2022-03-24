@@ -29,10 +29,10 @@ import code.util.Helper.MdcLoggable
 import net.liftweb.util.{CssSel, Props}
 import net.liftweb.util._
 import Helpers._
-import code.Constant._
-import code.lib.{ObpAPI}
+import code.Constant.{linkBetweenCorrelatedUserAndCustomerCreatedCookieName, _}
+import code.lib.ObpAPI
 import code.lib.ObpAPI._
-import net.liftweb.common.{Full}
+import net.liftweb.common.Full
 import net.liftweb.http.S
 import net.liftweb.json.{Extraction, compactRender}
 
@@ -162,13 +162,19 @@ class WebUI extends MdcLoggable{
 
   def debugInfo = {
 
-    val correlatedUserIdCookieValue = S.cookieValue(correlatedUserIdTargetCookieName).getOrElse("does not exist")
-    val correlatedUserIdBoundCookieValue =  S.cookieValue(correlatedUserIdBoundCookieName).getOrElse("does not exist")
+    val correlatedUserIdTargetCookieValue = correlatedUserIdTargetCookieName + ": " + S.cookieValue(correlatedUserIdTargetCookieName).getOrElse("does not exist")
+    val correlatedUserIdBoundCookieValue = correlatedUserIdBoundCookieName + ": " + S.cookieValue(correlatedUserIdBoundCookieName).getOrElse("does not exist")
+    val correlatedCustomerIdCreatedCookieValue = correlatedCustomerIdCreatedCookieName + ": " + S.cookieValue(correlatedCustomerIdCreatedCookieName).getOrElse("does not exist")
+    val linkBetweenCorrelatedUserAndCustomerCreatedCookieValue = linkBetweenCorrelatedUserAndCustomerCreatedCookieName + ": " + S.cookieValue(linkBetweenCorrelatedUserAndCustomerCreatedCookieName).getOrElse("does not exist")
     val correlatedEntities = ObpAPI.getMyCorrelatedEntities
-    val correlatedEntitiesJson = correlatedEntities.map(correlatedEntities => compactRender(Extraction.decompose(correlatedEntities))).getOrElse("does not exist")
+    val correlatedEntitiesJson = correlatedEntities
+      .map(correlatedEntities => "CORRELATED_ENTITIES: " + compactRender(Extraction.decompose(correlatedEntities)))
+      .getOrElse("CORRELATED_ENTITIES: does not exist")
     
-    "#correlatedUserIdCookie *" #> correlatedUserIdCookieValue &
-    "#correlatedUserIdBoundCookie *" #> correlatedUserIdBoundCookieValue &
+    "#correlatedUserIdTargetCookieName *" #> correlatedUserIdTargetCookieValue &
+    "#correlatedUserIdBoundCookieName *" #> correlatedUserIdBoundCookieValue &
+    "#correlatedCustomerIdCreatedCookieName *" #> correlatedCustomerIdCreatedCookieValue &
+    "#linkBetweenCorrelatedUserAndCustomerCreatedCookieName *" #> linkBetweenCorrelatedUserAndCustomerCreatedCookieValue &
     "#correlatedEntities" #> correlatedEntitiesJson
     
   }
