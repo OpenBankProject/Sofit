@@ -81,7 +81,8 @@ object ObpAPI {
   def createUserCustomerLinkIfDoesNotExists(bankId: String, userId: String, customerId: String): Boolean = {
     createUserCustomerLink(bankId, userId, customerId) match {
       case Full(_) => true
-      case Failure(msg, _, _) if msg.contains("OBP-30007:") => true
+      // This means that the userId is already linked to the customerId at the bankId
+      case Failure(msg, _, _) if msg.contains("OBP-30007") => true
       case _ => false
     }
   }

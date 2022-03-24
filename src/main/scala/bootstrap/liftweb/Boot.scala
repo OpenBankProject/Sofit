@@ -535,11 +535,11 @@ class Boot extends MdcLoggable{
     S.param("correlated_user_id") match {
       case Full(correlatedUserId) if correlatedUserId != null => {
         // Clean up cookies
-        S.deleteCookie(correlatedCustomerIdCookieName)
-        S.deleteCookie(loggedOnUserIdCookieName)
+        S.deleteCookie(correlatedCustomerIdCreatedCookieName)
+        S.deleteCookie(linkBetweenCorrelatedUserAndCustomerCreatedCookieName)
         S.deleteCookie(correlatedUserIdBoundCookieName)
         // Set the cookie
-        S.addCookie(HTTPCookie(correlatedUserIdCookieName, correlatedUserId))
+        S.addCookie(HTTPCookie(correlatedUserIdTargetCookieName, correlatedUserId))
         Util.correlatedUserFlow(correlatedUserId)
         S.redirectTo("/")
       }
