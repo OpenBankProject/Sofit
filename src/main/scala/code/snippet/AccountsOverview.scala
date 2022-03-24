@@ -154,7 +154,8 @@ class AccountsOverview extends MdcLoggable {
               .map(b => b.amount + " " + b.currency)
               .headOption.getOrElse("")
             
-            ".balanceValue *" #> balance &
+            ".balanceValue a *" #> balance &
+            ".balanceValue a [href]" #> url &
             ".incomeLink [href]" #> incomeLink &
             ".expenditureLink [href]" #> expenditureLink &
             ".accName a *" #> accountDisplayName(accountJson) &
