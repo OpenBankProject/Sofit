@@ -97,7 +97,7 @@ object ObpAPI {
   }
   
   def getMyCorrelatedEntities: Box[CorrelatedEntities]= {
-    ObpGet(s"/v4.0.0//my/correlated-entities").flatMap(_.extractOpt[CorrelatedEntities])
+    ObpGet(s"/v4.0.0/my/correlated-entities").flatMap(_.extractOpt[CorrelatedEntities])
   }
   
   def getOrCreateCustomer(bankId: String, legalName: String) : Box[String]= {
