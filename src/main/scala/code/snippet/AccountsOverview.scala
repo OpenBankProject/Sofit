@@ -32,13 +32,13 @@ Berlin 13359, Germany
 
 package code.snippet
 
-import code.lib.{OAuthClient, ObpAPI}
+import code.lib.ObpAPI.DESC
 import code.lib.ObpJson._
+import code.lib.{OAuthClient, ObpAPI}
 import code.util.Helper.MdcLoggable
-import net.liftweb.common.Full
-import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Noop
+import net.liftweb.http.{S, SHtml}
 import net.liftweb.util.Helpers._
 import net.liftweb.util.Props
 
@@ -75,6 +75,36 @@ class AccountsOverview extends MdcLoggable {
   logger.debug("Accounts Overview: Private accounts found: " + privateAccountJsons)
 
 
+  def calculateExpenditureOverviewForLoggedUser(): List[Map[String, Double]] = {
+    val transactionsForAccount : List[(BankID, BarebonesAccountJson, AccountsBalancesJsonV400, TransactionsJson)] = for {
+      privateAccountsJson <- ObpAPI.privateAccounts.toList // Get all accounts at all banks for logged on user
+      accountJson: BarebonesAccountJson <- privateAccountsJson.accounts.toList.flatten
+      bankId <- accountJson.bank_id
+      balances <- ObpAPI.getAccountBalances(bankId)
+      accountId <- accountJson.id
+      transactionsJson: TransactionsJson <- ObpAPI.transactions(bankId, accountId, "owner", Some(10000), None, None, Some(now), Some(DESC))
+    } yield (bankId, accountJson, balances, transactionsJson)
+    
+    val expenditureTags: List[String] = S.?("expenditure.tags").split(",").toList
+    val expenditureOverviews = transactionsForAccount map { x =>
+      val transactionsJson: List[TransactionJson] = x._4.transactions.getOrElse(Nil)
+      val tempList: List[(List[TransactionTagJson], Option[TransactionValueJson])] =
+        transactionsJson.map(x => (x.tagJsons.getOrElse(Nil), x.details.flatMap(_.value)))
+      val expenditures = tempList.filter(i => i._2.map(_.amount).flatten.getOrElse("0").toDouble < 0)
+      val categorisedTransactions: List[(String, Option[String], Option[String])] =
+        expenditures.map( x =>
+          (x._1.flatMap(_.value.toList.intersect(expenditureTags)).headOption.headOption.getOrElse("None"),
+            x._2.flatMap(_.amount),
+            x._2.flatMap(_.currency)
+          )
+        )
+      val groupedTransactionsByCategoryAndCurrency: Map[String, List[(String, Option[String], Option[String])]] = categorisedTransactions.groupBy(i => i._3 + i._1)
+      val sumByCategory: Map[String, Double] = groupedTransactionsByCategoryAndCurrency.map(i => (i._1, i._2.map(_._2.getOrElse("0").toDouble).sum))
+      sumByCategory
+    }
+    expenditureOverviews
+  }
+  
 
   /*
 
