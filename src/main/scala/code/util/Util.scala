@@ -1,5 +1,7 @@
 package code.util
 
+import java.util.{Calendar, Date}
+
 import code.Constant
 import code.lib.ObpAPI
 import code.util.Helper.MdcLoggable
@@ -37,5 +39,14 @@ object Util extends MdcLoggable {
         logger.debug("Correlated User Flow - user is not logged in")
         false
     }
+  }
+  
+  def monthsAgo(months: Int): Date = {
+    val currentDate = new Date()
+    val calendar = Calendar.getInstance
+    calendar.setTime(currentDate)
+    calendar.add(Calendar.MONTH, -months)
+    val pastDate: Date = calendar.getTime
+    pastDate
   }
 }

@@ -32,10 +32,13 @@ Berlin 13359, Germany
 
 package code.snippet
 
-import code.lib.ObpAPI.DESC
+import java.util.{Calendar, Date}
+
+import code.lib.ObpAPI.{DESC, dateFormat}
 import code.lib.ObpJson._
-import code.lib.{OAuthClient, ObpAPI}
+import code.lib.{Header, OAuthClient, ObpAPI}
 import code.util.Helper.MdcLoggable
+import code.util.Util
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Noop
 import net.liftweb.http.{S, SHtml}
@@ -73,16 +76,16 @@ class AccountsOverview extends MdcLoggable {
   } yield (bankId, barebonesAccountJson, balances)
 
   logger.debug("Accounts Overview: Private accounts found: " + privateAccountJsons)
-
-
+  
   def calculateExpenditureOverviewForLoggedUser(): List[Map[String, Double]] = {
+
     val transactionsForAccount : List[(BankID, BarebonesAccountJson, AccountsBalancesJsonV400, TransactionsJson)] = for {
       privateAccountsJson <- ObpAPI.privateAccounts.toList // Get all accounts at all banks for logged on user
       accountJson: BarebonesAccountJson <- privateAccountsJson.accounts.toList.flatten
       bankId <- accountJson.bank_id
       balances <- ObpAPI.getAccountBalances(bankId)
       accountId <- accountJson.id
-      transactionsJson: TransactionsJson <- ObpAPI.transactions(bankId, accountId, "owner", Some(10000), None, None, Some(now), Some(DESC))
+      transactionsJson: TransactionsJson <- ObpAPI.transactions(bankId, accountId, "owner", Some(10000), None, Some(Util.monthsAgo(1)), Some(now), Some(DESC))
     } yield (bankId, accountJson, balances, transactionsJson)
     
     val expenditureTags: List[String] = S.?("expenditure.tags").split(",").toList
@@ -102,6 +105,7 @@ class AccountsOverview extends MdcLoggable {
       val sumByCategory: Map[String, Double] = groupedTransactionsByCategoryAndCurrency.map(i => (i._1, i._2.map(_._2.getOrElse("0").toDouble).sum))
       sumByCategory
     }
+    logger.debug(expenditureOverviews)
     expenditureOverviews
   }
   
