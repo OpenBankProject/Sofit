@@ -77,7 +77,7 @@ class AccountsOverview extends MdcLoggable {
 
   logger.debug("Accounts Overview: Private accounts found: " + privateAccountJsons)
   
-  def calculateExpenditureOverviewForLoggedUser(): List[Map[String, Double]] = {
+  def calculateExpenditureOverviewForLoggedUser(monthsAgo: Int): List[Map[String, Double]] = {
 
     val transactionsForAccount : List[(BankID, BarebonesAccountJson, AccountsBalancesJsonV400, TransactionsJson)] = for {
       privateAccountsJson <- ObpAPI.privateAccounts.toList // Get all accounts at all banks for logged on user
@@ -85,10 +85,9 @@ class AccountsOverview extends MdcLoggable {
       bankId <- accountJson.bank_id
       balances <- ObpAPI.getAccountBalances(bankId)
       accountId <- accountJson.id
-      transactionsJson: TransactionsJson <- ObpAPI.transactions(bankId, accountId, "owner", Some(10000), None, Some(Util.monthsAgo(1)), Some(now), Some(DESC))
+      transactionsJson: TransactionsJson <- ObpAPI.transactions(bankId, accountId, "owner", Some(10000), None, Some(Util.monthsAgo(monthsAgo)), Some(now), Some(DESC))
     } yield (bankId, accountJson, balances, transactionsJson)
     
-    val expenditureTags: List[String] = S.?("expenditure.tags").split(",").toList
     val expenditureOverviews = transactionsForAccount map { x =>
       val transactionsJson: List[TransactionJson] = x._4.transactions.getOrElse(Nil)
       val tempList: List[(List[TransactionTagJson], Option[TransactionValueJson])] =
@@ -96,12 +95,12 @@ class AccountsOverview extends MdcLoggable {
       val expenditures = tempList.filter(i => i._2.map(_.amount).flatten.getOrElse("0").toDouble < 0)
       val categorisedTransactions: List[(String, Option[String], Option[String])] =
         expenditures.map( x =>
-          (x._1.flatMap(_.value.toList.intersect(expenditureTags)).headOption.headOption.getOrElse("None"),
+          (x._1.flatMap(_.value).headOption.getOrElse("None"),
             x._2.flatMap(_.amount),
             x._2.flatMap(_.currency)
           )
         )
-      val groupedTransactionsByCategoryAndCurrency: Map[String, List[(String, Option[String], Option[String])]] = categorisedTransactions.groupBy(i => i._3 + i._1)
+      val groupedTransactionsByCategoryAndCurrency: Map[String, List[(String, Option[String], Option[String])]] = categorisedTransactions.groupBy(i => i._3.getOrElse("Missing currency") + "::" + i._1)
       val sumByCategory: Map[String, Double] = groupedTransactionsByCategoryAndCurrency.map(i => (i._1, i._2.map(_._2.getOrElse("0").toDouble).sum))
       sumByCategory
     }
@@ -182,6 +181,7 @@ class AccountsOverview extends MdcLoggable {
             val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
             val incomeLink = "/banks/" + bankId + "/accounts/" + accountId + "/create-income"
             val expenditureLink = "/banks/" + bankId + "/accounts/" + accountId + "/create-expenditure"
+            val dashboardLink = "/banks/" + bankId + "/accounts/" + accountId + "/account-overview-dashboard"
 
             val balance: String = balances.accounts.filter(_.account_id==accountId)
               .flatMap(_.balances)
@@ -189,7 +189,7 @@ class AccountsOverview extends MdcLoggable {
               .headOption.getOrElse("")
             
             ".balanceValue a *" #> balance &
-            ".balanceValue a [href]" #> url &
+            ".balanceValue a [href]" #> dashboardLink &
             ".incomeLink [href]" #> incomeLink &
             ".expenditureLink [href]" #> expenditureLink &
             ".accName a *" #> accountDisplayName(accountJson) &
