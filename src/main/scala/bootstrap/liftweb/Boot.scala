@@ -393,6 +393,14 @@ class Boot extends MdcLoggable{
         }
       } else Empty
     }
+
+    def getDashboardAccountOverview(URLParameters: List[String]): Box[List[String]] = {
+      if (URLParameters.length == 2) {
+        logOrReturnResult {
+          Full(URLParameters)
+        }
+      } else Empty
+    }
     
 
     // Build SiteMap
@@ -419,6 +427,7 @@ class Boot extends MdcLoggable{
       
       Menu.params[List[BankJson400]]("CreateBankAccount", "Create bank account", getBanks _, x => List("")) / "banks" / * / "accounts" / "create-bank-account",
       
+      Menu.params[List[String]]("DashboardAccountOverview", "Dashboard Account Overview", getDashboardAccountOverview _, x => List("")) / "banks" / * / "accounts"  / * /  "account-overview-dashboard",
       Menu.params[List[String]]("CreateIncome", "Create Income", getAccountSettings _, x => List("")) / "banks" / * / "accounts"  / * /  "create-income",
       Menu.params[List[String]]("CreateExpenditure", "Create Expenditure", getAccountSettings _, x => List("")) / "banks" / * / "accounts"  / * /  "create-expenditure",
 

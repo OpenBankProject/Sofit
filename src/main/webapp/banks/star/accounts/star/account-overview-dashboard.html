@@ -1,0 +1,65 @@
+<!--
+Open Bank Project - Sofi Web Application
+Copyright (C) 2011 - 2021, TESOBE GmbH
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Email: contact@tesobe.com
+TESOBE GmbH.
+Osloer Str. 16/17
+Berlin 13359, Germany
+
+  This product includes software developed at
+  TESOBE (http://www.tesobe.com/)
+  by
+  Simon Redfern : simon AT tesobe DOT com
+  Sebastian Henschel : sebastian AT tesobe DOT com
+-->
+
+<!--
+This renders the settings page for an account.
+e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
+-->
+
+<div id="create-income" data-lift="surround?with=default;at=content">
+	<section class="account-info account-info--public">
+		<div class="account-info__box account-info__box--views">
+			<div class="account-info__top-wrapper" data-lift="DashboardAccountOverview.accountTitle" >
+				<h3 id="account-title" class="account-info__box-headline account-title">ACCOUNT</h3>
+				<div data-lift="embed?what=_nav_account_settings"></div>
+			</div>
+
+			<div class="create-income-section" data-lift="DashboardAccountOverview.calculateExpenditureOverview">
+
+				<div id="accountBalance" style="width:100%"></div>
+				<div id="expenditureChart" style="width:100%"></div>
+				<div id="incomeChart" style="width:100%"></div>
+				
+				<form data-lift="form.ajax">
+					<div class="form-group">
+						<label for="months_ago">
+							<h4><span class="lift:Loc.months_ago">Months ago</span></h4>
+						</label>
+						<input class="form-control" type="text" id="months_ago" name="months_ago"/>
+					</div>
+					<br>
+					<div>
+						<input class="btn btn-outline-success" type="submit" value="Add payment"/>
+						<input class="btn btn-outline-danger" type="reset" value="Cancel"/>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
+</div>
