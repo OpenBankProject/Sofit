@@ -680,12 +680,12 @@ table td {
   border-radius: 24px;
   background-color: #fff;
   margin: 16px 0 0 0;
-  padding: 25px 18px 0 25px;
+  /*padding: 25px 18px 0 25px;*/
 }
 
 .account-info__box-headline {
   line-height: 28px;
-  margin: 0 54px 0 0;
+  margin: 0 0 24px 0;
   padding: 0 0 0;
   width: 100%; 
   float: left;
@@ -768,16 +768,18 @@ table td {
 }
 .acc-table-body__cell:first-child {
   /*width: 720px;*/
-  font-size: 14px;
+  font-size: large;
   line-height: 16px;
   color: #5D5D5D;
   padding: 7px 0 10px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .acc-table-body__cell:nth-child(2) {
   padding: 2px;
 }
 .acc-table-body__cell:last-child {
-  font-size: x-large;
+  font-size: large;
   text-align: right;
 }
 .acc-table-body__cell-link.expenditureLink {
