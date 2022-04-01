@@ -80,10 +80,11 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
 
     val creditRatingToInt = tryo(creditRating.toInt).getOrElse(0)
     val profileCompletenessToInt = tryo(profileCompleteness.toInt).getOrElse(0)
-    
+    val compared: Int = tryo(amount.toDouble).map(BigDecimal(_)).getOrElse(BigDecimal(0)).compareTo(BigDecimal(0))
     (
       "@months_ago" #> SHtml.select(listOfTags, Box!! monthsAgoVar.is, monthsAgoVar(_)) &
       "#account-balance span" #> s"$amount $currency" &
+      "#account-balance [class]" #> {if(compared == 1) "green--color" else if(compared == -1) "orange--color" else ""} &
 
       "#credit-score-star-1 [class]" #> generateStars(creditRatingToInt, 1) &
       "#credit-score-star-2 [class]" #> generateStars(creditRatingToInt, 2) &
