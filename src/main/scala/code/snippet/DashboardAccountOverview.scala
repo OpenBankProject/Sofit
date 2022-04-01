@@ -1,10 +1,10 @@
 package code.snippet
 
-import _root_.net.liftweb.http.js.{JE, JsCmd, JsCmds}
+import _root_.net.liftweb.http.js.JsCmd
 import code.Constant._
-import code.lib.ObpAPI
 import code.lib.ObpAPI.{DESC, getAccount}
 import code.lib.ObpJson.{TransactionJson, TransactionTagJson, TransactionValueJson, TransactionsJson}
+import code.lib.{ObpAPI, ObpJson}
 import code.util.Helper.{MdcLoggable, getAccountTitle}
 import code.util.Util
 import net.liftweb.common.Box
@@ -71,14 +71,40 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
       JsRaw(script)
     }
     
+    val balances: Box[ObpJson.AccountBalanceJsonV400] = ObpAPI.getAccountBalances(bankId, accountId)
+    val (amount, currency) = balances.flatMap(_.balances.headOption).map(i => (i.amount, i.currency)).getOrElse(("", ""))
+    val customers: List[ObpJson.CustomerWithAttributesJsonV300] = ObpAPI.getCustomersForCurrentUser().map(_.customers).getOrElse(Nil)
+    val creditRating = customers.flatMap(_.credit_rating.map(_.rating)).headOption.getOrElse("0")
+    val profileCompleteness: String = customers.flatMap(_.customer_attributes
+      .filter(_.name == "CREDIT_SCORE_READINESS")).map(_.value).headOption.getOrElse("0")
+
+    val creditRatingToInt = tryo(creditRating.toInt).getOrElse(0)
+    val profileCompletenessToInt = tryo(profileCompleteness.toInt).getOrElse(0)
+    
     (
       "@months_ago" #> SHtml.select(listOfTags, Box!! monthsAgoVar.is, monthsAgoVar(_)) &
-        // Replace the type=submit with Javascript that makes the ajax call.
-        "type=submit" #> SHtml.ajaxSubmit(S.?("button.show"), process)
+      "#account-balance span" #> s"$amount $currency" &
+
+      "#credit-score-star-1 [class]" #> generateStars(creditRatingToInt, 1) &
+      "#credit-score-star-2 [class]" #> generateStars(creditRatingToInt, 2) &
+      "#credit-score-star-3 [class]" #> generateStars(creditRatingToInt, 3) &
+      "#credit-score-star-4 [class]" #> generateStars(creditRatingToInt, 4) &
+      "#credit-score-star-5 [class]" #> generateStars(creditRatingToInt, 5) &
+
+      "#profile-completeness-star-1 [class]" #> generateStars(profileCompletenessToInt, 1) &
+      "#profile-completeness-star-2 [class]" #> generateStars(profileCompletenessToInt, 2) &
+      "#profile-completeness-star-3 [class]" #> generateStars(profileCompletenessToInt, 3) &
+      "#profile-completeness-star-4 [class]" #> generateStars(profileCompletenessToInt, 4) &
+      "#profile-completeness-star-5 [class]" #> generateStars(profileCompletenessToInt, 5) &
         
-      ).apply(xhtml)
+      // Replace the type=submit with Javascript that makes the ajax call.
+      "type=submit" #> SHtml.ajaxSubmit(S.?("button.show"), process)
+     ).apply(xhtml)
   }
 
+  def generateStars(rating: Int, nthStar: Int): String = {
+    if(rating>=nthStar) "fa fa-star color-of-star" else "fa fa-star-o color-of-star"
+  }
 
   def calculateTransactionOverview(bankId: String, accountId: String, isPositiveAmount: Boolean, monthsAgo: Int): Box[Map[String, Double]] = {
 
