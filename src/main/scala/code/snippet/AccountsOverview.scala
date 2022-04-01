@@ -72,7 +72,7 @@ class AccountsOverview extends MdcLoggable {
     privateAccountsJson <- ObpAPI.privateAccounts.toList
     barebonesAccountJson <- privateAccountsJson.accounts.toList.flatten
     bankId <- barebonesAccountJson.bank_id
-    balances <- ObpAPI.getAccountBalances(bankId)
+    balances <- ObpAPI.getAccountsBalances(bankId)
   } yield (bankId, barebonesAccountJson, balances)
 
   logger.debug("Accounts Overview: Private accounts found: " + privateAccountJsons)
@@ -83,7 +83,7 @@ class AccountsOverview extends MdcLoggable {
       privateAccountsJson <- ObpAPI.privateAccounts.toList // Get all accounts at all banks for logged on user
       accountJson: BarebonesAccountJson <- privateAccountsJson.accounts.toList.flatten
       bankId <- accountJson.bank_id
-      balances <- ObpAPI.getAccountBalances(bankId)
+      balances <- ObpAPI.getAccountsBalances(bankId)
       accountId <- accountJson.id
       transactionsJson: TransactionsJson <- ObpAPI.transactions(bankId, accountId, "owner", Some(10000), None, Some(Util.monthsAgo(monthsAgo)), Some(now), Some(DESC))
     } yield (bankId, accountJson, balances, transactionsJson)

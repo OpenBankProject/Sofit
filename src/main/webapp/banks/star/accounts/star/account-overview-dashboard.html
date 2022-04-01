@@ -37,12 +37,44 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 		<div class="account-info__box account-info__box--views">
 			<div class="account-info__top-wrapper" data-lift="DashboardAccountOverview.accountTitle" >
 				<h3 id="account-title" class="account-info__box-headline account-title">ACCOUNT</h3>
-				<div data-lift="embed?what=_nav_account_settings"></div>
 			</div>
 
 			<div class="create-income-section" data-lift="DashboardAccountOverview.calculateExpenditureOverview">
-
-				<div id="accountBalance" style="width:100%"></div>
+				<table id="accountBalance" style="width:100%">
+					<td style="text-align: left;">
+						<h5>Balance: </h5>
+					</td>
+					<td style="text-align: right;">
+						<h5 id="account-balance"><span>100 EUR</span></h5>
+					</td>
+				</table><br>
+				<style>
+					.color-of-star {
+					  color: orange;
+					}
+				</style>
+				<table id="account-info" style="width:100%">
+					<td style="text-align: center; width: 50%;">
+						<h6>Profile completeness</h6>
+						<p id="profile-completeness">
+							<span id="profile-completeness-star-1" class="fa fa-star-o color-of-star"></span>
+							<span id="profile-completeness-star-2" class="fa fa-star-o color-of-star"></span>
+							<span id="profile-completeness-star-3" class="fa fa-star-o color-of-star"></span>
+							<span id="profile-completeness-star-4" class="fa fa-star-o color-of-star"></span>
+							<span id="profile-completeness-star-5" class="fa fa-star-o color-of-star"></span>
+						</p>
+					</td>
+					<td style="text-align: center; ">
+						<h6>Credit score</h6>
+						<p id="credit-score">
+							<span id="credit-score-star-1" class="fa fa-star-o color-of-star"></span>
+							<span id="credit-score-star-2" class="fa fa-star-o color-of-star"></span>
+							<span id="credit-score-star-3" class="fa fa-star-o color-of-star"></span>
+							<span id="credit-score-star-4" class="fa fa-star-o color-of-star"></span>
+							<span id="credit-score-star-5" class="fa fa-star-o color-of-star"></span>
+						</p>
+					</td>
+				</table><br>
 				<div id="expenditureChart" style="width:100%"></div>
 				<div id="incomeChart" style="width:100%"></div>
 				

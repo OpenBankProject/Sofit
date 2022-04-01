@@ -194,7 +194,11 @@ object ObpAPI {
     ObpGet(s"/$versionOfApi/my/accounts").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
   
-  def getAccountBalances(bankId : String) : Box[AccountsBalancesJsonV400] = {
+  def getAccountBalances(bankId : String, accountId: String) : Box[AccountBalanceJsonV400] = {
+    ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + accountId + "/balances")
+      .flatMap(_.extractOpt[AccountBalanceJsonV400])
+  }  
+  def getAccountsBalances(bankId : String) : Box[AccountsBalancesJsonV400] = {
     ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/balances").flatMap(_.extractOpt[AccountsBalancesJsonV400])
   }
 
