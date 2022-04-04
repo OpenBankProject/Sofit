@@ -45,7 +45,16 @@ e.g. http://localhost:8080/banks/bnpp-fr2/accounts/1137869186/owner
 	<section class="account-info account-info--public">
 		<div class="account-info__box account-info__box--public">
 			<div class="account-info__top-wrapper" data-lift="OBPTransactionSnippet.accountTitle">
-				<h3 class="account-info__box-headline account-title">ACCOUNT</h3>
+				<table style="width:100%">
+					<td style="text-align: left;">
+						<h3 class="account-info__box-headline account-title">ACCOUNT</h3>
+					</td>
+					<td style="text-align: right;">
+						<h3 class="account-info__box-headline ">
+							<a data-lift="OBPTransactionSnippet.getChartLink" id="chart-bar-icon" class="fa fa-bar-chart"></a>
+						</h3>
+					</td>
+				</table>
 				<div data-lift="embed?what=_nav_account_settings"></div>
 			</div>
 

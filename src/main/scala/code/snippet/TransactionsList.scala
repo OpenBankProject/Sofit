@@ -498,7 +498,10 @@ Used in transactions list
 
 
   def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
-
+  def getChartLink: CssBindFunc = {
+    "#chart-bar-icon [href]" #> {"/banks/" + transactionsURLParams.bankId + "/accounts/" +
+      transactionsURLParams.accountId + "/account-overview-dashboard"}
+  }
 
   def hideSocialWidgets = {
     if(transactionsURLParams.viewId != "Public") "#socialButtons *" #> NodeSeq.Empty
