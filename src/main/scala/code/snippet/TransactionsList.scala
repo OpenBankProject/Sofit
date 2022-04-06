@@ -57,6 +57,12 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   val transactionsURLParams = params._3
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
   val FORBIDDEN = "---"
+  val defaultAccountIdUserAttribute = {
+    ObpAPI.getCurrentUserAttributes().flatMap(_.user_attributes.filter(_.name == "DEFAULT_ACCOUNT_ID").headOption).toOption match {
+      case Some(attribute) => ObpAPI.updateCurrentUserAttribute(attribute.user_attribute_id, "DEFAULT_ACCOUNT_ID", "STRING", transactionsURLParams.accountId)
+      case None => ObpAPI.createCurrentUserAttribute("DEFAULT_ACCOUNT_ID", "STRING", transactionsURLParams.accountId)
+    }
+  }
 
   val currencySymbol = {
     transactionsJson.transactions match {

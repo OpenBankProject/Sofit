@@ -63,10 +63,10 @@ object ObpAPI {
   
   
   def getUserCustomerLinksByUserId(userId: String) : Box[UserCustomerLinksJson]= {
-    ObpGet(s"/v4.0.0/user_customer_links/users/$userId").flatMap(_.extractOpt[UserCustomerLinksJson])
+    ObpGet(s"/$versionOfApi/user_customer_links/users/$userId").flatMap(_.extractOpt[UserCustomerLinksJson])
   }  
   def getUserCustomerLinksByCustomerId(customerId: String) : Box[UserCustomerLinksJson]= {
-    ObpGet(s"/v4.0.0/user_customer_links/customers/$customerId").flatMap(_.extractOpt[UserCustomerLinksJson])
+    ObpGet(s"/$versionOfApi/user_customer_links/customers/$customerId").flatMap(_.extractOpt[UserCustomerLinksJson])
   }  
 
   def createUserCustomerLink(bankId: String, userId: String, customerId: String): Box[UserCustomerLinkJson] = {
@@ -93,11 +93,33 @@ object ObpAPI {
   }
 
   def getCustomersForCurrentUser() : Box[CustomersWithAttributesJsonV300]= {
-    ObpGet(s"/v4.0.0/users/current/customers").flatMap(_.extractOpt[CustomersWithAttributesJsonV300])
+    ObpGet(s"/$versionOfApi/users/current/customers").flatMap(_.extractOpt[CustomersWithAttributesJsonV300])
   }
   
   def getMyCorrelatedEntities: Box[CorrelatedEntities]= {
-    ObpGet(s"/v4.0.0/my/correlated-entities").flatMap(_.extractOpt[CorrelatedEntities])
+    ObpGet(s"/$versionOfApi/my/correlated-entities").flatMap(_.extractOpt[CorrelatedEntities])
+  }  
+  def createCurrentUserAttribute(name: String,
+                                 `type`: String,
+                                 value: String): Box[UserAttributeResponseJsonV400]= {
+    val json = UserAttributeJsonV400(name: String, `type`: String, value: String)
+    val response = ObpPost(s"/$versionOfApi/my/user/attributes", Extraction.decompose(json))
+      .flatMap(_.extractOpt[UserAttributeResponseJsonV400])
+    response
+  }  
+  def updateCurrentUserAttribute(userAttributeId: String,
+                                 name: String,
+                                 `type`: String,
+                                 value: String): Box[UserAttributeResponseJsonV400]= {
+    val json = UserAttributeJsonV400(name: String, `type`: String, value: String)
+    val response = ObpPut(s"/$versionOfApi/my/user/attributes/$userAttributeId", Extraction.decompose(json))
+      .flatMap(_.extractOpt[UserAttributeResponseJsonV400])
+    response
+  }  
+  def getCurrentUserAttributes(): Box[UserAttributesResponseJson]= {
+    val response = ObpGet(s"/$versionOfApi/my/user/attributes")
+      .flatMap(_.extractOpt[UserAttributesResponseJson])
+    response
   }
   
   def getOrCreateCustomer(bankId: String, legalName: String) : Box[String]= {
@@ -1292,7 +1314,17 @@ object ObpJson {
     value: String,
     insert_date: Date
   )
-  
+
+  case class UserAttributesResponseJson(
+                                         user_attributes: List[UserAttributeResponseJsonV400]
+                                       )
+
+  case class UserAttributeJsonV400(
+                                    name: String,
+                                    `type`: String,
+                                    value: String,
+                                  )
+
   case class UserWithAttributesResponseJson(
     user_id: String,
     email : String,
@@ -1309,5 +1341,5 @@ object ObpJson {
   case class CorrelatedEntities(
     correlated_entities: List[CustomerAndUsersWithAttributesResponseJson]
   )
-  
+
 }

@@ -4,7 +4,7 @@ import _root_.net.liftweb.http.js.JsCmd
 import code.Constant._
 import code.lib.ObpAPI.{DESC, getAccount}
 import code.lib.ObpJson.{TransactionJson, TransactionTagJson, TransactionValueJson, TransactionsJson}
-import code.lib.{ObpAPI, ObpJson}
+import code.lib.{OAuthClient, ObpAPI, ObpJson}
 import code.util.Helper.{MdcLoggable, getAccountTitle}
 import code.util.Util
 import net.liftweb.common.Box
@@ -23,11 +23,17 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
     ("9","9 months"), ("10","10 months"), ("11","11 months"), ("12","12 months"))
   val bankId = params(0)
   val accountId = params(1)
-  val accountJson = getAccount(bankId, accountId, CUSTOM_OWNER_VIEW_ID).openOrThrowException("Could not open accountJson")
-  def accountTitle = ".account-title *" #> getAccountTitle(accountJson)
+  lazy val accountJson = getAccount(bankId, accountId, CUSTOM_OWNER_VIEW_ID).openOrThrowException("Could not open accountJson")
+  def accountTitle = {
+    if(OAuthClient.loggedIn) ".account-title *" #> getAccountTitle(accountJson) else OAuthClient.redirectToOauthLogin()
+  }
+  
+  def calculateExpenditureOverview(xhtml: NodeSeq): NodeSeq = {
+    if(OAuthClient.loggedIn) calculateExpenditureOverviewCommon(xhtml) else OAuthClient.redirectToOauthLogin()
+  }
 
   //set up ajax handlers to edit account label
-  def calculateExpenditureOverview(xhtml: NodeSeq): NodeSeq = {
+  def calculateExpenditureOverviewCommon(xhtml: NodeSeq): NodeSeq = {
     
     def process(): JsCmd = {
       val expenditures: List[(String, Double)] = calculateTransactionOverview(bankId, accountId, false,monthsAgoVar.is.toInt).map(_.toList)

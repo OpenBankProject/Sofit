@@ -409,6 +409,7 @@ class Boot extends MdcLoggable{
 
     val sitemap = List(
       Menu.i("Home") / "index",
+      Menu.i("My Accounts") / "my-accounts",
       Menu.i("Correlated-user") / "correlated-user" >> EarlyResponse(() => {
         setCorrelatedCookie
       }),
