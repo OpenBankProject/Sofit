@@ -161,6 +161,26 @@ class AccountsOverview extends MdcLoggable {
     val label = accountJson.label.getOrElse("")
     if(label != "") label else accountJson.id.getOrElse("unknown account name")
   }
+  
+  def getMyPrivateAccounts = {
+    if (privateAccountJsons.size == 1) {
+      privateAccountJsons.map {
+        case (bankId, accountJson, balances) => {
+          val views = accountJson.views.toList.flatten
+          val accountId : String = accountJson.id.getOrElse("")
+          val aPrivateViewId: String = (for {
+            aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false) || view.short_name.equals(Some("Firehose"))).headOption
+            viewId <- aPrivateView.id
+          } yield viewId).getOrElse("")
+          val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
+          S.redirectTo(url)
+        }
+      }
+      S.redirectTo("")
+    } else {
+      authorisedAccounts
+    }
+  }
 
   def authorisedAccounts = {
     def loggedInSnippet = {
