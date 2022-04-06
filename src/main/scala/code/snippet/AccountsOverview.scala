@@ -32,11 +32,9 @@ Berlin 13359, Germany
 
 package code.snippet
 
-import java.util.{Calendar, Date}
-
-import code.lib.ObpAPI.{DESC, dateFormat}
+import code.lib.ObpAPI.DESC
 import code.lib.ObpJson._
-import code.lib.{Header, OAuthClient, ObpAPI}
+import code.lib.{OAuthClient, ObpAPI}
 import code.util.Helper.MdcLoggable
 import code.util.Util
 import net.liftweb.http.js.JE.JsRaw
@@ -163,8 +161,24 @@ class AccountsOverview extends MdcLoggable {
   }
   
   def getMyPrivateAccounts = {
+    val defaultAccountId = ObpAPI.getCurrentUserAttributes().flatMap(_.user_attributes.filter(_.name == "DEFAULT_ACCOUNT_ID").headOption).toOption
+    val defaultAccount = privateAccountJsons.filter(_._2.id == defaultAccountId.map(_.value))
     if (privateAccountJsons.size == 1) {
       privateAccountJsons.map {
+        case (bankId, accountJson, balances) => {
+          val views = accountJson.views.toList.flatten
+          val accountId : String = accountJson.id.getOrElse("")
+          val aPrivateViewId: String = (for {
+            aPrivateView <- views.filterNot(view => view.is_public.getOrElse(false) || view.short_name.equals(Some("Firehose"))).headOption
+            viewId <- aPrivateView.id
+          } yield viewId).getOrElse("")
+          val url = "/banks/" + bankId + "/accounts/" + accountId + "/" + aPrivateViewId
+          S.redirectTo(url)
+        }
+      }
+      S.redirectTo("")
+    } else if(defaultAccount.size == 1) {
+      defaultAccount.map {
         case (bankId, accountJson, balances) => {
           val views = accountJson.views.toList.flatten
           val accountId : String = accountJson.id.getOrElse("")
