@@ -161,8 +161,10 @@ class AccountsOverview extends MdcLoggable {
   }
   
   def getMyPrivateAccounts = {
+    // Information about last selected account is stored at the user attribute named DEFAULT_ACCOUNT_ID
     val defaultAccountId = ObpAPI.getCurrentUserAttributes().flatMap(_.user_attributes.filter(_.name == "DEFAULT_ACCOUNT_ID").headOption).toOption
     val defaultAccount = privateAccountJsons.filter(_._2.id == defaultAccountId.map(_.value))
+    // In case that we have only one account related to a user we skip step accounts overview and show details of the account
     if (privateAccountJsons.size == 1) {
       privateAccountJsons.map {
         case (bankId, accountJson, balances) => {
@@ -177,6 +179,8 @@ class AccountsOverview extends MdcLoggable {
         }
       }
       S.redirectTo("")
+    // In case that we have more than one account related to a user
+    // we try to find last selected account by the user and show details of it
     } else if(defaultAccount.size == 1) {
       defaultAccount.map {
         case (bankId, accountJson, balances) => {
@@ -191,6 +195,8 @@ class AccountsOverview extends MdcLoggable {
         }
       }
       S.redirectTo("")
+    // In case that we have more than one account related to a user
+    // and no information about last selected account we go to the step accounts overview
     } else {
       authorisedAccounts
     }
