@@ -33,7 +33,11 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 -->
 
 <div id="create-income" data-lift="surround?with=default;at=content">
-	
+	<script>
+        window.onload = function widowsOnLoadFunction() {
+            document.getElementById("income_amount").removeAttribute("value");
+        }
+    </script>
 	<!-- account-info section_start -->
 	<section class="account-info account-info--public">
 		<div class="account-info__box account-info__box--views">
@@ -55,7 +59,7 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 						<label for="income_amount">
 							<h4><span class="lift:Loc.income_amount">Income amount</span></h4>
 						</label>
-						<input class="form-control" type="text" id="income_amount" name="income_amount"/>
+						<input class="form-control" id="income_amount" name="income_amount"/>
 					</div>
 					<div class="form-group">
 						<label for="income_category">
