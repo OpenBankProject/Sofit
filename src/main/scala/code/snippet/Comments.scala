@@ -369,7 +369,7 @@ class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) exten
           ("id", "addTagInput"),
           ("size", "30")) ++
           SHtml.ajaxSubmit(
-            "ADD TAG",
+            S.?("add_tag"),
             () => {
               val newTags = ObpAPI.addTags(urlParams.bankId, urlParams.accountId, urlParams.viewId,
                   urlParams.transactionId, tagValues)
@@ -468,7 +468,7 @@ class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) exten
 	          ("id", "addCommentTextArea"),
               ("class", "comments-box__textarea"),
 	          ("placeholder", "Type a comment here")) ++
-	          SHtml.ajaxSubmit("ADD COMMENT", () => {
+	          SHtml.ajaxSubmit(S.?("add_comment"), () => {
 	            val newCommentXml = for {
 	              newComment <- ObpAPI.addComment(urlParams.bankId, urlParams.accountId, urlParams.viewId, urlParams.transactionId, commentText)
 	              commentXml <- Templates(List("templates-hidden", "_comment"))

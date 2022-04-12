@@ -1301,8 +1301,8 @@ table td {
   -moz-border-radius: 24px;
   -webkit-border-radius: 24px;
   border-radius: 24px;
-  padding: 11px 0 9px 20px;
-  width: 140px;
+  padding: 10px 10px 10px 10px;
+  /*! width: 140px; */
   display: block;
   text-align: left;
   outline: 0;
@@ -1431,9 +1431,9 @@ table td {
 
 .comments-box--button {
   float: left;
-  width: 241px;
+/*  width: 241px;*/
   margin: 22px 0 0 9px;
-  padding: 11px 0 9px 22px;
+  padding: 10px 10px 10px 10px;
 }
 
 .account-info__box--counterparties {

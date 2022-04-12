@@ -67,7 +67,7 @@ Berlin 13359, Germany
 
 
                     <div class="tags-box">
-                        <h2 class="comments-headline">Tags</h2>
+                        <h2 class="comments-headline"><span class="lift:Loc.tags">Tags</span></h2>
 						<div id="tags_list" class="tagsContainer" data-lift="Comments.showTags?eager_eval=true">
 						  <span id="noTags"></span>
 						  <div data-lift="embed?what=_tag"></div>
@@ -79,7 +79,7 @@ Berlin 13359, Germany
 
 
                     <div class="images-box" data-lift="Comments.images?eager_eval=true">
-                        <h2 class="comments-headline imagesTitle">Images</h2>
+                        <h2 class="comments-headline imagesTitle"><span class="lift:Loc.images">Images</span></h2>
 						<div class="images_list">
 							<span class="noImages"></span>
 							<div class="image-holder">
@@ -87,7 +87,7 @@ Berlin 13359, Germany
 							</div>
 						</div>
 						<form id="imageUploader" method="post" enctype="multipart/form-data">
-							<p class="images-box__paragraph">Add a new image</p>
+							<p class="images-box__paragraph"><span class="lift:Loc.add_a_new_image">Add a new image</span></p>
 							<input type="hidden" name="params" value="" />
 							<div class="images-box__browse">
 								<input class="images-box__browse-button file-upload" type="file" name="my_file" id="my_file"></input>
@@ -95,13 +95,13 @@ Berlin 13359, Germany
 								<div class="images-box__browse-filename file-upload-filename"></div>
 							</div>
 							<textarea name="description" placeholder="Add a short description..." class="images-box__textarea"></textarea>
-							<button class="comments-button images-box__add-button">ADD IMAGE</button>
+							<button class="comments-button images-box__add-button"><span class="lift:Loc.add_image">ADD IMAGE</span></button>
 						</form>
 					</div><!-- end images-box -->
 
 
                     <div id="commentsBloc" class="comments-box">
-                        <h2 id="commentsTitle" class="comments-headline">Comments</h2>
+                        <h2 id="commentsTitle" class="comments-headline"><span class="lift:Loc.comments">Comments</span></h2>
 						<ul id="comment_list" data-lift="Comments.showComments?eager_eval=true" class="commentsContainer">
 						  <span id="noComments"></span>
 						  <div data-lift="embed?what=_comment"></div>
@@ -109,7 +109,7 @@ Berlin 13359, Germany
 
     					<div id="addCommentbloc">
     						<div data-lift="Comments.addComment" >
-      							<span class="add">Add a comment here</span>
+      							<span class="add"><span class="lift:Loc.add_a_comment">Add a comment here</span></span>
     						</div>
 								<!--
                         		<textarea name="img__description" placeholder="Add a comments" class="comments-box__textarea"></textarea>
