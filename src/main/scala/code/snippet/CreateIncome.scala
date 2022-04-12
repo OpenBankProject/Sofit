@@ -24,7 +24,7 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
   //set up ajax handlers to edit account label
   def addIncome(xhtml: NodeSeq): NodeSeq = {
     var incomeDescription = ""
-    var incomeAmount: Int = 0
+    var incomeAmount = 0D
     val listOfTags: Seq[(String, String)] = S.?("income.tags").
       split(",").toList.map(_.trim).map(i => i.replaceAll("_", "/")).map(i => (i,i))
 
@@ -49,7 +49,7 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
     (
       "@income_description" #> SHtml.text("", s => incomeDescription = s) & 
         "#income_category" #> SHtml.select(listOfTags, Box!! tagVar.is, tagVar(_)) &
-      "@income_amount" #> SHtml.number(0, s => incomeAmount = s, 0, 1000000000) &
+      "@income_amount" #> SHtml.number(0D, (s:Double) => incomeAmount = s, 0D, 1000000000D, 0.01D) &
         // Replace the type=submit with Javascript that makes the ajax call.
         "type=submit" #> SHtml.ajaxSubmit(S.?("button.save"), process)
       ).apply(xhtml)

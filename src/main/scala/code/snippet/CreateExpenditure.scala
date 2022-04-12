@@ -23,7 +23,7 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
   
   def addPayment(xhtml: NodeSeq): NodeSeq = {
     var outcomeDescription = ""
-    var outcomeAmount = 0
+    var outcomeAmount = 0D
     val listOfTags: Seq[(String, String)] = S.?("expenditure.tags").
       split(",").toList.map(_.trim).map(i => i.replaceAll("_", "/")).map(i => (i,i))
 
@@ -45,7 +45,7 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
     (
       "@payment_description" #> SHtml.text("", s => outcomeDescription = s) &
        "#payment_category" #> SHtml.select(listOfTags, Box!! tagVar.is, tagVar(_)) &
-      "@payment_amount" #> SHtml.number(0, s => outcomeAmount = s, 0, 1000000000) &
+      "@payment_amount" #> SHtml.number(0D, (s:Double) => outcomeAmount = s, 0D, 1000000000D, 0.01D) &
         // Replace the type=submit with Javascript that makes the ajax call.
         "type=submit" #> SHtml.ajaxSubmit(S.?("button.save"), process)
       ).apply(xhtml)

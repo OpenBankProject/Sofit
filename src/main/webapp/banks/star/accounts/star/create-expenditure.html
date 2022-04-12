@@ -32,8 +32,12 @@ This renders the settings page for an account.
 e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 -->
 
-<div id="create-income" data-lift="surround?with=default;at=content">
-	
+<div id="create-income" data-lift="surround?with=default;at=content" onload="removeAttributeValueByIdPaymentAmount()">
+	<script>
+        window.onload = function widowsOnLoadFunction() {
+            document.getElementById("payment_amount").removeAttribute("value");
+        }
+    </script>
 	<!-- account-info section_start -->
 	<section class="account-info account-info--public">
 		<div class="account-info__box account-info__box--views">
@@ -55,7 +59,7 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 						<label for="payment_amount">
 							<h4><span class="lift:Loc.payment_amount">payment amount</span></h4>
 						</label>
-						<input class="form-control" type="text" id="payment_amount" name="payment_amount"/>
+						<input class="form-control" id="payment_amount" name="payment_amount"/>
 					</div>
 					<div class="form-group">
 						<label for="payment_category">

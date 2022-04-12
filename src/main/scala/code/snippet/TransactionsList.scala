@@ -57,6 +57,9 @@ class OBPTransactionSnippet (params : (TransactionsJson, AccountJson, Transactio
   val transactionsURLParams = params._3
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
   val FORBIDDEN = "---"
+  
+  // Purpose of this variable is to set the user attribute DEFAULT_ACCOUNT_ID to currently selected account
+  // It's done as a side effect of evaluating this variable during initialisation  
   val defaultAccountIdUserAttribute = {
     ObpAPI.getCurrentUserAttributes().flatMap(_.user_attributes.filter(_.name == "DEFAULT_ACCOUNT_ID").headOption).toOption match {
       case Some(attribute) => ObpAPI.updateCurrentUserAttribute(attribute.user_attribute_id, "DEFAULT_ACCOUNT_ID", "STRING", transactionsURLParams.accountId)
@@ -497,7 +500,7 @@ Used in transactions list
     ".balance--cell *" #> {
       isPositiveSumAmount match {
         case Empty => "" // Hide the balance string if it is None (i.e. the view does not allow it to be seen)
-        case _ => "Balance"
+        case _ => S.?("balance")
       }
     }
   }

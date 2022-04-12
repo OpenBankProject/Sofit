@@ -38,35 +38,37 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
     def process(): JsCmd = {
       val expenditures: List[(String, Double)] = calculateTransactionOverview(bankId, accountId, false,monthsAgoVar.is.toInt).map(_.toList)
         .toList.flatten.sortBy(_._2)
-      val expenditureData = expenditures.map(i => s"['${i._1}',${i._2.abs}]").mkString(",")
+      val expenditureData = expenditures.map(i => s"['${i._1}',${i._2.abs}, '#EB6028']").mkString(",")
       val incomes: List[(String, Double)] = calculateTransactionOverview(bankId, accountId, true,monthsAgoVar.is.toInt).map(_.toList)
         .toList.flatten.sortBy(_._2)
       val incomeMaxValue = incomes.map(_._2).max.abs
-      val incomeData = incomes.map(i => s"['${i._1}',${i._2.abs}]").mkString(",")
+      val incomeData = incomes.map(i => s"['${i._1}',${i._2.abs}, '#50B165']").mkString(",")
       
       val script = s"""google.charts.load('current', {'packages':['corechart']});
                      |google.charts.setOnLoadCallback(drawChart);
                      |
                      |function drawChart() {
                      |var expenditureData = google.visualization.arrayToDataTable([
-                     |  ['Category', '€'],
+                     |  ['Category', '€', { role: 'style' }],
                      |  $expenditureData
                      |]);
                      |
                      |var expenditureOptions = {
-                     |  title:'Expenditure'
+                     |  title:'Expenditure',
+                     |  legend: { position: "none" },
                      |};
                      |
                      |var expenditureChart = new google.visualization.BarChart(document.getElementById('expenditureChart'));
                      |  expenditureChart.draw(expenditureData, expenditureOptions);
                      |  
                      |var incomeData = google.visualization.arrayToDataTable([
-                     |  ['Category', '€'],
+                     |  ['Category', '€', { role: 'style' }],
                      |  $incomeData
                      |]);
                      |
                      |var incomeOptions = {
-                     |  title:'Income'
+                     |  title:'Income',
+                     |  legend: { position: "none" },
                      |};
                      |
                      |var incomeChart = new google.visualization.BarChart(document.getElementById('incomeChart'));
