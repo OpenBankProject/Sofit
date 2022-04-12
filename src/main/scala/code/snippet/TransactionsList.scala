@@ -38,6 +38,7 @@ import code.Constant._
 import code.lib.ObpJson._
 import code.lib._
 import code.util.Helper._
+import code.util.Util
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http._
 import net.liftweb.http.js.JsCmds.Noop
@@ -460,7 +461,7 @@ Used in transactions list
   def daySummary(transactionsForDay: List[TransactionJson], _total: PersistentDouble ) = {
     val aTransaction = transactionsForDay.sortBy(_.details.get.completed).last
     val date = aTransaction.details.flatMap(_.completed) match {
-      case Some(d) => (new SimpleDateFormat("MMMM dd, yyyy")).format(d)
+      case Some(d) => Util.getLocalDate(d)
       case _ => ""
     }
     val amount : String = (for {

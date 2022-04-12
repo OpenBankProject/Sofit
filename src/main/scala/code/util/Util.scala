@@ -1,6 +1,9 @@
 package code.util
 
-import java.util.{Calendar, Date}
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.{Calendar, Date, Locale}
 
 import code.Constant
 import code.lib.ObpAPI
@@ -8,6 +11,9 @@ import code.util.Helper.MdcLoggable
 import net.liftweb.common.Full
 import net.liftweb.http.S
 import net.liftweb.http.provider.HTTPCookie
+import net.liftweb.util.Props
+
+import scala.util.Try
 
 object Util extends MdcLoggable {
   def correlatedUserFlow(correlatedUserId: String): Boolean = {
@@ -48,5 +54,28 @@ object Util extends MdcLoggable {
     calendar.add(Calendar.MONTH, -months)
     val pastDate: Date = calendar.getTime
     pastDate
+  }
+
+  def getLocalDate(date: Date): String = {
+    import java.text.DateFormat
+    val df = DateFormat.getDateInstance(DateFormat.LONG, currentLocale())
+    val formattedDate = df.format(date)
+    formattedDate
+  }
+  def currentLocale() : Locale = {
+    val locale = Locale.getAvailableLocales().toList.filter { l =>
+      l.toLanguageTag == Props.get("language_tag", "en-GB")
+    }.head
+    // Cookie name
+    val localeCookieName = "SELECTED_LOCALE"
+    S.findCookie(localeCookieName).flatMap {
+      cookie => cookie.value.map(computeLocale)
+    } openOr locale
+  }
+  // Properly convert a language tag to a Locale
+  def computeLocale(tag : String) = tag.split(Array('-', '_')) match {
+    case Array(lang) => new Locale(lang)
+    case Array(lang, country) => new Locale(lang, country)
+    case Array(lang, country, variant) => new Locale(lang, country, variant)
   }
 }
