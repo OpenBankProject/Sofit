@@ -91,3 +91,6 @@ outgoing.account_id=OBP_DEFAULT_OUTGOING_ACCOUNT_ID
 
 # Display link to the counterpart account
 display_other_account_link_at_transaction=true
+
+# Help page documentation link
+documentation_link = FILL_ME_IN

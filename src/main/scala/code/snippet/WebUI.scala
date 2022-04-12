@@ -160,6 +160,11 @@ class WebUI extends MdcLoggable{
     }
   }
 
+  def helpInfo = {
+    val link = scala.xml.Unparsed(Props.get("documentation_link", "https://www.example.com"))
+    "#help-page-doc-link [href]" #> link
+  }
+
   def debugInfo = {
 
     val correlatedUserIdTargetCookieValue = correlatedUserIdTargetCookieName + ": " + S.cookieValue(correlatedUserIdTargetCookieName).getOrElse("does not exist")
