@@ -500,7 +500,7 @@ Used in transactions list
     ".balance--cell *" #> {
       isPositiveSumAmount match {
         case Empty => "" // Hide the balance string if it is None (i.e. the view does not allow it to be seen)
-        case _ => "Balance"
+        case _ => S.?("balance")
       }
     }
   }
