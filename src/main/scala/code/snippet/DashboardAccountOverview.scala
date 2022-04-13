@@ -25,7 +25,12 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
   val accountId = params(1)
   lazy val accountJson = getAccount(bankId, accountId, CUSTOM_OWNER_VIEW_ID).openOrThrowException("Could not open accountJson")
   def accountTitle = {
-    if(OAuthClient.loggedIn) ".account-title *" #> getAccountTitle(accountJson) else OAuthClient.redirectToOauthLogin()
+    if(OAuthClient.loggedIn) {
+      ".account-title  a *" #> getAccountTitle(accountJson) &
+      ".account-title a [href]" #> "owner" 
+    } else { 
+      OAuthClient.redirectToOauthLogin() 
+    }
   }
   
   def calculateExpenditureOverview(xhtml: NodeSeq): NodeSeq = {

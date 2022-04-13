@@ -102,7 +102,10 @@ class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) exten
   val NOOP_SELECTOR = "#i_am_an_id_that_should_never_exist" #> ""
 
 
-  def accountTitle = ".account-title *" #> Helper.getAccountTitle(accountJson)
+  def accountTitle = {
+    ".account-title a *" #> Helper.getAccountTitle(accountJson) &
+      ".account-title a [href]" #> s"/banks/${urlParams.bankId}/accounts/${urlParams.accountId}/owner"
+  }
 
 
   /*
