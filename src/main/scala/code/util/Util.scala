@@ -78,4 +78,14 @@ object Util extends MdcLoggable {
     case Array(lang, country) => new Locale(lang, country)
     case Array(lang, country, variant) => new Locale(lang, country, variant)
   }
+  
+  def getTimeAgo(date: Date): String = {
+    import com.github.marlonlom.utilities.timeago.TimeAgo
+    import com.github.marlonlom.utilities.timeago.TimeAgoMessages
+    val messages = new TimeAgoMessages.Builder().withLocale(currentLocale()).build
+    val timeInMillis = date.getTime()
+    val text = TimeAgo.using(timeInMillis, messages)
+    text
+  }
+  
 }

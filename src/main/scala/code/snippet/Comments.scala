@@ -31,46 +31,24 @@
  */
 package code.snippet
 
-import net.liftweb.http.js.JsCmds.Noop
-import net.liftweb.http.Templates
-import net.liftweb.util.Helpers._
-import net.liftweb.http.S
-import net.liftweb.common.Full
-import scala.xml.NodeSeq
-import net.liftweb.http.SHtml
-import net.liftweb.common.Box
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JE.JsRaw
-import net.liftweb.http.js.JsCmds.RedirectTo
-import net.liftweb.http.SessionVar
-import scala.xml.Text
-import net.liftweb.json._
-import net.liftweb.json.JsonAST.JObject
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JString
-import net.liftweb.json.JsonAST.JArray
-import net.liftweb.http.StringField
-import java.util.Date
 import java.text.SimpleDateFormat
-import code.util.Helper.MdcLoggable
-import java.util.Currency
-import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml,Hide}
-import net.liftweb.http.js.JsCmds.{SetHtml,SetValById}
-import net.liftweb.http.js.JE.Str
-import net.liftweb.http.js.JsCmds.Alert
-import net.liftweb.util.Props
-import scala.xml.Utility
-import net.liftweb.common.Failure
-import java.net.URL
-import java.net.URI
-import java.text.NumberFormat
-import net.liftweb.common.ParamFailure
-import net.liftweb.util.CssSel
+import java.util.{Currency, Date}
+
+import code.lib.{OAuthClient, ObpAPI}
 import code.lib.ObpJson._
-import code.lib.ObpAPI
-import code.lib.OAuthClient
-import net.liftweb.http.RequestVar
-import code.util.Helper
+import code.util.Helper.MdcLoggable
+import code.util.{Helper, Util}
+import net.liftweb.common.{Box, Failure, Full}
+import net.liftweb.http.{S, SHtml, Templates}
+import net.liftweb.http.js.JE.Str
+import net.liftweb.http.js.JsCmds.{SetHtml, SetValById}
+import net.liftweb.http.js.jquery.JqJsCmds.{AppendHtml, Hide}
+import net.liftweb.json.JsonAST.JString
+import net.liftweb.json._
+import net.liftweb.util.Helpers._
+import net.liftweb.util.{CssSel, Props}
+
+import scala.xml.{NodeSeq, Text}
 
 case class CommentsURLParams(bankId: String, accountId: String, viewId: String, transactionId: String)
 
@@ -427,24 +405,23 @@ class Comments(params : (TransactionJson, AccountJson, CommentsURLParams)) exten
   def commentCssSel(commentJson: TransactionCommentJson, displayPosition : Int) = {
     def commentDate: CssSel = {
       commentJson.date.map(d => {
-        ".commentDate *" #> commentDateFormat.format(d)
-      }) getOrElse
-        ".commentDate" #> ""
+        ".timeAgo *" #> Util.getTimeAgo(d)
+      }) getOrElse ".timeAgo *" #> ""
     }
 
     def userInfo: CssSel = {
       commentJson.user.map(u => {
         ".userInfo *" #> {
-          " -- " + u.display_name.getOrElse("")
+          u.display_name.getOrElse("")
         }
       }) getOrElse
         ".userInfo" #> ""
     }
 
-    ".text *" #> commentJson.value.getOrElse("") &
-      ".commentLink * " #> { "#" + displayPosition } &
+    ".text *" #> s"""${commentJson.value.getOrElse("")}  """ &
+      ".commentLink * " #> { displayPosition.toString + "  " } &
       ".commentLink [id]" #> displayPosition &
-      commentDate &
+      commentDate & 
       userInfo
   }
   

@@ -113,6 +113,19 @@
             <artifactId>jetty-util</artifactId>
             <version>${jetty.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.marlonlom/timeago -->
+        <dependency>
+            <groupId>com.github.marlonlom</groupId>
+            <artifactId>timeago</artifactId>
+            <version>4.0.3</version>
+        </dependency>
+        <!-- Above timeago library is written in Kotlin so we need this in order to run it via intellij-->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>1.6.20</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
