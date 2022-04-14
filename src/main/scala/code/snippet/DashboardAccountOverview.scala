@@ -18,9 +18,8 @@ import scala.xml.NodeSeq
 
 class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
   private object monthsAgoVar extends RequestVar("1")
-  val listOfTags: Seq[(String, String)] = List(("1","1 month"), ("2","2 months"), ("3","3 months"), ("4","4 months"), 
-    ("5","5 months"), ("6","6 months"), ("7","7 months"), ("8","8 months"), 
-    ("9","9 months"), ("10","10 months"), ("11","11 months"), ("12","12 months"))
+  val monthsAgo: Seq[(String, String)] = S.?("months_ago_list").
+    split(",").toList.map(_.trim).map(i => (i.split("::").headOption.getOrElse("None"),i.replace("::", " ")))
   val bankId = params(0)
   val accountId = params(1)
   lazy val accountJson = getAccount(bankId, accountId, CUSTOM_OWNER_VIEW_ID).openOrThrowException("Could not open accountJson")
@@ -59,7 +58,7 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
                      |]);
                      |
                      |var expenditureOptions = {
-                     |  title:'Expenditure',
+                     |  title:'${S.?("expenditure")}',
                      |  legend: { position: "none" },
                      |};
                      |
@@ -72,7 +71,7 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
                      |]);
                      |
                      |var incomeOptions = {
-                     |  title:'Income',
+                     |  title:'${S.?("income")}',
                      |  legend: { position: "none" },
                      |};
                      |
@@ -95,7 +94,7 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
     val profileCompletenessToInt = tryo(profileCompleteness.toInt).getOrElse(0)
     val compared: Int = tryo(amount.toDouble).map(BigDecimal(_)).getOrElse(BigDecimal(0)).compareTo(BigDecimal(0))
     (
-      "@months_ago" #> SHtml.select(listOfTags, Box!! monthsAgoVar.is, monthsAgoVar(_)) &
+      "@months_ago" #> SHtml.select(monthsAgo, Box!! monthsAgoVar.is, monthsAgoVar(_)) &
       "#account-balance span" #> s"$amount $currency" &
       "#account-balance [class]" #> {if(compared == 1) "green--color" else if(compared == -1) "orange--color" else ""} &
 
@@ -112,7 +111,8 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
       "#profile-completeness-star-5 [class]" #> generateStars(profileCompletenessToInt, 5) &
         
       // Replace the type=submit with Javascript that makes the ajax call.
-      "type=submit" #> SHtml.ajaxSubmit(S.?("button.show"), process)
+      "type=submit" #> SHtml.ajaxSubmit(S.?("button_show"), process) &
+      "type=reset" #> SHtml.ajaxSubmit(S.?("button_cancel"), process)
      ).apply(xhtml)
   }
 
