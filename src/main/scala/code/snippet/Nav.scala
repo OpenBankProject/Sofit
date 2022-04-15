@@ -102,7 +102,7 @@ class Nav {
 
 
   def navAccountSettings : CssSel = {
-    if (hasManagementAccess) {
+    if (hasManagementAccess ) {
       "nosuchtag" #> "" // there doesn't seem to be a noop?
     } else {
       eraseMenu
@@ -163,7 +163,9 @@ class Nav {
 
   // Menu for settings on account
   def accountSettings : CssSel = {
-    if (hasManagementAccess && url.size == 6 && url(1) == "banks" && url(3) == "accounts") {
+    if (hasManagementAccess 
+      && Props.get("management.update_account_label.enabled", "false").toBoolean 
+      && url.size == 6 && url(1) == "banks" && url(3) == "accounts" ) {
       val accountSettingsURL = "/banks/" + url(2) + "/accounts/" + url(4) + "/settings"
       ".navlink [href]" #> { accountSettingsURL } &
       //".navlink *" #> "Settings" &
@@ -191,7 +193,7 @@ class Nav {
 
   def createAccount : CssSel = {
     val bankId: String = "user." + ObpAPI.currentUser.map(_.user_id).getOrElse(System.currentTimeMillis())
-    if (OAuthClient.loggedIn && hasManagementAccess) {
+    if (OAuthClient.loggedIn && hasManagementAccess && Props.get("management.create_account.enabled", "false").toBoolean) {
       val accountSettingsURL = "/banks/" + bankId + "/accounts/create-bank-account"
       ".navlink [href]" #> { accountSettingsURL } &
         // ".navlink *" #> "Create account" &
