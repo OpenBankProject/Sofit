@@ -64,6 +64,8 @@ webui_header_logo_left_url=/media/images/logo-header.png
 management.counterparties.enabled=true
 management.views.enabled=true
 management.users.enabled=true
+management.create_account.enabled=false
+management.update_account_label.enabled=false
 
 # Limit the System views displayed by Sofit.
 sytems_views_to_display=owner,accountant,auditor
