@@ -96,3 +96,7 @@ display_other_account_link_at_transaction=true
 
 # Help page documentation link
 documentation_link = FILL_ME_IN
+
+# If you want to make the Lift inactivity timeout shorter than
+# the container inactivity timeout, set the inactivity timeout here
+session_inactivity_timeout_in_minutes = 30

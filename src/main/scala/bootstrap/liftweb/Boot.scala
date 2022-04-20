@@ -539,7 +539,12 @@ class Boot extends MdcLoggable{
         else // If user is logged on and path is still invalid show the not found page
           NotFoundAsTemplate(ParsePath(List("404"),"html",true,false)) 
     })
-
+    Props.get("session_inactivity_timeout_in_minutes") match {
+      case Full(x) if tryo(x.toLong).isDefined =>
+        LiftRules.sessionInactivityTimeout.default.set(Full((x.toLong.minutes): Long))
+      case _ =>
+        // Do not change default value
+    }
   }
 
   private def setCorrelatedCookie = {
