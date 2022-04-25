@@ -161,8 +161,10 @@ class WebUI extends MdcLoggable{
   }
 
   def helpInfo = {
-    val link = scala.xml.Unparsed(Props.get("documentation_link", "https://www.example.com"))
-    "#help-page-doc-link [href]" #> link
+    val link = scala.xml.Unparsed(Props.get("eula_url", "#"))
+    val text = scala.xml.Unparsed(Props.get("eula_text", "End User Licence Agreement & Privacy Policy"))
+    "#help-page-doc-link [href]" #> link &
+    "#help-page-doc-link *" #> text
   }
 
   def debugInfo = {
