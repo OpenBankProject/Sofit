@@ -414,6 +414,7 @@ class Boot extends MdcLoggable{
         setCorrelatedCookie
       }),
       Menu.i("About") / "about",
+      Menu.i("Debug info") / "debug-info",
       Menu.i("Help") / "help",
       Menu.i("404") / "404" >> Hidden,
 
