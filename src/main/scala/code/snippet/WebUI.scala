@@ -166,6 +166,15 @@ class WebUI extends MdcLoggable{
     "#help-page-doc-link [href]" #> link &
     "#help-page-doc-link *" #> text
   }
+  def sourceCodeLink = {
+    val link = scala.xml.Unparsed(Props.get("source_code_url", "https://github.com/OpenBankProject/Sofit"))
+    "#about-source-code-link [href]" #> link &
+    "#about-source-code-link *" #> link
+  }
+  def sourceCodeText = {
+    val text = scala.xml.Unparsed(S.?("source_code_text"))
+    "#about-source-code-text *" #> text
+  }
 
   def debugInfo = {
 

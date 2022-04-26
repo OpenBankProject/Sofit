@@ -104,3 +104,6 @@ session_inactivity_timeout_in_minutes = 30
 # EULA
 eula_url=https://www.example.com
 eula_text=End User Licence Agreement & Privacy Policy
+
+# Source coe url
+source_code_url=https://github.com/OpenBankProject/Sofit
