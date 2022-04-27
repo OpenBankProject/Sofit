@@ -1,4 +1,4 @@
-Welcome to the SOFIT
+Welcome to Sofit
 =====================
 
 # ABOUT
