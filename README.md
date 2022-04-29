@@ -13,7 +13,7 @@ The Sofit application demonstrates some of the social aims behind the Open Bank 
 
 # LICENSE
 
-This project is licensed under the AGPL V3 (see NOTICE). Comercial licences are available from TESOBE.
+This project is licensed under the AGPL V3 (see NOTICE). Commercial licences are available from TESOBE GmbH.
 
 # SETUP
 
