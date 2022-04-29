@@ -13,7 +13,7 @@ The Sofit application demonstrates some of the social aims behind the Open Bank 
 
 # LICENSE
 
-This project is licensed under the AGPL V3 (see NOTICE) and a commercial license from TESOBE.
+This project is licensed under the AGPL V3 (see NOTICE). Comercial licences are available from TESOBE.
 
 # SETUP
 
@@ -78,61 +78,27 @@ The current workaround is to move the project directory onto a different partiti
 
 ## PROPS FILE
 
-1. Renaming:
+1. Copying and renaming:
 
-The sample.props.template file must be renamed for Lift to find it (https://www.assembla.com/wiki/show/liftweb/Properties). Renaming it to default.props
-should be the easiest way to get started.
+We suggest you copy and paste the sample.props.template file so you can refer to it later.
+The active Props file should be named *default.props* or another name that Liftweb accepts. See https://www.assembla.com/wiki/show/liftweb/Properties for the various options.
 
-2. Filling in values: (This step can skip)
-
-transloadit.authkey
-transloadit.addImageTemplate
-
-The Sofit app uses transloadit.com to process uploaded images. If these are not filling in, users will not be able to add images to
-individual transactions.
-
-transloadit.authkey can be obtained by registering at transloadit.com
-transloadit.addImageTemplate can be obtained by creating a template at transloadit. A sample template that resizes images to 250px width is :
-
-{
-  "steps": {
-    "resize_to_250": {
-      "robot": "/image/resize",
-      "width": 250,
-      "zoom": false
-    }
-  }
-}
+Below are the important Props (see example.props.tempate for more info)
 
 ### *base_url*
 
 The base_url is used to calculate the callback url to give to the Open Bank Project API server. This should just be the
 base url used to access the social finance application. So if you're running a copy of the Sofit application at
 sofit.example.com over https, on the standard port, it would be "https://sofit.example.com".
-An example value for local development could be: http://localhost:8081 (as 8081 is the default Lift development port)
+The suggested value for local development is: http://localhost:8081 but obviously you can choose a different non conflicting host:port
 
 ### *api_hostname*
 
-The api_hostname should be the base url (https://api.openbankproject.com) of the Open Bank Project API. If, Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in your props file. 
+The api_hostname should be the base url (https://api.openbankproject.com) of the Open Bank Project API. \
+If Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in your props file. 
 
 ### *obp_consumer_key* \
 ### *obp_secret_key*
 
-For the obp_consumer_key and obp_secret_key, should be run OBP-API in your local environment. Instruction are [here](https://github.com/OpenBankProject/OBP-API) for run OBP-API locally. In OBP-API, register as a user for *Get API Key*. 
-
-Note: In Redirect URL(Optional) give sofit base_url(http://localhost:8081/), when Register your consumer window will pop-up. 
-
-All in all, a props file could look something like:
-
-transloadit.authkey=89hs8fho98fsho8hsf48sfo98sh\
-transloadit.addImageTemplate=s9fe8sh8h4sof98hf84s8fs48f4\
-api_hostname=https://api.openbankproject.com/api \
-defaultAuthProvider=https://api.openbankproject.com/api 
-### OR 
-This is a for local envronment. \
-api_hostname=http://127.0.0.1:8080          
-defaultAuthProvider=http://127.0.0.1:8080
-
-obp_consumer_key=uodsifnodsfifdsliufdsliufdsfdsfsdfsx\
-obp_secret_key=iuesbfiyvglxzgifg7eisgei7fglesfi\
-base_url=http://localhost:8080 
+You will need to get a consumer key and secret but registering a Consumer / Get API Key on the OBP API.
+See the README of OBP-API if you want to run OBP-API locally.
