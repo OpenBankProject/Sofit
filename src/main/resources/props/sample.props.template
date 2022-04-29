@@ -5,10 +5,10 @@
 ######################################
 ## REQUIRED ##########################
 
-# The base url of the api to use (e.g. https://apisandbox.openbankproject.com)
+# The base url of the api to use (e.g. https://YOUR-OBP-API-HOST.com or http://127.0.0.1:8080 etc.)
 api_hostname=FILL_ME_IN
 
-# At the moment sofi doesn't have the ability select multiple user auth providers
+# At the moment Sofit doesn't have the ability select multiple user auth providers
 # In most cases, this should just be identical to "api_hostname"
 # If not filled in you will get a page of red box errors!
 defaultAuthProvider=FILL_ME_IN
@@ -17,8 +17,11 @@ defaultAuthProvider=FILL_ME_IN
 obp_consumer_key=FILL_ME_IN
 obp_secret_key=FILL_ME_IN
 
-# The base url of this application (e.g. http://localhost:8081) which is used for the oauth callback url.
-# Note: If you are running a local API instance and a local Sofi instance on the same machine, we recommend you call the API on 127.0.0.1 in your browser and Sofi on localhost to avoid weird cookie issues
+# The base url / redirect url of the of this application
+# This is used for the oauth callback url.
+# When you register your consumer key for this application on the API, use this for redirect_url
+# Note: If you are running a local API instance and a local Sofit instance on the same machine, we *strongly* recommend that you call the API on 127.0.0.1 in your browser and Sofi on localhost to avoid weird cookie issues
+# Suggested value for local testing is: http://localhost:8081
 base_url=FILL_ME_IN
 
 ## End of REQUIRED ###################
