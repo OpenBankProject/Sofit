@@ -57,7 +57,7 @@ Note: You may need to add the pluginGroup to the $HOME/.m2/settings.xml
 
 ## Ubuntu
 
-If you use Ubuntu (or a derivate) and encrypted home directories (e.g. you have ~/.Private), you might run into the following error when the project is built:
+If you use Ubuntu (or a derivative) and encrypted home directories (e.g. you have ~/.Private), you might run into the following error when the project is built:
 
     uncaught exception during compilation: java.io.IOException
     [ERROR] File name too long
