@@ -489,12 +489,6 @@ class Boot extends MdcLoggable{
     Locale.setDefault(locale)
     logger.info("Default Project Locale is :" + locale)
     
-    // Properly convert a language tag to a Locale
-    def computeLocale(tag : String) = tag.split(Array('-', '_')) match {
-      case Array(lang) => new Locale(lang)
-      case Array(lang, country) => new Locale(lang, country)
-      case Array(lang, country, variant) => new Locale(lang, country, variant)
-    }
     // Cookie name
     val localeCookieName = "SELECTED_LOCALE"
     LiftRules.localeCalculator = {
@@ -502,14 +496,14 @@ class Boot extends MdcLoggable{
         // Check against a set cookie, or the locale sent in the request 
         def currentLocale : Locale = {
           S.findCookie(localeCookieName).flatMap {
-            cookie => cookie.value.map(computeLocale)
+            cookie => cookie.value.map(Util.computeLocale)
           } openOr locale
         }
         
         // Check to see if the user explicitly requests a new locale 
         S.param("locale") match {
           case Full(requestedLocale) if requestedLocale != null => {
-            val computedLocale = computeLocale(requestedLocale)
+            val computedLocale = Util.computeLocale(requestedLocale)
             S.addCookie(HTTPCookie(localeCookieName, requestedLocale))
             computedLocale
           }
