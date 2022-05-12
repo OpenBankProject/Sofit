@@ -32,7 +32,8 @@ class CreateExpenditure(params: List[String]) extends MdcLoggable {
       val result = createOutcome(bankId, accountId, outcomeDescription, outcomeAmount.toString, "EUR")
       if (result.isDefined) {
         val transactionId = result.map(_.transaction_id).getOrElse("")
-        ObpAPI.addTags(bankId, accountId, "owner", transactionId, List(tagVar.is))
+        val addTags = ObpAPI.addTags(bankId, accountId, "owner", transactionId, List(tagVar.is))
+        logger.debug(s"CreateOutcome.addOutcome.process.addTags $addTags")
         val msg = "Saved"
         Call("socialFinanceNotifications.notify", msg).cmd
         S.redirectTo(s"/banks/$bankId/accounts/$accountId/owner")

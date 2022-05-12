@@ -34,9 +34,12 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
       if (result.isDefined) {
         val incomeAccountId = Props.get("incoming.account_id", "")
         val transactionId = result.map(_.transaction_id).getOrElse("")
-        val creditTransactionId = getDoubleEntryTransaction(bankId, incomeAccountId, "owner", transactionId)
+        logger.debug(s"CreateIncome.addIncome.process.transactionId $transactionId")
+        val creditTransactionId = getDoubleEntryTransaction(bankId, incomeAccountId, "accountant", transactionId)
           .map(_.credit_transaction.transaction_id).getOrElse("")
-        ObpAPI.addTags(bankId, accountId, "owner", creditTransactionId, List(tagVar.is))
+        logger.debug(s"CreateIncome.addIncome.process.creditTransactionId $creditTransactionId")
+        val addTags = ObpAPI.addTags(bankId, accountId, "owner", creditTransactionId, List(tagVar.is))
+        logger.debug(s"CreateIncome.addIncome.process.addTags $addTags")
         val msg = "Saved"
         Call("socialFinanceNotifications.notify", msg).cmd
         S.redirectTo(s"/banks/$bankId/accounts/$accountId/owner")
