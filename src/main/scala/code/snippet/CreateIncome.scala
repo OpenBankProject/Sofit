@@ -35,7 +35,7 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
         val incomeAccountId = Props.get("incoming.account_id", "")
         val transactionId = result.map(_.transaction_id).getOrElse("")
         logger.debug(s"CreateIncome.addIncome.process.transactionId $transactionId")
-        val creditTransactionId = getBalancingTransaction(bankId, incomeAccountId, "accountant", transactionId)
+        val creditTransactionId = getBalancingTransaction(transactionId)
           .map(_.credit_transaction.transaction_id).getOrElse("")
         logger.debug(s"CreateIncome.addIncome.process.creditTransactionId $creditTransactionId")
         val addTags = ObpAPI.addTags(bankId, accountId, "owner", creditTransactionId, List(tagVar.is))

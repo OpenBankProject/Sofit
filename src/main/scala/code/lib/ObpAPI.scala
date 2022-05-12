@@ -246,10 +246,7 @@ object ObpAPI {
   }
 
   
-  def getBalancingTransaction(bankId: String,
-                              accountId: String,
-                              viewId: String,
-                              transactionId: String): Box[DoubleEntryTransactionJson] = {
+  def getBalancingTransaction(transactionId: String): Box[DoubleEntryTransactionJson] = {
     val result  = ObpGet(s"/$versionOfApi/transactions/" + transactionId + "/balancing-transaction")
       .flatMap(x => x.extractOpt[DoubleEntryTransactionJson])
     result
