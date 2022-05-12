@@ -2,7 +2,7 @@ package code.snippet
 
 import code.Constant._
 import code.lib.ObpAPI
-import code.lib.ObpAPI.{createIncome, getAccount, getDoubleEntryTransaction}
+import code.lib.ObpAPI.{createIncome, getAccount, getBalancingTransaction}
 import code.util.Helper.{MdcLoggable, getAccountTitle}
 import net.liftweb.common.Box
 import net.liftweb.http.js.JE.Call
@@ -35,7 +35,7 @@ class CreateIncome(params: List[String]) extends MdcLoggable {
         val incomeAccountId = Props.get("incoming.account_id", "")
         val transactionId = result.map(_.transaction_id).getOrElse("")
         logger.debug(s"CreateIncome.addIncome.process.transactionId $transactionId")
-        val creditTransactionId = getDoubleEntryTransaction(bankId, incomeAccountId, "accountant", transactionId)
+        val creditTransactionId = getBalancingTransaction(bankId, incomeAccountId, "accountant", transactionId)
           .map(_.credit_transaction.transaction_id).getOrElse("")
         logger.debug(s"CreateIncome.addIncome.process.creditTransactionId $creditTransactionId")
         val addTags = ObpAPI.addTags(bankId, accountId, "owner", creditTransactionId, List(tagVar.is))
