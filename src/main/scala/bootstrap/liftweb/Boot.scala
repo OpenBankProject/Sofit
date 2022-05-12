@@ -483,9 +483,7 @@ class Boot extends MdcLoggable{
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
 
     //set base localization according to a props value (instead of computer default)
-    val locale = Locale.getAvailableLocales().toList.filter { l =>
-      l.toLanguageTag == Props.get("language_tag", "en-GB")
-    }.head
+    val locale = Util.getLocale()
     Locale.setDefault(locale)
     logger.info("Default Project Locale is :" + locale)
     

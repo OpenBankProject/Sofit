@@ -62,10 +62,13 @@ object Util extends MdcLoggable {
     val formattedDate = df.format(date)
     formattedDate
   }
+
+  def getLocale(): Locale = Locale.getAvailableLocales().toList.filter { l =>
+    l.toLanguageTag == Props.get("language_tag", "en-GB")
+  }.headOption.getOrElse(Locale.ENGLISH)
+  
   def currentLocale() : Locale = {
-    val locale = Locale.getAvailableLocales().toList.filter { l =>
-      l.toLanguageTag == Props.get("language_tag", "en-GB")
-    }.head
+    val locale = getLocale()
     // Cookie name
     val localeCookieName = "SELECTED_LOCALE"
     S.findCookie(localeCookieName).flatMap {
