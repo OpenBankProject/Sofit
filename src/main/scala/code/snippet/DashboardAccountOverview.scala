@@ -64,6 +64,7 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
                      |var expenditureOptions = {
                      |  title:'${S.?("expenditure")}',
                      |  legend: { position: "none" },
+                     |  hAxis: {minValue: 0}
                      |};
                      |
                      |var expenditureChart = new google.visualization.BarChart(document.getElementById('expenditureChart'));
@@ -77,6 +78,7 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
                      |var incomeOptions = {
                      |  title:'${S.?("income")}',
                      |  legend: { position: "none" },
+                     |  hAxis: {minValue: 0}
                      |};
                      |
                      |var incomeChart = new google.visualization.BarChart(document.getElementById('incomeChart'));
