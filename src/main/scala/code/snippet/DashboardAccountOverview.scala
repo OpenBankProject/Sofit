@@ -42,12 +42,16 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
     def process(): JsCmd = {
       val expenditures: List[(String, Double)] = calculateTransactionOverview(bankId, accountId, false,monthsAgoVar.is.toInt).map(_.toList)
         .toList.flatten.sortBy(_._2)
-      val expenditureData = expenditures.map(i => s"['${i._1}',${i._2.abs}, '#EB6028']").mkString(",")
+      val expenditureData = {expenditures.size > 0} match {
+        case true => expenditures.map(i => s"['${i._1}',${i._2.abs}, '#EB6028']").mkString(",")
+        case false => s"['',0, '#EB6028']"
+      } 
       val incomes: List[(String, Double)] = calculateTransactionOverview(bankId, accountId, true,monthsAgoVar.is.toInt).map(_.toList)
         .toList.flatten.sortBy(_._2)
-      val incomeMaxValue = incomes.map(_._2).max.abs
-      val incomeData = incomes.map(i => s"['${i._1}',${i._2.abs}, '#50B165']").mkString(",")
-      
+      val incomeData = {incomes.size > 0} match {
+        case true => incomes.map(i => s"['${i._1}',${i._2.abs}, '#50B165']").mkString(",")
+        case false => s"['',0, '#50B165']"
+      }
       val script = s"""google.charts.load('current', {'packages':['corechart']});
                      |google.charts.setOnLoadCallback(drawChart);
                      |
@@ -60,6 +64,7 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
                      |var expenditureOptions = {
                      |  title:'${S.?("expenditure")}',
                      |  legend: { position: "none" },
+                     |  hAxis: {minValue: 0}
                      |};
                      |
                      |var expenditureChart = new google.visualization.BarChart(document.getElementById('expenditureChart'));
@@ -73,6 +78,7 @@ class DashboardAccountOverview(params: List[String]) extends MdcLoggable {
                      |var incomeOptions = {
                      |  title:'${S.?("income")}',
                      |  legend: { position: "none" },
+                     |  hAxis: {minValue: 0}
                      |};
                      |
                      |var incomeChart = new google.visualization.BarChart(document.getElementById('incomeChart'));
