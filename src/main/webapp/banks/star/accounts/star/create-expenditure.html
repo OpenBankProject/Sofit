@@ -42,7 +42,7 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 	<section class="account-info account-info--public">
 		<div class="account-info__box account-info__box--views">
 			<div class="account-info__top-wrapper" data-lift="CreateIncome.accountTitle" >
-				<h2 id="account-overview" class="account-info__box-headline account-overview"><span class="lift:Loc.add_expenditure">Add expenditure</span></h2>
+				<h2 id="account-overview" class="account-info__box-headline account-overview"><lift:loc locid="add_expenditure">Add expenditure</lift:loc></h2>
 				<h3 id="account-title" class="account-info__box-headline account-title">ACCOUNT</h3>
 				<div data-lift="embed?what=_nav_account_settings"></div>
 			</div>
@@ -51,19 +51,19 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 				<form data-lift="form.ajax">
 					<div class="form-group">
 						<label for="payment_description">
-							<h4><span class="lift:Loc.payment_description">Payment description</span></h4>
+							<h4><lift:loc locid="payment_description">Payment description</lift:loc></h4>
 						</label>
 						<input class="form-control" type="text" id="payment_description" name="payment_description"/>
 					</div>
 					<div class="form-group">
 						<label for="payment_amount">
-							<h4><span class="lift:Loc.payment_amount">payment amount</span></h4>
+							<h4><lift:loc locid="payment_amount">payment amount</lift:loc></h4>
 						</label>
 						<input class="form-control" id="payment_amount" name="payment_amount"/>
 					</div>
 					<div class="form-group">
 						<label for="payment_category">
-							<h4><span class="lift:Loc.payment_category">Category</span></h4>
+							<h4><lift:loc locid="payment_category">Category</lift:loc></h4>
 						</label>
 						<select class="form-control" name="payment_category" id="payment_category">
 							<option value="">none</option>

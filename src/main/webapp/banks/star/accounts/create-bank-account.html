@@ -36,7 +36,7 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 		<div class="account-info__box account-info__box--views">
 			<div class="account-info__top-wrapper">
 				<h2 id="account-title" class="account-info__box-headline create-account-title">
-					<span class="lift:Loc.create_account_label">Create an account</span>
+					<lift:loc locid="create_account_label">Create an account</lift:loc>
 				</h2>
 				<div data-lift="embed?what=_nav_account_settings"></div>
 			</div>
@@ -44,7 +44,7 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 				<form data-lift="form.ajax">
 					<div class="form-group">
 						<label for="bank-id" hidden>
-							<h4><span class="lift:Loc.bank_name">Bank Name</span></h4>
+							<h4><lift:loc locid="bank_name">Bank Name</lift:loc></h4>
 
 						</label>
 						<select class="form-control" name="bank-id" id="bank-id" hidden>
@@ -53,7 +53,7 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 					<div class="form-group">
 					</div>
 						<label for="new_label">
-							<h4><span class="lift:Loc.account_label">Account name</span></h4>
+							<h4><lift:loc locid="account_label">Account name</lift:loc></h4>
 						</label>
 						<input class="form-control" type="text" id="new_label" name="new_label" />
 					</div>
