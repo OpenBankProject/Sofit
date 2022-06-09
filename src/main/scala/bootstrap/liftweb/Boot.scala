@@ -413,6 +413,9 @@ class Boot extends MdcLoggable{
       Menu.i("Correlated-user") / "correlated-user" >> EarlyResponse(() => {
         setCorrelatedCookie
       }),
+      Menu.i("Setup Correlated-user") / "setup-correlated-user" >> EarlyResponse(() => {
+        setupCorrelatedUser
+      }),
       Menu.i("About") / "about",
       Menu.i("Debug info") / "debug-info",
       Menu.i("Help") / "help",
@@ -555,4 +558,16 @@ class Boot extends MdcLoggable{
       case _ => S.redirectTo("/")
     }
   }
+
+
+  private def setupCorrelatedUser = {
+        // Create a User
+        //correlatedUserId = CreateUser()
+        S.redirectTo("/correlated-user?correlated_user_id=123")
+  }
+
+
+
+
+
 }

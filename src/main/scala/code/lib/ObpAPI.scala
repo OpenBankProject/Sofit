@@ -162,7 +162,69 @@ object ObpAPI {
     result.flatMap(_.extractOpt[CustomerJsonV310])
   }
 
-  
+  def createUserWIP(bankId: String, legal_name: String): Box[CustomerJsonV310] = {
+
+    //////
+
+
+    //create a random username.
+    var randomUserName = "";
+    var userNameCharacter =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    var userNameCharacterLength = userNameCharacter.length;
+    for (var i = 0; i < 12; i++) {
+      randomUserName += userNameCharacter.charAt(
+        Math.floor(Math.random() * userNameCharacterLength)
+      );
+    }
+
+    //create a random password.
+    var randomLongStringPassword = "";
+    var characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var charactersLength = characters.length;
+    for (var i = 0; i < 20; i++) {
+      randomLongStringPassword += characters.charAt(
+        Math.floor(Math.random() * charactersLength)
+      );
+    }
+    setDebugInfo("Username: " + randomUserName);
+    setDebugInfo("password: " + randomLongStringPassword);
+    window.localStorage.setItem("correlated_username", randomUserName);
+    window.localStorage.setItem("correlated_password", randomLongStringPassword);
+    const createUserOptions = {
+      method: "post",
+      data: {
+        email: randomUserName + "@example.com",
+        username: randomUserName,
+        password: randomLongStringPassword,
+        first_name: randomUserName,
+        last_name: randomUserName,
+      },
+    };
+
+
+
+
+
+
+
+    val randomUserName = "bla"
+    val randomLongStringPassword = "bla"
+
+    /////
+
+    val json =
+      PostUserJsonV310(
+        email = randomUserName + "@example.com",
+        username = randomUserName,
+        password = randomLongStringPassword,
+        first_name = randomUserName,
+        last_name = randomUserName
+      )
+    val result = ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/customers", Extraction.decompose(json))
+    result.flatMap(_.extractOpt[CustomerJsonV310])
+  }
   
   /**
    * @return Json for transactions of a particular bank account
