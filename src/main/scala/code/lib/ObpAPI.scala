@@ -6,6 +6,7 @@ import java.net.{HttpURLConnection, URL}
 import java.text.SimpleDateFormat
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.Date
+import java.util.UUID.randomUUID
 
 import code.Constant._
 import code.lib.ObpJson.{CurrentUserJson, _}
@@ -161,70 +162,28 @@ object ObpAPI {
     val result = ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/customers", Extraction.decompose(json))
     result.flatMap(_.extractOpt[CustomerJsonV310])
   }
-
-  def createUserWIP(bankId: String, legal_name: String): Box[CustomerJsonV310] = {
-
-    //////
-
+  
+  def createUser(bankId: String, legal_name: String): Box[GetUserJsonV400] = {
 
     //create a random username.
-    var randomUserName = "";
-    var userNameCharacter =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    var userNameCharacterLength = userNameCharacter.length;
-    for (var i = 0; i < 12; i++) {
-      randomUserName += userNameCharacter.charAt(
-        Math.floor(Math.random() * userNameCharacterLength)
-      );
-    }
-
-    //create a random password.
-    var randomLongStringPassword = "";
-    var characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    var charactersLength = characters.length;
-    for (var i = 0; i < 20; i++) {
-      randomLongStringPassword += characters.charAt(
-        Math.floor(Math.random() * charactersLength)
-      );
-    }
-    setDebugInfo("Username: " + randomUserName);
-    setDebugInfo("password: " + randomLongStringPassword);
-    window.localStorage.setItem("correlated_username", randomUserName);
-    window.localStorage.setItem("correlated_password", randomLongStringPassword);
-    const createUserOptions = {
-      method: "post",
-      data: {
-        email: randomUserName + "@example.com",
-        username: randomUserName,
-        password: randomLongStringPassword,
-        first_name: randomUserName,
-        last_name: randomUserName,
-      },
-    };
-
-
-
-
-
-
-
-    val randomUserName = "bla"
-    val randomLongStringPassword = "bla"
-
-    /////
+    val randomUserName = randomUUID().toString
+    val randomLongStringPassword = randomUUID().toString
 
     val json =
-      PostUserJsonV310(
+      PostUserJsonV400(
         email = randomUserName + "@example.com",
         username = randomUserName,
         password = randomLongStringPassword,
         first_name = randomUserName,
         last_name = randomUserName
       )
-    val result = ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/customers", Extraction.decompose(json))
-    result.flatMap(_.extractOpt[CustomerJsonV310])
+    val result = ObpPost(s"/$versionOfApi/users/", Extraction.decompose(json))
+    result.flatMap(_.extractOpt[GetUserJsonV400])
+
   }
+
+
+
   
   /**
    * @return Json for transactions of a particular bank account
@@ -1332,6 +1291,50 @@ object ObpJson {
                                branch_id: String,
                                name_suffix: String
                              )
+
+  case class GetUserJsonV400(
+    user_id: String,
+    email: String,
+    provider_id:String,
+    provider: String,
+    username: String,
+    entitlements:EntitlementJSONs)
+
+
+  case class PostUserJsonV400(
+                              email: String,
+                              username: String,
+                              password: String,
+                              first_name: String,
+                              last_name: String)
+
+
+
+
+
+  trait Entitlement {
+    def entitlementId: String
+    def bankId : String
+    def userId : String
+    def roleName : String
+    def createdByProcess : String
+  }
+
+  //case class CreateEntitlementJSON(bank_id: String, role_name: String)
+  case class EntitlementJSON(entitlement_id: String, role_name: String, bank_id: String)
+  case class EntitlementJSONs(list: List[EntitlementJSON])
+
+
+  def createEntitlementJSON(e: Entitlement): EntitlementJSON = {
+    EntitlementJSON(entitlement_id = e.entitlementId,
+      role_name = e.roleName,
+      bank_id = e.bankId)
+  }
+
+  def createEntitlementJSONs(l: List[Entitlement]): EntitlementJSONs = {
+    EntitlementJSONs(l.map(createEntitlementJSON))
+  }
+
 
   case class CustomerWithAttributesJsonV300(
                                              bank_id: String,
