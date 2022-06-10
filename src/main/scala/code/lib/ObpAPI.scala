@@ -29,7 +29,7 @@ case class ErrorMessage(code: Int,
                         message: String
                        )
 
-object ObpAPI {
+object ObpAPI extends MdcLoggable {
   
   implicit val formats = DefaultFormats
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
@@ -162,13 +162,16 @@ object ObpAPI {
     val result = ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/customers", Extraction.decompose(json))
     result.flatMap(_.extractOpt[CustomerJsonV310])
   }
-  
-  def createUser(bankId: String, legal_name: String): Box[GetUserJsonV400] = {
+
+  def createRandomUser() : Box[GetUserJsonV400] = {
+  //  extends MdcLoggable
 
     //create a random username.
-    val randomUserName = randomUUID().toString
-    val randomLongStringPassword = randomUUID().toString
+    val randomUserName = randomUUID().toString.replace("-", "")
+    logger.debug("setupCorrelatedUser says randomUserName is: " + randomUserName)
 
+    val randomLongStringPassword = randomUUID().toString
+    
     val json =
       PostUserJsonV400(
         email = randomUserName + "@example.com",
@@ -177,24 +180,24 @@ object ObpAPI {
         first_name = randomUserName,
         last_name = randomUserName
       )
-    val result = ObpPost(s"/$versionOfApi/users/", Extraction.decompose(json))
+    val result = ObpPost(s"/$versionOfApi/users", Extraction.decompose(json))
     result.flatMap(_.extractOpt[GetUserJsonV400])
 
   }
 
 
 
-  
+
   /**
    * @return Json for transactions of a particular bank account
    */
   def transactions(bankId: String, accountId: String, viewId: String, limit: Option[Int],
       offset: Option[Int], fromDate: Option[Date], toDate: Option[Date], sortDirection: Option[SortDirection]) : Box[TransactionsJson]= {
-    
+
     val headers : List[Header] = limit.map(l => Header("obp_limit", l.toString)).toList ::: offset.map(o => Header("obp_offset", o.toString)).toList :::
       fromDate.map(f => Header("obp_from_date", dateFormat.format(f))).toList ::: toDate.map(t => Header("obp_to_date", dateFormat.format(t))).toList :::
       sortDirection.map(s => Header("obp_sort_direction", s.value)).toList ::: Nil
-    
+
     ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
               "/transactions", headers).flatMap(x => x.extractOpt[TransactionsJson])
   }
@@ -236,11 +239,11 @@ object ObpAPI {
   def privateAccounts : Box[BarebonesAccountsJson] = {
     ObpGet(s"/$versionOfApi/my/accounts").flatMap(_.extractOpt[BarebonesAccountsJson])
   }
-  
+
   def getAccountBalances(bankId : String, accountId: String) : Box[AccountBalanceJsonV400] = {
     ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + accountId + "/balances")
       .flatMap(_.extractOpt[AccountBalanceJsonV400])
-  }  
+  }
   def getAccountsBalances(bankId : String) : Box[AccountsBalancesJsonV400] = {
     ObpGet(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/balances").flatMap(_.extractOpt[AccountsBalancesJsonV400])
   }
@@ -266,7 +269,7 @@ object ObpAPI {
     counterparties
   }
 
-  
+
   def getBalancingTransaction(transactionId: String): Box[DoubleEntryTransactionJson] = {
     val result  = ObpGet(s"/$versionOfApi/transactions/" + transactionId + "/balancing-transaction")
       .flatMap(x => x.extractOpt[DoubleEntryTransactionJson])
@@ -295,7 +298,7 @@ object ObpAPI {
       ("bank_id" -> bankId)
     ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId), json)
   }
-  
+
   def createAccount(bankId: String, label: String, userId: String): Box[JValue] = {
     val json =
       CreateAccountRequestJsonV310(
@@ -307,7 +310,7 @@ object ObpAPI {
         account_routings = Nil
       )
     ObpPost(s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts", Extraction.decompose(json))
-  }  
+  }
   def createIncome(bankId: String, accountId: String, incomeDescription: String, incomeAmount: String, incomeCurrency: String): Box[PostHistoricalTransactionResponseJson] = {
     val incomeAccountId = Props.get("incoming.account_id", "")
     val utcZoneId = ZoneId.of("UTC")
@@ -326,7 +329,7 @@ object ObpAPI {
         `type`= "SANDBOX_TAN",
         charge_policy= "SHARED"
       )
-    
+
     ObpPost(s"/$versionOfApi/banks/$bankId/management/historical/transactions", Extraction.decompose(json))
       .flatMap(_.extractOpt[PostHistoricalTransactionResponseJson])
   }
@@ -356,18 +359,18 @@ object ObpAPI {
    /**
    * @return The json for the attribute if it was successfully added
    */
-  def addTransactionAttribute(bankId : String, 
-                              accountId : String, 
-                              transactionId: String, 
-                              name: String, 
-                              `type`: String, 
+  def addTransactionAttribute(bankId : String,
+                              accountId : String,
+                              transactionId: String,
+                              name: String,
+                              `type`: String,
                               value: String) : Box[TransactionAttributeResponseJson] = {
-    
+
     val json = TransactionAttributeJsonV400(name = name, `type` = `type`, value = value)
-    
+
     val url = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" +
       "/transactions/" + urlEncode(transactionId) + "/attribute"
-    
+
     ObpPost(url, Extraction.decompose(json)).flatMap(_.extractOpt[TransactionAttributeResponseJson])
   }
    /**
@@ -375,31 +378,31 @@ object ObpAPI {
    */
   def addComment(bankId : String, accountId : String, viewId : String,
       transactionId: String, comment: String) : Box[TransactionCommentJson] = {
-    
+
     val addCommentJson = ("value" -> comment)
-    
+
     val addCommentUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
       "/transactions/" + urlEncode(transactionId) + "/metadata/comments"
-    
+
     ObpPost(addCommentUrl, addCommentJson).flatMap(_.extractOpt[TransactionCommentJson])
   }
-  
+
   def addPermission(bankId: String, accountId: String, userId : String, viewId: String) = {
-    val grantPermissionUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + 
+    val grantPermissionUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) +
       "/permissions/" + urlEncode(defaultProvider) + "/" +urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpPost(grantPermissionUrl, new JObject(Nil))
   }
-  
+
   def addPermissions(bankId: String, accountId: String, userId: String, viewIds : List[String]) : Box[JValue] = {
-    val addPermissionsUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + 
+    val addPermissionsUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" +
          urlEncode(accountId) + "/permissions/" + urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
     val json = ("views" -> viewIds)
-    
+
     for {
       result <- ObpPost(addPermissionsUrl, json)
     } yield result
   }
-  
+
   def getPermissions(bankId: String, accountId : String) : Box[PermissionsJson] = {
     ObpGet(s"/$versionOfApi/banks/" + bankId + "/accounts/" + accountId + "/permissions").flatMap(x => x.extractOpt[PermissionsJson])
   }
@@ -409,9 +412,9 @@ object ObpAPI {
       urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views/" + urlEncode(viewId)
     ObpDeleteBoolean(removePermissionUrl)
   }
-  
+
   def removeAllPermissions(bankId: String, accountId: String, userId: String) = {
-    val removeAllPermissionsUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" + 
+    val removeAllPermissionsUrl = s"/$versionOfApi121/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/permissions/" +
       urlEncode(defaultProvider) + "/" + urlEncode(userId) + "/views"
     ObpDeleteBoolean(removeAllPermissionsUrl)
   }
@@ -470,49 +473,49 @@ object ObpAPI {
    */
   def addTags(bankId : String, accountId : String, viewId : String,
       transactionId: String, tags: List[String]) : List[TransactionTagJson] = {
-    
+
     val addTagJsons = tags.map(tag => {
       ("value" -> tag)
     })
-    
+
     val addTagUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" + urlEncode(transactionId) + "/metadata/tags"
-    
+
     addTagJsons.map(addTagJson => ObpPost(addTagUrl, addTagJson).flatMap(_.extractOpt[TransactionTagJson])).flatten
   }
-  
+
   /**
    * @return True if the tag was deleted
    */
   def deleteTag(bankId : String, accountId : String, viewId : String,
       transactionId: String, tagId: String) : Boolean  = {
-    val deleteTagUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" + 
+    val deleteTagUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + "/transactions/" +
       urlEncode(transactionId) + "/metadata/tags/" + urlEncode(tagId)
     ObpDeleteBoolean(deleteTagUrl)
   }
-  
+
   /**
    * @return The json for the image if it was successfully added
    */
   def addImage(bankId : String, accountId : String, viewId : String,
       transactionId: String, imageURL: String, imageDescription: String) = {
 
-    val json = 
+    val json =
       ("label" -> imageDescription) ~
       ("URL" -> imageURL)
-    
-    val addImageUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + 
+
+    val addImageUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
       "/transactions/" + urlEncode(transactionId) + "/metadata/images"
-      
+
     ObpPost(addImageUrl, json).flatMap(_.extractOpt[TransactionImageJson])
   }
-  
+
   /**
    * @return True if the image was deleted
    */
   def deleteImage(bankId : String, accountId : String, viewId : String,
       transactionId: String, imageId: String) : Boolean  = {
-    
-    val deleteImageUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) + 
+
+    val deleteImageUrl = s"/$versionOfApi/banks/" + urlEncode(bankId) + "/accounts/" + urlEncode(accountId) + "/" + urlEncode(viewId) +
       "/transactions/" + urlEncode(transactionId) + "/metadata/images/" + urlEncode(imageId)
     ObpDeleteBoolean(deleteImageUrl)
   }
@@ -530,7 +533,7 @@ object OBPRequest extends MdcLoggable {
       val apiUrl = OAuthClient.currentApiBaseUrl
       val url = new URL(apiUrl + apiPath)
       logger.info(s"OBP Server Request URL: ${url.getHost}${url.getPath}")
-      
+
 
       val request = SSLHelper.getConnection(apiUrl + apiPath)
       request.setDoOutput(true)
@@ -583,7 +586,7 @@ object OBPRequest extends MdcLoggable {
       case _ => Unit
     }
   }
-  
+
 }
 
 //Ugly duplicate of above to be able to get rid of /obp prefix.
@@ -752,7 +755,7 @@ object ObpJson {
     logo : Option[String],
     website : Option[String],
     bank_routing: Option[BankRoutingJsonV121])
-  
+
   case class BankAttributeBankResponseJsonV400(name: String,
                                                value: String)
   case class BankJson400(
@@ -766,14 +769,14 @@ object ObpJson {
                         )
 
   case class BanksJson400(banks: List[BankJson400])
-  
+
   case class BankJsonV400(id : Option[String],
     short_name : Option[String],
     full_name : Option[String],
     logo : Option[String],
     website : Option[String],
     bank_routing: Option[BankRoutingJsonV121])
-		  		  
+
   case class UserJSONV121(id: Option[String],
     provider: Option[String],
     display_name: Option[String])
@@ -799,7 +802,7 @@ object ObpJson {
                                            branch_id: String,
                                            account_routings: List[AccountRoutingJsonV121]
                                          )
-  
+
   case class HistoricalTransactionAccountJsonV310(
                                                    bank_id: Option[String],
                                                    account_id : Option[String],
@@ -853,7 +856,7 @@ object ObpJson {
     short_name: Option[String],
     description: Option[String],
     is_public: Option[Boolean])
-            
+
   case class ViewsJson(views: Option[List[ViewJson]])
 
   case class CompleteViewJson(json: Map[String, Any]){
@@ -876,7 +879,7 @@ object ObpJson {
       case Some(s : String) => Some(s)
       case _ => None
     }
-    
+
     val metadataView: Option[String] = json.get("metadata_view") match {
       case Some(s : String) => Some(s)
       case _ => None
@@ -891,7 +894,7 @@ object ObpJson {
 
     val permissions = booleans.filterNot(_.key == "is_public")
   }
-		  		  
+
   case class AccountJson(id: Option[String],
     label: Option[String],
     number: Option[String],
@@ -900,9 +903,9 @@ object ObpJson {
     balance: Option[AccountBalanceJson],
     IBAN : Option[String],
     views_available: Option[List[ViewJson]])
-		  			 
+
   case class BarebonesAccountsJson(accounts: Option[List[BarebonesAccountJson]])
-  
+
   case class BarebonesAccountJson(id: Option[String],
                                   label: Option[String],
                                   views: Option[List[ViewJson]],
@@ -923,21 +926,21 @@ object ObpJson {
                              scheme: String,
                              address: String
                            )
-  
-		  						  
+
+
   case class HolderJson(name: Option[String],
 		is_alias : Option[Boolean])
-		  				
+
   //TODO: Can this go with BankJson?
   case class LightBankJson(national_identifier: Option[String],
     name: Option[String])
-  
+
   case class ThisAccountJson(holders: Option[List[HolderJson]],
     number: Option[String],
     kind: Option[String],
     IBAN: Option[String],
     bank: Option[LightBankJson])
-  
+
   case class LocationJson(latitude: Option[Double],
     longitude: Option[Double],
     date: Option[Date], //TODO: Check if the default date formatter is okay
@@ -950,9 +953,9 @@ object ObpJson {
     image_URL: Option[String],
     open_corporates_URL: Option[String],
     corporate_location: Option[LocationJson],
-    physical_location: Option[LocationJson])		  					 
+    physical_location: Option[LocationJson])
 
-  //TODO: Why can't an other account have more than one holder?	  					 
+  //TODO: Why can't an other account have more than one holder?
   case class OtherAccountJson(id: Option[String],
     holder: Option[HolderJson],
     number: Option[String],
@@ -1005,7 +1008,7 @@ object ObpJson {
                                          account_id: String,
                                          transaction_id: String
                                        )
-  
+
   case class DirectMinimalBankJSON(
   national_identifier : String,
   name : String
@@ -1042,61 +1045,61 @@ object ObpJson {
 
   case class TransactionValueJson(currency: Option[String],
     amount: Option[String])
-		  					  
+
   case class TransactionDetailsJson(`type`: Option[String],
     description: Option[String],
     posted: Option[Date], //TODO: Check if the default date formatter is okay
     completed: Option[Date], //TODO: Check if the default date formatter is okay
     new_balance: Option[AccountBalanceJson],
-    value: Option[TransactionValueJson])	  					  
-		  					  
+    value: Option[TransactionValueJson])
+
   case class TransactionCommentJson(id: Option[String],
     date: Option[Date], //TODO: Check if the default date formatter is okay
     value: Option[String],
     user: Option[UserJSONV121],
     reply_to: Option[String])
-  
+
   case class TransactionTagJson(id: Option[String],
     date: Option[Date], //TODO: Check if the default date formatter is okay
     value: Option[String],
     user: Option[UserJSONV121])
-  
+
   case class TransactionImageJson(id: Option[String],
     label: Option[String],
     date: Option[Date], //TODO: Check if the default date formatter is okay
     URL: Option[String],
     user: Option[UserJSONV121])
-  
+
   case class TransactionMetadataJson(narrative: Option[String],
     comments: Option[List[TransactionCommentJson]],
     tags: Option[List[TransactionTagJson]],
     images: Option[List[TransactionImageJson]],
     where: Option[LocationJson])
-  
+
   case class TransactionJson(uuid: Option[String],
     id: Option[String],
     this_account: Option[ThisAccountJson],
     other_account: Option[OtherAccountJson],
     details: Option[TransactionDetailsJson],
     metadata: Option[TransactionMetadataJson]) {
-    
+
     lazy val imageJsons : Option[List[TransactionImageJson]] = {
       metadata.flatMap(_.images)
     }
-    
+
     lazy val tagJsons : Option[List[TransactionTagJson]] = {
       metadata.flatMap(_.tags)
     }
-    
+
     lazy val commentJsons : Option[List[TransactionCommentJson]] = {
       metadata.flatMap(_.comments)
     }
   }
-  
+
   case class TransactionsJson(transactions: Option[List[TransactionJson]])
-  
+
   case class PermissionJson(user: Option[UserJSONV121], views: Option[List[ViewJson]])
-  
+
   case class PermissionsJson(permissions : Option[List[PermissionJson]])
 
 

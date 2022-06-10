@@ -35,6 +35,7 @@ import java.io.{File, FileInputStream}
 import java.util.Locale
 
 import code.Constant._
+import code.lib.ObpAPI.createRandomUser
 import code.lib.ObpJson._
 import code.lib.{OAuthClient, ObpAPI, ObpGet}
 import code.snippet._
@@ -562,8 +563,12 @@ class Boot extends MdcLoggable{
 
   private def setupCorrelatedUser = {
         // Create a User
-        //correlatedUserId = CreateUser()
-        S.redirectTo("/correlated-user?correlated_user_id=123")
+        logger.debug("Hello from setupCorrelatedUser")
+        val randomUser = createRandomUser()
+        logger.debug("setupCorrelatedUser says I created a user with user_id " + randomUser.map(_.user_id))
+        val redirectUrl = "correlated-user?correlated_user_id=" + randomUser.map(_.user_id)
+
+        S.redirectTo("/")
   }
 
 
