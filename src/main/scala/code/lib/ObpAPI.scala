@@ -80,6 +80,7 @@ object ObpAPI extends MdcLoggable {
     result.flatMap(_.extractOpt[UserCustomerLinkJson])
   }
   def createUserCustomerLinkIfDoesNotExists(bankId: String, userId: String, customerId: String): Boolean = {
+    // TODO refactor this so that we check if there are links first instead of relying on the error message.
     createUserCustomerLink(bankId, userId, customerId) match {
       case Full(_) => true
       // This means that the userId is already linked to the customerId at the bankId
@@ -124,12 +125,22 @@ object ObpAPI extends MdcLoggable {
   }
   
   def getOrCreateCustomer(bankId: String, legalName: String) : Box[String]= {
+    logger.debug(s"hello from getOrCreateCustomer bankId is: $bankId, legalName is: $legalName")
     getCustomersForCurrentUser() match {
-      case Full(list) => list.customers.find(_.legal_name == legalName) match {
-        case Some(customer) => Full(customer.customer_id)
-        case None => createCustomer(bankId, legalName).map(_.customer_id)
-      }
-      case Empty => createCustomer(bankId, legalName).map(_.customer_id)
+      case Full(list) => {
+        logger.debug("getOrCreateCustomer found a list of Customers for current User")
+        list.customers.find(_.legal_name == legalName) match {
+          case Some(customer) => {
+            logger.debug("getOrCreateCustomer found at least one customer with matching legalName:" + legalName)
+            Full(customer.customer_id)
+          }
+          case None => {
+            logger.debug("getOrCreateCustomer did not find a customer with matching legal name so will createCustomer for: " + legalName)
+            createCustomer(bankId, legalName).map(_.customer_id)}
+      }}
+      case Empty => {
+        logger.debug("getOrCreateCustomer did not find any Customers for the current User so will createCustomer")
+        createCustomer(bankId, legalName).map(_.customer_id)}
       case ParamFailure(msg,_,_,_) =>
         throw new Exception(msg)
       case obj@Failure(msg, _, _) =>
@@ -171,7 +182,7 @@ object ObpAPI extends MdcLoggable {
     logger.debug("setupCorrelatedUser says randomUserName is: " + randomUserName)
 
     val randomLongStringPassword = randomUUID().toString
-    
+
     val json =
       PostUserJsonV400(
         email = randomUserName + "@example.com",

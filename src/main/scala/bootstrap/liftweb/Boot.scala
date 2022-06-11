@@ -553,7 +553,7 @@ class Boot extends MdcLoggable{
         S.deleteCookie(correlatedUserIdBoundCookieName)
         // Set the cookie
         S.addCookie(HTTPCookie(correlatedUserIdTargetCookieName, correlatedUserId))
-        Util.correlatedUserFlow(correlatedUserId)
+        Util.correlatedUserFlow(Some(correlatedUserId))
         S.redirectTo("/")
       }
       case _ => S.redirectTo("/")
