@@ -110,11 +110,11 @@ Sofit needs some data setup for each User  (Each user has their own bank and the
 This is defined in OBP API function def sofitInitAction which runs after each user login.
 Sofit is also relying on using some Consumer Scopes (Entitlements that are set at the Consumer level not User level)
 
-Thus you will need to set the following on your *OBP API* (not Sofit!) Props
+Thus you will need to set the following *OBP API Props* (not Sofit!)
 sofit.logon_init_action.enabled=true
 allow_entitlements_or_scopes=true
 
-Also you will need to give your Sofit Consumer the following Scopes (using the OBP API Create Scope endpoint)
+Also you will need to give your *Sofit Consumer* the following *Scopes* (using the OBP API Create Scope endpoint)
 
 CanCreateCustomerAtAnyBank
 CanCreateUserCustomerLinkAtAnyBank
