@@ -35,6 +35,7 @@ import java.io.{File, FileInputStream}
 import java.util.Locale
 
 import code.Constant._
+import code.lib.ObpAPI.createRandomUser
 import code.lib.ObpJson._
 import code.lib.{OAuthClient, ObpAPI, ObpGet}
 import code.snippet._
@@ -413,6 +414,9 @@ class Boot extends MdcLoggable{
       Menu.i("Correlated-user") / "correlated-user" >> EarlyResponse(() => {
         setCorrelatedCookie
       }),
+      Menu.i("Setup Correlated-user") / "setup-correlated-user" >> EarlyResponse(() => {
+        setupCorrelatedUser
+      }),
       Menu.i("About") / "about",
       Menu.i("Debug info") / "debug-info",
       Menu.i("Help") / "help",
@@ -549,10 +553,26 @@ class Boot extends MdcLoggable{
         S.deleteCookie(correlatedUserIdBoundCookieName)
         // Set the cookie
         S.addCookie(HTTPCookie(correlatedUserIdTargetCookieName, correlatedUserId))
-        Util.correlatedUserFlow(correlatedUserId)
+        Util.correlatedUserFlow(Some(correlatedUserId))
         S.redirectTo("/")
       }
       case _ => S.redirectTo("/")
     }
   }
+
+
+  private def setupCorrelatedUser = {
+        // Create a User
+        logger.debug("Hello from setupCorrelatedUser")
+        val randomUser = createRandomUser()
+        logger.debug("setupCorrelatedUser says I created a user with user_id " + randomUser.map(_.user_id))
+        val redirectUrl = "correlated-user?correlated_user_id=" + randomUser.map(_.user_id)
+
+        S.redirectTo("/")
+  }
+
+
+
+
+
 }

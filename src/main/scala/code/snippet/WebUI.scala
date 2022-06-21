@@ -178,14 +178,14 @@ class WebUI extends MdcLoggable{
 
   def debugInfo = {
 
-    val correlatedUserIdTargetCookieValue = correlatedUserIdTargetCookieName + ": " + S.cookieValue(correlatedUserIdTargetCookieName).getOrElse("does not exist")
-    val correlatedUserIdBoundCookieValue = correlatedUserIdBoundCookieName + ": " + S.cookieValue(correlatedUserIdBoundCookieName).getOrElse("does not exist")
-    val correlatedCustomerIdCreatedCookieValue = correlatedCustomerIdCreatedCookieName + ": " + S.cookieValue(correlatedCustomerIdCreatedCookieName).getOrElse("does not exist")
-    val linkBetweenCorrelatedUserAndCustomerCreatedCookieValue = linkBetweenCorrelatedUserAndCustomerCreatedCookieName + ": " + S.cookieValue(linkBetweenCorrelatedUserAndCustomerCreatedCookieName).getOrElse("does not exist")
+    val correlatedUserIdTargetCookieValue = "Cookie " + correlatedUserIdTargetCookieName + ": " + S.cookieValue(correlatedUserIdTargetCookieName).getOrElse("does not exist")
+    val correlatedUserIdBoundCookieValue = "Cookie " +correlatedUserIdBoundCookieName + ": " + S.cookieValue(correlatedUserIdBoundCookieName).getOrElse("does not exist")
+    val correlatedCustomerIdCreatedCookieValue = "Cookie " +correlatedCustomerIdCreatedCookieName + ": " + S.cookieValue(correlatedCustomerIdCreatedCookieName).getOrElse("does not exist")
+    val linkBetweenCorrelatedUserAndCustomerCreatedCookieValue = "Cookie " + linkBetweenCorrelatedUserAndCustomerCreatedCookieName + ": " + S.cookieValue(linkBetweenCorrelatedUserAndCustomerCreatedCookieName).getOrElse("does not exist")
     val correlatedEntities = ObpAPI.getMyCorrelatedEntities
     val correlatedEntitiesJson = correlatedEntities
-      .map(correlatedEntities => "CORRELATED_ENTITIES: " + compactRender(Extraction.decompose(correlatedEntities)))
-      .getOrElse("CORRELATED_ENTITIES: does not exist")
+      .map(correlatedEntities => "Correlated Entities: " + compactRender(Extraction.decompose(correlatedEntities)))
+      .getOrElse("Correlated Entities not found")
     
     "#correlatedUserIdTargetCookieName *" #> correlatedUserIdTargetCookieValue &
     "#correlatedUserIdBoundCookieName *" #> correlatedUserIdBoundCookieValue &

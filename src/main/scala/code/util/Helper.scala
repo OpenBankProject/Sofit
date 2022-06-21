@@ -1,7 +1,7 @@
 package code.util
 
 import code.Constant._
-import code.lib.ObpAPI._
+import code.lib.ObpAPI.getAccount
 import code.lib.ObpJson.AccountJson
 import net.liftweb.common._
 import net.liftweb.util.Props

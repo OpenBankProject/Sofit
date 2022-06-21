@@ -34,6 +34,7 @@ package code.snippet
 
 import code.Constant
 import code.lib.{OAuthClient, ObpAPI}
+import code.util.Helper.MdcLoggable
 import code.util.{Helper, Util}
 import net.liftweb.common.{Box, Full}
 import net.liftweb.http.js.JsCmd
@@ -42,15 +43,20 @@ import net.liftweb.http.provider.HTTPCookie
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.util.Helpers._
 
-class Login {
+class Login extends MdcLoggable {
   
   
   private def loggedIn = {
     // Correlated User ID Flow
     S.cookieValue(Constant.correlatedUserIdTargetCookieName) match {
       case Full(correlatedUserId) if correlatedUserId != null =>
-        Util.correlatedUserFlow(correlatedUserId)
-      case _ => 
+        // This will do the full correlatedUserFlow
+        logger.debug("Expecting full correlatedUserFlow")
+        Util.correlatedUserFlow(Some(correlatedUserId))
+      case _ =>
+        // This will do the partial correlatedUserFlow i.e. maybe add a customer and user customer link
+        logger.debug("Expecting partial correlatedUserFlow")
+        Util.correlatedUserFlow(None)
     }
     def getDisplayNameOfUser(): Box[String] = {
       ObpAPI.currentUser.map {

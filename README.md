@@ -94,7 +94,7 @@ The suggested value for local development is: http://localhost:8081 but obviousl
 
 ### *api_hostname*
 
-The api_hostname should be the base url (https://api.openbankproject.com) of the Open Bank Project API. \
+The api_hostname should be the base url (e.g. https://api.openbankproject.com) of the Open Bank Project API. \
 If Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in your props file. 
 
 ### *obp_consumer_key* \
@@ -102,3 +102,22 @@ If Sofit is running locally then define api_hostname as http://127.0.0.1:8080 in
 
 You will need to get a consumer key and secret but registering a Consumer / Get API Key on the OBP API.
 See the README of OBP-API if you want to run OBP-API locally.
+
+
+#OBP API Setup
+
+Sofit needs some data setup for each User  (Each user has their own bank and the user can create historical transactions at that bank)
+This is defined in OBP API function def sofitInitAction which runs after each user login.
+Sofit is also relying on using some Consumer Scopes (Entitlements that are set at the Consumer level not User level)
+
+Thus you will need to set the following *OBP API Props* (not Sofit!)
+sofit.logon_init_action.enabled=true
+allow_entitlements_or_scopes=true
+
+Also you will need to give your *Sofit Consumer* the following *Scopes* (using the OBP API Create Scope endpoint)
+
+CanCreateCustomerAtAnyBank
+CanCreateUserCustomerLinkAtAnyBank
+
+TODO: Consider extending sofit.login_init_action and grant CanCreateCustomer (at one bank) and CanCreateUserCustomerLink (at one bank) instead of relying on Scopes
+

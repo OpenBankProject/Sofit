@@ -16,7 +16,7 @@ import net.liftweb.util.Props
 import scala.util.Try
 
 object Util extends MdcLoggable {
-  def correlatedUserFlow(correlatedUserId: String): Boolean = {
+  def correlatedUserFlow(correlatedUserId: Option[String]): String = {
     logger.debug("Hello from the correlatedUserFlow, Correlated User ID: " + correlatedUserId)
     ObpAPI.currentUser match {
       case Full(currentUser) =>
@@ -25,25 +25,34 @@ object Util extends MdcLoggable {
         ObpAPI.getOrCreateCustomer(bankId, legalName = currentUser.username) match {
           case Full(customerId) =>
             S.addCookie(HTTPCookie(Constant.correlatedCustomerIdCreatedCookieName, customerId))
-            logger.debug("Before create user customer link Customer ID: " + " Current User ID: " + currentUser.user_id)
+            // TODO refactor this so that we check if there are links instead of relying on the error message.
+            logger.debug(s"Before createUserCustomerLinkIfDoesNotExists bankid: $bankId currentUserId: $currentUserId customerId: $customerId")
             val loggedOnUserIdDone = ObpAPI.createUserCustomerLinkIfDoesNotExists(bankId, currentUserId, customerId)
             if(loggedOnUserIdDone) S.addCookie(HTTPCookie(Constant.linkBetweenCorrelatedUserAndCustomerCreatedCookieName, currentUserId))
-            logger.debug("Before create user customer link Customer ID: " + customerId + " Correlated User ID: " + correlatedUserId)
-            val correlatedUserIdDone = ObpAPI.createUserCustomerLinkIfDoesNotExists(bankId, correlatedUserId, customerId)
-            if(loggedOnUserIdDone) S.addCookie(HTTPCookie(Constant.correlatedUserIdBoundCookieName, correlatedUserId))
-            if(loggedOnUserIdDone && correlatedUserIdDone) {
-              S.deleteCookie(Constant.correlatedUserIdTargetCookieName)
-              true
-            } else {
-              false
+
+            correlatedUserId match {
+              case Some(localCorrelatedUserId) =>
+                logger.debug("Before create user customer link Customer ID: " + customerId + " Correlated User ID: " + correlatedUserId)
+                val correlatedUserIdDone = ObpAPI.createUserCustomerLinkIfDoesNotExists(bankId, localCorrelatedUserId, customerId)
+                if(loggedOnUserIdDone) S.addCookie(HTTPCookie(Constant.correlatedUserIdBoundCookieName, localCorrelatedUserId)) // Seems this cookie is only for info purposes
+                if(loggedOnUserIdDone && correlatedUserIdDone) {
+                  S.deleteCookie(Constant.correlatedUserIdTargetCookieName)
+                  "loggedOnUserIdDone&&correlatedUserIdDone"
+                } else {
+                  "NOT (loggedOnUserIdDone&&correlatedUserIdDone)"
+                }
+              case _ =>
+                logger.debug("No correlated user_id supplied, Not creating correlated user.")
+                "no correlatedUserId just customer"
             }
+
           case someIssue =>
             logger.error("Correlated User Flow Error: " + someIssue)
-            false
+            "Error"
         }
       case _ =>
         logger.debug("Correlated User Flow - user is not logged in")
-        false
+        "NotLoggedIn"
     }
   }
   
