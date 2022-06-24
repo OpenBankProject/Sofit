@@ -629,7 +629,7 @@ object OBPRequest extends MdcLoggable {
       logger.info(s"OBP Server Request URL: ${url.getHost}${url.getPath}")
 
       def addAppAccessIfNecessary: List[Header] = {
-        if (!headers.exists(_.key == "Authorization") && !apiPath.contains("resource-docs/OBPv5.0.0/obp")) {
+        if (!OAuthClient.loggedIn) {
           Header("Authorization", s"Bearer $obtainAccessToken") :: headers
         } else {
           headers
@@ -643,7 +643,7 @@ object OBPRequest extends MdcLoggable {
       request.setRequestProperty("Accept", "application/json")
       request.setRequestProperty("Accept-Charset", "UTF-8")
 
-      headers.foreach(header => request.setRequestProperty(header.key, header.value))
+      addAppAccessIfNecessary.foreach(header => request.setRequestProperty(header.key, header.value))
 
       //sign the request if we have some credentials to sign it with
       credentials.foreach(c => c.consumer.sign(request))
