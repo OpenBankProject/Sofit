@@ -42,8 +42,8 @@ Berlin 13359, Germany
 	<link href="/media/css/jquery.dropdown.min.css" rel="stylesheet" />
 	<link id="screen_style_sheet" rel="stylesheet" media="screen and (min-width: 100px)" href="./media/css/screen.css" />
 	<!-- <link href="/media/css/website.css" rel="stylesheet" type="text/css" /> -->
-	<!-- Font Awesome Icon Library -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<!-- Font Awesome Icon Library Version 4.7.0 -->
+	<link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
 </head>
 <body>
 	<div id="page-wrapper">
@@ -62,7 +62,7 @@ Berlin 13359, Germany
 							<!--<img src="/media/images/login-icon.png" alt="Log in icon" class="settings-imgs__icon">-->
 						<!--</a>-->
 						<a id="start-login" class="sign-box__text signed" href="#">
-							<span class="lift:Loc.login">In case you see this message the localization is broken</span>
+							<lift:loc locid="login">In case you see this message the localization is broken</lift:loc>
 						</a>
 
 					</div>
@@ -73,7 +73,7 @@ Berlin 13359, Germany
 						</div>
 						<div class="header__settings-images">
 							<a class="settings-imgs__link" id="logout" href="#">
-								<span class="logout-link"><span class="lift:Loc.logout">Logout</span></span>
+								<span class="logout-link"><lift:loc locid="logout">Logout</lift:loc></span>
 							</a>
 							<!--<a id="logout" href="#" class="header__settings-image header__settings-image&#45;&#45;logout">-->
 								<!--<img src="/media/images/logout-icon.png" alt="Log out icon" class="settings-imgs__icon">-->
@@ -132,9 +132,9 @@ Berlin 13359, Germany
 					<div class="footer-links-box">
 						<a href="http://twitter.com/#!/OpenBankProject" id="twitter_link" class="footer-link-box__link" data-lift="WebUI.hideTwitterLink">Twitter</a>
 						<a href="https://github.com/OpenBankProject/Social-Finance" id="github_link" class="footer-link-box__link" data-lift="WebUI.hideGitHubLink">Github</a>
-						<a href="" id="api_documentation_link" class="api-explorer-link footer-link-box__link" data-lift="WebUI.apiExplorerLink"><span class="lift:Loc.api_documentation">API Documentation</span></a>
-						<a href="" id="reset-password-link" data-lift="WebUI.setForgottenPasswordLink" class="api-explorer-link footer-link-box__link"><span class="lift:Loc.forgotten_password">Forgotten password?</span></a>
-						<a href="" id="change-password-link" data-lift="WebUI.setChangePasswordLink" class="api-explorer-link footer-link-box__link"><span class="lift:Loc.change_password">Change password</span></a>
+						<a href="" id="api_documentation_link" class="api-explorer-link footer-link-box__link" data-lift="WebUI.apiExplorerLink"><lift:loc locid="api_documentation">API Documentation</lift:loc></a>
+						<a href="" id="reset-password-link" data-lift="WebUI.setForgottenPasswordLink" class="api-explorer-link footer-link-box__link"><lift:loc locid="forgotten_password">Forgotten password?</lift:loc></a>
+						<a href="" id="change-password-link" data-lift="WebUI.setChangePasswordLink" class="api-explorer-link footer-link-box__link"><lift:loc locid="change_password">Change password</lift:loc></a>
 					</div>
 			</footer>
 

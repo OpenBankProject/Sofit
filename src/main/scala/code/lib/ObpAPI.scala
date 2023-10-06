@@ -3,22 +3,28 @@ package code.lib
 import java.io._
 import java.lang
 import java.net.{HttpURLConnection, URL}
+import java.security.Security
 import java.text.SimpleDateFormat
 import java.time.{ZoneId, ZonedDateTime}
-import java.util.Date
 import java.util.UUID.randomUUID
+import java.util.{Date, UUID}
 
 import code.Constant._
 import code.lib.ObpJson.{CurrentUserJson, _}
 import code.util.Helper.MdcLoggable
-import net.liftweb.common.{Box, Empty, Failure, Full, ParamFailure}
-import net.liftweb.http.provider.HTTPCookie
-import net.liftweb.http.{RequestVar, S}
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton
+import com.nimbusds.jose.crypto.{ECDSASigner, RSASSASigner}
+import com.nimbusds.jose.jwk.{ECKey, JWK, RSAKey}
+import com.nimbusds.jose.{JOSEException, JWSAlgorithm, JWSHeader, JWSSigner}
+import com.nimbusds.jwt.{JWTClaimsSet, SignedJWT}
+import net.liftweb.common._
+import net.liftweb.http.RequestVar
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json.JsonDSL._
-import net.liftweb.json.{JObject, _}
+import net.liftweb.json.{JObject, compactRender, _}
 import net.liftweb.util.Helpers._
 import net.liftweb.util.Props
+import okhttp3.MediaType
 
 import scala.collection.immutable.List
 import scala.xml.NodeSeq
@@ -533,6 +539,83 @@ object ObpAPI extends MdcLoggable {
 
 }
 
+object IdentityProviderRequest extends MdcLoggable {
+
+  val clientId = Props.get("obp_consumer_key", "")
+  val clientSecret = Props.get("obp_secret_key", "")
+  val tokenEndpoint = Props.get("identity_provider_token_endpoint", "http://127.0.0.1:4444/oauth2/token")
+  val jwsAlg = Props.get("oauth2.jws_alg", "ES256")
+  val jwkPrivateKey = Props.get("oauth2.jwk_private_key")
+
+  val jwk: Option[JWK] = jwkPrivateKey.map(JWK.parse(_))
+  lazy val jwsSigner: Option[JWSSigner] = {
+    if (jwkPrivateKey.isDefined) {
+      if (jwsAlg.startsWith("ES")) Some(new ECDSASigner(jwk.get.asInstanceOf[ECKey]))
+      else {
+        if (jwsAlg.startsWith("PS")) Security.addProvider(BouncyCastleProviderSingleton.getInstance)
+        val privateKey = jwk.get.asInstanceOf[RSAKey]
+        Some(new RSASSASigner(privateKey))
+      }
+    } else {
+      None
+    }
+  }
+
+
+  private def signClaims(claimsSet: JWTClaimsSet) = {
+    val jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.parse(jwsAlg)).keyID(jwk.get.getKeyID).build, claimsSet)
+    // Sign with private EC key
+    try jwt.sign(jwsSigner.get)
+    catch {
+      case e: JOSEException =>
+        println(e)
+    }
+    jwt.serialize
+  }
+
+  def buildClientAssertion: String = { // JWT claims
+    //iss: REQUIRED. Issuer. This MUST contain the client_id of the OAuth Client.
+    //sub: REQUIRED. Subject. This MUST contain the client_id of the OAuth Client.
+    //aud: REQUIRED. Audience. The aud (audience) Claim. Value that identifies the Authorization Server (ORY Hydra) as an intended audience. The Authorization Server MUST verify that it is an intended audience for the token. The Audience SHOULD be the URL of the Authorization Server's Token Endpoint.
+    //jti: REQUIRED. JWT ID. A unique identifier for the token, which can be used to prevent reuse of the token. These tokens MUST only be used once, unless conditions for reuse were negotiated between the parties; any such negotiation is beyond the scope of this specification.
+    //exp: REQUIRED. Expiration time on or after which the ID Token MUST NOT be accepted for processing.
+    //iat: OPTIONAL. Time at which the JWT was issued.
+    val claimsSet = new JWTClaimsSet.Builder()
+      .issuer(clientId).subject(clientId).audience(tokenEndpoint)
+      .jwtID(UUID.randomUUID.toString)
+      .expirationTime(new Date(new Date().getTime + 60 * 1000))
+      .issueTime(new Date).build
+    signClaims(claimsSet)
+  }
+
+  def isPublicClient() = jwkPrivateKey.isDefined
+
+  def obtainAccessToken() = {
+    import okhttp3.{OkHttpClient, Request, RequestBody}
+    val client = new OkHttpClient().newBuilder.build
+    val mediaType = MediaType.parse("application/x-www-form-urlencoded;charset=UTF-8")
+    val grantType = "client_credentials"
+
+
+    val body = isPublicClient match {
+      case true =>
+        RequestBody.create(mediaType, s"grant_type=$grantType&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer&client_assertion=$buildClientAssertion")
+      case false =>
+        RequestBody.create(mediaType, s"grant_type=$grantType&client_id=$clientId&client_secret=$clientSecret")
+    }
+
+    val request = new Request.Builder()
+      .url(tokenEndpoint).method("POST", body)
+      .addHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8").build
+    val response = client.newCall(request).execute
+    val responseBody = response.body.string
+    response.close()
+    responseBody
+  }
+
+}
+
+
 case class ObpError(error :String)
 
 object OBPRequest extends MdcLoggable {
@@ -545,6 +628,13 @@ object OBPRequest extends MdcLoggable {
       val url = new URL(apiUrl + apiPath)
       logger.info(s"OBP Server Request URL: ${url.getHost}${url.getPath}")
 
+      def addAppAccessIfNecessary: List[Header] = {
+        if (!OAuthClient.loggedIn) {
+          Header("Authorization", s"Bearer $obtainAccessToken") :: headers
+        } else {
+          headers
+        }
+      }
 
       val request = SSLHelper.getConnection(apiUrl + apiPath)
       request.setDoOutput(true)
@@ -553,7 +643,7 @@ object OBPRequest extends MdcLoggable {
       request.setRequestProperty("Accept", "application/json")
       request.setRequestProperty("Accept-Charset", "UTF-8")
 
-      headers.foreach(header => request.setRequestProperty(header.key, header.value))
+      addAppAccessIfNecessary.foreach(header => request.setRequestProperty(header.key, header.value))
 
       //sign the request if we have some credentials to sign it with
       credentials.foreach(c => c.consumer.sign(request))
@@ -596,6 +686,13 @@ object OBPRequest extends MdcLoggable {
       }
       case _ => Unit
     }
+  }
+  private def obtainAccessToken: String = {
+    val jsonResponse = IdentityProviderRequest.obtainAccessToken()
+    import net.liftweb.json._
+    val jsonAst = parse(jsonResponse) \ "access_token"
+    val accessToken = compactRender(jsonAst).stripPrefix("\"").stripSuffix("\"")
+    accessToken
   }
 
 }

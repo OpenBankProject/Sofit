@@ -42,7 +42,7 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 	<section class="account-info account-info--public">
 		<div class="account-info__box account-info__box--views">
 			<div class="account-info__top-wrapper" data-lift="CreateIncome.accountTitle" >
-				<h2 id="account-overview" class="account-info__box-headline account-overview"><span class="lift:Loc.add_income">Add income</span></h2>
+				<h2 id="account-overview" class="account-info__box-headline account-overview"><lift:loc locid="add_income">Add income</lift:loc></h2>
 				<h3 id="account-title" class="account-info__box-headline account-title">ACCOUNT</h3>
 				<div data-lift="embed?what=_nav_account_settings"></div>
 			</div>
@@ -51,19 +51,19 @@ e.g. http://localhost:8080/banks/bnpparibas-fr/accounts/1219682756/settings
 				<form data-lift="form.ajax">
 					<div class="form-group">
 						<label for="income_description">
-							<h4><span class="lift:Loc.income_description">Income description</span></h4>
+							<h4><lift:loc locid="income_description">Income description</lift:loc></h4>
 						</label>
 						<input class="form-control" type="text" id="income_description" name="income_description"/>
 					<div class="form-group">
 					</div>
 						<label for="income_amount">
-							<h4><span class="lift:Loc.income_amount">Income amount</span></h4>
+							<h4><lift:loc locid="income_amount">Income amount</lift:loc></h4>
 						</label>
 						<input class="form-control" id="income_amount" name="income_amount"/>
 					</div>
 					<div class="form-group">
 						<label for="income_category">
-							<h4><span class="lift:Loc.income_category">Category</span></h4>
+							<h4><lift:loc locid="income_category">Category</lift:loc></h4>
 						</label>
 						<select class="form-control" name="income_category" id="income_category">
 							<option value="">none</option>
